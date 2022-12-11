@@ -35,488 +35,241 @@ class Simulation {
       this.refresh_rate = 10});
 
   Map<String, double> get variables {
+    double k10 = 0,
+        k12 = 0,
+        k13 = 0,
+        k21 = 0,
+        k31 = 0,
+        ke0 = 0,
+        V1 = 0,
+        V2 = 0,
+        V3 = 0;
     if (model == Model.Paedfusor) {
-      double steps_per_min = 60 / refresh_rate; //number of steps in one minute
+      k10 = 0.1527 * pow(weight, -0.3); // per min;
+      k12 = 0.114; // per min
+      k13 = 0.0419; // per min
+      k21 = 0.055; // per min
+      k31 = 0.0033; // per min
+      ke0 = 0.26; // per min
 
-      double k10 = 0.1527 * pow(weight, -0.3) / steps_per_min;
-      double k12 = 0.114 / steps_per_min;
-      double k13 = 0.0419 / steps_per_min;
-      double k21 = 0.055 / steps_per_min;
-      double k31 = 0.0033 / steps_per_min;
-      double ke0 = 0.26 / steps_per_min;
-
-      double V1 = 0.4584 * weight;
-      double V2 = V1 * k12 / k21;
-      double V3 = V1 * k13 / k31;
+      V1 = 0.4584 * weight;
+      V2 = V1 * k12 / k21;
+      V3 = V1 * k13 / k31;
 
       if (age == 13) {
-        k10 = 0.0678 / steps_per_min;
+        k10 = 0.0678; // per min
 
         V1 = 0.4 * weight;
         V2 = V1 * k12 / k21;
         V3 = V1 * k13 / k31;
       } else if (age == 14) {
-        k10 = 0.0792 / steps_per_min;
+        k10 = 0.0792; // per min
 
         V1 = 0.342 * weight;
         V2 = V1 * k12 / k21;
         V3 = V1 * k13 / k31;
       } else if (age == 15) {
-        k10 = 0.0954 / steps_per_min;
+        k10 = 0.0954; // per min
 
         V1 = 0.284 * weight;
         V2 = V1 * k12 / k21;
         V3 = V1 * k13 / k31;
       } else if (age == 16) {
-        k10 = 0.119 / steps_per_min;
+        k10 = 0.119; // per min
 
         V1 = 0.22857 * weight;
         V2 = V1 * k12 / k21;
         V3 = V1 * k13 / k31;
       }
-
-      double Cl1 = k10 * V1;
-      double Cl2 = k21 * V2;
-      double Cl3 = k31 * V3;
-
-      double a0 = k10 * k21 * k31;
-      double a1 = k10 * k31 + k21 * k31 + k21 * k13 + k10 * k21 + k31 * k12;
-      double a2 = k10 + k12 + k13 + k21 + k31;
-
-      double p = a1 - (a2 * a2 / 3);
-      double q = (2 * a2 * a2 * a2 / 27) - (a1 * a2 / 3) + a0;
-
-      double r1 = sqrt(-(p * p * p) / 27);
-      double phi = acos((-q / 2) / r1) / 3;
-      double r2 = 2 * pow(e, (log(r1) / 3)) as double;
-
-      double root1 = -(cos(phi) * r2 - a2 / 3);
-      double root2 = -(cos(phi + 2 * pi / 3) * r2 - a2 / 3);
-      double root3 = -(cos(phi + 4 * pi / 3) * r2 - a2 / 3);
-
-      List<double> arr = <double>[root1, root2, root3];
-      arr.sort();
-
-      double lambda1, lambda2, lambda3, l1, l2, l3;
-      lambda1 = l1 = arr[2];
-      lambda2 = l2 = arr[1];
-      lambda3 = l3 = arr[0];
-
-      double A1, A2, A3, C1, C2, C3;
-      A1 = C1 = (k21 - l1) * (k31 - l1) / (l1 - l2) / (l1 - l3) / V1;
-      A2 = C2 = (k21 - l2) * (k31 - l2) / (l2 - l1) / (l2 - l3) / V1;
-      A3 = C3 = (k21 - l3) * (k31 - l3) / (l3 - l2) / (l3 - l1) / V1;
-
-      double CoefCe1 = (-ke0 * A1) / (l1 - ke0);
-      double CoefCe2 = (-ke0 * A2) / (l2 - ke0);
-      double CoefCe3 = (-ke0 * A3) / (l3 - ke0);
-      double CoefCe4 = -(CoefCe1 + CoefCe2 + CoefCe3);
-
-      double udf = A1 + A2 + A3;
-
-      return {
-        'V1': V1,
-        'V2': V2,
-        'V3': V3,
-        'k10': k10,
-        'k12': k12,
-        'k13': k13,
-        'k21': k21,
-        'k31': k31,
-        'ke0': ke0,
-        'a0': a0,
-        'a1': a1,
-        'a2': a2,
-        'p': p,
-        'q': q,
-        'r1': r1,
-        'r2': r2,
-        'l1': l1,
-        'l2': l2,
-        'l3': l3,
-        'A1': A1,
-        'A2': A2,
-        'A3': A3,
-        'CoefCe1': CoefCe1,
-        'CoefCe2': CoefCe2,
-        'CoefCe3': CoefCe3,
-        'CoefCe4': CoefCe4,
-        'Cl1': Cl1,
-        'Cl2': Cl2,
-        'Cl3': Cl3,
-        'udf': udf
-      };
     } else if (model == Model.Kataria) {
-      double steps_per_min = 60 / refresh_rate; //number of steps in one minute
+      k10 = 0.085; // per min
+      k12 = 0.188; // per min
+      k13 = 0.063; // per min
+      k21 = 0.102; // per min
+      k31 = 0.0038; // per min
+      ke0 = 0; // per min
 
-      double k10 = 0.085 / steps_per_min;
-      double k12 = 0.188 / steps_per_min;
-      double k13 = 0.063 / steps_per_min;
-      double k21 = 0.102 / steps_per_min;
-      double k31 = 0.0038 / steps_per_min;
-      double ke0 = 0 / steps_per_min;
-
-      double V1 = 0.41 * weight;
-      double V2 = 0.78 * weight + 3.1 * age;
-      double V3 = 6.9 * weight;
-
-      double Cl1 = k10 * V1;
-      double Cl2 = k21 * V2;
-      double Cl3 = k31 * V3;
-
-      double a0 = k10 * k21 * k31;
-      double a1 = k10 * k31 + k21 * k31 + k21 * k13 + k10 * k21 + k31 * k12;
-      double a2 = k10 + k12 + k13 + k21 + k31;
-
-      double p = a1 - (a2 * a2 / 3);
-      double q = (2 * a2 * a2 * a2 / 27) - (a1 * a2 / 3) + a0;
-
-      double r1 = sqrt(-(p * p * p) / 27);
-      double phi = acos((-q / 2) / r1) / 3;
-      double r2 = 2 * pow(e, (log(r1) / 3)) as double;
-
-      double root1 = -(cos(phi) * r2 - a2 / 3);
-      double root2 = -(cos(phi + 2 * pi / 3) * r2 - a2 / 3);
-      double root3 = -(cos(phi + 4 * pi / 3) * r2 - a2 / 3);
-
-      List<double> arr = <double>[root1, root2, root3];
-      arr.sort();
-
-      double lambda1, lambda2, lambda3, l1, l2, l3;
-      lambda1 = l1 = arr[2];
-      lambda2 = l2 = arr[1];
-      lambda3 = l3 = arr[0];
-
-      double A1, A2, A3, C1, C2, C3;
-      A1 = C1 = (k21 - l1) * (k31 - l1) / (l1 - l2) / (l1 - l3) / V1;
-      A2 = C2 = (k21 - l2) * (k31 - l2) / (l2 - l1) / (l2 - l3) / V1;
-      A3 = C3 = (k21 - l3) * (k31 - l3) / (l3 - l2) / (l3 - l1) / V1;
-
-      double CoefCe1 = (-ke0 * A1) / (l1 - ke0);
-      double CoefCe2 = (-ke0 * A2) / (l2 - ke0);
-      double CoefCe3 = (-ke0 * A3) / (l3 - ke0);
-      double CoefCe4 = -(CoefCe1 + CoefCe2 + CoefCe3);
-
-      double udf = A1 + A2 + A3;
-
-      return {
-        'V1': V1,
-        'V2': V2,
-        'V3': V3,
-        'k10': k10,
-        'k12': k12,
-        'k13': k13,
-        'k21': k21,
-        'k31': k31,
-        'ke0': ke0,
-        'a0': a0,
-        'a1': a1,
-        'a2': a2,
-        'p': p,
-        'q': q,
-        'r1': r1,
-        'r2': r2,
-        'l1': l1,
-        'l2': l2,
-        'l3': l3,
-        'A1': A1,
-        'A2': A2,
-        'A3': A3,
-        'CoefCe1': CoefCe1,
-        'CoefCe2': CoefCe2,
-        'CoefCe3': CoefCe3,
-        'CoefCe4': CoefCe4,
-        'Cl1': Cl1,
-        'Cl2': Cl2,
-        'Cl3': Cl3,
-        'udf': udf
-      };
+      V1 = 0.41 * weight;
+      V2 = 0.78 * weight + 3.1 * age;
+      V3 = 6.9 * weight;
     } else if (model == Model.Marsh) {
-      double steps_per_min = 60 / refresh_rate; //number of steps in one minute
+      k10 = 0.119; // per min
+      k12 = 0.112; // per min
+      k13 = 0.042; // per min
+      k21 = 0.055; // per min
+      k31 = 0.0033; // per min
+      ke0 = 1.2; // per min
 
-      double k10 = 0.119 / steps_per_min;
-      double k12 = 0.112 / steps_per_min;
-      double k13 = 0.042 / steps_per_min;
-      double k21 = 0.055 / steps_per_min;
-      double k31 = 0.0033 / steps_per_min;
-      double ke0 = 1.2 / steps_per_min;
-
-      double V1 = 0.228 * weight;
-      double V2 = 0.463 * weight;
-      double V3 = 2.893 * weight;
-
-      double Cl1 = k10 * V1;
-      double Cl2 = k21 * V2;
-      double Cl3 = k31 * V3;
-
-      double a0 = k10 * k21 * k31;
-      double a1 = k10 * k31 + k21 * k31 + k21 * k13 + k10 * k21 + k31 * k12;
-      double a2 = k10 + k12 + k13 + k21 + k31;
-
-      double p = a1 - (a2 * a2 / 3);
-      double q = (2 * a2 * a2 * a2 / 27) - (a1 * a2 / 3) + a0;
-
-      double r1 = sqrt(-(p * p * p) / 27);
-      double phi = acos((-q / 2) / r1) / 3;
-      double r2 = 2 * pow(e, (log(r1) / 3)) as double;
-
-      double root1 = -(cos(phi) * r2 - a2 / 3);
-      double root2 = -(cos(phi + 2 * pi / 3) * r2 - a2 / 3);
-      double root3 = -(cos(phi + 4 * pi / 3) * r2 - a2 / 3);
-
-      List<double> arr = <double>[root1, root2, root3];
-      arr.sort();
-
-      double lambda1, lambda2, lambda3, l1, l2, l3;
-      lambda1 = l1 = arr[2];
-      lambda2 = l2 = arr[1];
-      lambda3 = l3 = arr[0];
-
-      double A1, A2, A3, C1, C2, C3;
-      A1 = C1 = (k21 - l1) * (k31 - l1) / (l1 - l2) / (l1 - l3) / V1;
-      A2 = C2 = (k21 - l2) * (k31 - l2) / (l2 - l1) / (l2 - l3) / V1;
-      A3 = C3 = (k21 - l3) * (k31 - l3) / (l3 - l2) / (l3 - l1) / V1;
-
-      double CoefCe1 = (-ke0 * A1) / (l1 - ke0);
-      double CoefCe2 = (-ke0 * A2) / (l2 - ke0);
-      double CoefCe3 = (-ke0 * A3) / (l3 - ke0);
-      double CoefCe4 = -(CoefCe1 + CoefCe2 + CoefCe3);
-
-      double udf = A1 + A2 + A3;
-
-      return {
-        'V1': V1,
-        'V2': V2,
-        'V3': V3,
-        'k10': k10,
-        'k12': k12,
-        'k13': k13,
-        'k21': k21,
-        'k31': k31,
-        'ke0': ke0,
-        'a0': a0,
-        'a1': a1,
-        'a2': a2,
-        'p': p,
-        'q': q,
-        'r1': r1,
-        'r2': r2,
-        'l1': l1,
-        'l2': l2,
-        'l3': l3,
-        'A1': A1,
-        'A2': A2,
-        'A3': A3,
-        'CoefCe1': CoefCe1,
-        'CoefCe2': CoefCe2,
-        'CoefCe3': CoefCe3,
-        'CoefCe4': CoefCe4,
-        'Cl1': Cl1,
-        'Cl2': Cl2,
-        'Cl3': Cl3,
-        'udf': udf
-      };
+      V1 = 0.228 * weight;
+      V2 = 0.463 * weight;
+      V3 = 2.893 * weight;
     } else if (model == Model.Schnider) {
-      // Configure Temporal Variables
-      int steps_per_min =
-          (60 / refresh_rate).toInt(); //number of steps in one minute
+      V1 = 4.27; //litre
+      V2 = 18.9 - 0.391 * (age - 53); //litre
+      V3 = 238.0; //litre
 
-      double lbm = calc_LBM;
-
-      //Calculate Model Variables
-      double V1 = 4.27; //litre
-      double V2 = 18.9 - 0.391 * (age - 53); //litre
-      double V3 = 238.0; //litre
-
-      double k10 = (0.443 +
-              0.0107 * (weight - 77) -
-              0.0159 * (lbm - 59) +
-              0.0062 * (height - 177)) /
-          steps_per_min;
-
-      double k12 = (0.302 - 0.0056 * (age - 53)) / steps_per_min;
-      double k13 = 0.196 / steps_per_min;
-      double k21 = (1.29 - 0.024 * (age - 53)) /
-          (18.9 - 0.391 * (age - 53)) /
-          steps_per_min;
-      double k31 = 0.0035 / steps_per_min;
-      double ke0 = 0.456 / steps_per_min;
-      // t_half_keo = np.log(2) / (ke0 * steps_per_min) //deprecated
-
-      double Cl1 = k10 * V1; //litre / steps per min
-      double Cl2 = k21 * V2; //litre / steps per min
-      double Cl3 = k31 * V3; //litre / steps per min
-
-      double a0 = k10 * k21 * k31;
-      double a1 = k10 * k31 + k21 * k31 + k21 * k13 + k10 * k21 + k31 * k12;
-      double a2 = k10 + k12 + k13 + k21 + k31;
-
-      double p = a1 - (a2 * a2 / 3);
-      double q = (2 * a2 * a2 * a2 / 27) - (a1 * a2 / 3) + a0;
-
-      double r1 = sqrt(-(p * p * p) / 27);
-      double r2 = 2 * pow(e, (log(r1) / 3)).toDouble();
-      double phi = acos((-q / 2) / r1) / 3;
-
-      double root1 = -(cos(phi) * r2 - a2 / 3);
-      double root2 = -(cos(phi + 2 * pi / 3) * r2 - a2 / 3);
-      double root3 = -(cos(phi + 4 * pi / 3) * r2 - a2 / 3);
-
-      List<double> arr = <double>[root1, root2, root3];
-      arr.sort();
-
-      double lambda1, lambda2, lambda3, l1, l2, l3;
-      lambda1 = l1 = arr[2];
-      lambda2 = l2 = arr[1];
-      lambda3 = l3 = arr[0];
-
-      double A1, A2, A3, C1, C2, C3;
-      A1 = C1 = (k21 - l1) * (k31 - l1) / (l1 - l2) / (l1 - l3) / V1;
-      A2 = C2 = (k21 - l2) * (k31 - l2) / (l2 - l1) / (l2 - l3) / V1;
-      A3 = C3 = (k21 - l3) * (k31 - l3) / (l3 - l2) / (l3 - l1) / V1;
-
-      double CoefCe1 = (-ke0 * A1) / (l1 - ke0);
-      double CoefCe2 = (-ke0 * A2) / (l2 - ke0);
-      double CoefCe3 = (-ke0 * A3) / (l3 - ke0);
-      double CoefCe4 = -(CoefCe1 + CoefCe2 + CoefCe3);
-
-      double udf = A1 + A2 + A3;
-
-      return {
-        'V1': V1,
-        'V2': V2,
-        'V3': V3,
-        'k10': k10,
-        'k12': k12,
-        'k13': k13,
-        'k21': k21,
-        'k31': k31,
-        'ke0': ke0,
-        'a0': a0,
-        'a1': a1,
-        'a2': a2,
-        'p': p,
-        'q': q,
-        'r1': r1,
-        'r2': r2,
-        'l1': l1,
-        'l2': l2,
-        'l3': l3,
-        'A1': A1,
-        'A2': A2,
-        'A3': A3,
-        'CoefCe1': CoefCe1,
-        'CoefCe2': CoefCe2,
-        'CoefCe3': CoefCe3,
-        'CoefCe4': CoefCe4,
-        'Cl1': Cl1,
-        'Cl2': Cl2,
-        'Cl3': Cl3,
-        'udf': udf
-      };
-    } else if (model == Model.Eleveld) {
-      // Configure Temporal Variables
-      int steps_per_min =
-      (60 / refresh_rate).toInt(); //number of steps in one minute
-
-      double lbm = calc_LBM;
-
-      //Calculate Model Variables
-      double V1 = 4.27; //litre
-      double V2 = 18.9 - 0.391 * (age - 53); //litre
-      double V3 = 238.0; //litre
-
-      double k10 = (0.443 +
+      k10 = (0.443 +
           0.0107 * (weight - 77) -
           0.0159 * (lbm - 59) +
-          0.0062 * (height - 177)) /
-          steps_per_min;
+          0.0062 * (height - 177)); // per min
 
-      double k12 = (0.302 - 0.0056 * (age - 53)) / steps_per_min;
-      double k13 = 0.196 / steps_per_min;
-      double k21 = (1.29 - 0.024 * (age - 53)) /
-          (18.9 - 0.391 * (age - 53)) /
-          steps_per_min;
-      double k31 = 0.0035 / steps_per_min;
-      double ke0 = 0.456 / steps_per_min;
+      k12 = (0.302 - 0.0056 * (age - 53)); // per min
+      k13 = 0.196; // per min
+      k21 =
+          (1.29 - 0.024 * (age - 53)) / (18.9 - 0.391 * (age - 53)); // per min
+      k31 = 0.0035; // per min
+      ke0 = 0.456; // per min
       // t_half_keo = np.log(2) / (ke0 * steps_per_min) //deprecated
 
-      double Cl1 = k10 * V1; //litre / steps per min
-      double Cl2 = k21 * V2; //litre / steps per min
-      double Cl3 = k31 * V3; //litre / steps per min
+    }
+    double Cl1 = k10 * V1; //litre / steps per min
+    double Cl2 = k21 * V2; //litre / steps per min
+    double Cl3 = k31 * V3; //litre / steps per min
 
-      double a0 = k10 * k21 * k31;
-      double a1 = k10 * k31 + k21 * k31 + k21 * k13 + k10 * k21 + k31 * k12;
-      double a2 = k10 + k12 + k13 + k21 + k31;
+    if (model == Model.Eleveld) {
+      bool opioid = true; // arbitralily set YES to intraop opioids
 
-      double p = a1 - (a2 * a2 / 3);
-      double q = (2 * a2 * a2 * a2 / 27) - (a1 * a2 / 3) + a0;
+      //Below is the SimTIVA's version
+      // V1 = 6.28 * central(weight) / central(70);
+      // V2 = 25.5 * weight / 70 * ageing(-0.0156, age);
+      // double V2ref = 25.5;
+      // double V3ref = 273; //Note from simTIVAjust use this from the table
+      // double ffmref = (0.88 + (1 - 0.88) / (1 + pow((35 / 13.4), -12.7))) *
+      //     ((9270 * 70) / (6680 + 216 * 24.22145));
+      // if (opioid == true) {
+      //   V3 = 273 *
+      //       ffm(weight, height, age, gender) /
+      //       ffmref *
+      //       exp(-0.0138 * age);
+      // } else {
+      //   V3 = 273 * ffm(weight, height, age, gender) / ffmref;
+      // }
+      // if (gender == Gender.Male) {
+      //   Cl1 = 1.79 *
+      //       pow((weight / 70), 0.75) *
+      //       (clmaturation(pma) / clmaturation(35 * year_to_weeks + 40)) *
+      //       exp(-0.00286 * age) /
+      //       steps_per_min;
+      // } else {
+      //   Cl1 = 2.1 *
+      //       pow((weight / 70), 0.75) *
+      //       (clmaturation(pma) / clmaturation(35 * year_to_weeks + 40)) *
+      //       exp(-0.00286 * age) /
+      //       steps_per_min;
+      // }
+      // Cl2 = 1.75 *
+      //     pow((V2 / V2ref), 0.75) *
+      //     (1 + 1.3 * (1 - q3maturation(age * year_to_weeks))) /
+      //     steps_per_min;
+      // Cl3 = 1.11 *
+      //     pow((V3 / V3ref), 0.75) *
+      //     (q3maturation(age * year_to_weeks) /
+      //         q3maturation(35 * year_to_weeks)) /
+      //     steps_per_min;
 
-      double r1 = sqrt(-(p * p * p) / 27);
-      double r2 = 2 * pow(e, (log(r1) / 3)).toDouble();
-      double phi = acos((-q / 2) / r1) / 3;
+      V1 = 6.28 * (weight / (weight + 33.6)) / (0.675675675676);
+      V2 = 25.5 * (weight / 70) * exp(-0.0156 * (age - 35));
 
-      double root1 = -(cos(phi) * r2 - a2 / 3);
-      double root2 = -(cos(phi + 2 * pi / 3) * r2 - a2 / 3);
-      double root3 = -(cos(phi + 4 * pi / 3) * r2 - a2 / 3);
+      V3 = 273 * ffm * (opioid ? exp(-0.0138 * age) : 1) / 54.4752059601377;
 
-      List<double> arr = <double>[root1, root2, root3];
-      arr.sort();
+      Cl1 = ((gender == Gender.Male ? 1.79 : 2.1) *
+              (pow((weight / 70), 0.75)) *
+              (pow(pma, 9.06)) /
+              (pow(pma, 9.06) + pow(42.3, 9.06))) *
+          (opioid ? exp(-0.00286 * age) : 1);
 
-      double lambda1, lambda2, lambda3, l1, l2, l3;
-      lambda1 = l1 = arr[2];
-      lambda2 = l2 = arr[1];
-      lambda3 = l3 = arr[0];
+      Cl2 = 1.75 *
+          (pow(((25.5 * (weight / 70) * exp(-0.0156 * (age - 35))) / 25.5),
+              0.75)) *
+          (1 + 1.3 * (1 - pma / (pma + 68.3)));
 
-      double A1, A2, A3, C1, C2, C3;
-      A1 = C1 = (k21 - l1) * (k31 - l1) / (l1 - l2) / (l1 - l3) / V1;
-      A2 = C2 = (k21 - l2) * (k31 - l2) / (l2 - l1) / (l2 - l3) / V1;
-      A3 = C3 = (k21 - l3) * (k31 - l3) / (l3 - l2) / (l3 - l1) / V1;
+      Cl3 = 1.11 *
+          (pow((ffm * (opioid ? exp(-0.0138 * age) : 1) / 54.4752059601377),
+              0.75)) *
+          (pma / (pma + 68.3) / 0.964695544);
 
-      double CoefCe1 = (-ke0 * A1) / (l1 - ke0);
-      double CoefCe2 = (-ke0 * A2) / (l2 - ke0);
-      double CoefCe3 = (-ke0 * A3) / (l3 - ke0);
-      double CoefCe4 = -(CoefCe1 + CoefCe2 + CoefCe3);
-
-      double udf = A1 + A2 + A3;
-
-      return {
-        'V1': V1,
-        'V2': V2,
-        'V3': V3,
-        'k10': k10,
-        'k12': k12,
-        'k13': k13,
-        'k21': k21,
-        'k31': k31,
-        'ke0': ke0,
-        'a0': a0,
-        'a1': a1,
-        'a2': a2,
-        'p': p,
-        'q': q,
-        'r1': r1,
-        'r2': r2,
-        'l1': l1,
-        'l2': l2,
-        'l3': l3,
-        'A1': A1,
-        'A2': A2,
-        'A3': A3,
-        'CoefCe1': CoefCe1,
-        'CoefCe2': CoefCe2,
-        'CoefCe3': CoefCe3,
-        'CoefCe4': CoefCe4,
-        'Cl1': Cl1,
-        'Cl2': Cl2,
-        'Cl3': Cl3,
-        'udf': udf
-      };
+      k10 = Cl1 / V1;
+      k12 = Cl2 / V1;
+      k13 = Cl3 / V1;
+      k21 = Cl2 / V2;
+      k31 = Cl3 / V3;
+      ke0 = 0.146 * pow((weight / 70), -0.25);
     }
 
-    else {
-      return {'error': 404};
-    }
+    double ce50 = 3.08 * exp(-0.00635 * (age - 35));
+    double baseline_BIS = 93;
+    double delay_BIS = 15 + exp(0.0517 * (age - 35));
+
+    double a0 = k10 * k21 * k31;
+    double a1 = k10 * k31 + k21 * k31 + k21 * k13 + k10 * k21 + k31 * k12;
+    double a2 = k10 + k12 + k13 + k21 + k31;
+
+    double p = a1 - (a2 * a2 / 3);
+    double q = (2 * a2 * a2 * a2 / 27) - (a1 * a2 / 3) + a0;
+
+    double r1 = sqrt(-(p * p * p) / 27);
+    double r2 = 2 * pow(e, (log(r1) / 3)).toDouble();
+    double phi = acos((-q / 2) / r1) / 3;
+
+    double root1 = -(cos(phi) * r2 - a2 / 3);
+    double root2 = -(cos(phi + 2 * pi / 3) * r2 - a2 / 3);
+    double root3 = -(cos(phi + 4 * pi / 3) * r2 - a2 / 3);
+
+    List<double> arr = <double>[root1, root2, root3];
+    arr.sort();
+
+    double lambda1, lambda2, lambda3, l1, l2, l3;
+    lambda1 = l1 = arr[2];
+    lambda2 = l2 = arr[1];
+    lambda3 = l3 = arr[0];
+
+    double A1, A2, A3, C1, C2, C3;
+    A1 = C1 = (k21 - l1) * (k31 - l1) / (l1 - l2) / (l1 - l3) / V1;
+    A2 = C2 = (k21 - l2) * (k31 - l2) / (l2 - l1) / (l2 - l3) / V1;
+    A3 = C3 = (k21 - l3) * (k31 - l3) / (l3 - l2) / (l3 - l1) / V1;
+
+    double CoefCe1 = (-ke0 * A1) / (l1 - ke0);
+    double CoefCe2 = (-ke0 * A2) / (l2 - ke0);
+    double CoefCe3 = (-ke0 * A3) / (l3 - ke0);
+    double CoefCe4 = -(CoefCe1 + CoefCe2 + CoefCe3);
+
+    double udf = A1 + A2 + A3;
+
+    return {
+      'V1': V1,
+      'V2': V2,
+      'V3': V3,
+      'k10': k10,
+      'k12': k12,
+      'k13': k13,
+      'k21': k21,
+      'k31': k31,
+      'ke0': ke0,
+      'a0': a0,
+      'a1': a1,
+      'a2': a2,
+      'p': p,
+      'q': q,
+      'r1': r1,
+      'r2': r2,
+      'l1': l1,
+      'l2': l2,
+      'l3': l3,
+      'A1': A1,
+      'A2': A2,
+      'A3': A3,
+      'CoefCe1': CoefCe1,
+      'CoefCe2': CoefCe2,
+      'CoefCe3': CoefCe3,
+      'CoefCe4': CoefCe4,
+      'Cl1': Cl1,
+      'Cl2': Cl2,
+      'Cl3': Cl3,
+      'ce50': ce50,
+      'baseline_BIS': baseline_BIS,
+      'delay_BIS': delay_BIS,
+      'udf': udf
+    };
   }
 
   Map<String, dynamic> simulate(
@@ -689,6 +442,7 @@ class Simulation {
     return cum_sums;
   }
 
+  //Deprecated
   Map<String, double> get cacl_peak_Ce {
     //Unpack model variables
     //1 second refresh rate for calculating Peak Ce to achieve the most accurate result
@@ -737,7 +491,7 @@ class Simulation {
     return {'peak_Ce': peak_Ce, 'peak_TTPE': peak_TTPE};
   }
 
-  double get calc_LBM {
+  double get lbm {
     if (gender == Gender.Female) {
       return 1.07 * weight - 148 * pow((weight / height), 2);
     } else if (gender == Gender.Male) {
@@ -745,4 +499,116 @@ class Simulation {
     }
     return 0.0;
   }
+
+  // double sigmoid(x, y, z) {
+  //   return pow(x, z) / (pow(x, z) + pow(y, z));
+  // }
+  //
+  // double central(x) {
+  //   return sigmoid(x, 33.6, 1);
+  // }
+  //
+  // double ageing(x, age) {
+  //   return exp(x * (age - 35));
+  // }
+  //
+  // double clmaturation(x) {
+  //   return sigmoid(x, 42.3, 9.06);
+  // }
+
+  //Note from simTIVA: age already converted to weeks
+  // double q3maturation(x) {
+  //   return sigmoid(x + 40, 68.3, 1);
+  // }
+
+  double get bmi {
+    return (weight / pow((height / 100), 2));
+  }
+
+  //fat-free mass
+  double get ffm {
+    double b = bmi;
+    if (gender == Gender.Male) {
+      return (0.88 + (1 - 0.88) / (1 + pow((age / 13.4), -12.7))) *
+          ((9270 * weight) / (6680 + 216 * b));
+    } else {
+      return (1.11 + (1 - 1.11) / (1 + pow((age / 7.1), -1.1))) *
+          ((9270 * weight) / (8780 + 244 * b));
+    }
+  }
+
+  //arbitrarily set pma 40 weeks +age
+  double get pma {
+    return age * 52.143 + 40;
+  }
+
+  double get calibrated_effect {
+    int time_step = 1; //sec
+    int step = 0;
+    int duration = 720;
+
+    double k21 = variables['k21'] as double;
+    double k31 = variables['k31'] as double;
+    double k10 = variables['k10'] as double;
+    double k12 = variables['k12'] as double;
+    double k13 = variables['k13'] as double;
+    double V1 = variables['V1'] as double;
+    double ke0 = variables['ke0'] as double;
+
+    List<double> A1s = [];
+    List<double> A2s = [];
+    List<double> A3s = [];
+    List<Duration> times = [];
+    List<int> steps = [];
+    List<int> pump_infs = [];
+    List<double> concentrations = [];
+    List<double> concentrations_effect = [];
+
+    for (int time = 0; time <= duration; time += time_step) {
+      int pump_inf = time < 100 ? max_infusion : 0;
+
+      double A2 = step == 0
+          ? 0
+          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * time_step / 60;
+
+      double A3 = step == 0
+          ? 0
+          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * time_step / 60;
+
+      double A1 = step == 0
+          ? 0
+          : (pump_infs.last / 60 +
+                      A2 * k21 +
+                      A3 * k31 -
+                      A1s.last * (k10 + k12 + k13)) *
+                  time_step /
+                  60 +
+              A1s.last;
+
+      double concentration  =A1/V1;
+      double concentration_effect = step==0?0:
+      concentrations_effect.last+ke0*(concentrations.last-concentrations_effect.last)*time_step/60;
+
+      times.add(Duration(seconds: time));
+      steps.add(step);
+      pump_infs.add(pump_inf);
+      A1s.add(A1);
+      A2s.add(A2);
+      A3s.add(A3);
+      concentrations.add(concentration);
+      concentrations_effect.add(concentration_effect);
+
+      print('$time | $pump_inf | $A1 | $A2 | $A3 | ${Duration(seconds: time)} | $concentration | $concentration_effect');
+      step = step + 1;
+    }
+
+    return 0;
+  }
+
+  int dilution = 10; // mg/ml
+  int max_pump_rate = 1200; // ml/hr
+  int get max_infusion {
+    return dilution * max_pump_rate;
+  } // mg/hr
+
 }
