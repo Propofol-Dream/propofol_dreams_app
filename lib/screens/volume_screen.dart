@@ -137,6 +137,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   // }
 
   void updatePDTextEditingController() {
+    updateModelOptions(int.parse(ageController.text));
     run();
   }
 
@@ -964,7 +965,7 @@ class _PDTextFieldState extends State<PDTextField> {
                   onTap: () {
                     double? prev = double.tryParse(widget.controller.text);
                     if (prev != null) {
-                      prev += widget.interval;
+                      prev -= widget.interval;
                       widget.controller.text =
                           prev!.toStringAsFixed(widget.fractionDigits);
                       widget.onPressed();

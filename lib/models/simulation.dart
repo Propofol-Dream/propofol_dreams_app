@@ -598,11 +598,10 @@ class Simulation {
       concentrations.add(concentration);
       concentrations_effect.add(concentration_effect);
 
-      print('$time | $pump_inf | $A1 | $A2 | $A3 | ${Duration(seconds: time)} | $concentration | $concentration_effect');
+      // print('$time | $pump_inf | $A1 | $A2 | $A3 | ${Duration(seconds: time)} | $concentration | $concentration_effect');
       step = step + 1;
     }
-
-    return 0;
+    return concentrations_effect.reduce(max);
   }
 
   int dilution = 10; // mg/ml

@@ -43,7 +43,7 @@ void main() {
     Duration duration = Duration.zero;
     for (int i = 0; i < cycle; i++) {
       Simulation sim = Simulation(model: Model.Eleveld,
-          weight: 90, height: 180, age: 50, gender: Gender.Female, refresh_rate: 60);
+          weight: 90, height: 180, age: 50, gender: Gender.Male, refresh_rate: 60);
       var variables = sim.variables;
       // var res = sim.simulate(depth: 10, duration: 200, propofol_density: 20);
       // var start = DateTime.now();
@@ -52,7 +52,7 @@ void main() {
       // duration += (start.difference(finish));
       // print(res);
       // print(variables);
-      var x = sim.calibrated_effect;
+      print(sim.calibrated_effect);
     }
     print('Test Duration: ${duration}');
   });
