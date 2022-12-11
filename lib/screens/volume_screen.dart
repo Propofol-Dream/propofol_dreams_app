@@ -375,10 +375,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     //TODO implement int tryparse age
-    final bool heightTextFieldEnabled = int.parse(ageController.text) > 17
+    final bool heightTextFieldEnabled = int.parse(ageController.text) >= 17
         ? adultModelController.selection != Model.Marsh
         : pediatricModelController.selection == Model.Eleveld;
-    final bool genderSwitchControlEnabled = int.parse(ageController.text) > 17
+    final bool genderSwitchControlEnabled = int.parse(ageController.text) >= 17
         ? adultModelController.selection != Model.Marsh
         : pediatricModelController.selection == Model.Eleveld;
 
