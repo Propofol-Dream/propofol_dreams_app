@@ -725,8 +725,8 @@ class Simulation {
       concentrations_effect.add(concentration_effect);
       cumulative_infused_volumes.add(cumulative_infused_volume);
 
-      print(
-          '$time | $target | $time_step | $overshoot_time | $inf | $pump_inf | $A1_change | $A1 | $A2 | $A3 | ${Duration(seconds: time)} | $concentration | $concentration_effect | $cumulative_infused_volume');
+      // print(
+      //     '$time | $target | $time_step | $overshoot_time | $inf | $pump_inf | $A1_change | $A1 | $A2 | $A3 | ${Duration(seconds: time)} | $concentration | $concentration_effect | $cumulative_infused_volume');
       step = step + 1;
     }
 

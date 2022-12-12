@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
+const numOfDigits = 1;
+
 const horizontalSidesPaddingPixel = 16.0;
 
 const PDTableRowHeight = 36.0;
 
-const Map<int, Color> colorPDGreen =
-{
+const Map<int, Color> colorPDGreen = {
   50: Color.fromRGBO(8, 108, 80, .1),
   100: Color.fromRGBO(8, 108, 80, .2),
   200: Color.fromRGBO(8, 108, 80, .3),
@@ -20,10 +21,7 @@ const Map<int, Color> colorPDGreen =
 
 const MaterialColor PDGreen = MaterialColor(0xFF006C50, colorPDGreen);
 
-
-
-const Map<int, Color> colorPDNavy =
-{
+const Map<int, Color> colorPDNavy = {
   50: Color.fromRGBO(63, 99, 117, .1),
   100: Color.fromRGBO(63, 99, 117, .2),
   200: Color.fromRGBO(63, 99, 117, .3),
@@ -38,8 +36,7 @@ const Map<int, Color> colorPDNavy =
 
 const MaterialColor PDNavy = MaterialColor(0xFF3F6375, colorPDNavy);
 
-const Map<int, Color> colorPDRed =
-{
+const Map<int, Color> colorPDRed = {
   50: Color.fromRGBO(186, 27, 27, .1),
   100: Color.fromRGBO(186, 27, 27, .2),
   200: Color.fromRGBO(186, 27, 27, .3),
@@ -57,22 +54,21 @@ const MaterialColor PDRed = MaterialColor(0xFFBA1B1B, colorPDRed);
 enum Model {
   Marsh(minAge: 17, maxAge: 100, target: Target.Plasma),
   Schnider(minAge: 17, maxAge: 100, target: Target.EffectSite),
-  Eleveld(minAge:1, maxAge: 100, target: Target.EffectSite, enabled: false),
+  Eleveld(minAge: 1, maxAge: 105, target: Target.EffectSite),
   Paedfusor(minAge: 1, maxAge: 16, target: Target.Plasma),
-  Kataria(minAge: 3, maxAge: 11, target: Target.Plasma),
-  Zhong(minAge: 0,maxAge: 999, target: Target.Plasma),
-  Xu(minAge: 0,maxAge: 999, target: Target.Plasma);
+  Kataria(minAge: 3, maxAge: 16, target: Target.Plasma),
+  Zhong(minAge: 0, maxAge: 999, target: Target.Plasma),
+  Xu(minAge: 0, maxAge: 999, target: Target.Plasma);
 
   @override
   String toString() {
     return name;
   }
 
-  bool withinAge(int age){
-    if (age > maxAge || age < minAge){
+  bool withinAge(int age) {
+    if (age > maxAge || age < minAge) {
       return false;
-    }
-    else{
+    } else {
       return true;
     }
   }
@@ -81,7 +77,12 @@ enum Model {
   final int minAge;
   final int maxAge;
   final Target target;
-  const Model({required this.minAge, required this.maxAge, required this.target, this.enabled = true});
+
+  const Model(
+      {required this.minAge,
+      required this.maxAge,
+      required this.target,
+      this.enabled = true});
 }
 
 enum Gender {
@@ -94,6 +95,7 @@ enum Gender {
   }
 
   final bool enabled;
+
   const Gender({this.enabled = true});
 }
 

@@ -35,8 +35,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
   double depthInterval = 0.5;
   int durationInterval = 10; //in mins
 
-  int? age;
-
   double result = 0;
 
   List PDTableHeader = [
@@ -139,7 +137,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   // }
 
   void updatePDTextEditingController() {
-    updateModelOptions(age??0);
+    updateModelOptions(int.tryParse(ageController.text)??0);
     run();
   }
 
@@ -242,14 +240,14 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     0xFF006c50)), //TODO: manullay adjust light/dark theme here
           ),
           child: Text(
-            '${resultsCol2[i].toStringAsFixed(0)} mL',
+            '${resultsCol2[i].toStringAsFixed(numOfDigits)} mL',
             style: TextStyle(
                 color: Color(
                     0xFF006c50)), //TODO: manullay adjust light/dark theme here
           ),
         )
-            : Text('${resultsCol2[i].toStringAsFixed(0)} mL'),
-        Text('${resultsCol3[i].toStringAsFixed(0)} mL'),
+            : Text('${resultsCol2[i].toStringAsFixed(numOfDigits)} mL'),
+        Text('${resultsCol3[i].toStringAsFixed(numOfDigits)} mL'),
       ];
       resultRows.add(row);
     }
@@ -258,7 +256,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
   void run({int cycle = 1}) {
     print({
-      'model': (age??0) > 17
+      'model': (int.tryParse(ageController.text)??0) >= 17
           ? adultModelController.selection
           : pediatricModelController.selection,
       'gender': genderController.val ? Gender.Female : Gender.Male,
@@ -280,21 +278,22 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     for (int i = 0; i < cycle; i++) {
       PDSim.Simulation sim = PDSim.Simulation(
-        model: (age??0) > 17
+        model: (int.tryParse(ageController.text)??0) >= 17
             ? adultModelController.selection
             : pediatricModelController.selection,
         weight: int.parse(weightController.text),
         height: int.parse(heightController.text),
-        age: (age??0),
+        age: (int.tryParse(ageController.text)??0),
         gender: genderController.val ? Gender.Female : Gender.Male,
         refresh_rate: refreshRate,
       );
 
-      results = sim.simulate(
-          depth: double.parse(depthController.text),
-          duration: (int.parse(durationController.text) + durationInterval),
-          propofol_density: propofolDensity);
+      // results = sim.simulate(
+      //     depth: double.parse(depthController.text),
+      //     duration: (int.parse(durationController.text) + durationInterval),
+      //     propofol_density: propofolDensity);
 
+      results = sim.estimate(target: double.parse(depthController.text), duration: (int.parse(durationController.text) + durationInterval));
       // print(sim.variables);
     }
 
@@ -303,8 +302,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
     Duration calculationDuration = finish.difference(start);
     // print({'duration': calculationDuration.toString()});
 
+    // updateRowsAndResult(
+    //     cols: results['accumulated_volumes'], times: results['times']);
+
     updateRowsAndResult(
-        cols: results['accumulated_volumes'], times: results['times']);
+        cols: results['cumulative_infused_volumes'], times: results['times']);
+
   }
 
   @override
@@ -326,9 +329,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     depthController.text = 3.0.toString();
     durationController.text = 60.toString();
 
-    age = int.tryParse(ageController.text);
-
-    updateModelOptions(age??0);
+    updateModelOptions(int.tryParse(ageController.text)??0);
 
     // updateModelOptions(int.parse(ageController.text));
     // adultModelController.selection = modelOptions.first;
@@ -336,7 +337,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   }
 
   void restart() {
-    updateModelOptions(age??0);
+    updateModelOptions(int.tryParse(ageController.text)??0);
     // updateModelOptions(int.parse(ageController.text));
 
     // if (!modelOptions.contains(adultModelController.selection)) {
@@ -383,15 +384,14 @@ class _VolumeScreenState extends State<VolumeScreen> {
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    age = int.tryParse(ageController.text);
 
-    updateModelOptions(age??0);
+    updateModelOptions(int.tryParse(ageController.text)??0);
 
-    final bool heightTextFieldEnabled = age == null ? false : age! >= 17
+    final bool heightTextFieldEnabled = (int.tryParse(ageController.text)??0) >= 17
         ? adultModelController.selection != Model.Marsh
         : pediatricModelController.selection == Model.Eleveld;
 
-    final bool genderSwitchControlEnabled = age == null ? false : age! >= 17
+    final bool genderSwitchControlEnabled = (int.tryParse(ageController.text)??0) >= 17
         ? adultModelController.selection != Model.Marsh
         : pediatricModelController.selection == Model.Eleveld;
 
@@ -432,7 +432,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                                   ? Icon(Icons.expand_more)
                                   : Icon(Icons.expand_less)),
                           Text(
-                            '${result.toStringAsFixed(0)} mL',
+                            '${result.toStringAsFixed(numOfDigits)} mL',
                             style: TextStyle(fontSize: 60),
                           )
                         ],
@@ -463,11 +463,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       // int.parse(ageController.text) > 17
                       //     ? [Model.Marsh, Model.Schnider, Model.Eleveld]
                       //     : [Model.Paedfusor, Model.Kataria, Model.Eleveld],
-                      segmentedController: (age??0) > 16
+                      segmentedController: (int.tryParse(ageController.text)??0) > 16
                           ? adultModelController
                           : pediatricModelController,
                       onPressed: run,
-                      assertValue: (age??0),
+                      assertValue: (int.tryParse(ageController.text)??0),
                     ),
                     Container(
                         height: 59,
@@ -948,7 +948,7 @@ class _PDTextFieldState extends State<PDTextField> {
   @override
   Widget build(BuildContext context) {
     //this controls size of the plus & minus buttons
-    double suffixIconConstraintsWidth = 88;
+    double suffixIconConstraintsWidth = 84;
     double suffixIconConstraintsHeight = 59;
 
     bool isNumeric(String s) {
