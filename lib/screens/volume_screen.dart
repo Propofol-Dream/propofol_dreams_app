@@ -948,7 +948,7 @@ class _PDTextFieldState extends State<PDTextField> {
   @override
   Widget build(BuildContext context) {
     //this controls size of the plus & minus buttons
-    double suffixIconConstraintsWidth = 70;
+    double suffixIconConstraintsWidth = 88;
     double suffixIconConstraintsHeight = 59;
 
     bool isNumeric(String s) {

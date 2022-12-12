@@ -55,13 +55,13 @@ const Map<int, Color> colorPDRed =
 const MaterialColor PDRed = MaterialColor(0xFFBA1B1B, colorPDRed);
 
 enum Model {
-  Marsh(minAge: 17, maxAge: 100),
-  Schnider(minAge: 17, maxAge: 100),
-  Eleveld(minAge:1, maxAge: 100, enabled: false),
-  Paedfusor(minAge: 1, maxAge: 16),
-  Kataria(minAge: 3, maxAge: 11),
-  Zhong(minAge: 0,maxAge: 999),
-  Xu(minAge: 0,maxAge: 999);
+  Marsh(minAge: 17, maxAge: 100, target: Target.Plasma),
+  Schnider(minAge: 17, maxAge: 100, target: Target.EffectSite),
+  Eleveld(minAge:1, maxAge: 100, target: Target.EffectSite, enabled: false),
+  Paedfusor(minAge: 1, maxAge: 16, target: Target.Plasma),
+  Kataria(minAge: 3, maxAge: 11, target: Target.Plasma),
+  Zhong(minAge: 0,maxAge: 999, target: Target.Plasma),
+  Xu(minAge: 0,maxAge: 999, target: Target.Plasma);
 
   @override
   String toString() {
@@ -80,7 +80,8 @@ enum Model {
   final bool enabled;
   final int minAge;
   final int maxAge;
-  const Model({required this.minAge, required this.maxAge, this.enabled = true});
+  final Target target;
+  const Model({required this.minAge, required this.maxAge, required this.target, this.enabled = true});
 }
 
 enum Gender {
@@ -95,3 +96,19 @@ enum Gender {
   final bool enabled;
   const Gender({this.enabled = true});
 }
+
+enum Target {
+  Plasma(),
+  EffectSite();
+
+  @override
+  String toString() {
+    return name;
+  }
+
+  const Target();
+}
+
+int dilution = 10; // mg/ml
+int max_pump_rate = 1200; // ml/hr
+int max_infusion = dilution * max_pump_rate;

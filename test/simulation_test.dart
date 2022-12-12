@@ -42,19 +42,24 @@ void main() {
   test('Simulate for Eleveld', () {
     Duration duration = Duration.zero;
     for (int i = 0; i < cycle; i++) {
-      Simulation sim = Simulation(model: Model.Eleveld,
-          weight: 90, height: 180, age: 50, gender: Gender.Male, refresh_rate: 60);
-      var variables = sim.variables;
+      Simulation sim = Simulation(
+          model: Model.Eleveld,
+          weight: 80,
+          height: 170,
+          age: 40,
+          gender: Gender.Male,
+          refresh_rate: 60);
+      // var variables = sim.variables;
       // var res = sim.simulate(depth: 10, duration: 200, propofol_density: 20);
       // var start = DateTime.now();
       // var res = sim.simulate(depth: 10, duration: 200, propofol_density: 20);
       // var finish = DateTime.now();
       // duration += (start.difference(finish));
+      sim.estimate(target: 2.5, duration: 90, time_step: 5);
       // print(res);
       // print(variables);
-      print(sim.calibrated_effect);
+      // print(sim.calibrated_effect);
     }
     print('Test Duration: ${duration}');
   });
-
 }
