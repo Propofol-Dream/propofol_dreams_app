@@ -18,7 +18,7 @@ class VolumeScreen extends StatefulWidget {
 class _VolumeScreenState extends State<VolumeScreen> {
   final PDSegmentedController adultModelController = PDSegmentedController();
   final PDSegmentedController pediatricModelController =
-  PDSegmentedController();
+      PDSegmentedController();
   final PDSwitchController genderController = PDSwitchController();
   final TextEditingController ageController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
@@ -82,8 +82,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
     // ],
   ];
 
-  void updatePDSegmentedController(PDSegmentedController controller,
-      dynamic s) {
+  void updatePDSegmentedController(
+      PDSegmentedController controller, dynamic s) {
     controller.selection = s;
     run();
   }
@@ -137,7 +137,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   // }
 
   void updatePDTextEditingController() {
-    updateModelOptions(int.tryParse(ageController.text)??0);
+    updateModelOptions(int.tryParse(ageController.text) ?? 0);
     run();
   }
 
@@ -149,16 +149,14 @@ class _VolumeScreenState extends State<VolumeScreen> {
         PDIcon(
             icon: Icon(Icons.airline_seat_flat_outlined),
             text: Text(
-                '${(tryParseDepthController - depthInterval).toStringAsFixed(
-                    1)}')),
+                '${(tryParseDepthController - depthInterval).toStringAsFixed(1)}')),
         PDIcon(
             icon: Icon(Icons.airline_seat_flat_outlined),
             text: Text('${(tryParseDepthController).toStringAsFixed(1)}')),
         PDIcon(
             icon: Icon(Icons.airline_seat_flat_outlined),
             text: Text(
-                '${(tryParseDepthController + depthInterval).toStringAsFixed(
-                    1)}')),
+                '${(tryParseDepthController + depthInterval).toStringAsFixed(1)}')),
       ];
     } else {
       PDTableHeader = [
@@ -229,23 +227,23 @@ class _VolumeScreenState extends State<VolumeScreen> {
           icon: Icon(Icons.schedule),
           text: Text('${resultDuration[i].inMinutes}'),
         ),
-        Text('${resultsCol1[i].toStringAsFixed(0)} mL'),
+        Text('${resultsCol1[i].toStringAsFixed(numOfDigits)} mL'),
         (resultDuration[i].inMinutes == durationPlusInterval - durationInterval)
             ? Container(
-          padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(
-                color: Color(
-                    0xFF006c50)), //TODO: manullay adjust light/dark theme here
-          ),
-          child: Text(
-            '${resultsCol2[i].toStringAsFixed(numOfDigits)} mL',
-            style: TextStyle(
-                color: Color(
-                    0xFF006c50)), //TODO: manullay adjust light/dark theme here
-          ),
-        )
+                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(
+                      color: Color(
+                          0xFF006c50)), //TODO: manullay adjust light/dark theme here
+                ),
+                child: Text(
+                  '${resultsCol2[i].toStringAsFixed(numOfDigits)} mL',
+                  style: TextStyle(
+                      color: Color(
+                          0xFF006c50)), //TODO: manullay adjust light/dark theme here
+                ),
+              )
             : Text('${resultsCol2[i].toStringAsFixed(numOfDigits)} mL'),
         Text('${resultsCol3[i].toStringAsFixed(numOfDigits)} mL'),
       ];
@@ -256,7 +254,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
   void run({int cycle = 1}) {
     print({
-      'model': (int.tryParse(ageController.text)??0) >= 17
+      'model': (int.tryParse(ageController.text) ?? 0) >= 17
           ? adultModelController.selection
           : pediatricModelController.selection,
       'gender': genderController.val ? Gender.Female : Gender.Male,
@@ -278,12 +276,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     for (int i = 0; i < cycle; i++) {
       PDSim.Simulation sim = PDSim.Simulation(
-        model: (int.tryParse(ageController.text)??0) >= 17
+        model: (int.tryParse(ageController.text) ?? 0) >= 17
             ? adultModelController.selection
             : pediatricModelController.selection,
         weight: int.parse(weightController.text),
         height: int.parse(heightController.text),
-        age: (int.tryParse(ageController.text)??0),
+        age: (int.tryParse(ageController.text) ?? 0),
         gender: genderController.val ? Gender.Female : Gender.Male,
         refresh_rate: refreshRate,
       );
@@ -293,7 +291,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
       //     duration: (int.parse(durationController.text) + durationInterval),
       //     propofol_density: propofolDensity);
 
-      results = sim.estimate(target: double.parse(depthController.text), duration: (int.parse(durationController.text) + durationInterval));
+      results = sim.estimate(
+          target: double.parse(depthController.text),
+          duration: (int.parse(durationController.text) + durationInterval),
+          time_step: 1);
       // print(sim.variables);
     }
 
@@ -307,7 +308,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     updateRowsAndResult(
         cols: results['cumulative_infused_volumes'], times: results['times']);
-
   }
 
   @override
@@ -322,14 +322,33 @@ class _VolumeScreenState extends State<VolumeScreen> {
       adultModelController.selection = Model.Marsh;
       pediatricModelController.selection = Model.Paedfusor;
     }
-    genderController.val = true;
-    ageController.text = 40.toString();
-    heightController.text = 170.toString();
-    weightController.text = 70.toString();
-    depthController.text = 3.0.toString();
-    durationController.text = 60.toString();
 
-    updateModelOptions(int.tryParse(ageController.text)??0);
+    int? age = int.tryParse(ageController.text);
+    // print(age);
+    if (age == null) {
+      genderController.val = true;
+      ageController.text = 40.toString();
+      heightController.text = 170.toString();
+      weightController.text = 70.toString();
+      depthController.text = 3.0.toString();
+      durationController.text = 60.toString();
+    } else if (age >= 17) {
+      genderController.val = true;
+      ageController.text = 40.toString();
+      heightController.text = 170.toString();
+      weightController.text = 70.toString();
+      depthController.text = 3.0.toString();
+      durationController.text = 60.toString();
+    } else if (age < 17) {
+      genderController.val = true;
+      ageController.text = 8.toString();
+      heightController.text = 130.toString();
+      weightController.text = 26.toString();
+      depthController.text = 3.0.toString();
+      durationController.text = 60.toString();
+    }
+
+    updateModelOptions(int.tryParse(ageController.text) ?? 0);
 
     // updateModelOptions(int.parse(ageController.text));
     // adultModelController.selection = modelOptions.first;
@@ -337,7 +356,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   }
 
   void restart() {
-    updateModelOptions(int.tryParse(ageController.text)??0);
+    updateModelOptions(int.tryParse(ageController.text) ?? 0);
     // updateModelOptions(int.parse(ageController.text));
 
     // if (!modelOptions.contains(adultModelController.selection)) {
@@ -385,16 +404,21 @@ class _VolumeScreenState extends State<VolumeScreen> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
 
-    updateModelOptions(int.tryParse(ageController.text)??0);
+    updateModelOptions(int.tryParse(ageController.text) ?? 0);
 
-    final bool heightTextFieldEnabled = (int.tryParse(ageController.text)??0) >= 17
-        ? adultModelController.selection != Model.Marsh
-        : pediatricModelController.selection == Model.Eleveld;
+    Model selectedModel = (int.tryParse(ageController.text) ?? 0) >= 17
+        ? adultModelController.selection
+        : pediatricModelController.selection;
 
-    final bool genderSwitchControlEnabled = (int.tryParse(ageController.text)??0) >= 17
-        ? adultModelController.selection != Model.Marsh
-        : pediatricModelController.selection == Model.Eleveld;
+    final bool heightTextFieldEnabled =
+        (int.tryParse(ageController.text) ?? 0) >= 17
+            ? adultModelController.selection != Model.Marsh
+            : pediatricModelController.selection == Model.Eleveld;
 
+    final bool genderSwitchControlEnabled =
+        (int.tryParse(ageController.text) ?? 0) >= 17
+            ? adultModelController.selection != Model.Marsh
+            : pediatricModelController.selection == Model.Eleveld;
 
     // final bool heightTextFieldEnabled = int.parse(ageController.text) >= 17
     //     ? adultModelController.selection != Model.Marsh
@@ -463,11 +487,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       // int.parse(ageController.text) > 17
                       //     ? [Model.Marsh, Model.Schnider, Model.Eleveld]
                       //     : [Model.Paedfusor, Model.Kataria, Model.Eleveld],
-                      segmentedController: (int.tryParse(ageController.text)??0) > 16
-                          ? adultModelController
-                          : pediatricModelController,
+                      segmentedController:
+                          (int.tryParse(ageController.text) ?? 0) > 16
+                              ? adultModelController
+                              : pediatricModelController,
                       onPressed: run,
-                      assertValue: (int.tryParse(ageController.text)??0),
+                      assertValue: (int.tryParse(ageController.text) ?? 0),
                     ),
                     Container(
                         height: 59,
@@ -513,6 +538,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       interval: 1.0,
                       fractionDigits: 0,
                       controller: ageController,
+                      range: [1, selectedModel == Model.Schnider ? 100 : 105],
                       onPressed: updatePDTextEditingController,
                       onChanged: restart,
                     ),
@@ -533,6 +559,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       interval: 1,
                       fractionDigits: 0,
                       controller: heightController,
+                      range: [selectedModel.minHeight, selectedModel.maxHeight],
                       onPressed: updatePDTextEditingController,
                       onChanged: restart,
                       enabled: heightTextFieldEnabled,
@@ -551,6 +578,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       interval: 1.0,
                       fractionDigits: 0,
                       controller: weightController,
+                      range: [selectedModel.minWeight, selectedModel.maxWeight],
                       onPressed: updatePDTextEditingController,
                       onChanged: restart,
                       // onLongPressedStart: onLongPressStartUpdatePDTextEditingController,
@@ -568,13 +596,14 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   Container(
                     width: (mediaQuery.size.width - 40) / 2,
                     child: PDTextField(
-                      icon: const Icon(Icons.airline_seat_flat),
+                      icon: const Icon(Icons.airline_seat_flat_outlined),
                       // labelText: 'Depth in mcg/mL',
                       labelText: 'Depth (mcg/mL)',
                       helperText: '',
                       interval: 0.5,
                       fractionDigits: 1,
                       controller: depthController,
+                      range: [0.5, 10.0],
                       onPressed: updatePDTextEditingController,
                       onChanged: restart,
                     ),
@@ -593,6 +622,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       interval: 1.0,
                       fractionDigits: 0,
                       controller: durationController,
+                      range: [5, 600],
                       onPressed: updatePDTextEditingController,
                       onChanged: restart,
                     ),
@@ -655,11 +685,11 @@ class _PDTableState extends State<PDTable> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final double headerColWidth =
-    ((mediaQuery.size.width - horizontalSidesPaddingPixel * 2) /
-        (widget.header.length + 1));
+        ((mediaQuery.size.width - horizontalSidesPaddingPixel * 2) /
+            (widget.header.length + 1));
     final double rowColWidth =
-    ((mediaQuery.size.width - horizontalSidesPaddingPixel * 2) /
-        (widget.header.length + 1));
+        ((mediaQuery.size.width - horizontalSidesPaddingPixel * 2) /
+            (widget.header.length + 1));
 
     return AnimatedContainer(
       duration: Duration(milliseconds: 1),
@@ -714,10 +744,7 @@ class _PDTableState extends State<PDTable> {
             ),
           ),
           Divider(
-            color: Theme
-                .of(context)
-                .colorScheme
-                .primary,
+            color: Theme.of(context).colorScheme.primary,
           ),
           Container(
             height: (20 + PDTableRowHeight) * 3 - 19,
@@ -741,15 +768,12 @@ class _PDTableState extends State<PDTable> {
                                     ? Alignment.centerLeft
                                     : Alignment.center,
                                 child: widget.rows[buildIndexOutter]
-                                [buildIndexInner],
+                                    [buildIndexInner],
                               );
                             }),
                       ),
                       Divider(
-                        color: Theme
-                            .of(context)
-                            .colorScheme
-                            .primary,
+                        color: Theme.of(context).colorScheme.primary,
                       )
                     ],
                   );
@@ -802,11 +826,12 @@ class PDSegmentedController extends ChangeNotifier {
 }
 
 class PDSegmentedControl extends StatefulWidget {
-  const PDSegmentedControl({Key? key,
-    required this.options,
-    required this.segmentedController,
-    required this.onPressed,
-    required this.assertValue})
+  const PDSegmentedControl(
+      {Key? key,
+      required this.options,
+      required this.segmentedController,
+      required this.onPressed,
+      required this.assertValue})
       : super(key: key);
 
   final List options;
@@ -835,47 +860,30 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
         return SizedBox(
           child: ElevatedButton(
             onPressed: widget.options[buildIndex].enabled &&
-                widget.options[buildIndex].withinAge(widget.assertValue)
+                    widget.options[buildIndex].withinAge(widget.assertValue)
                 ? () {
-              widget.segmentedController.selection =
-              widget.options[buildIndex];
-              widget.onPressed();
-            }
+                    widget.segmentedController.selection =
+                        widget.options[buildIndex];
+                    widget.onPressed();
+                  }
                 : null,
             style: ElevatedButton.styleFrom(
               elevation: 0,
               foregroundColor: widget.segmentedController.selection ==
-                  widget.options[buildIndex]
-                  ? Theme
-                  .of(context)
-                  .colorScheme
-                  .onPrimary
-                  : Theme
-                  .of(context)
-                  .colorScheme
-                  .primary,
+                      widget.options[buildIndex]
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.primary,
               backgroundColor: widget.segmentedController.selection ==
-                  widget.options[buildIndex]
-                  ? Theme
-                  .of(context)
-                  .colorScheme
-                  .primary
-                  : Theme
-                  .of(context)
-                  .colorScheme
-                  .onPrimary,
+                      widget.options[buildIndex]
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onPrimary,
               shape: RoundedRectangleBorder(
                 side: BorderSide(
                     color: widget.options[buildIndex].enabled &&
-                        widget.options[buildIndex]
-                            .withinAge(widget.assertValue)
-                        ? Theme
-                        .of(context)
-                        .colorScheme
-                        .primary
-                        : Theme
-                        .of(context)
-                        .disabledColor),
+                            widget.options[buildIndex]
+                                .withinAge(widget.assertValue)
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).disabledColor),
                 borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
                     bottomLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
@@ -907,8 +915,7 @@ class PDTextField extends StatefulWidget {
     required this.controller,
     required this.onPressed,
     required this.onChanged,
-    // this.onLongPressedStart,
-    // this.onLongPressedEnd,
+    required this.range,
     this.timer,
     this.enabled = true,
   }) : super(key: key);
@@ -919,6 +926,7 @@ class PDTextField extends StatefulWidget {
   final double interval;
   final int fractionDigits;
   final TextEditingController controller;
+  final range;
   Function onPressed;
   Function onChanged;
   Function? onLongPressedStart;
@@ -941,22 +949,21 @@ class _PDTextFieldState extends State<PDTextField> {
     super.dispose();
   }
 
-  // void dismissKeyboard() {
-  //   FocusScope.of(context).requestFocus(new FocusNode());
-  // }
-
   @override
   Widget build(BuildContext context) {
     //this controls size of the plus & minus buttons
     double suffixIconConstraintsWidth = 84;
     double suffixIconConstraintsHeight = 59;
 
-    bool isNumeric(String s) {
-      if (s.isEmpty) {
-        return false;
-      }
-      return double.tryParse(s) != null;
-    }
+    bool x = (double.tryParse(widget.controller.text) ?? 0) >= 0;
+
+    var val = widget.fractionDigits > 0
+        ? double.tryParse(widget.controller.text)
+        : int.tryParse(widget.controller.text);
+
+    bool isWithinRange =
+        val != null ? val >= widget.range[0] && val <= widget.range[1] : false;
+    bool isNumeric = widget.controller.text.isEmpty ? false : val != null;
 
     return TextField(
       onChanged: (val) {
@@ -965,13 +972,8 @@ class _PDTextFieldState extends State<PDTextField> {
       enabled: widget.enabled,
       style: TextStyle(
           color: widget.enabled
-              ? Theme
-              .of(context)
-              .colorScheme
-              .primary
-              : Theme
-              .of(context)
-              .disabledColor),
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).disabledColor),
       scrollPadding: EdgeInsets.all(48.0),
       onSubmitted: (val) =>
           widget.onPressed(widget.controller, 0.0, widget.fractionDigits),
@@ -984,9 +986,11 @@ class _PDTextFieldState extends State<PDTextField> {
       decoration: InputDecoration(
         errorText: widget.controller.text.isEmpty
             ? null
-            : isNumeric(widget.controller.text)
-            ? null
-            : 'Please enter digits only',
+            : isNumeric
+                ? isWithinRange
+                    ? null
+                    : 'min: ${widget.range[0]} and max: ${widget.range[1]}'
+                : 'Please enter a value',
         prefixIcon: widget.icon,
         prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
         helperText: widget.helperText,
@@ -995,13 +999,12 @@ class _PDTextFieldState extends State<PDTextField> {
         suffixIconConstraints: widget.controller.text.isEmpty
             ? BoxConstraints.tight(Size.zero)
             : BoxConstraints.tight(
-            Size(suffixIconConstraintsWidth, suffixIconConstraintsHeight)),
+                Size(suffixIconConstraintsWidth, suffixIconConstraintsHeight)),
         suffixIcon: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: [
             if (widget.controller.text.isNotEmpty)
-
               Container(
                 alignment: Alignment.center,
                 width: suffixIconConstraintsWidth / 2,
@@ -1014,9 +1017,11 @@ class _PDTextFieldState extends State<PDTextField> {
                     double? prev = double.tryParse(widget.controller.text);
                     if (prev != null) {
                       prev -= widget.interval;
-                      widget.controller.text =
-                          prev!.toStringAsFixed(widget.fractionDigits);
-                      widget.onPressed();
+                      if (prev >= widget.range[0]) {
+                        widget.controller.text =
+                            prev!.toStringAsFixed(widget.fractionDigits);
+                        widget.onPressed();
+                      }
                     }
                   },
                   onLongPress: () {
@@ -1024,8 +1029,10 @@ class _PDTextFieldState extends State<PDTextField> {
                       double? prev = double.tryParse(widget.controller.text);
                       if (prev != null) {
                         prev -= widget.interval;
-                        widget.controller.text =
-                            prev!.toStringAsFixed(widget.fractionDigits);
+                        if (prev >= widget.range[0]) {
+                          widget.controller.text =
+                              prev!.toStringAsFixed(widget.fractionDigits);
+                        }
                       }
                     });
                   },
@@ -1037,7 +1044,6 @@ class _PDTextFieldState extends State<PDTextField> {
                   },
                 ),
               ),
-
             Container(
               alignment: Alignment.center,
               width: suffixIconConstraintsWidth / 2,
@@ -1050,9 +1056,11 @@ class _PDTextFieldState extends State<PDTextField> {
                   double? prev = double.tryParse(widget.controller.text);
                   if (prev != null) {
                     prev += widget.interval;
-                    widget.controller.text =
-                        prev!.toStringAsFixed(widget.fractionDigits);
-                    widget.onPressed();
+                    if (prev <= widget.range[1]) {
+                      widget.controller.text =
+                          prev!.toStringAsFixed(widget.fractionDigits);
+                      widget.onPressed();
+                    }
                   }
                 },
                 onLongPress: () {
@@ -1060,8 +1068,10 @@ class _PDTextFieldState extends State<PDTextField> {
                     double? prev = double.tryParse(widget.controller.text);
                     if (prev != null) {
                       prev += widget.interval;
-                      widget.controller.text =
-                          prev!.toStringAsFixed(widget.fractionDigits);
+                      if (prev <= widget.range[1]) {
+                        widget.controller.text =
+                            prev!.toStringAsFixed(widget.fractionDigits);
+                      }
                     }
                   });
                 },
@@ -1128,7 +1138,7 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
   @override
   Widget build(BuildContext context) {
     TextEditingController textEditingController =
-    TextEditingController(text: widget.labelTexts[widget.controller.val]!);
+        TextEditingController(text: widget.labelTexts[widget.controller.val]!);
 
     return TextField(
       enabled: widget.enabled,
@@ -1136,13 +1146,8 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
       controller: textEditingController,
       style: TextStyle(
           color: widget.enabled
-              ? Theme
-              .of(context)
-              .colorScheme
-              .primary
-              : Theme
-              .of(context)
-              .disabledColor),
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).disabledColor),
       decoration: InputDecoration(
         prefixIcon: widget.icon,
         prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
@@ -1151,33 +1156,15 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
         suffixIconConstraints: BoxConstraints.tight(const Size(60, 59)),
         suffixIcon: Switch(
           activeColor: widget.enabled
-              ? Theme
-              .of(context)
-              .colorScheme
-              .primary
-              : Theme
-              .of(context)
-              .disabledColor,
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).disabledColor,
           activeTrackColor:
-          Theme
-              .of(context)
-              .colorScheme
-              .primary
-              .withOpacity(0.1),
+              Theme.of(context).colorScheme.primary.withOpacity(0.1),
           inactiveThumbColor: widget.enabled
-              ? Theme
-              .of(context)
-              .colorScheme
-              .primary
-              : Theme
-              .of(context)
-              .disabledColor,
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).disabledColor,
           inactiveTrackColor:
-          Theme
-              .of(context)
-              .colorScheme
-              .primary
-              .withOpacity(0.1),
+              Theme.of(context).colorScheme.primary.withOpacity(0.1),
           value: widget.controller.val,
           onChanged: (val) {
             setState(() {

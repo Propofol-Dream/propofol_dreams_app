@@ -52,13 +52,15 @@ const Map<int, Color> colorPDRed = {
 const MaterialColor PDRed = MaterialColor(0xFFBA1B1B, colorPDRed);
 
 enum Model {
-  Marsh(minAge: 17, maxAge: 100, target: Target.Plasma),
-  Schnider(minAge: 17, maxAge: 100, target: Target.EffectSite),
-  Eleveld(minAge: 1, maxAge: 105, target: Target.EffectSite),
-  Paedfusor(minAge: 1, maxAge: 16, target: Target.Plasma),
-  Kataria(minAge: 3, maxAge: 16, target: Target.Plasma),
-  Zhong(minAge: 0, maxAge: 999, target: Target.Plasma),
-  Xu(minAge: 0, maxAge: 999, target: Target.Plasma);
+
+  Marsh(minAge: 17, maxAge: 105, minHeight: 0, maxHeight: 999,minWeight: 0, maxWeight: 150, target: Target.Plasma),
+  Schnider(minAge: 17, maxAge: 100, minHeight: 140, maxHeight: 205,minWeight: 0, maxWeight: 165,target: Target.EffectSite),
+  Eleveld(minAge: 1, maxAge: 105, minHeight: 50, maxHeight: 210, minWeight: 1 , maxWeight: 250, target: Target.EffectSite),
+  Paedfusor(minAge: 1, maxAge: 16,  minHeight: 0, maxHeight: 999, minWeight: 5 , maxWeight: 61, target: Target.Plasma),
+  Kataria(minAge: 3, maxAge: 16,minHeight: 0, maxHeight: 999, minWeight: 15 , maxWeight: 61, target: Target.Plasma),
+
+  Zhong(minAge: 0, maxAge: 999, minHeight: 0, maxHeight: 999, minWeight: 0 , maxWeight: 999, target: Target.EffectSite),
+  Xu(minAge: 0, maxAge: 999, minHeight: 0, maxHeight: 999, minWeight: 0 , maxWeight: 999,target: Target.Plasma);
 
   @override
   String toString() {
@@ -76,11 +78,19 @@ enum Model {
   final bool enabled;
   final int minAge;
   final int maxAge;
+  final int minHeight;
+  final int maxHeight;
+  final int minWeight;
+  final int maxWeight;
   final Target target;
 
   const Model(
       {required this.minAge,
       required this.maxAge,
+      required this.minHeight,
+      required this.maxHeight,
+      required this.minWeight,
+      required this.maxWeight,
       required this.target,
       this.enabled = true});
 }
@@ -112,5 +122,6 @@ enum Target {
 }
 
 int dilution = 10; // mg/ml
-int max_pump_rate = 1200; // ml/hr
+int max_pump_rate = 750; // ml/hr, as requested on 13 Dec 2022
+// int max_pump_rate = 1200; // ml/hr, this is from Engbert's
 int max_infusion = dilution * max_pump_rate;
