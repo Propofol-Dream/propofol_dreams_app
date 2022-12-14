@@ -54,7 +54,7 @@ const MaterialColor PDRed = MaterialColor(0xFFBA1B1B, colorPDRed);
 enum Model {
 
   Marsh(minAge: 17, maxAge: 105, minHeight: 0, maxHeight: 999,minWeight: 0, maxWeight: 150, target: Target.Plasma),
-  Schnider(minAge: 17, maxAge: 100, minHeight: 140, maxHeight: 205,minWeight: 0, maxWeight: 165,target: Target.EffectSite),
+  Schnider(minAge: 17, maxAge: 100, minHeight: 140, maxHeight: 210,minWeight: 0, maxWeight: 165,target: Target.EffectSite),
   Eleveld(minAge: 1, maxAge: 105, minHeight: 50, maxHeight: 210, minWeight: 1 , maxWeight: 250, target: Target.EffectSite),
   Paedfusor(minAge: 1, maxAge: 16,  minHeight: 0, maxHeight: 999, minWeight: 5 , maxWeight: 61, target: Target.Plasma),
   Kataria(minAge: 3, maxAge: 16,minHeight: 0, maxHeight: 999, minWeight: 15 , maxWeight: 61, target: Target.Plasma),
@@ -74,6 +74,27 @@ enum Model {
       return true;
     }
   }
+
+  bool withinHeight(int height){
+    if (height > maxHeight || height < minHeight) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  bool withinWeight(int weight){
+    if (weight > maxWeight || weight < minWeight) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  bool shouldBeEnabled({required int age, required int height, required int weight}){
+    return (withinAge(age) && withinHeight(height) && withinWeight(weight));
+  }
+
 
   final bool enabled;
   final int minAge;

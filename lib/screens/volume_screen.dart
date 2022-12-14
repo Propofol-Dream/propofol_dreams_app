@@ -182,15 +182,18 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
   void updateRowsAndResult({cols, times}) {
     //updatePDTableRows
-    List col2 = cols;
+
+    List col1 = cols[0];
+    List col2 = cols[1];
+    List col3 = cols[2];
     List durations = times;
     double depth = double.parse(depthController.text);
     double depthPlusInterval = depth + depthInterval;
     double depthMinusInterval = depth - depthInterval;
 
     //TODO: check if depth == 0, if so, table should show empty state
-    List col1 = col2.map((e) => e / depth * depthMinusInterval).toList();
-    List col3 = col2.map((e) => e / depth * depthPlusInterval).toList();
+    // List col1 = col2.map((e) => e / depth * depthMinusInterval).toList();
+    // List col3 = col2.map((e) => e / depth * depthPlusInterval).toList();
 
     int durationPlusInterval =
         int.parse(durationController.text) + durationInterval;
@@ -200,7 +203,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
     List<double> resultsCol3 = [];
     List<Duration> resultDuration = [];
 
-    for (int i = durationPlusInterval; i >= 0; i -= durationInterval) {
+    for (int i = durationPlusInterval;
+        i >= durationInterval;
+        i -= durationInterval) {
       int index = durations.indexWhere((element) {
         if ((element as Duration).inSeconds == i * 60) {
           return true;
@@ -219,6 +224,19 @@ class _VolumeScreenState extends State<VolumeScreen> {
         });
       }
     }
+
+    //Add extra row for the 5th mins
+    int index = durations.indexWhere((element) {
+      if ((element as Duration).inSeconds == 300) {
+        return true;
+      }
+      return false;
+    });
+
+    resultDuration.add(durations[index]);
+    resultsCol1.add(col1[index]);
+    resultsCol2.add(col2[index]);
+    resultsCol3.add(col3[index]);
 
     List resultRows = [];
     for (int i = 0; i < resultDuration.length; i++) {
@@ -268,9 +286,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
     //check whether depth is empty and numeric
     updatePDTableHeader();
 
-    //check all other inputs
-
-    var results;
+    //TODO: check all other inputs
+    var results1;
+    var results2;
+    var results3;
 
     DateTime start = DateTime.now();
 
@@ -291,10 +310,21 @@ class _VolumeScreenState extends State<VolumeScreen> {
       //     duration: (int.parse(durationController.text) + durationInterval),
       //     propofol_density: propofolDensity);
 
-      results = sim.estimate(
+      results1 = sim.estimate(
+          target: double.parse(depthController.text) - depthInterval,
+          duration: (int.parse(durationController.text) + durationInterval),
+          time_step: 1);
+
+      results2 = sim.estimate(
           target: double.parse(depthController.text),
           duration: (int.parse(durationController.text) + durationInterval),
           time_step: 1);
+
+      results3 = sim.estimate(
+          target: double.parse(depthController.text) + depthInterval,
+          duration: (int.parse(durationController.text) + durationInterval),
+          time_step: 1);
+
       // print(sim.variables);
     }
 
@@ -306,8 +336,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
     // updateRowsAndResult(
     //     cols: results['accumulated_volumes'], times: results['times']);
 
-    updateRowsAndResult(
-        cols: results['cumulative_infused_volumes'], times: results['times']);
+    updateRowsAndResult(cols: [
+      results1['cumulative_infused_volumes'],
+      results2['cumulative_infused_volumes'],
+      results3['cumulative_infused_volumes']
+    ], times: results2['times']);
   }
 
   @override
@@ -492,7 +525,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
                               ? adultModelController
                               : pediatricModelController,
                       onPressed: run,
-                      assertValue: (int.tryParse(ageController.text) ?? 0),
+                      assertValues: {
+                        'age': (int.tryParse(ageController.text) ?? 0),
+                        'height': (int.tryParse(heightController.text) ?? 0),
+                        'weight': (int.tryParse(weightController.text) ?? 0)
+                      },
                     ),
                     Container(
                         height: 59,
@@ -619,7 +656,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       // labelText: 'Duration in minutes',
                       labelText: 'Duration (mins)',
                       helperText: '',
-                      interval: 1.0,
+                      interval: double.tryParse(durationController.text) != null
+                          ? double.parse(durationController.text) >= 60
+                              ? 10
+                              : 5
+                          : 1,
                       fractionDigits: 0,
                       controller: durationController,
                       range: [5, 600],
@@ -831,13 +872,13 @@ class PDSegmentedControl extends StatefulWidget {
       required this.options,
       required this.segmentedController,
       required this.onPressed,
-      required this.assertValue})
+      required this.assertValues})
       : super(key: key);
 
   final List options;
   final PDSegmentedController segmentedController;
   final Function onPressed;
-  final int assertValue;
+  final Map<String, int> assertValues;
 
   @override
   State<PDSegmentedControl> createState() => _PDSegmentedControlState();
@@ -860,7 +901,10 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
         return SizedBox(
           child: ElevatedButton(
             onPressed: widget.options[buildIndex].enabled &&
-                    widget.options[buildIndex].withinAge(widget.assertValue)
+                    widget.options[buildIndex].shouldBeEnabled(
+                        age: widget.assertValues['age'],
+                        height: widget.assertValues['height'],
+                        weight: widget.assertValues['weight'])
                 ? () {
                     widget.segmentedController.selection =
                         widget.options[buildIndex];
@@ -880,8 +924,10 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
               shape: RoundedRectangleBorder(
                 side: BorderSide(
                     color: widget.options[buildIndex].enabled &&
-                            widget.options[buildIndex]
-                                .withinAge(widget.assertValue)
+                            widget.options[buildIndex].shouldBeEnabled(
+                                age: widget.assertValues['age'],
+                                height: widget.assertValues['height'],
+                                weight: widget.assertValues['weight'])
                         ? Theme.of(context).colorScheme.primary
                         : Theme.of(context).disabledColor),
                 borderRadius: BorderRadius.only(
@@ -1008,6 +1054,7 @@ class _PDTextFieldState extends State<PDTextField> {
               Container(
                 alignment: Alignment.center,
                 width: suffixIconConstraintsWidth / 2,
+                // decoration: BoxDecoration(border: Border.all()),
                 height: suffixIconConstraintsHeight,
                 child: GestureDetector(
                   child: Icon(
