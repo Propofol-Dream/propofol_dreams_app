@@ -538,7 +538,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                             elevation: 0,
                           ),
                           onPressed: reset,
-                          child: Icon(Icons.restart_alt_outlined),
+                          child: Icon(Icons.refresh),
                         )),
                   ],
                 ),
