@@ -271,18 +271,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
   }
 
   void run({int cycle = 1}) {
-    print({
-      'model': (int.tryParse(ageController.text) ?? 0) >= 17
-          ? adultModelController.selection
-          : pediatricModelController.selection,
-      'gender': genderController.val ? Gender.Female : Gender.Male,
-      'age': ageController.text,
-      'height': heightController.text,
-      'weight': weightController.text,
-      'depth': depthController.text,
-      'duration': durationController.text,
-    });
-
     //check whether depth is empty and numeric
     updatePDTableHeader();
 
@@ -304,11 +292,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
         gender: genderController.val ? Gender.Female : Gender.Male,
         time_step: timeStep,
       );
-
-      // results = sim.simulate(
-      //     depth: double.parse(depthController.text),
-      //     duration: (int.parse(durationController.text) + durationInterval),
-      //     propofol_density: propofolDensity);
 
       results1 = sim.estimate(
         target: double.parse(depthController.text) - depthInterval,
@@ -332,9 +315,19 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     Duration calculationDuration = finish.difference(start);
     // print({'duration': calculationDuration.toString()});
-
-    // updateRowsAndResult(
-    //     cols: results['accumulated_volumes'], times: results['times']);
+    print({
+      'model': (int.tryParse(ageController.text) ?? 0) >= 17
+          ? adultModelController.selection
+          : pediatricModelController.selection,
+      'gender': genderController.val ? Gender.Female : Gender.Male,
+      'age': ageController.text,
+      'height': heightController.text,
+      'weight': weightController.text,
+      'depth': depthController.text,
+      'duration': durationController.text,
+      'calcuation time':
+          '${calculationDuration.inMilliseconds.toString()} milliseconds'
+    });
 
     updateRowsAndResult(cols: [
       results1['cumulative_infused_volumes'],
@@ -410,55 +403,27 @@ class _VolumeScreenState extends State<VolumeScreen> {
       modelOptions.add(Model.Kataria);
       modelOptions.add(Model.Eleveld);
     }
-
-    // modelOptions.clear();
-    // if (age >= Model.Paedfusor.minAge && age <= Model.Paedfusor.maxAge) {
-    //   modelOptions.add(Model.Paedfusor);
-    // }
-    //
-    // if (age >= Model.Kataria.minAge && age <= Model.Kataria.maxAge) {
-    //   modelOptions.add(Model.Kataria);
-    // }
-    //
-    // if (age >= Model.Marsh.minAge && age <= Model.Marsh.maxAge) {
-    //   modelOptions.add(Model.Marsh);
-    // }
-    //
-    // if (age >= Model.Schnider.minAge && age <= Model.Schnider.maxAge) {
-    //   modelOptions.add(Model.Schnider);
-    // }
-    //
-    // if (age >= Model.Eleveld.minAge && age <= Model.Eleveld.maxAge) {
-    //   modelOptions.add(Model.Eleveld);
-    // }
   }
 
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
 
-    updateModelOptions(int.tryParse(ageController.text) ?? 0);
+    int? age = int.tryParse(ageController.text);
 
-    Model selectedModel = (int.tryParse(ageController.text) ?? 0) >= 17
+    updateModelOptions(age ?? 0);
+
+    Model selectedModel = (age ?? 0) >= 17
         ? adultModelController.selection
         : pediatricModelController.selection;
 
-    final bool heightTextFieldEnabled =
-        (int.tryParse(ageController.text) ?? 0) >= 17
-            ? adultModelController.selection != Model.Marsh
-            : pediatricModelController.selection == Model.Eleveld;
+    final bool heightTextFieldEnabled = (age ?? 0) >= 17
+        ? adultModelController.selection != Model.Marsh
+        : pediatricModelController.selection == Model.Eleveld;
 
-    final bool genderSwitchControlEnabled =
-        (int.tryParse(ageController.text) ?? 0) >= 17
-            ? adultModelController.selection != Model.Marsh
-            : pediatricModelController.selection == Model.Eleveld;
-
-    // final bool heightTextFieldEnabled = int.parse(ageController.text) >= 17
-    //     ? adultModelController.selection != Model.Marsh
-    //     : pediatricModelController.selection == Model.Eleveld;
-    // final bool genderSwitchControlEnabled = int.parse(ageController.text) >= 17
-    //     ? adultModelController.selection != Model.Marsh
-    //     : pediatricModelController.selection == Model.Eleveld;
+    final bool genderSwitchControlEnabled = (age ?? 0) >= 17
+        ? adultModelController.selection != Model.Marsh
+        : pediatricModelController.selection == Model.Eleveld;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -473,29 +438,45 @@ class _VolumeScreenState extends State<VolumeScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
               Expanded(
-                child: Container(
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: Container(),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                              onPressed: () =>
-                                  updatePDTableController(tableController),
-                              icon: tableController.val
-                                  ? Icon(Icons.expand_more)
-                                  : Icon(Icons.expand_less)),
-                          Text(
-                            '${result.toStringAsFixed(numOfDigits)} mL',
-                            style: TextStyle(fontSize: 60),
-                          )
-                        ],
-                      ),
-                    ],
-                  ),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Container(),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Chip(
+                            avatar: (age ?? 0) >= 17
+                                ? Icon(Icons.face)
+                                : Icon(Icons.child_care_outlined),
+                            label: (age ?? 0) >= 17
+                                ? Text('Adult')
+                                : Text('Child')),
+                        SizedBox(
+                          width: 8,
+                        ),
+                        Chip(
+                            avatar: Icon(Icons.opacity),
+                            label: Text('${(propofolDensity/10).toInt()} %'))
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                            onPressed: () =>
+                                updatePDTableController(tableController),
+                            icon: tableController.val
+                                ? Icon(Icons.expand_more)
+                                : Icon(Icons.expand_less)),
+                        Text(
+                          '${result.toStringAsFixed(numOfDigits)} mL',
+                          style: TextStyle(fontSize: 60),
+                        )
+                      ],
+                    ),
+                  ],
                 ),
               ),
               Container(
@@ -503,7 +484,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   header: PDTableHeader,
                   rows: PDTableRows,
                   controller: tableController,
-                  // onPressed: updatePDTableController,
                 ),
               ),
               const SizedBox(
@@ -1088,8 +1068,7 @@ class _PDTextFieldState extends State<PDTextField> {
               ? Theme.of(context).colorScheme.primary
               : Theme.of(context).disabledColor),
       scrollPadding: EdgeInsets.all(48.0),
-      onSubmitted: (val) =>
-          widget.onPressed(),
+      onSubmitted: (val) => widget.onPressed(),
       controller: widget.controller,
       keyboardType: TextInputType.numberWithOptions(
           signed: true, decimal: widget.fractionDigits > 0 ? true : false),
@@ -1122,7 +1101,8 @@ class _PDTextFieldState extends State<PDTextField> {
                 child: Container(
                   alignment: Alignment.center,
                   width: suffixIconConstraintsWidth / 2,
-                  decoration: BoxDecoration(border: Border.all(width: 0,style: BorderStyle.none)),
+                  decoration: BoxDecoration(
+                      border: Border.all(width: 0, style: BorderStyle.none)),
                   height: suffixIconConstraintsHeight,
                   child: Icon(
                     Icons.remove,
@@ -1163,7 +1143,8 @@ class _PDTextFieldState extends State<PDTextField> {
                 alignment: Alignment.center,
                 width: suffixIconConstraintsWidth / 2,
                 height: suffixIconConstraintsHeight,
-                decoration: BoxDecoration(border: Border.all(width: 0,style: BorderStyle.none)),
+                decoration: BoxDecoration(
+                    border: Border.all(width: 0, style: BorderStyle.none)),
                 child: Icon(
                   Icons.add,
                 ),
