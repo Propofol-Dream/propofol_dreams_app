@@ -346,7 +346,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   void reset({bool resetModelSelection = false}) {
     if (resetModelSelection == true) {
       adultModelController.selection = Model.Marsh;
-      pediatricModelController.selection = Model.Paedfusor;
+      pediatricModelController.selection = Model.Eleveld;
     }
 
     int? age = int.tryParse(ageController.text);
@@ -923,6 +923,7 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
         child: TextField(
           decoration: InputDecoration(
             errorText: errorText,
+            errorStyle: isError?TextStyle(color: Theme.of(context).errorColor):TextStyle(color: Theme.of(context).colorScheme.primary),
             border: const OutlineInputBorder(
                 borderSide: BorderSide(width: 0, style: BorderStyle.none)),
           ),

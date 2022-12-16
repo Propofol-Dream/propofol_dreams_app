@@ -156,12 +156,18 @@ enum Model {
   }) {
     bool isAssertive = true;
     String text = '';
-    if (this == Model.Schnider) {
+    if (this == Model.Marsh || this == Model.Paedfusor || this == Model.Kataria){
+      text = 'Plasma';
+      return {'assertion': isAssertive, 'text': text};
+    }else if (this == Model.Schnider) {
       double tmpBMI = bmi(weight, height);
       double minBMI = 14;
       double maxBMI = gender == Gender.Male?42:39;
       isAssertive = tmpBMI >= minBMI && tmpBMI <= maxBMI;
-      text = isAssertive? '': '[BMI] min: ${minBMI} and max: ${maxBMI}';
+      text = isAssertive? 'Effect Site': '[BMI] min: ${minBMI} and max: ${maxBMI}';
+      return {'assertion': isAssertive, 'text': text};
+    }else if (this == Model.Eleveld) {
+      text = 'Effect Site';
       return {'assertion': isAssertive, 'text': text};
     }
     return {'assertion': isAssertive, 'text': text};
