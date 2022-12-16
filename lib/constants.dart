@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 const numOfDigits = 1;
 
@@ -52,15 +53,62 @@ const Map<int, Color> colorPDRed = {
 const MaterialColor PDRed = MaterialColor(0xFFBA1B1B, colorPDRed);
 
 enum Model {
-
-  Marsh(minAge: 17, maxAge: 105, minHeight: 0, maxHeight: 999,minWeight: 0, maxWeight: 150, target: Target.Plasma),
-  Schnider(minAge: 17, maxAge: 100, minHeight: 140, maxHeight: 210,minWeight: 0, maxWeight: 165,target: Target.EffectSite),
-  Eleveld(minAge: 1, maxAge: 105, minHeight: 50, maxHeight: 210, minWeight: 1 , maxWeight: 250, target: Target.EffectSite),
-  Paedfusor(minAge: 1, maxAge: 16,  minHeight: 0, maxHeight: 999, minWeight: 5 , maxWeight: 61, target: Target.Plasma),
-  Kataria(minAge: 3, maxAge: 16,minHeight: 0, maxHeight: 999, minWeight: 15 , maxWeight: 61, target: Target.Plasma),
-
-  Zhong(minAge: 0, maxAge: 999, minHeight: 0, maxHeight: 999, minWeight: 0 , maxWeight: 999, target: Target.EffectSite),
-  Xu(minAge: 0, maxAge: 999, minHeight: 0, maxHeight: 999, minWeight: 0 , maxWeight: 999,target: Target.Plasma);
+  Marsh(
+      minAge: 17,
+      maxAge: 105,
+      minHeight: 0,
+      maxHeight: 999,
+      minWeight: 0,
+      maxWeight: 150,
+      target: Target.Plasma),
+  Schnider(
+      minAge: 17,
+      maxAge: 100,
+      minHeight: 140,
+      maxHeight: 210,
+      minWeight: 0,
+      maxWeight: 165,
+      target: Target.EffectSite),
+  Eleveld(
+      minAge: 1,
+      maxAge: 105,
+      minHeight: 50,
+      maxHeight: 210,
+      minWeight: 1,
+      maxWeight: 250,
+      target: Target.EffectSite),
+  Paedfusor(
+      minAge: 1,
+      maxAge: 16,
+      minHeight: 0,
+      maxHeight: 999,
+      minWeight: 5,
+      maxWeight: 61,
+      target: Target.Plasma),
+  Kataria(
+      minAge: 3,
+      maxAge: 16,
+      minHeight: 0,
+      maxHeight: 999,
+      minWeight: 15,
+      maxWeight: 61,
+      target: Target.Plasma),
+  Zhong(
+      minAge: 0,
+      maxAge: 999,
+      minHeight: 0,
+      maxHeight: 999,
+      minWeight: 0,
+      maxWeight: 999,
+      target: Target.EffectSite),
+  Xu(
+      minAge: 0,
+      maxAge: 999,
+      minHeight: 0,
+      maxHeight: 999,
+      minWeight: 0,
+      maxWeight: 999,
+      target: Target.Plasma);
 
   @override
   String toString() {
@@ -75,7 +123,7 @@ enum Model {
     }
   }
 
-  bool withinHeight(int height){
+  bool withinHeight(int height) {
     if (height > maxHeight || height < minHeight) {
       return false;
     } else {
@@ -83,7 +131,7 @@ enum Model {
     }
   }
 
-  bool withinWeight(int weight){
+  bool withinWeight(int weight) {
     if (weight > maxWeight || weight < minWeight) {
       return false;
     } else {
@@ -91,10 +139,33 @@ enum Model {
     }
   }
 
-  bool shouldBeEnabled({required int age, required int height, required int weight}){
+  bool shouldBeEnabled(
+      {required int age, required int height, required int weight}) {
     return (withinAge(age) && withinHeight(height) && withinWeight(weight));
   }
 
+  double bmi(int weight, int height) {
+    return (weight / pow((height / 100), 2));
+  }
+
+  Map<String, Object> checkConstraints({
+    required int weight,
+    required int height,
+    required int age,
+    required Gender gender,
+  }) {
+    bool isAssertive = true;
+    String text = '';
+    if (this == Model.Schnider) {
+      double tmpBMI = bmi(weight, height);
+      double minBMI = 14;
+      double maxBMI = gender == Gender.Male?42:39;
+      isAssertive = tmpBMI >= minBMI && tmpBMI <= maxBMI;
+      text = isAssertive? '': '[BMI] min: ${minBMI} and max: ${maxBMI}';
+      return {'assertion': isAssertive, 'text': text};
+    }
+    return {'assertion': isAssertive, 'text': text};
+  }
 
   final bool enabled;
   final int minAge;

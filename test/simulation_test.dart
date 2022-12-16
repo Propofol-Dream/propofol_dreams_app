@@ -48,14 +48,14 @@ void main() {
           height: 170,
           age: 40,
           gender: Gender.Male,
-          refresh_rate: 60);
+          time_step: 1);
       // var variables = sim.variables;
       // var res = sim.simulate(depth: 10, duration: 200, propofol_density: 20);
       // var start = DateTime.now();
       // var res = sim.simulate(depth: 10, duration: 200, propofol_density: 20);
       // var finish = DateTime.now();
       // duration += (start.difference(finish));
-      sim.estimate(target: 2.5, duration: 90, time_step: 5);
+      sim.estimate(target: 2.5, duration: 90);
       // print(res);
       // print(variables);
       // print(sim.calibrated_effect);

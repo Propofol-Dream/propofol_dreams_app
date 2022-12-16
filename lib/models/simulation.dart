@@ -8,7 +8,7 @@ class Simulation {
   int height;
   int age;
   Gender gender;
-  int refresh_rate;
+  int time_step;
 
   Simulation(
       {required this.model,
@@ -16,23 +16,7 @@ class Simulation {
       required this.height,
       required this.age,
       required this.gender,
-      this.refresh_rate = 10});
-
-  Simulation.marsh(
-      {this.model = Model.Marsh,
-      required this.weight,
-      this.height = 0,
-      this.age = 0,
-      this.gender = Gender.Female,
-      this.refresh_rate = 10});
-
-  Simulation.schnider(
-      {this.model = Model.Schnider,
-      required this.weight,
-      required this.height,
-      required this.age,
-      required this.gender,
-      this.refresh_rate = 10});
+      this.time_step = 10});
 
   Map<String, double> get variables {
     double k10 = 0,
@@ -295,8 +279,7 @@ class Simulation {
       {required double target,
       required int duration,
       int dilution = 10,
-      int max_pump_rate = 1200,
-      int time_step = 5}) {
+      int max_pump_rate = 1200}) {
     double max_infusion = (dilution * max_pump_rate).toDouble(); // mg per hr
 
     int step = 0;
@@ -351,7 +334,7 @@ class Simulation {
       double A1_change = step == 0
           ? 0
           : (A2 * k21 + A3 * k31 - A1s.last * (k10 + k12 + k13)) *
-              time_step /
+          time_step /
               60;
 
       double? inf;

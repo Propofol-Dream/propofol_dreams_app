@@ -30,7 +30,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   Timer timer = Timer(Duration.zero, () {});
   Duration delay = const Duration(milliseconds: 500);
 
-  int refreshRate = 10; //in secs
+  int timeStep = 1; //in secs
   int propofolDensity = 10;
   double depthInterval = 0.5;
   int durationInterval = 10; //in mins
@@ -302,7 +302,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         height: int.parse(heightController.text),
         age: (int.tryParse(ageController.text) ?? 0),
         gender: genderController.val ? Gender.Female : Gender.Male,
-        refresh_rate: refreshRate,
+        time_step: timeStep,
       );
 
       // results = sim.simulate(
@@ -311,19 +311,19 @@ class _VolumeScreenState extends State<VolumeScreen> {
       //     propofol_density: propofolDensity);
 
       results1 = sim.estimate(
-          target: double.parse(depthController.text) - depthInterval,
-          duration: (int.parse(durationController.text) + durationInterval),
-          time_step: 1);
+        target: double.parse(depthController.text) - depthInterval,
+        duration: (int.parse(durationController.text) + durationInterval),
+      );
 
       results2 = sim.estimate(
-          target: double.parse(depthController.text),
-          duration: (int.parse(durationController.text) + durationInterval),
-          time_step: 1);
+        target: double.parse(depthController.text),
+        duration: (int.parse(durationController.text) + durationInterval),
+      );
 
       results3 = sim.estimate(
-          target: double.parse(depthController.text) + depthInterval,
-          duration: (int.parse(durationController.text) + durationInterval),
-          time_step: 1);
+        target: double.parse(depthController.text) + depthInterval,
+        duration: (int.parse(durationController.text) + durationInterval),
+      );
 
       // print(sim.variables);
     }
@@ -511,9 +511,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ),
               Container(
                 width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
-                height: 59,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     PDSegmentedControl(
                       options: modelOptions,
@@ -526,6 +526,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                               : pediatricModelController,
                       onPressed: run,
                       assertValues: {
+                        'gender': genderController.val,
                         'age': (int.tryParse(ageController.text) ?? 0),
                         'height': (int.tryParse(heightController.text) ?? 0),
                         'weight': (int.tryParse(weightController.text) ?? 0)
@@ -544,7 +545,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 ),
               ),
               const SizedBox(
-                height: 32,
+                height: 8,
               ),
               Row(
                 children: [
@@ -867,18 +868,18 @@ class PDSegmentedController extends ChangeNotifier {
 }
 
 class PDSegmentedControl extends StatefulWidget {
-  const PDSegmentedControl(
-      {Key? key,
-      required this.options,
-      required this.segmentedController,
-      required this.onPressed,
-      required this.assertValues})
-      : super(key: key);
+  const PDSegmentedControl({
+    Key? key,
+    required this.options,
+    required this.segmentedController,
+    required this.onPressed,
+    required this.assertValues,
+  }) : super(key: key);
 
   final List options;
   final PDSegmentedController segmentedController;
   final Function onPressed;
-  final Map<String, int> assertValues;
+  final Map<String, Object> assertValues;
 
   @override
   State<PDSegmentedControl> createState() => _PDSegmentedControlState();
@@ -891,62 +892,128 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
     super.dispose();
   }
 
+  bool checkError(
+      {required Gender gender,
+      required int weight,
+      required int height,
+      required int age}) {
+    Model seletedModel = widget.segmentedController.selection as Model;
+    return !(seletedModel.checkConstraints(
+        gender: gender,
+        weight: weight,
+        height: height,
+        age: age)['assertion'] as bool);
+  }
+
+  String showErrorText(
+      {required Gender gender,
+      required int weight,
+      required int height,
+      required int age}) {
+    Model seletedModel = widget.segmentedController.selection as Model;
+    return (seletedModel.checkConstraints(
+        gender: gender,
+        weight: weight,
+        height: height,
+        age: age)['text'] as String);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      shrinkWrap: true,
-      scrollDirection: Axis.horizontal,
-      itemCount: widget.options.length,
-      itemBuilder: (buildContext, buildIndex) {
-        return SizedBox(
-          child: ElevatedButton(
-            onPressed: widget.options[buildIndex].enabled &&
-                    widget.options[buildIndex].shouldBeEnabled(
-                        age: widget.assertValues['age'],
-                        height: widget.assertValues['height'],
-                        weight: widget.assertValues['weight'])
-                ? () {
-                    widget.segmentedController.selection =
-                        widget.options[buildIndex];
-                    widget.onPressed();
-                  }
-                : null,
-            style: ElevatedButton.styleFrom(
-              elevation: 0,
-              foregroundColor: widget.segmentedController.selection ==
-                      widget.options[buildIndex]
-                  ? Theme.of(context).colorScheme.onPrimary
-                  : Theme.of(context).colorScheme.primary,
-              backgroundColor: widget.segmentedController.selection ==
-                      widget.options[buildIndex]
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onPrimary,
-              shape: RoundedRectangleBorder(
-                side: BorderSide(
-                    color: widget.options[buildIndex].enabled &&
-                            widget.options[buildIndex].shouldBeEnabled(
-                                age: widget.assertValues['age'],
-                                height: widget.assertValues['height'],
-                                weight: widget.assertValues['weight'])
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).disabledColor),
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
-                    bottomLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
-                    topRight: Radius.circular(
-                        buildIndex == widget.options.length - 1 ? 5 : 0),
-                    bottomRight: Radius.circular(
-                        buildIndex == widget.options.length - 1 ? 5 : 0)),
-              ),
-            ),
-            child: Text(
-              widget.options[buildIndex].toString(),
-              style: const TextStyle(fontSize: 16),
-            ),
+    bool isError = checkError(
+        gender:
+            widget.assertValues['gender'] as bool ? Gender.Female : Gender.Male,
+        weight: widget.assertValues['weight'] as int,
+        height: widget.assertValues['height'] as int,
+        age: widget.assertValues['age'] as int);
+
+    String errorText = showErrorText(
+        gender:
+            widget.assertValues['gender'] as bool ? Gender.Female : Gender.Male,
+        weight: widget.assertValues['weight'] as int,
+        height: widget.assertValues['height'] as int,
+        age: widget.assertValues['age'] as int);
+
+    return Stack(children: [
+      Container(
+        width: MediaQuery.of(context).size.width -
+            horizontalSidesPaddingPixel -
+            59 -
+            30,
+        child: TextField(
+          decoration: InputDecoration(
+            errorText: errorText,
+            border: const OutlineInputBorder(
+                borderSide: BorderSide(width: 0, style: BorderStyle.none)),
           ),
-        );
-      },
-    );
+        ),
+      ),
+      Container(
+        height: 59,
+        child: ListView.builder(
+          shrinkWrap: true,
+          scrollDirection: Axis.horizontal,
+          itemCount: widget.options.length,
+          itemBuilder: (buildContext, buildIndex) {
+            return SizedBox(
+              child: ElevatedButton(
+                onPressed: widget.options[buildIndex].enabled &&
+                        widget.options[buildIndex].shouldBeEnabled(
+                            age: widget.assertValues['age'],
+                            height: widget.assertValues['height'],
+                            weight: widget.assertValues['weight'])
+                    ? () {
+                        widget.segmentedController.selection =
+                            widget.options[buildIndex];
+                        widget.onPressed();
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  elevation: 0,
+                  foregroundColor: widget.segmentedController.selection ==
+                          widget.options[buildIndex]
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : isError
+                          ? Theme.of(context).errorColor
+                          : Theme.of(context).colorScheme.primary,
+                  backgroundColor: widget.segmentedController.selection ==
+                          widget.options[buildIndex]
+                      ? isError
+                          ? Theme.of(context).errorColor
+                          : Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(
+                        color: widget.options[buildIndex].enabled &&
+                                widget.options[buildIndex].shouldBeEnabled(
+                                    age: widget.assertValues['age'],
+                                    height: widget.assertValues['height'],
+                                    weight: widget.assertValues['weight'])
+                            ? isError
+                                ? Theme.of(context).errorColor
+                                : Theme.of(context).colorScheme.primary
+                            : isError
+                                ? Theme.of(context).errorColor
+                                : Theme.of(context).disabledColor),
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
+                        bottomLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
+                        topRight: Radius.circular(
+                            buildIndex == widget.options.length - 1 ? 5 : 0),
+                        bottomRight: Radius.circular(
+                            buildIndex == widget.options.length - 1 ? 5 : 0)),
+                  ),
+                ),
+                child: Text(
+                  widget.options[buildIndex].toString(),
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    ]);
   }
 }
 
@@ -1022,7 +1089,7 @@ class _PDTextFieldState extends State<PDTextField> {
               : Theme.of(context).disabledColor),
       scrollPadding: EdgeInsets.all(48.0),
       onSubmitted: (val) =>
-          widget.onPressed(widget.controller, 0.0, widget.fractionDigits),
+          widget.onPressed(),
       controller: widget.controller,
       keyboardType: TextInputType.numberWithOptions(
           signed: true, decimal: widget.fractionDigits > 0 ? true : false),
@@ -1051,59 +1118,21 @@ class _PDTextFieldState extends State<PDTextField> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (widget.controller.text.isNotEmpty)
-              Container(
-                alignment: Alignment.center,
-                width: suffixIconConstraintsWidth / 2,
-                // decoration: BoxDecoration(border: Border.all()),
-                height: suffixIconConstraintsHeight,
-                child: GestureDetector(
+              GestureDetector(
+                child: Container(
+                  alignment: Alignment.center,
+                  width: suffixIconConstraintsWidth / 2,
+                  decoration: BoxDecoration(border: Border.all(width: 0,style: BorderStyle.none)),
+                  height: suffixIconConstraintsHeight,
                   child: Icon(
                     Icons.remove,
                   ),
-                  onTap: () {
-                    double? prev = double.tryParse(widget.controller.text);
-                    if (prev != null) {
-                      prev -= widget.interval;
-                      if (prev >= widget.range[0]) {
-                        widget.controller.text =
-                            prev!.toStringAsFixed(widget.fractionDigits);
-                        widget.onPressed();
-                      }
-                    }
-                  },
-                  onLongPress: () {
-                    widget.timer = Timer.periodic(widget.delay, (t) {
-                      double? prev = double.tryParse(widget.controller.text);
-                      if (prev != null) {
-                        prev -= widget.interval;
-                        if (prev >= widget.range[0]) {
-                          widget.controller.text =
-                              prev!.toStringAsFixed(widget.fractionDigits);
-                        }
-                      }
-                    });
-                  },
-                  onLongPressEnd: (_) {
-                    if (widget.timer != null) {
-                      widget.timer!.cancel();
-                      widget.onPressed();
-                    }
-                  },
-                ),
-              ),
-            Container(
-              alignment: Alignment.center,
-              width: suffixIconConstraintsWidth / 2,
-              height: suffixIconConstraintsHeight,
-              child: GestureDetector(
-                child: Icon(
-                  Icons.add,
                 ),
                 onTap: () {
                   double? prev = double.tryParse(widget.controller.text);
                   if (prev != null) {
-                    prev += widget.interval;
-                    if (prev <= widget.range[1]) {
+                    prev -= widget.interval;
+                    if (prev >= widget.range[0]) {
                       widget.controller.text =
                           prev!.toStringAsFixed(widget.fractionDigits);
                       widget.onPressed();
@@ -1114,8 +1143,8 @@ class _PDTextFieldState extends State<PDTextField> {
                   widget.timer = Timer.periodic(widget.delay, (t) {
                     double? prev = double.tryParse(widget.controller.text);
                     if (prev != null) {
-                      prev += widget.interval;
-                      if (prev <= widget.range[1]) {
+                      prev -= widget.interval;
+                      if (prev >= widget.range[0]) {
                         widget.controller.text =
                             prev!.toStringAsFixed(widget.fractionDigits);
                       }
@@ -1129,7 +1158,46 @@ class _PDTextFieldState extends State<PDTextField> {
                   }
                 },
               ),
-            )
+            GestureDetector(
+              child: Container(
+                alignment: Alignment.center,
+                width: suffixIconConstraintsWidth / 2,
+                height: suffixIconConstraintsHeight,
+                decoration: BoxDecoration(border: Border.all(width: 0,style: BorderStyle.none)),
+                child: Icon(
+                  Icons.add,
+                ),
+              ),
+              onTap: () {
+                double? prev = double.tryParse(widget.controller.text);
+                if (prev != null) {
+                  prev += widget.interval;
+                  if (prev <= widget.range[1]) {
+                    widget.controller.text =
+                        prev!.toStringAsFixed(widget.fractionDigits);
+                    widget.onPressed();
+                  }
+                }
+              },
+              onLongPress: () {
+                widget.timer = Timer.periodic(widget.delay, (t) {
+                  double? prev = double.tryParse(widget.controller.text);
+                  if (prev != null) {
+                    prev += widget.interval;
+                    if (prev <= widget.range[1]) {
+                      widget.controller.text =
+                          prev!.toStringAsFixed(widget.fractionDigits);
+                    }
+                  }
+                });
+              },
+              onLongPressEnd: (_) {
+                if (widget.timer != null) {
+                  widget.timer!.cancel();
+                  widget.onPressed();
+                }
+              },
+            ),
           ],
         ),
       ),
