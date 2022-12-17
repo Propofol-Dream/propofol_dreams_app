@@ -146,8 +146,6 @@ class Simulation {
     double baseline_BIS = 93;
     double delay_BIS = 15 + exp(0.0517 * (age - 35));
 
-
-
     return {
       'V1': V1,
       'V2': V2,
@@ -230,7 +228,7 @@ class Simulation {
     List<double> concentrations_effect = [];
 
     for (int time = 0; time <= duration; time += time_step) {
-      int pump_inf = time < 100 ? max_infusion : 0;
+      int pump_inf = time < 100 ? kMaxInfusion : 0;
 
       double A2 = step == 0
           ? 0
@@ -274,12 +272,11 @@ class Simulation {
     return concentrations_effect.reduce(max);
   }
 
-
   Map<String, dynamic> estimate(
       {required double target,
       required int duration,
-      int dilution = 10,
-      int max_pump_rate = 1200}) {
+      int dilution = kDilution,
+      int max_pump_rate = kMaxPumpRate}) {
     double max_infusion = (dilution * max_pump_rate).toDouble(); // mg per hr
 
     int step = 0;
@@ -334,14 +331,14 @@ class Simulation {
       double A1_change = step == 0
           ? 0
           : (A2 * k21 + A3 * k31 - A1s.last * (k10 + k12 + k13)) *
-          time_step /
+              time_step /
               60;
 
       double? inf;
       double? pump_inf;
       double? A1;
 
-      if (model.target == Target.EffectSite) {
+      if (model.target == Target.Effect_Site) {
         A1 = step == 0
             ? 0
             : (pump_infs.last / 60) * time_step / 60 + A1_change + A1s.last;
@@ -385,6 +382,10 @@ class Simulation {
       concentrations.add(concentration);
       concentrations_effect.add(concentration_effect);
       cumulative_infused_volumes.add(cumulative_infused_volume);
+
+      // print(
+      //     '${Duration(seconds: time)} | $cumulative_infused_volume');
+
 
       // print(
       //     '$time | $target | $time_step | $overshoot_time | $inf | $pump_inf | $A1_change | $A1 | $A2 | $A3 | ${Duration(seconds: time)} | $concentration | $concentration_effect | $cumulative_infused_volume');

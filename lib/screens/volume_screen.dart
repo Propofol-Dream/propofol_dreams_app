@@ -1,9 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 
 import '../constants.dart';
@@ -23,7 +20,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   final TextEditingController ageController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
-  final TextEditingController depthController = TextEditingController();
+  final TextEditingController targetController = TextEditingController();
   final TextEditingController durationController = TextEditingController();
   final PDTableController tableController = PDTableController();
   final List<Model> modelOptions = [];
@@ -32,54 +29,31 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
   int timeStep = 1; //in secs
   int propofolDensity = 10;
-  double depthInterval = 0.5;
+  double targetInterval = 0.5;
   int durationInterval = 10; //in mins
 
-  double result = 0;
-
-  List PDTableHeader = [
-    // PDIcon(
-    //   icon: Icon(Icons.airline_seat_flat_outlined),
-    //   text: Text('--'),
-    // ),
-    // PDIcon(
-    //   icon: Icon(Icons.airline_seat_flat_outlined),
-    //   text: Text('--'),
-    // ),
-    // PDIcon(
-    //   icon: Icon(Icons.airline_seat_flat_outlined),
-    //   text: Text('--'),
-    // )
-  ];
-
-  List PDTableRows = [
-    // [
-    //   PDIcon(
-    //     icon: Icon(Icons.schedule),
-    //     text: Text('--'),
-    //   ),
-    //   Text('-- mL'),
-    //   Text('-- mL'),
-    //   Text('-- mL')
-    // ],
-    // [
-    //   PDIcon(
-    //     icon: Icon(Icons.schedule),
-    //     text: Text('--'),
-    //   ),
-    //   Text('-- mL'),
-    //   Text('-- mL'),
-    //   Text('-- mL')
-    // ],
-    // [
-    //   PDIcon(
-    //     icon: Icon(Icons.schedule),
-    //     text: Text('--'),
-    //   ),
-    //   Text('-- mL'),
-    //   Text('-- mL'),
-    //   Text('-- mL')
-    // ],
+  String result = '-- mL';
+  String emptyResult = '-- mL';
+  List PDTableRows = [];
+  List EmptyTableRows = [
+    [
+      '--',
+      '--',
+      '--',
+      '--',
+    ],
+    [
+      '--',
+      '--',
+      '--',
+      '--',
+    ],
+    [
+      '--',
+      '--',
+      '--',
+      '--',
+    ]
   ];
 
   void updatePDSegmentedController(
@@ -94,117 +68,28 @@ class _VolumeScreenState extends State<VolumeScreen> {
     });
   }
 
-  // void onLongPressStartUpdatePDTextEditingController(Timer timer,
-  //     TextEditingController controller, double interval, int fractionDigits) {
-  //   timer = Timer.periodic(delay, (t) {
-  //     print(t.tick);
-  //     print('timer');
-  //     print(timer.isActive);
-  //     print('t');
-  //     print(t.isActive);
-  //     // updatePDTextEditingController(controller, interval, fractionDigits);
-  //   });
-  // }
-
-  // void onLongPressCancelledPDTextEditingController(Timer timer){
-  //   print(timer.isActive);
-  //   timer.cancel();
-  //   print(timer.isActive);
-  // }
-
-  // void updatePDTextEditingController(
-  //     TextEditingController controller, double interval, int fractionDigits) {
-  //   double? x = double.tryParse(controller.text);
-  //
-  //   if (x != null) {
-  //     x += interval;
-  //
-  //     // setState(() {
-  //     controller.text = x!.toStringAsFixed(fractionDigits);
-  //     //Update modelOptions based on Age;
-  //     if (controller == ageController) {
-  //       updateModelOptions(int.parse(ageController.text));
-  //     }
-  //
-  //     //If the current selected model is not found in the updated modelOptions,
-  //     //select the first model in the updated modelOptions,
-  //     // if (!modelOptions.contains(adultModelController.selection as Model)) {
-  //     //   adultModelController.selection = modelOptions.first;
-  //     // }
-  //     // });
-  //   }
-  //   run();
-  // }
-
   void updatePDTextEditingController() {
+    // print('updatePDTextEditingController');
     updateModelOptions(int.tryParse(ageController.text) ?? 0);
     run();
   }
 
-  void updatePDTableHeader() {
-    double? tryParseDepthController = double.tryParse(depthController.text);
-
-    if (tryParseDepthController != null) {
-      PDTableHeader = [
-        PDIcon(
-            icon: Icon(Icons.airline_seat_flat_outlined),
-            text: Text(
-                '${(tryParseDepthController - depthInterval).toStringAsFixed(1)}')),
-        PDIcon(
-            icon: Icon(Icons.airline_seat_flat_outlined),
-            text: Text('${(tryParseDepthController).toStringAsFixed(1)}')),
-        PDIcon(
-            icon: Icon(Icons.airline_seat_flat_outlined),
-            text: Text(
-                '${(tryParseDepthController + depthInterval).toStringAsFixed(1)}')),
-      ];
-    } else {
-      PDTableHeader = [
-        Text(
-          'Confidence\nInterval',
-          style: TextStyle(fontSize: 10),
-        ),
-        PDIcon(
-          icon: Icon(Icons.airline_seat_flat_outlined),
-          text: Text('--'),
-        ),
-        PDIcon(
-          icon: Icon(Icons.airline_seat_flat_outlined),
-          text: Text('--'),
-        ),
-        PDIcon(
-          icon: Icon(Icons.airline_seat_flat_outlined),
-          text: Text('--'),
-        )
-      ];
-    }
-  }
-
   void updateRowsAndResult({cols, times}) {
-    //updatePDTableRows
-
     List col1 = cols[0];
     List col2 = cols[1];
     List col3 = cols[2];
     List durations = times;
-    double depth = double.parse(depthController.text);
-    double depthPlusInterval = depth + depthInterval;
-    double depthMinusInterval = depth - depthInterval;
-
-    //TODO: check if depth == 0, if so, table should show empty state
-    // List col1 = col2.map((e) => e / depth * depthMinusInterval).toList();
-    // List col3 = col2.map((e) => e / depth * depthPlusInterval).toList();
 
     int durationPlusInterval =
         int.parse(durationController.text) + durationInterval;
 
-    List<double> resultsCol1 = [];
-    List<double> resultsCol2 = [];
-    List<double> resultsCol3 = [];
-    List<Duration> resultDuration = [];
+    List<String> resultsCol1 = [];
+    List<String> resultsCol2 = [];
+    List<String> resultsCol3 = [];
+    List<String> resultDuration = [];
 
     for (int i = durationPlusInterval;
-        i >= durationInterval;
+        i >= kMinDuration;
         i -= durationInterval) {
       int index = durations.indexWhere((element) {
         if ((element as Duration).inSeconds == i * 60) {
@@ -213,57 +98,38 @@ class _VolumeScreenState extends State<VolumeScreen> {
         return false;
       });
 
-      resultDuration.add(durations[index]);
-      resultsCol1.add(col1[index]);
-      resultsCol2.add(col2[index]);
-      resultsCol3.add(col3[index]);
+      resultDuration.add(durations[index].inMinutes.toString());
+      resultsCol1.add('${col1[index].toStringAsFixed(numOfDigits)} mL');
+      resultsCol2.add('${col2[index].toStringAsFixed(numOfDigits)} mL');
+      resultsCol3.add('${col3[index].toStringAsFixed(numOfDigits)} mL');
 
       if (i == durationPlusInterval - durationInterval) {
-        setState(() {
-          result = col2[index];
-        });
+        updateResultLabel(col2[index]);
       }
     }
 
-    //Add extra row for the 5th mins
-    int index = durations.indexWhere((element) {
-      if ((element as Duration).inSeconds == 300) {
-        return true;
-      }
-      return false;
-    });
+    //if duration is greater than 5 mins, add extra row for the 5th mins
+    if (durationPlusInterval - durationInterval > kMinDuration) {
+      int index = durations.indexWhere((element) {
+        if ((element as Duration).inSeconds == kMinDuration * 60) {
+          return true;
+        }
+        return false;
+      });
 
-    resultDuration.add(durations[index]);
-    resultsCol1.add(col1[index]);
-    resultsCol2.add(col2[index]);
-    resultsCol3.add(col3[index]);
+      resultDuration.add(durations[index].inMinutes.toString());
+      resultsCol1.add('${col1[index].toStringAsFixed(numOfDigits)} mL');
+      resultsCol2.add('${col2[index].toStringAsFixed(numOfDigits)} mL');
+      resultsCol3.add('${col3[index].toStringAsFixed(numOfDigits)} mL');
+    }
 
     List resultRows = [];
     for (int i = 0; i < resultDuration.length; i++) {
       var row = [
-        PDIcon(
-          icon: Icon(Icons.schedule),
-          text: Text('${resultDuration[i].inMinutes}'),
-        ),
-        Text('${resultsCol1[i].toStringAsFixed(numOfDigits)} mL'),
-        (resultDuration[i].inMinutes == durationPlusInterval - durationInterval)
-            ? Container(
-                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                  border: Border.all(
-                      color: Color(
-                          0xFF006c50)), //TODO: manullay adjust light/dark theme here
-                ),
-                child: Text(
-                  '${resultsCol2[i].toStringAsFixed(numOfDigits)} mL',
-                  style: TextStyle(
-                      color: Color(
-                          0xFF006c50)), //TODO: manullay adjust light/dark theme here
-                ),
-              )
-            : Text('${resultsCol2[i].toStringAsFixed(numOfDigits)} mL'),
-        Text('${resultsCol3[i].toStringAsFixed(numOfDigits)} mL'),
+        resultDuration[i],
+        resultsCol1[i],
+        resultsCol2[i],
+        resultsCol3[i]
       ];
       resultRows.add(row);
     }
@@ -271,69 +137,97 @@ class _VolumeScreenState extends State<VolumeScreen> {
   }
 
   void run({int cycle = 1}) {
-    //check whether depth is empty and numeric
-    updatePDTableHeader();
+    // print('run');
+    int? age = int.tryParse(ageController.text);
+    int? height = int.tryParse(heightController.text);
+    int? weight = int.tryParse(weightController.text);
+    double? target = double.tryParse(targetController.text);
+    int? duration = int.tryParse(durationController.text);
 
-    //TODO: check all other inputs
-    var results1;
-    var results2;
-    var results3;
-
-    DateTime start = DateTime.now();
-
-    for (int i = 0; i < cycle; i++) {
-      PDSim.Simulation sim = PDSim.Simulation(
-        model: (int.tryParse(ageController.text) ?? 0) >= 17
-            ? adultModelController.selection
-            : pediatricModelController.selection,
-        weight: int.parse(weightController.text),
-        height: int.parse(heightController.text),
-        age: (int.tryParse(ageController.text) ?? 0),
-        gender: genderController.val ? Gender.Female : Gender.Male,
-        time_step: timeStep,
-      );
-
-      results1 = sim.estimate(
-        target: double.parse(depthController.text) - depthInterval,
-        duration: (int.parse(durationController.text) + durationInterval),
-      );
-
-      results2 = sim.estimate(
-        target: double.parse(depthController.text),
-        duration: (int.parse(durationController.text) + durationInterval),
-      );
-
-      results3 = sim.estimate(
-        target: double.parse(depthController.text) + depthInterval,
-        duration: (int.parse(durationController.text) + durationInterval),
-      );
-
-      // print(sim.variables);
-    }
-
-    DateTime finish = DateTime.now();
-
-    Duration calculationDuration = finish.difference(start);
-    // print({'duration': calculationDuration.toString()});
-    print({
-      'model': (int.tryParse(ageController.text) ?? 0) >= 17
+    if (age != null &&
+        height != null &&
+        weight != null &&
+        target != null &&
+        duration != null) {
+      Model model = age >= 17
           ? adultModelController.selection
-          : pediatricModelController.selection,
-      'gender': genderController.val ? Gender.Female : Gender.Male,
-      'age': ageController.text,
-      'height': heightController.text,
-      'weight': weightController.text,
-      'depth': depthController.text,
-      'duration': durationController.text,
-      'calcuation time':
-          '${calculationDuration.inMilliseconds.toString()} milliseconds'
-    });
+          : pediatricModelController.selection;
+      if (model.shouldBeEnabled(age: age, height: height, weight: weight) &&
+          target <= kMaxTarget &&
+          target >= kMinTarget &&
+          duration <= kMaxDuration &&
+          duration >= kMinDuration) {
+        DateTime start = DateTime.now();
 
-    updateRowsAndResult(cols: [
-      results1['cumulative_infused_volumes'],
-      results2['cumulative_infused_volumes'],
-      results3['cumulative_infused_volumes']
-    ], times: results2['times']);
+        var results1;
+        var results2;
+        var results3;
+
+        for (int i = 0; i < cycle; i++) {
+          PDSim.Simulation sim = PDSim.Simulation(
+            model: model,
+            weight: weight,
+            height: height,
+            age: age,
+            gender: genderController.val ? Gender.Female : Gender.Male,
+            time_step: timeStep,
+          );
+
+          results1 = sim.estimate(
+            target: target - targetInterval,
+            duration: duration + durationInterval,
+          );
+
+          results2 = sim.estimate(
+            target: target,
+            duration: duration + durationInterval,
+          );
+          // print(results2['cumulative_infused_volumes'].last);
+
+          results3 = sim.estimate(
+            target: target + targetInterval,
+            duration: duration + durationInterval,
+          );
+        }
+
+        DateTime finish = DateTime.now();
+
+        Duration calculationDuration = finish.difference(start);
+        // print({'duration': calculationDuration.toString()});
+
+        print({
+          'model': model,
+          'age': age,
+          'height': height,
+          'weight': weight,
+          'target': target,
+          'duration': duration,
+          'calcuation time':
+              '${calculationDuration.inMilliseconds.toString()} milliseconds'
+        });
+        updateRowsAndResult(cols: [
+          results1['cumulative_infused_volumes'],
+          results2['cumulative_infused_volumes'],
+          results3['cumulative_infused_volumes']
+        ], times: results2['times']);
+      } else {
+        updateResultLabel(-1);
+        // result = emptyResult;
+        PDTableRows = EmptyTableRows;
+      }
+    } else {
+      updateResultLabel(-2);
+      // result = emptyResult;
+      PDTableRows = EmptyTableRows;
+    }
+  }
+
+  void updateResultLabel(double d) {
+    // print(i);
+    setState(() {
+      result = '${d.toStringAsFixed(numOfDigits)} mL';
+      // print(result);
+    });
   }
 
   @override
@@ -356,21 +250,21 @@ class _VolumeScreenState extends State<VolumeScreen> {
       ageController.text = 40.toString();
       heightController.text = 170.toString();
       weightController.text = 70.toString();
-      depthController.text = 3.0.toString();
+      targetController.text = 3.0.toString();
       durationController.text = 60.toString();
     } else if (age >= 17) {
       genderController.val = true;
       ageController.text = 40.toString();
       heightController.text = 170.toString();
       weightController.text = 70.toString();
-      depthController.text = 3.0.toString();
+      targetController.text = 3.0.toString();
       durationController.text = 60.toString();
     } else if (age < 17) {
       genderController.val = true;
       ageController.text = 8.toString();
       heightController.text = 130.toString();
       weightController.text = 26.toString();
-      depthController.text = 3.0.toString();
+      targetController.text = 3.0.toString();
       durationController.text = 60.toString();
     }
 
@@ -383,12 +277,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
   void restart() {
     updateModelOptions(int.tryParse(ageController.text) ?? 0);
-    // updateModelOptions(int.parse(ageController.text));
-
-    // if (!modelOptions.contains(adultModelController.selection)) {
-    //   adultModelController.selection = modelOptions.first;
-    // }
-    //TODO check all controller's text before run
     run();
   }
 
@@ -405,17 +293,52 @@ class _VolumeScreenState extends State<VolumeScreen> {
     }
   }
 
+  bool isEmpty(
+      {required Model model,
+      required int? age,
+      required int? height,
+      required int? weight,
+      required double? target,
+      required int? duration}) {
+    return (model == Model.Marsh) ||
+            (model == Model.Paedfusor) ||
+            (model == Model.Kataria)
+        ? (age == null) ||
+            (weight == null) ||
+            (target == null) ||
+            (duration == null)
+        : (age == null) ||
+            (weight == null) ||
+            (target == null) ||
+            (duration == null) ||
+            (height == null);
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
 
     int? age = int.tryParse(ageController.text);
+    int? height = int.tryParse(heightController.text);
+    int? weight = int.tryParse(weightController.text);
+    int? duration = int.tryParse(durationController.text);
+    double? target = double.tryParse(targetController.text);
 
     updateModelOptions(age ?? 0);
 
     Model selectedModel = (age ?? 0) >= 17
         ? adultModelController.selection
         : pediatricModelController.selection;
+
+    bool showEmptyState = isEmpty(
+        model: selectedModel,
+        age: age,
+        height: height,
+        weight: weight,
+        target: target,
+        duration: duration);
+
+    // print(showEmptyState);
 
     final bool heightTextFieldEnabled = (age ?? 0) >= 17
         ? adultModelController.selection != Model.Marsh
@@ -458,7 +381,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         ),
                         Chip(
                             avatar: Icon(Icons.opacity),
-                            label: Text('${(propofolDensity/10).toInt()} %'))
+                            label: Text('${(propofolDensity / 10).toInt()} %'))
                       ],
                     ),
                     Row(
@@ -471,7 +394,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                                 ? Icon(Icons.expand_more)
                                 : Icon(Icons.expand_less)),
                         Text(
-                          '${result.toStringAsFixed(numOfDigits)} mL',
+                          !showEmptyState ? result : emptyResult,
                           style: TextStyle(fontSize: 60),
                         )
                       ],
@@ -481,9 +404,21 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ),
               Container(
                 child: PDTable(
-                  header: PDTableHeader,
-                  rows: PDTableRows,
+                  colHeaderIcon: Icon(Icons.airline_seat_flat_outlined),
+                  colHeaderLabels: !showEmptyState
+                      ? [
+                          (target! - targetInterval) >= 0
+                              ? (target! - targetInterval).toStringAsFixed(1)
+                              : 0.toStringAsFixed(1),
+                          (target).toStringAsFixed(1),
+                          (target + targetInterval).toStringAsFixed(1)
+                        ]
+                      : ['--', '--', '--'],
+                  rowHeaderIcon: Icon(Icons.schedule),
+                  rowLabels: !showEmptyState ? PDTableRows : EmptyTableRows,
                   controller: tableController,
+                  tableLabel: 'Confidence\nInterval',
+                  highlightLabel: result,
                 ),
               ),
               const SizedBox(
@@ -616,12 +551,13 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     child: PDTextField(
                       icon: const Icon(Icons.airline_seat_flat_outlined),
                       // labelText: 'Depth in mcg/mL',
-                      labelText: 'Depth (mcg/mL)',
+                      labelText:
+                          '${selectedModel.target.toString().replaceAll('_', ' ')}',
                       helperText: '',
                       interval: 0.5,
                       fractionDigits: 1,
-                      controller: depthController,
-                      range: [0.5, 10.0],
+                      controller: targetController,
+                      range: [kMinTarget, kMaxTarget],
                       onPressed: updatePDTextEditingController,
                       onChanged: restart,
                     ),
@@ -644,7 +580,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                           : 1,
                       fractionDigits: 0,
                       controller: durationController,
-                      range: [5, 600],
+                      range: [kMinDuration, kMaxDuration],
                       onPressed: updatePDTextEditingController,
                       onChanged: restart,
                     ),
@@ -658,10 +594,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(items: const [
+      bottomNavigationBar:
+          BottomNavigationBar(type: BottomNavigationBarType.fixed, items: const [
         BottomNavigationBarItem(
             icon: Icon(Icons.science_outlined), label: 'Volume'),
         BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Duration'),
+        BottomNavigationBarItem(icon: Icon(Icons.tune), label: 'TCI'),
         BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
       ]), // This trailing comma makes auto-formatting nicer for build methods.
     );
@@ -684,19 +622,24 @@ class PDTableController extends ChangeNotifier {
 }
 
 class PDTable extends StatefulWidget {
-  const PDTable({
-    Key? key,
-    required this.header,
-    required this.rows,
-    required this.controller,
-    // required this.onPressed,
-  }) : super(key: key);
+  const PDTable(
+      {Key? key,
+      required this.controller,
+      required this.tableLabel,
+      required this.colHeaderIcon,
+      required this.colHeaderLabels,
+      required this.rowHeaderIcon,
+      required this.rowLabels,
+      this.highlightLabel})
+      : super(key: key);
 
-  final header;
-  final rows;
   final PDTableController controller;
-
-  // final Function onPressed;
+  final String tableLabel;
+  final Icon colHeaderIcon;
+  final List<String> colHeaderLabels;
+  final Icon rowHeaderIcon;
+  final List rowLabels;
+  final String? highlightLabel;
 
   @override
   State<PDTable> createState() => _PDTableState();
@@ -708,10 +651,10 @@ class _PDTableState extends State<PDTable> {
     final mediaQuery = MediaQuery.of(context);
     final double headerColWidth =
         ((mediaQuery.size.width - horizontalSidesPaddingPixel * 2) /
-            (widget.header.length + 1));
+            (widget.colHeaderLabels.length + 1));
     final double rowColWidth =
         ((mediaQuery.size.width - horizontalSidesPaddingPixel * 2) /
-            (widget.header.length + 1));
+            (widget.colHeaderLabels.length + 1));
 
     return AnimatedContainer(
       duration: Duration(milliseconds: 1),
@@ -734,29 +677,24 @@ class _PDTableState extends State<PDTable> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Confidence\nInterval',
+                      widget.tableLabel,
                       style: TextStyle(fontSize: 10),
                     ),
-                    // IconButton(
-                    //   onPressed: () =>
-                    //       widget.onPressed(widget.controller),
-                    //   icon: Icon(Icons.expand_more),
-                    // ),
                   ),
                 ),
                 Container(
                   child: ListView.builder(
                     shrinkWrap: true,
                     scrollDirection: Axis.horizontal,
-                    itemCount: widget.header.length,
+                    itemCount: widget.colHeaderLabels.length,
                     itemBuilder: (buildContext, buildIndex) {
                       return Container(
                         width: headerColWidth,
-                        // alignment: buildIndex == 0
-                        //     ? Alignment.centerLeft
-                        //     : Alignment.center,
                         child: Align(
-                          child: widget.header[buildIndex],
+                          child: PDIcon(
+                            icon: widget.colHeaderIcon,
+                            text: Text(widget.colHeaderLabels[buildIndex]),
+                          ),
                         ),
                       );
                     },
@@ -772,7 +710,7 @@ class _PDTableState extends State<PDTable> {
             height: (20 + PDTableRowHeight) * 3 - 19,
             child: ListView.builder(
                 padding: EdgeInsets.zero,
-                itemCount: widget.rows.length,
+                itemCount: widget.rowLabels.length,
                 itemBuilder: (buildContext, buildIndexOutter) {
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -782,15 +720,47 @@ class _PDTableState extends State<PDTable> {
                         height: PDTableRowHeight,
                         child: ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            itemCount: widget.rows[buildIndexOutter].length,
+                            itemCount:
+                                widget.rowLabels[buildIndexOutter].length,
                             itemBuilder: (buildContext, buildIndexInner) {
                               return Container(
                                 width: rowColWidth,
                                 alignment: buildIndexInner == 0
                                     ? Alignment.centerLeft
                                     : Alignment.center,
-                                child: widget.rows[buildIndexOutter]
-                                    [buildIndexInner],
+                                child: buildIndexInner == 0
+                                    ? PDIcon(
+                                        icon: widget.rowHeaderIcon,
+                                        text: Text(
+                                            widget.rowLabels[buildIndexOutter]
+                                                [buildIndexInner]),
+                                      )
+                                    : widget.highlightLabel ==
+                                            widget.rowLabels[buildIndexOutter]
+                                                [buildIndexInner]
+                                        ? Container(
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 4, horizontal: 8),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                              border: Border.all(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .primary), //TODO: manullay adjust light/dark theme here
+                                            ),
+                                            child: Text(
+                                                widget.rowLabels[
+                                                        buildIndexOutter]
+                                                    [buildIndexInner],
+                                                style: TextStyle(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary)), //TODO: manullay adjust light/dark theme here
+                                          )
+                                        : Text(
+                                            widget.rowLabels[buildIndexOutter]
+                                                [buildIndexInner]),
                               );
                             }),
                       ),
@@ -923,7 +893,9 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
         child: TextField(
           decoration: InputDecoration(
             errorText: errorText,
-            errorStyle: isError?TextStyle(color: Theme.of(context).errorColor):TextStyle(color: Theme.of(context).colorScheme.primary),
+            errorStyle: isError
+                ? TextStyle(color: Theme.of(context).errorColor)
+                : TextStyle(color: Theme.of(context).colorScheme.primary),
             border: const OutlineInputBorder(
                 borderSide: BorderSide(width: 0, style: BorderStyle.none)),
           ),
@@ -965,6 +937,7 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
                       : Theme.of(context).colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
                     side: BorderSide(
+                        strokeAlign: StrokeAlign.outside,
                         color: widget.options[buildIndex].enabled &&
                                 widget.options[buildIndex].shouldBeEnabled(
                                     age: widget.assertValues['age'],
@@ -977,12 +950,13 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
                                 ? Theme.of(context).errorColor
                                 : Theme.of(context).disabledColor),
                     borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
-                        bottomLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
-                        topRight: Radius.circular(
-                            buildIndex == widget.options.length - 1 ? 5 : 0),
-                        bottomRight: Radius.circular(
-                            buildIndex == widget.options.length - 1 ? 5 : 0)),
+                      topLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
+                      bottomLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
+                      topRight: Radius.circular(
+                          buildIndex == widget.options.length - 1 ? 5 : 0),
+                      bottomRight: Radius.circular(
+                          buildIndex == widget.options.length - 1 ? 5 : 0),
+                    ),
                   ),
                 ),
                 child: Text(
@@ -1049,8 +1023,6 @@ class _PDTextFieldState extends State<PDTextField> {
     double suffixIconConstraintsWidth = 84;
     double suffixIconConstraintsHeight = 59;
 
-    bool x = (double.tryParse(widget.controller.text) ?? 0) >= 0;
-
     var val = widget.fractionDigits > 0
         ? double.tryParse(widget.controller.text)
         : int.tryParse(widget.controller.text);
@@ -1061,7 +1033,10 @@ class _PDTextFieldState extends State<PDTextField> {
 
     return TextField(
       onChanged: (val) {
-        widget.onChanged();
+        double? current = double.tryParse(val);
+        if (current != null) {
+          widget.onPressed();
+        }
       },
       enabled: widget.enabled,
       style: TextStyle(
@@ -1069,7 +1044,12 @@ class _PDTextFieldState extends State<PDTextField> {
               ? Theme.of(context).colorScheme.primary
               : Theme.of(context).disabledColor),
       scrollPadding: EdgeInsets.all(48.0),
-      onSubmitted: (val) => widget.onPressed(),
+      onSubmitted: (val) {
+        double? current = double.tryParse(val);
+        if (current != null) {
+          widget.onPressed();
+        }
+      },
       controller: widget.controller,
       keyboardType: TextInputType.numberWithOptions(
           signed: true, decimal: widget.fractionDigits > 0 ? true : false),
@@ -1078,7 +1058,7 @@ class _PDTextFieldState extends State<PDTextField> {
       //     decimal: widget.fractionDigits > 0 ? true : false),
       decoration: InputDecoration(
         errorText: widget.controller.text.isEmpty
-            ? null
+            ? 'Please enter a value'
             : isNumeric
                 ? isWithinRange
                     ? null
@@ -1111,24 +1091,26 @@ class _PDTextFieldState extends State<PDTextField> {
                 ),
                 onTap: () {
                   double? prev = double.tryParse(widget.controller.text);
-                  if (prev != null) {
+                  if (prev != null && prev >= widget.range[0]) {
                     prev -= widget.interval;
-                    if (prev >= widget.range[0]) {
-                      widget.controller.text =
-                          prev!.toStringAsFixed(widget.fractionDigits);
-                      widget.onPressed();
-                    }
+                    prev >= widget.range[0]
+                        ? widget.controller.text =
+                            prev.toStringAsFixed(widget.fractionDigits)
+                        : widget.controller.text = widget.range[0]
+                            .toStringAsFixed(widget.fractionDigits);
+                    widget.onPressed();
                   }
                 },
                 onLongPress: () {
                   widget.timer = Timer.periodic(widget.delay, (t) {
                     double? prev = double.tryParse(widget.controller.text);
-                    if (prev != null) {
+                    if (prev != null && prev >= widget.range[0]) {
                       prev -= widget.interval;
-                      if (prev >= widget.range[0]) {
-                        widget.controller.text =
-                            prev!.toStringAsFixed(widget.fractionDigits);
-                      }
+                      prev >= widget.range[0]
+                          ? widget.controller.text =
+                              prev.toStringAsFixed(widget.fractionDigits)
+                          : widget.controller.text = widget.range[0]
+                              .toStringAsFixed(widget.fractionDigits);
                     }
                   });
                 },
@@ -1152,24 +1134,26 @@ class _PDTextFieldState extends State<PDTextField> {
               ),
               onTap: () {
                 double? prev = double.tryParse(widget.controller.text);
-                if (prev != null) {
+                if (prev != null && prev <= widget.range[1]) {
                   prev += widget.interval;
-                  if (prev <= widget.range[1]) {
-                    widget.controller.text =
-                        prev!.toStringAsFixed(widget.fractionDigits);
-                    widget.onPressed();
-                  }
+                  prev <= widget.range[1]
+                      ? widget.controller.text =
+                          prev.toStringAsFixed(widget.fractionDigits)
+                      : widget.controller.text = widget.range[1]
+                          .toStringAsFixed(widget.fractionDigits);
+                  widget.onPressed();
                 }
               },
               onLongPress: () {
                 widget.timer = Timer.periodic(widget.delay, (t) {
                   double? prev = double.tryParse(widget.controller.text);
-                  if (prev != null) {
+                  if (prev != null && prev <= widget.range[1]) {
                     prev += widget.interval;
-                    if (prev <= widget.range[1]) {
-                      widget.controller.text =
-                          prev!.toStringAsFixed(widget.fractionDigits);
-                    }
+                    prev <= widget.range[1]
+                        ? widget.controller.text =
+                            prev.toStringAsFixed(widget.fractionDigits)
+                        : widget.controller.text = widget.range[1]
+                            .toStringAsFixed(widget.fractionDigits);
                   }
                 });
               },

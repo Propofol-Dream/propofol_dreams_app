@@ -39,15 +39,15 @@ void main() {
   //   print('Test Duration: ${duration}');
   // });
 
-  test('Simulate for Eleveld', () {
+  test('Simulate for Schnider', () {
     Duration duration = Duration.zero;
     for (int i = 0; i < cycle; i++) {
       Simulation sim = Simulation(
-          model: Model.Eleveld,
-          weight: 80,
+          model: Model.Schnider,
+          weight: 70,
           height: 170,
           age: 40,
-          gender: Gender.Male,
+          gender: Gender.Female,
           time_step: 1);
       // var variables = sim.variables;
       // var res = sim.simulate(depth: 10, duration: 200, propofol_density: 20);
@@ -55,11 +55,12 @@ void main() {
       // var res = sim.simulate(depth: 10, duration: 200, propofol_density: 20);
       // var finish = DateTime.now();
       // duration += (start.difference(finish));
-      sim.estimate(target: 2.5, duration: 90);
-      // print(res);
-      // print(variables);
+      sim.estimate(target: 3.0, duration: 10);
+      // print(res['times'].last);
+      // print(res['cumulative_infused_volumes'].last);
       // print(sim.calibrated_effect);
+      // print(sim.variables);
     }
-    print('Test Duration: ${duration}');
+    // print('Test Duration: ${duration}');
   });
 }

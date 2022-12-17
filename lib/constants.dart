@@ -68,7 +68,7 @@ enum Model {
       maxHeight: 210,
       minWeight: 0,
       maxWeight: 165,
-      target: Target.EffectSite),
+      target: Target.Effect_Site),
   Eleveld(
       minAge: 1,
       maxAge: 105,
@@ -76,7 +76,7 @@ enum Model {
       maxHeight: 210,
       minWeight: 1,
       maxWeight: 250,
-      target: Target.EffectSite),
+      target: Target.Effect_Site),
   Paedfusor(
       minAge: 1,
       maxAge: 16,
@@ -100,7 +100,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 999,
-      target: Target.EffectSite),
+      target: Target.Effect_Site),
   Xu(
       minAge: 0,
       maxAge: 999,
@@ -157,17 +157,17 @@ enum Model {
     bool isAssertive = true;
     String text = '';
     if (this == Model.Marsh || this == Model.Paedfusor || this == Model.Kataria){
-      text = 'Plasma';
+      // text = 'Plasma';
       return {'assertion': isAssertive, 'text': text};
     }else if (this == Model.Schnider) {
       double tmpBMI = bmi(weight, height);
       double minBMI = 14;
       double maxBMI = gender == Gender.Male?42:39;
       isAssertive = tmpBMI >= minBMI && tmpBMI <= maxBMI;
-      text = isAssertive? 'Effect Site': '[BMI] min: ${minBMI} and max: ${maxBMI}';
+      text = isAssertive? '': '[BMI] min: ${minBMI} and max: ${maxBMI}';
       return {'assertion': isAssertive, 'text': text};
     }else if (this == Model.Eleveld) {
-      text = 'Effect Site';
+      // text = 'Effect Site';
       return {'assertion': isAssertive, 'text': text};
     }
     return {'assertion': isAssertive, 'text': text};
@@ -209,7 +209,7 @@ enum Gender {
 
 enum Target {
   Plasma(),
-  EffectSite();
+  Effect_Site();
 
   @override
   String toString() {
@@ -219,7 +219,16 @@ enum Target {
   const Target();
 }
 
-int dilution = 10; // mg/ml
-int max_pump_rate = 750; // ml/hr, as requested on 13 Dec 2022
-// int max_pump_rate = 1200; // ml/hr, this is from Engbert's
-int max_infusion = dilution * max_pump_rate;
+
+
+const int kDilution = 10; // mg/ml
+const int kMaxPumpRate = 750; // ml/hr, as requested on 13 Dec 2022
+// int default_max_pump_rate = 1200; // ml/hr, this is from Engbert's
+int kMaxInfusion = kDilution * kMaxPumpRate;
+
+const double kMinTarget = 0.5;
+const double kMaxTarget = 10;
+
+const int kMinDuration = 5; //5 mins
+const int kMaxDuration = 600; //600mins
+
