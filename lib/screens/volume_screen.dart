@@ -225,7 +225,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   'target': target,
                   'duration': duration,
                   'calcuation time':
-                  '${calculationDuration.inMilliseconds.toString()} milliseconds'
+                      '${calculationDuration.inMilliseconds.toString()} milliseconds'
                 });
                 updateRowsAndResult(cols: [
                   results1['cumulative_infused_volumes'],
@@ -303,7 +303,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   void reset({bool resetModelSelection = false}) {
     if (resetModelSelection == true) {
       adultModelController.selection = Model.Marsh;
-      pediatricModelController.selection = Model.Eleveld;
+      pediatricModelController.selection = Model.Paedfusor;
     }
 
     int? age = int.tryParse(ageController.text);
@@ -408,13 +408,26 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Chip(
+                        GestureDetector(
+                          onTap: () {
+                            if (age != null) {
+                              if (age >= 17) {
+                                ageController.text = '8';
+                              } else {
+                                ageController.text = '40';
+                              }
+                              reset();
+                            }
+                          },
+                          child: Chip(
                             avatar: (age ?? 0) >= 17
                                 ? Icon(Icons.face)
                                 : Icon(Icons.child_care_outlined),
                             label: (age ?? 0) >= 17
                                 ? Text('Adult')
-                                : Text('Child')),
+                                : Text('Child'),
+                          ),
+                        ),
                         SizedBox(
                           width: 8,
                         ),
@@ -530,7 +543,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       interval: 1.0,
                       fractionDigits: 0,
                       controller: ageController,
-                      range: [1, selectedModel == Model.Schnider ? 100 : 105],
+                      range: age!=null ? age>=17 ?[17, selectedModel == Model.Schnider ? 100 : 105]:[1,16] : [1,16],
                       onPressed: updatePDTextEditingController,
                       onChanged: restart,
                     ),
