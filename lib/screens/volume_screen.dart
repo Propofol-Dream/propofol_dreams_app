@@ -138,88 +138,151 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
   void run({int cycle = 1}) {
     // print('run');
+
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
     double? target = double.tryParse(targetController.text);
     int? duration = int.tryParse(durationController.text);
+    Gender gender = genderController.val ? Gender.Female : Gender.Male;
 
-    if (age != null &&
-        height != null &&
-        weight != null &&
-        target != null &&
-        duration != null) {
-      Model model = age >= 17
-          ? adultModelController.selection
-          : pediatricModelController.selection;
-      if (model.shouldBeEnabled(age: age, height: height, weight: weight) &&
-          target <= kMaxTarget &&
-          target >= kMinTarget &&
-          duration <= kMaxDuration &&
-          duration >= kMinDuration) {
-        DateTime start = DateTime.now();
+    //Check whether Age is null, if so, clear all adult & peadiatric models to Model.None
+    //If Age is not null, check whether other input fiels are null
+    //If all input fields are not null and Age is >0, select the model, and check whether the model is Runnable
+    //If model is runnable, run the model except Model.None
+    if (age != null) {
+      // print('Age != null');
 
-        var results1;
-        var results2;
-        var results3;
+      if (height != null &&
+          weight != null &&
+          target != null &&
+          duration != null) {
+        if (age >= 0) {
+          // print('Age >=0');
+          Model model = age >= 17
+              ? adultModelController.selection
+              : pediatricModelController.selection;
 
-        for (int i = 0; i < cycle; i++) {
-          PDSim.Simulation sim = PDSim.Simulation(
-            model: model,
-            weight: weight,
-            height: height,
-            age: age,
-            gender: genderController.val ? Gender.Female : Gender.Male,
-            time_step: timeStep,
-          );
+          if (model != Model.None) {
+            // print('model != Model.None');
 
-          results1 = sim.estimate(
-            target: target - targetInterval,
-            duration: duration + durationInterval,
-          );
+            if (model.isEnable(age: age, height: height, weight: weight) &&
+                target <= kMaxTarget &&
+                target >= kMinTarget &&
+                duration <= kMaxDuration &&
+                duration >= kMinDuration) {
+              // print('model is enable');
 
-          results2 = sim.estimate(
-            target: target,
-            duration: duration + durationInterval,
-          );
-          // print(results2['cumulative_infused_volumes'].last);
+              if (model.checkConstraints(
+                  weight: weight,
+                  height: height,
+                  age: age,
+                  gender: gender)['assertion'] as bool) {
+                // print('model pass constraints');
 
-          results3 = sim.estimate(
-            target: target + targetInterval,
-            duration: duration + durationInterval,
-          );
+                DateTime start = DateTime.now();
+
+                var results1;
+                var results2;
+                var results3;
+
+                for (int i = 0; i < cycle; i++) {
+                  PDSim.Simulation sim = PDSim.Simulation(
+                    model: model,
+                    weight: weight,
+                    height: height,
+                    age: age,
+                    gender: genderController.val ? Gender.Female : Gender.Male,
+                    time_step: timeStep,
+                  );
+
+                  results1 = sim.estimate(
+                    target: target - targetInterval,
+                    duration: duration + durationInterval,
+                  );
+
+                  results2 = sim.estimate(
+                    target: target,
+                    duration: duration + durationInterval,
+                  );
+
+                  results3 = sim.estimate(
+                    target: target + targetInterval,
+                    duration: duration + durationInterval,
+                  );
+                }
+
+                DateTime finish = DateTime.now();
+
+                Duration calculationDuration = finish.difference(start);
+                // print({'duration': calculationDuration.toString()});
+
+                print({
+                  'model': model,
+                  'age': age,
+                  'height': height,
+                  'weight': weight,
+                  'target': target,
+                  'duration': duration,
+                  'calcuation time':
+                  '${calculationDuration.inMilliseconds.toString()} milliseconds'
+                });
+                updateRowsAndResult(cols: [
+                  results1['cumulative_infused_volumes'],
+                  results2['cumulative_infused_volumes'],
+                  results3['cumulative_infused_volumes']
+                ], times: results2['times']);
+              } else {
+                // print('Model does not meet its constraint');
+                setState(() {
+                  result = emptyResult;
+                  PDTableRows = EmptyTableRows;
+                  // print(result);
+                });
+              }
+            } else {
+              // print('Model is not enable');
+              setState(() {
+                result = emptyResult;
+                PDTableRows = EmptyTableRows;
+                // print(result);
+              });
+            }
+          } else {
+            // print('Selected Model = Model.None');
+            setState(() {
+              result = emptyResult;
+              PDTableRows = EmptyTableRows;
+              // print(result);
+            });
+          }
+        } else {
+          // print('Age <0');
+          setState(() {
+            result = emptyResult;
+            PDTableRows = EmptyTableRows;
+            // print(result);
+          });
         }
-
-        DateTime finish = DateTime.now();
-
-        Duration calculationDuration = finish.difference(start);
-        // print({'duration': calculationDuration.toString()});
-
-        print({
-          'model': model,
-          'age': age,
-          'height': height,
-          'weight': weight,
-          'target': target,
-          'duration': duration,
-          'calcuation time':
-              '${calculationDuration.inMilliseconds.toString()} milliseconds'
-        });
-        updateRowsAndResult(cols: [
-          results1['cumulative_infused_volumes'],
-          results2['cumulative_infused_volumes'],
-          results3['cumulative_infused_volumes']
-        ], times: results2['times']);
       } else {
-        updateResultLabel(-1);
-        // result = emptyResult;
-        PDTableRows = EmptyTableRows;
+        // print('Some fields == null');
+        setState(() {
+          result = emptyResult;
+          PDTableRows = EmptyTableRows;
+          // print(result);
+        });
       }
     } else {
-      updateResultLabel(-2);
-      // result = emptyResult;
-      PDTableRows = EmptyTableRows;
+      // print('Age == null');
+      adultModelController.selection = Model.None;
+      pediatricModelController.selection = Model.None;
+      setState(() {
+        result = emptyResult;
+        PDTableRows = EmptyTableRows;
+        // print(result);
+      });
     }
+    // print('run ends');
   }
 
   void updateResultLabel(double d) {
@@ -293,27 +356,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
     }
   }
 
-  bool isEmpty(
-      {required Model model,
-      required int? age,
-      required int? height,
-      required int? weight,
-      required double? target,
-      required int? duration}) {
-    return (model == Model.Marsh) ||
-            (model == Model.Paedfusor) ||
-            (model == Model.Kataria)
-        ? (age == null) ||
-            (weight == null) ||
-            (target == null) ||
-            (duration == null)
-        : (age == null) ||
-            (weight == null) ||
-            (target == null) ||
-            (duration == null) ||
-            (height == null);
-  }
-
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -330,15 +372,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
         ? adultModelController.selection
         : pediatricModelController.selection;
 
-    bool showEmptyState = isEmpty(
-        model: selectedModel,
+    bool modelIsRunnable = selectedModel.isRunnable(
         age: age,
         height: height,
         weight: weight,
         target: target,
         duration: duration);
-
-    // print(showEmptyState);
 
     final bool heightTextFieldEnabled = (age ?? 0) >= 17
         ? adultModelController.selection != Model.Marsh
@@ -394,7 +433,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                                 ? Icon(Icons.expand_more)
                                 : Icon(Icons.expand_less)),
                         Text(
-                          !showEmptyState ? result : emptyResult,
+                          modelIsRunnable ? result : emptyResult,
                           style: TextStyle(fontSize: 60),
                         )
                       ],
@@ -405,7 +444,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
               Container(
                 child: PDTable(
                   colHeaderIcon: Icon(Icons.airline_seat_flat_outlined),
-                  colHeaderLabels: !showEmptyState
+                  colHeaderLabels: modelIsRunnable
                       ? [
                           (target! - targetInterval) >= 0
                               ? (target! - targetInterval).toStringAsFixed(1)
@@ -415,7 +454,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         ]
                       : ['--', '--', '--'],
                   rowHeaderIcon: Icon(Icons.schedule),
-                  rowLabels: !showEmptyState ? PDTableRows : EmptyTableRows,
+                  rowLabels: modelIsRunnable ? PDTableRows : EmptyTableRows,
                   controller: tableController,
                   tableLabel: 'Confidence\nInterval',
                   highlightLabel: result,
@@ -910,11 +949,10 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
           itemBuilder: (buildContext, buildIndex) {
             return SizedBox(
               child: ElevatedButton(
-                onPressed: widget.options[buildIndex].enabled &&
-                        widget.options[buildIndex].shouldBeEnabled(
-                            age: widget.assertValues['age'],
-                            height: widget.assertValues['height'],
-                            weight: widget.assertValues['weight'])
+                onPressed: widget.options[buildIndex].isEnable(
+                        age: widget.assertValues['age'],
+                        height: widget.assertValues['height'],
+                        weight: widget.assertValues['weight'])
                     ? () {
                         widget.segmentedController.selection =
                             widget.options[buildIndex];
@@ -938,11 +976,10 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
                   shape: RoundedRectangleBorder(
                     side: BorderSide(
                         strokeAlign: StrokeAlign.outside,
-                        color: widget.options[buildIndex].enabled &&
-                                widget.options[buildIndex].shouldBeEnabled(
-                                    age: widget.assertValues['age'],
-                                    height: widget.assertValues['height'],
-                                    weight: widget.assertValues['weight'])
+                        color: widget.options[buildIndex].isEnable(
+                                age: widget.assertValues['age'],
+                                height: widget.assertValues['height'],
+                                weight: widget.assertValues['weight'])
                             ? isError
                                 ? Theme.of(context).errorColor
                                 : Theme.of(context).colorScheme.primary
@@ -1045,10 +1082,10 @@ class _PDTextFieldState extends State<PDTextField> {
               : Theme.of(context).disabledColor),
       scrollPadding: EdgeInsets.all(48.0),
       onSubmitted: (val) {
-        double? current = double.tryParse(val);
-        if (current != null) {
-          widget.onPressed();
-        }
+        // double? current = double.tryParse(val);
+        // if (current != null) {
+        widget.onPressed();
+        // }
       },
       controller: widget.controller,
       keyboardType: TextInputType.numberWithOptions(

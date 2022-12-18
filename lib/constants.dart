@@ -101,7 +101,7 @@ enum Model {
       minWeight: 0,
       maxWeight: 999,
       target: Target.Effect_Site),
-  Xu(
+  None(
       minAge: 0,
       maxAge: 999,
       minHeight: 0,
@@ -139,9 +139,28 @@ enum Model {
     }
   }
 
-  bool shouldBeEnabled(
-      {required int age, required int height, required int weight}) {
-    return (withinAge(age) && withinHeight(height) && withinWeight(weight));
+  bool isEnable({required int age, required int height, required int weight}) {
+    return this.target == Target.Plasma
+        ? (withinAge(age) && withinHeight(height))
+        : (withinAge(age) && withinHeight(height) && withinWeight(weight));
+  }
+
+  bool isRunnable(
+      {required int? age,
+      required int? height,
+      required int? weight,
+      required double? target,
+      required int? duration}) {
+    return this.target == Target.Plasma
+        ? (age != null) &&
+            (weight != null) &&
+            (target != null) &&
+            (duration != null)
+        : (age != null) &&
+            (weight != null) &&
+            (target != null) &&
+            (duration != null) &&
+            (height != null);
   }
 
   double bmi(int weight, int height) {
@@ -156,24 +175,25 @@ enum Model {
   }) {
     bool isAssertive = true;
     String text = '';
-    if (this == Model.Marsh || this == Model.Paedfusor || this == Model.Kataria){
+    if (this == Model.Marsh ||
+        this == Model.Paedfusor ||
+        this == Model.Kataria) {
       // text = 'Plasma';
       return {'assertion': isAssertive, 'text': text};
-    }else if (this == Model.Schnider) {
+    } else if (this == Model.Schnider) {
       double tmpBMI = bmi(weight, height);
       double minBMI = 14;
-      double maxBMI = gender == Gender.Male?42:39;
+      double maxBMI = gender == Gender.Male ? 42 : 39;
       isAssertive = tmpBMI >= minBMI && tmpBMI <= maxBMI;
-      text = isAssertive? '': '[BMI] min: ${minBMI} and max: ${maxBMI}';
+      text = isAssertive ? '' : '[BMI] min: ${minBMI} and max: ${maxBMI}';
       return {'assertion': isAssertive, 'text': text};
-    }else if (this == Model.Eleveld) {
+    } else if (this == Model.Eleveld) {
       // text = 'Effect Site';
       return {'assertion': isAssertive, 'text': text};
     }
     return {'assertion': isAssertive, 'text': text};
   }
 
-  final bool enabled;
   final int minAge;
   final int maxAge;
   final int minHeight;
@@ -182,15 +202,15 @@ enum Model {
   final int maxWeight;
   final Target target;
 
-  const Model(
-      {required this.minAge,
-      required this.maxAge,
-      required this.minHeight,
-      required this.maxHeight,
-      required this.minWeight,
-      required this.maxWeight,
-      required this.target,
-      this.enabled = true});
+  const Model({
+    required this.minAge,
+    required this.maxAge,
+    required this.minHeight,
+    required this.maxHeight,
+    required this.minWeight,
+    required this.maxWeight,
+    required this.target,
+  });
 }
 
 enum Gender {
@@ -219,8 +239,6 @@ enum Target {
   const Target();
 }
 
-
-
 const int kDilution = 10; // mg/ml
 const int kMaxPumpRate = 750; // ml/hr, as requested on 13 Dec 2022
 // int default_max_pump_rate = 1200; // ml/hr, this is from Engbert's
@@ -231,4 +249,3 @@ const double kMaxTarget = 10;
 
 const int kMinDuration = 5; //5 mins
 const int kMaxDuration = 600; //600mins
-
