@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
@@ -393,7 +394,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
             ? NeverScrollableScrollPhysics()
             : BouncingScrollPhysics(),
         child: Container(
-          height: mediaQuery.size.height - 90,
+          height: mediaQuery.size.height - (Platform.isAndroid ? 48 : 88),
           margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -543,7 +544,14 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       interval: 1.0,
                       fractionDigits: 0,
                       controller: ageController,
-                      range: age!=null ? age>=17 ?[17, selectedModel == Model.Schnider ? 100 : 105]:[1,16] : [1,16],
+                      range: age != null
+                          ? age >= 17
+                              ? [
+                                  17,
+                                  selectedModel == Model.Schnider ? 100 : 105
+                                ]
+                              : [1, 16]
+                          : [1, 16],
                       onPressed: updatePDTextEditingController,
                       onChanged: restart,
                     ),
@@ -943,6 +951,7 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
             59 -
             30,
         child: TextField(
+          enabled: false,
           decoration: InputDecoration(
             errorText: errorText,
             errorStyle: isError
@@ -1081,143 +1090,253 @@ class _PDTextFieldState extends State<PDTextField> {
         val != null ? val >= widget.range[0] && val <= widget.range[1] : false;
     bool isNumeric = widget.controller.text.isEmpty ? false : val != null;
 
-    return TextField(
-      onChanged: (val) {
-        double? current = double.tryParse(val);
-        if (current != null) {
+    return Stack(alignment: Alignment.topRight, children: [
+      TextField(
+        onChanged: (val) {
+          double? current = double.tryParse(val);
+          if (current != null) {
+            widget.onPressed();
+          }
+        },
+        enabled: widget.enabled,
+        style: TextStyle(
+            color: widget.enabled
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).disabledColor),
+        scrollPadding: EdgeInsets.all(48.0),
+        onSubmitted: (val) {
+          // double? current = double.tryParse(val);
+          // if (current != null) {
           widget.onPressed();
-        }
-      },
-      enabled: widget.enabled,
-      style: TextStyle(
-          color: widget.enabled
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).disabledColor),
-      scrollPadding: EdgeInsets.all(48.0),
-      onSubmitted: (val) {
-        // double? current = double.tryParse(val);
-        // if (current != null) {
-        widget.onPressed();
-        // }
-      },
-      controller: widget.controller,
-      keyboardType: TextInputType.numberWithOptions(
-          signed: true, decimal: widget.fractionDigits > 0 ? true : false),
-      // keyboardType: TextInputType.numberWithOptions(
-      //     signed: widget.fractionDigits > 0 ? true : false,
-      //     decimal: widget.fractionDigits > 0 ? true : false),
-      decoration: InputDecoration(
-        errorText: widget.controller.text.isEmpty
-            ? 'Please enter a value'
-            : isNumeric
-                ? isWithinRange
-                    ? null
-                    : 'min: ${widget.range[0]} and max: ${widget.range[1]}'
-                : 'Please enter a value',
-        prefixIcon: widget.icon,
-        prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
-        helperText: widget.helperText,
-        labelText: widget.labelText,
-        border: const OutlineInputBorder(),
-        suffixIconConstraints: widget.controller.text.isEmpty
-            ? BoxConstraints.tight(Size.zero)
-            : BoxConstraints.tight(
-                Size(suffixIconConstraintsWidth, suffixIconConstraintsHeight)),
-        suffixIcon: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (widget.controller.text.isNotEmpty)
-              GestureDetector(
-                child: Container(
-                  alignment: Alignment.center,
-                  width: suffixIconConstraintsWidth / 2,
-                  decoration: BoxDecoration(
-                      border: Border.all(width: 0, style: BorderStyle.none)),
-                  height: suffixIconConstraintsHeight,
-                  child: Icon(
-                    Icons.remove,
-                  ),
-                ),
-                onTap: () {
-                  double? prev = double.tryParse(widget.controller.text);
-                  if (prev != null && prev >= widget.range[0]) {
-                    prev -= widget.interval;
-                    prev >= widget.range[0]
-                        ? widget.controller.text =
-                            prev.toStringAsFixed(widget.fractionDigits)
-                        : widget.controller.text = widget.range[0]
-                            .toStringAsFixed(widget.fractionDigits);
-                    widget.onPressed();
-                  }
-                },
-                onLongPress: () {
-                  widget.timer = Timer.periodic(widget.delay, (t) {
-                    double? prev = double.tryParse(widget.controller.text);
-                    if (prev != null && prev >= widget.range[0]) {
-                      prev -= widget.interval;
-                      prev >= widget.range[0]
-                          ? widget.controller.text =
-                              prev.toStringAsFixed(widget.fractionDigits)
-                          : widget.controller.text = widget.range[0]
-                              .toStringAsFixed(widget.fractionDigits);
-                    }
-                  });
-                },
-                onLongPressEnd: (_) {
-                  if (widget.timer != null) {
-                    widget.timer!.cancel();
-                    widget.onPressed();
-                  }
-                },
-              ),
-            GestureDetector(
-              child: Container(
-                alignment: Alignment.center,
-                width: suffixIconConstraintsWidth / 2,
-                height: suffixIconConstraintsHeight,
-                decoration: BoxDecoration(
-                    border: Border.all(width: 0, style: BorderStyle.none)),
-                child: Icon(
-                  Icons.add,
-                ),
-              ),
-              onTap: () {
-                double? prev = double.tryParse(widget.controller.text);
-                if (prev != null && prev <= widget.range[1]) {
-                  prev += widget.interval;
-                  prev <= widget.range[1]
-                      ? widget.controller.text =
-                          prev.toStringAsFixed(widget.fractionDigits)
-                      : widget.controller.text = widget.range[1]
-                          .toStringAsFixed(widget.fractionDigits);
-                  widget.onPressed();
-                }
-              },
-              onLongPress: () {
-                widget.timer = Timer.periodic(widget.delay, (t) {
-                  double? prev = double.tryParse(widget.controller.text);
-                  if (prev != null && prev <= widget.range[1]) {
-                    prev += widget.interval;
-                    prev <= widget.range[1]
-                        ? widget.controller.text =
-                            prev.toStringAsFixed(widget.fractionDigits)
-                        : widget.controller.text = widget.range[1]
-                            .toStringAsFixed(widget.fractionDigits);
-                  }
-                });
-              },
-              onLongPressEnd: (_) {
-                if (widget.timer != null) {
-                  widget.timer!.cancel();
-                  widget.onPressed();
-                }
-              },
-            ),
-          ],
+          // }
+        },
+        controller: widget.controller,
+        keyboardType: TextInputType.numberWithOptions(
+            signed: true, decimal: widget.fractionDigits > 0 ? true : false),
+        // keyboardType: TextInputType.numberWithOptions(
+        //     signed: widget.fractionDigits > 0 ? true : false,
+        //     decimal: widget.fractionDigits > 0 ? true : false),
+        decoration: InputDecoration(
+          errorText: widget.controller.text.isEmpty
+              ? 'Please enter a value'
+              : isNumeric
+                  ? isWithinRange
+                      ? null
+                      : 'min: ${widget.range[0]} and max: ${widget.range[1]}'
+                  : 'Please enter a value',
+          prefixIcon: widget.icon,
+          prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
+          helperText: widget.helperText,
+          labelText: widget.labelText,
+          border: const OutlineInputBorder(),
+          // suffixIconConstraints: widget.controller.text.isEmpty
+          //     ? BoxConstraints.tight(Size.zero)
+          //     : BoxConstraints.tight(
+          //         Size(suffixIconConstraintsWidth, suffixIconConstraintsHeight)),
+          // suffixIcon: Row(
+          //   mainAxisAlignment: MainAxisAlignment.end,
+          //   mainAxisSize: MainAxisSize.min,
+          //   children: [
+          //     if (widget.controller.text.isNotEmpty)
+          //       GestureDetector(
+          //         child: Container(
+          //           alignment: Alignment.center,
+          //           width: suffixIconConstraintsWidth / 2,
+          //           decoration: BoxDecoration(
+          //               border: Border.all(width: 0, style: BorderStyle.none)),
+          //           height: suffixIconConstraintsHeight,
+          //           child: Icon(
+          //             Icons.remove,
+          //           ),
+          //         ),
+          //         onTap: () {
+          //           double? prev = double.tryParse(widget.controller.text);
+          //           if (prev != null && prev >= widget.range[0]) {
+          //             prev -= widget.interval;
+          //             prev >= widget.range[0]
+          //                 ? widget.controller.text =
+          //                     prev.toStringAsFixed(widget.fractionDigits)
+          //                 : widget.controller.text = widget.range[0]
+          //                     .toStringAsFixed(widget.fractionDigits);
+          //             widget.onPressed();
+          //           }
+          //         },
+          //         onLongPress: () {
+          //           widget.timer = Timer.periodic(widget.delay, (t) {
+          //             double? prev = double.tryParse(widget.controller.text);
+          //             if (prev != null && prev >= widget.range[0]) {
+          //               prev -= widget.interval;
+          //               prev >= widget.range[0]
+          //                   ? widget.controller.text =
+          //                       prev.toStringAsFixed(widget.fractionDigits)
+          //                   : widget.controller.text = widget.range[0]
+          //                       .toStringAsFixed(widget.fractionDigits);
+          //             }
+          //           });
+          //         },
+          //         onLongPressEnd: (_) {
+          //           if (widget.timer != null) {
+          //             widget.timer!.cancel();
+          //             widget.onPressed();
+          //           }
+          //         },
+          //       ),
+          //     GestureDetector(
+          //       child: Container(
+          //         alignment: Alignment.center,
+          //         width: suffixIconConstraintsWidth / 2,
+          //         height: suffixIconConstraintsHeight,
+          //         decoration: BoxDecoration(
+          //             border: Border.all(width: 0, style: BorderStyle.none)),
+          //         child: Icon(
+          //           Icons.add,
+          //         ),
+          //       ),
+          //       onTap: () {
+          //         double? prev = double.tryParse(widget.controller.text);
+          //         if (prev != null && prev <= widget.range[1]) {
+          //           prev += widget.interval;
+          //           prev <= widget.range[1]
+          //               ? widget.controller.text =
+          //                   prev.toStringAsFixed(widget.fractionDigits)
+          //               : widget.controller.text = widget.range[1]
+          //                   .toStringAsFixed(widget.fractionDigits);
+          //           widget.onPressed();
+          //         }
+          //       },
+          //       onLongPress: () {
+          //         widget.timer = Timer.periodic(widget.delay, (t) {
+          //           double? prev = double.tryParse(widget.controller.text);
+          //           if (prev != null && prev <= widget.range[1]) {
+          //             prev += widget.interval;
+          //             prev <= widget.range[1]
+          //                 ? widget.controller.text =
+          //                     prev.toStringAsFixed(widget.fractionDigits)
+          //                 : widget.controller.text = widget.range[1]
+          //                     .toStringAsFixed(widget.fractionDigits);
+          //           }
+          //         });
+          //       },
+          //       onLongPressEnd: (_) {
+          //         if (widget.timer != null) {
+          //           widget.timer!.cancel();
+          //           widget.onPressed();
+          //         }
+          //       },
+          //     ),
+          //   ],
+          // ),
         ),
       ),
-    );
+      widget.controller.text.isNotEmpty
+          ? Container(
+              width: suffixIconConstraintsWidth,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    child: Container(
+                      alignment: Alignment.center,
+                      width: suffixIconConstraintsWidth / 2,
+                      decoration: BoxDecoration(
+                          border:
+                              Border.all(width: 0, style: BorderStyle.none)),
+                      height: suffixIconConstraintsHeight,
+                      child: Icon(
+                        Icons.remove,
+                        color: widget.enabled
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).disabledColor,
+                      ),
+                    ),
+                    onTap: () {
+                      double? prev = double.tryParse(widget.controller.text);
+                      if (prev != null && prev >= widget.range[0]) {
+                        prev -= widget.interval;
+                        prev >= widget.range[0]
+                            ? widget.controller.text =
+                                prev.toStringAsFixed(widget.fractionDigits)
+                            : widget.controller.text = widget.range[0]
+                                .toStringAsFixed(widget.fractionDigits);
+                        widget.onPressed();
+                      }
+                    },
+                    onLongPress: () {
+                      widget.timer = Timer.periodic(widget.delay, (t) {
+                        double? prev = double.tryParse(widget.controller.text);
+                        if (prev != null && prev >= widget.range[0]) {
+                          prev -= widget.interval;
+                          prev >= widget.range[0]
+                              ? widget.controller.text =
+                                  prev.toStringAsFixed(widget.fractionDigits)
+                              : widget.controller.text = widget.range[0]
+                                  .toStringAsFixed(widget.fractionDigits);
+                        }
+                      });
+                    },
+                    onLongPressEnd: (_) {
+                      if (widget.timer != null) {
+                        widget.timer!.cancel();
+                        widget.onPressed();
+                      }
+                    },
+                  ),
+                  GestureDetector(
+                    child: Container(
+                      alignment: Alignment.center,
+                      width: suffixIconConstraintsWidth / 2,
+                      height: suffixIconConstraintsHeight,
+                      decoration: BoxDecoration(
+                          border:
+                              Border.all(width: 0, style: BorderStyle.none)),
+                      child: Icon(
+                        Icons.add,
+                        color: widget.enabled
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).disabledColor,
+                      ),
+                    ),
+                    onTap: () {
+                      double? prev = double.tryParse(widget.controller.text);
+                      if (prev != null && prev <= widget.range[1]) {
+                        prev += widget.interval;
+                        prev <= widget.range[1]
+                            ? widget.controller.text =
+                                prev.toStringAsFixed(widget.fractionDigits)
+                            : widget.controller.text = widget.range[1]
+                                .toStringAsFixed(widget.fractionDigits);
+                        widget.onPressed();
+                      }
+                    },
+                    onLongPress: () {
+                      widget.timer = Timer.periodic(widget.delay, (t) {
+                        double? prev = double.tryParse(widget.controller.text);
+                        if (prev != null && prev <= widget.range[1]) {
+                          prev += widget.interval;
+                          prev <= widget.range[1]
+                              ? widget.controller.text =
+                                  prev.toStringAsFixed(widget.fractionDigits)
+                              : widget.controller.text = widget.range[1]
+                                  .toStringAsFixed(widget.fractionDigits);
+                        }
+                      });
+                    },
+                    onLongPressEnd: (_) {
+                      if (widget.timer != null) {
+                        widget.timer!.cancel();
+                        widget.onPressed();
+                      }
+                    },
+                  ),
+                ],
+              ),
+            )
+          : Container(
+              width: 0,
+              height: 0,
+            )
+    ]);
   }
 }
 
@@ -1271,40 +1390,68 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
     TextEditingController textEditingController =
         TextEditingController(text: widget.labelTexts[widget.controller.val]!);
 
-    return TextField(
-      enabled: widget.enabled,
-      readOnly: true,
-      controller: textEditingController,
-      style: TextStyle(
-          color: widget.enabled
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).disabledColor),
-      decoration: InputDecoration(
-        prefixIcon: widget.icon,
-        prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
-        helperText: widget.helperText,
-        border: const OutlineInputBorder(),
-        suffixIconConstraints: BoxConstraints.tight(const Size(60, 59)),
-        suffixIcon: Switch(
-          activeColor: widget.enabled
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).disabledColor,
-          activeTrackColor:
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
-          inactiveThumbColor: widget.enabled
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).disabledColor,
-          inactiveTrackColor:
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
-          value: widget.controller.val,
-          onChanged: (val) {
-            setState(() {
-              widget.controller.val = val;
-            });
-            widget.onChanged();
-          },
+    return Stack(
+      alignment: Alignment.topRight,
+      children: [
+        TextField(
+          enabled: widget.enabled,
+          readOnly: true,
+          controller: textEditingController,
+          style: TextStyle(
+              color: widget.enabled
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).disabledColor),
+          decoration: InputDecoration(
+            prefixIcon: widget.icon,
+            prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
+            helperText: widget.helperText,
+            border: const OutlineInputBorder(),
+            // suffixIconConstraints: BoxConstraints.tight(const Size(60, 59)),
+            // suffixIcon:
+            // Switch(
+            //   activeColor: widget.enabled
+            //       ? Theme.of(context).colorScheme.primary
+            //       : Theme.of(context).disabledColor,
+            //   activeTrackColor:
+            //       Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            //   inactiveThumbColor: widget.enabled
+            //       ? Theme.of(context).colorScheme.primary
+            //       : Theme.of(context).disabledColor,
+            //   inactiveTrackColor:
+            //       Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            //   value: widget.controller.val,
+            //   onChanged: (val) {
+            //     setState(() {
+            //       widget.controller.val = val;
+            //     });
+            //     widget.onChanged();
+            //   },
+            // ),
+          ),
         ),
-      ),
+        Container(
+          height: 59,
+          child: Switch(
+            activeColor: widget.enabled
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).disabledColor,
+            activeTrackColor:
+            Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            inactiveThumbColor: widget.enabled
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).disabledColor,
+            inactiveTrackColor:
+            Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            value: widget.controller.val,
+            onChanged: (val) {
+              setState(() {
+                widget.controller.val = val;
+              });
+              widget.onChanged();
+            },
+          ),
+        ),
+      ],
     );
   }
 }
