@@ -424,9 +424,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
                             avatar: (age ?? 0) >= 17
                                 ? Icon(Icons.face)
                                 : Icon(Icons.child_care_outlined),
-                            label: (age ?? 0) >= 17
-                                ? Text('Adult')
-                                : Text('Paed'),
+                            label:
+                                (age ?? 0) >= 17 ? Text('Adult') : Text('Paed'),
                           ),
                         ),
                         SizedBox(
@@ -448,7 +447,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
                                 : Icon(Icons.expand_less)),
                         Text(
                           modelIsRunnable ? result : emptyResult,
-                          style: TextStyle(fontSize: tableController.val?34:60),//TODO consider font size for tablets
+                          style: TextStyle(
+                              fontSize: tableController.val
+                                  ? 34
+                                  : 60), //TODO consider font size for tablets
                         )
                       ],
                     ),
@@ -1129,103 +1131,6 @@ class _PDTextFieldState extends State<PDTextField> {
           helperText: widget.helperText,
           labelText: widget.labelText,
           border: const OutlineInputBorder(),
-          // suffixIconConstraints: widget.controller.text.isEmpty
-          //     ? BoxConstraints.tight(Size.zero)
-          //     : BoxConstraints.tight(
-          //         Size(suffixIconConstraintsWidth, suffixIconConstraintsHeight)),
-          // suffixIcon: Row(
-          //   mainAxisAlignment: MainAxisAlignment.end,
-          //   mainAxisSize: MainAxisSize.min,
-          //   children: [
-          //     if (widget.controller.text.isNotEmpty)
-          //       GestureDetector(
-          //         child: Container(
-          //           alignment: Alignment.center,
-          //           width: suffixIconConstraintsWidth / 2,
-          //           decoration: BoxDecoration(
-          //               border: Border.all(width: 0, style: BorderStyle.none)),
-          //           height: suffixIconConstraintsHeight,
-          //           child: Icon(
-          //             Icons.remove,
-          //           ),
-          //         ),
-          //         onTap: () {
-          //           double? prev = double.tryParse(widget.controller.text);
-          //           if (prev != null && prev >= widget.range[0]) {
-          //             prev -= widget.interval;
-          //             prev >= widget.range[0]
-          //                 ? widget.controller.text =
-          //                     prev.toStringAsFixed(widget.fractionDigits)
-          //                 : widget.controller.text = widget.range[0]
-          //                     .toStringAsFixed(widget.fractionDigits);
-          //             widget.onPressed();
-          //           }
-          //         },
-          //         onLongPress: () {
-          //           widget.timer = Timer.periodic(widget.delay, (t) {
-          //             double? prev = double.tryParse(widget.controller.text);
-          //             if (prev != null && prev >= widget.range[0]) {
-          //               prev -= widget.interval;
-          //               prev >= widget.range[0]
-          //                   ? widget.controller.text =
-          //                       prev.toStringAsFixed(widget.fractionDigits)
-          //                   : widget.controller.text = widget.range[0]
-          //                       .toStringAsFixed(widget.fractionDigits);
-          //             }
-          //           });
-          //         },
-          //         onLongPressEnd: (_) {
-          //           if (widget.timer != null) {
-          //             widget.timer!.cancel();
-          //             widget.onPressed();
-          //           }
-          //         },
-          //       ),
-          //     GestureDetector(
-          //       child: Container(
-          //         alignment: Alignment.center,
-          //         width: suffixIconConstraintsWidth / 2,
-          //         height: suffixIconConstraintsHeight,
-          //         decoration: BoxDecoration(
-          //             border: Border.all(width: 0, style: BorderStyle.none)),
-          //         child: Icon(
-          //           Icons.add,
-          //         ),
-          //       ),
-          //       onTap: () {
-          //         double? prev = double.tryParse(widget.controller.text);
-          //         if (prev != null && prev <= widget.range[1]) {
-          //           prev += widget.interval;
-          //           prev <= widget.range[1]
-          //               ? widget.controller.text =
-          //                   prev.toStringAsFixed(widget.fractionDigits)
-          //               : widget.controller.text = widget.range[1]
-          //                   .toStringAsFixed(widget.fractionDigits);
-          //           widget.onPressed();
-          //         }
-          //       },
-          //       onLongPress: () {
-          //         widget.timer = Timer.periodic(widget.delay, (t) {
-          //           double? prev = double.tryParse(widget.controller.text);
-          //           if (prev != null && prev <= widget.range[1]) {
-          //             prev += widget.interval;
-          //             prev <= widget.range[1]
-          //                 ? widget.controller.text =
-          //                     prev.toStringAsFixed(widget.fractionDigits)
-          //                 : widget.controller.text = widget.range[1]
-          //                     .toStringAsFixed(widget.fractionDigits);
-          //           }
-          //         });
-          //       },
-          //       onLongPressEnd: (_) {
-          //         if (widget.timer != null) {
-          //           widget.timer!.cancel();
-          //           widget.onPressed();
-          //         }
-          //       },
-          //     ),
-          //   ],
-          // ),
         ),
       ),
       widget.controller.text.isNotEmpty
@@ -1250,31 +1155,37 @@ class _PDTextFieldState extends State<PDTextField> {
                             : Theme.of(context).disabledColor,
                       ),
                     ),
-                    onTap: () {
-                      double? prev = double.tryParse(widget.controller.text);
-                      if (prev != null && prev >= widget.range[0]) {
-                        prev -= widget.interval;
-                        prev >= widget.range[0]
-                            ? widget.controller.text =
-                                prev.toStringAsFixed(widget.fractionDigits)
-                            : widget.controller.text = widget.range[0]
-                                .toStringAsFixed(widget.fractionDigits);
-                        widget.onPressed();
-                      }
-                    },
-                    onLongPress: () {
-                      widget.timer = Timer.periodic(widget.delay, (t) {
-                        double? prev = double.tryParse(widget.controller.text);
-                        if (prev != null && prev >= widget.range[0]) {
-                          prev -= widget.interval;
-                          prev >= widget.range[0]
-                              ? widget.controller.text =
-                                  prev.toStringAsFixed(widget.fractionDigits)
-                              : widget.controller.text = widget.range[0]
-                                  .toStringAsFixed(widget.fractionDigits);
-                        }
-                      });
-                    },
+                    onTap: widget.enabled
+                        ? () {
+                            double? prev =
+                                double.tryParse(widget.controller.text);
+                            if (prev != null && prev >= widget.range[0]) {
+                              prev -= widget.interval;
+                              prev >= widget.range[0]
+                                  ? widget.controller.text = prev
+                                      .toStringAsFixed(widget.fractionDigits)
+                                  : widget.controller.text = widget.range[0]
+                                      .toStringAsFixed(widget.fractionDigits);
+                              widget.onPressed();
+                            }
+                          }
+                        : null,
+                    onLongPress: widget.enabled
+                        ? () {
+                            widget.timer = Timer.periodic(widget.delay, (t) {
+                              double? prev =
+                                  double.tryParse(widget.controller.text);
+                              if (prev != null && prev >= widget.range[0]) {
+                                prev -= widget.interval;
+                                prev >= widget.range[0]
+                                    ? widget.controller.text = prev
+                                        .toStringAsFixed(widget.fractionDigits)
+                                    : widget.controller.text = widget.range[0]
+                                        .toStringAsFixed(widget.fractionDigits);
+                              }
+                            });
+                          }
+                        : null,
                     onLongPressEnd: (_) {
                       if (widget.timer != null) {
                         widget.timer!.cancel();
@@ -1297,31 +1208,37 @@ class _PDTextFieldState extends State<PDTextField> {
                             : Theme.of(context).disabledColor,
                       ),
                     ),
-                    onTap: () {
-                      double? prev = double.tryParse(widget.controller.text);
-                      if (prev != null && prev <= widget.range[1]) {
-                        prev += widget.interval;
-                        prev <= widget.range[1]
-                            ? widget.controller.text =
-                                prev.toStringAsFixed(widget.fractionDigits)
-                            : widget.controller.text = widget.range[1]
-                                .toStringAsFixed(widget.fractionDigits);
-                        widget.onPressed();
-                      }
-                    },
-                    onLongPress: () {
-                      widget.timer = Timer.periodic(widget.delay, (t) {
-                        double? prev = double.tryParse(widget.controller.text);
-                        if (prev != null && prev <= widget.range[1]) {
-                          prev += widget.interval;
-                          prev <= widget.range[1]
-                              ? widget.controller.text =
-                                  prev.toStringAsFixed(widget.fractionDigits)
-                              : widget.controller.text = widget.range[1]
-                                  .toStringAsFixed(widget.fractionDigits);
-                        }
-                      });
-                    },
+                    onTap: widget.enabled
+                        ? () {
+                            double? prev =
+                                double.tryParse(widget.controller.text);
+                            if (prev != null && prev <= widget.range[1]) {
+                              prev += widget.interval;
+                              prev <= widget.range[1]
+                                  ? widget.controller.text = prev
+                                      .toStringAsFixed(widget.fractionDigits)
+                                  : widget.controller.text = widget.range[1]
+                                      .toStringAsFixed(widget.fractionDigits);
+                              widget.onPressed();
+                            }
+                          }
+                        : null,
+                    onLongPress: widget.enabled
+                        ? () {
+                            widget.timer = Timer.periodic(widget.delay, (t) {
+                              double? prev =
+                                  double.tryParse(widget.controller.text);
+                              if (prev != null && prev <= widget.range[1]) {
+                                prev += widget.interval;
+                                prev <= widget.range[1]
+                                    ? widget.controller.text = prev
+                                        .toStringAsFixed(widget.fractionDigits)
+                                    : widget.controller.text = widget.range[1]
+                                        .toStringAsFixed(widget.fractionDigits);
+                              }
+                            });
+                          }
+                        : null,
                     onLongPressEnd: (_) {
                       if (widget.timer != null) {
                         widget.timer!.cancel();
@@ -1436,12 +1353,12 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
                 ? Theme.of(context).colorScheme.primary
                 : Theme.of(context).disabledColor,
             activeTrackColor:
-            Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                Theme.of(context).colorScheme.primary.withOpacity(0.1),
             inactiveThumbColor: widget.enabled
                 ? Theme.of(context).colorScheme.primary
                 : Theme.of(context).disabledColor,
             inactiveTrackColor:
-            Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                Theme.of(context).colorScheme.primary.withOpacity(0.1),
             value: widget.controller.val,
             onChanged: (val) {
               setState(() {
