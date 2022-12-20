@@ -426,7 +426,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                                 : Icon(Icons.child_care_outlined),
                             label: (age ?? 0) >= 17
                                 ? Text('Adult')
-                                : Text('Child'),
+                                : Text('Paed'),
                           ),
                         ),
                         SizedBox(
@@ -448,7 +448,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                                 : Icon(Icons.expand_less)),
                         Text(
                           modelIsRunnable ? result : emptyResult,
-                          style: TextStyle(fontSize: 60),
+                          style: TextStyle(fontSize: tableController.val?34:60),//TODO consider font size for tablets
                         )
                       ],
                     ),
