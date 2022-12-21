@@ -6,7 +6,6 @@ import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 
 import '../constants.dart';
 
-
 class VolumeScreen extends StatefulWidget {
   const VolumeScreen({Key? key}) : super(key: key);
 
@@ -362,6 +361,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
 
+    final double UIHeight =
+        mediaQuery.size.width / mediaQuery.size.height >= 0.455 ? 56 : 52;
+
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
@@ -485,25 +487,26 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  PDSegmentedControl(
-                    options: modelOptions,
-                    // int.parse(ageController.text) > 17
-                    //     ? [Model.Marsh, Model.Schnider, Model.Eleveld]
-                    //     : [Model.Paedfusor, Model.Kataria, Model.Eleveld],
-                    segmentedController:
-                        (int.tryParse(ageController.text) ?? 0) > 16
-                            ? adultModelController
-                            : pediatricModelController,
-                    onPressed: run,
-                    assertValues: {
-                      'gender': genderController.val,
-                      'age': (int.tryParse(ageController.text) ?? 0),
-                      'height': (int.tryParse(heightController.text) ?? 0),
-                      'weight': (int.tryParse(weightController.text) ?? 0)
-                    },
+                  Container(
+                    height: UIHeight + 20,
+                    child: PDSegmentedControl(
+                      height: UIHeight,
+                      options: modelOptions,
+                      segmentedController:
+                          (int.tryParse(ageController.text) ?? 0) > 16
+                              ? adultModelController
+                              : pediatricModelController,
+                      onPressed: run,
+                      assertValues: {
+                        'gender': genderController.val,
+                        'age': (int.tryParse(ageController.text) ?? 0),
+                        'height': (int.tryParse(heightController.text) ?? 0),
+                        'weight': (int.tryParse(weightController.text) ?? 0)
+                      },
+                    ),
                   ),
                   Container(
-                      height: 59,
+                      height: UIHeight,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           elevation: 0,
@@ -524,134 +527,144 @@ class _VolumeScreenState extends State<VolumeScreen> {
             const SizedBox(
               height: 8,
             ),
-            Row(
-              children: [
-                Container(
-                  width: (mediaQuery.size.width - 40) / 2,
-                  child: PDSwitchField(
-                    icon: const Icon(Icons.wc),
-                    controller: genderController,
-                    labelTexts: {
-                      true: Gender.Female.toString(),
-                      false: Gender.Male.toString()
-                    },
-                    helperText: '',
-                    onChanged: run,
-                    enabled: genderSwitchControlEnabled,
+            Container(
+              height: UIHeight+24,
+              child: Row(
+                children: [
+                  Container(
+                    width: (mediaQuery.size.width - 40) / 2,
+                    child: PDSwitchField(
+                      icon: const Icon(Icons.wc),
+                      controller: genderController,
+                      labelTexts: {
+                        true: Gender.Female.toString(),
+                        false: Gender.Male.toString()
+                      },
+                      helperText: '',
+                      onChanged: run,
+                      height: UIHeight,
+                      enabled: genderSwitchControlEnabled,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: 8,
-                  height: 0,
-                ),
-                Container(
-                  width: (mediaQuery.size.width - 40) / 2,
-                  child: PDTextField(
-                    icon: const Icon(Icons.favorite_border),
-                    labelText: 'Age',
-                    helperText: '',
-                    interval: 1.0,
-                    fractionDigits: 0,
-                    controller: ageController,
-                    range: age != null
-                        ? age >= 17
-                            ? [17, selectedModel == Model.Schnider ? 100 : 105]
-                            : [1, 16]
-                        : [1, 16],
-                    onPressed: updatePDTextEditingController,
-                    onChanged: restart,
+                  SizedBox(
+                    width: 8,
+                    height: 0,
                   ),
-                ),
-              ],
+                  Container(
+                    width: (mediaQuery.size.width - 40) / 2,
+                    child: PDTextField(
+                      icon: const Icon(Icons.favorite_border),
+                      labelText: 'Age',
+                      helperText: '',
+                      interval: 1.0,
+                      fractionDigits: 0,
+                      controller: ageController,
+                      range: age != null
+                          ? age >= 17
+                              ? [17, selectedModel == Model.Schnider ? 100 : 105]
+                              : [1, 16]
+                          : [1, 16],
+                      onPressed: updatePDTextEditingController,
+                      onChanged: restart,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(
               height: 8,
             ),
-            Row(
-              children: [
-                Container(
-                  width: (mediaQuery.size.width - 40) / 2,
-                  child: PDTextField(
-                    icon: Icon(Icons.straighten),
-                    labelText: 'Height (cm)',
-                    helperText: '',
-                    interval: 1,
-                    fractionDigits: 0,
-                    controller: heightController,
-                    range: [selectedModel.minHeight, selectedModel.maxHeight],
-                    onPressed: updatePDTextEditingController,
-                    onChanged: restart,
-                    enabled: heightTextFieldEnabled,
+            Container(
+              height: UIHeight+24,
+              child: Row(
+                children: [
+                  Container(
+                    width: (mediaQuery.size.width - 40) / 2,
+                    child: PDTextField(
+                      icon: Icon(Icons.straighten),
+                      labelText: 'Height (cm)',
+                      helperText: '',
+                      interval: 1,
+                      fractionDigits: 0,
+                      controller: heightController,
+                      range: [selectedModel.minHeight, selectedModel.maxHeight],
+                      onPressed: updatePDTextEditingController,
+                      onChanged: restart,
+                      enabled: heightTextFieldEnabled,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: 8,
-                  height: 0,
-                ),
-                Container(
-                  width: (mediaQuery.size.width - 40) / 2,
-                  child: PDTextField(
-                    icon: const Icon(Icons.monitor_weight_outlined),
-                    labelText: 'Weight (kg)',
-                    helperText: '',
-                    interval: 1.0,
-                    fractionDigits: 0,
-                    controller: weightController,
-                    range: [selectedModel.minWeight, selectedModel.maxWeight],
-                    onPressed: updatePDTextEditingController,
-                    onChanged: restart,
-                    // onLongPressedStart: onLongPressStartUpdatePDTextEditingController,
-                    // onLongPressedEnd: onLongPressCancelledPDTextEditingController,
-                    // timer: timer,
+                  SizedBox(
+                    width: 8,
+                    height: 0,
                   ),
-                ),
-              ],
+                  Container(
+                    width: (mediaQuery.size.width - 40) / 2,
+                    child: PDTextField(
+                      icon: const Icon(Icons.monitor_weight_outlined),
+                      labelText: 'Weight (kg)',
+                      helperText: '',
+                      interval: 1.0,
+                      fractionDigits: 0,
+                      controller: weightController,
+                      range: [selectedModel.minWeight, selectedModel.maxWeight],
+                      onPressed: updatePDTextEditingController,
+                      onChanged: restart,
+                      // onLongPressedStart: onLongPressStartUpdatePDTextEditingController,
+                      // onLongPressedEnd: onLongPressCancelledPDTextEditingController,
+                      // timer: timer,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(
               height: 8,
             ),
-            Row(
-              children: [
-                Container(
-                  width: (mediaQuery.size.width - 40) / 2,
-                  child: PDTextField(
-                    icon: const Icon(Icons.airline_seat_flat_outlined),
-                    // labelText: 'Depth in mcg/mL',
-                    labelText:
-                        '${selectedModel.target.toString().replaceAll('_', ' ')}',
-                    helperText: '',
-                    interval: 0.5,
-                    fractionDigits: 1,
-                    controller: targetController,
-                    range: [kMinTarget, kMaxTarget],
-                    onPressed: updatePDTextEditingController,
-                    onChanged: restart,
+            Container(
+              height: UIHeight+24,
+              child: Row(
+                children: [
+                  Container(
+                    width: (mediaQuery.size.width - 40) / 2,
+                    child: PDTextField(
+                      icon: const Icon(Icons.airline_seat_flat_outlined),
+                      // labelText: 'Depth in mcg/mL',
+                      labelText:
+                          '${selectedModel.target.toString().replaceAll('_', ' ')}',
+                      helperText: '',
+                      interval: 0.5,
+                      fractionDigits: 1,
+                      controller: targetController,
+                      range: [kMinTarget, kMaxTarget],
+                      onPressed: updatePDTextEditingController,
+                      onChanged: restart,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: 8,
-                  height: 0,
-                ),
-                Container(
-                  width: (mediaQuery.size.width - 40) / 2,
-                  child: PDTextField(
-                    icon: const Icon(Icons.schedule),
-                    // labelText: 'Duration in minutes',
-                    labelText: 'Duration (mins)',
-                    helperText: '',
-                    interval: double.tryParse(durationController.text) != null
-                        ? double.parse(durationController.text) >= 60
-                            ? 10
-                            : 5
-                        : 1,
-                    fractionDigits: 0,
-                    controller: durationController,
-                    range: [kMinDuration, kMaxDuration],
-                    onPressed: updatePDTextEditingController,
-                    onChanged: restart,
+                  SizedBox(
+                    width: 8,
+                    height: 0,
                   ),
-                ),
-              ],
+                  Container(
+                    width: (mediaQuery.size.width - 40) / 2,
+                    child: PDTextField(
+                      icon: const Icon(Icons.schedule),
+                      // labelText: 'Duration in minutes',
+                      labelText: 'Duration (mins)',
+                      helperText: '',
+                      interval: double.tryParse(durationController.text) != null
+                          ? double.parse(durationController.text) >= 60
+                              ? 10
+                              : 5
+                          : 1,
+                      fractionDigits: 0,
+                      controller: durationController,
+                      range: [kMinDuration, kMaxDuration],
+                      onPressed: updatePDTextEditingController,
+                      onChanged: restart,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(
               height: 8,
@@ -883,12 +896,14 @@ class PDSegmentedControl extends StatefulWidget {
     required this.segmentedController,
     required this.onPressed,
     required this.assertValues,
+    required this.height,
   }) : super(key: key);
 
   final List options;
   final PDSegmentedController segmentedController;
   final Function onPressed;
   final Map<String, Object> assertValues;
+  final double height;
 
   @override
   State<PDSegmentedControl> createState() => _PDSegmentedControlState();
@@ -931,7 +946,6 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
   Widget build(BuildContext context) {
     var mediaQuery = MediaQuery.of(context);
     var screenRatio = mediaQuery.size.width / mediaQuery.size.height;
-    // print(screenRatio);
 
     bool isError = checkError(
         gender:
@@ -950,9 +964,9 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
     return Stack(children: [
       Container(
         width: MediaQuery.of(context).size.width -
-            horizontalSidesPaddingPixel -
-            59 -
-            30,
+            horizontalSidesPaddingPixel*2 -
+            widget.height -
+            16,
         child: TextField(
           enabled: false,
           decoration: InputDecoration(
@@ -966,7 +980,7 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
         ),
       ),
       Container(
-        height: 59,
+        height: widget.height,
         child: ListView.builder(
           shrinkWrap: true,
           scrollDirection: Axis.horizontal,
@@ -1281,6 +1295,7 @@ class PDSwitchField extends StatefulWidget {
     required this.helperText,
     required this.controller,
     required this.onChanged,
+    required this.height,
     this.enabled = true,
   }) : super(key: key);
 
@@ -1290,6 +1305,7 @@ class PDSwitchField extends StatefulWidget {
   final PDSwitchController controller;
   final Function onChanged;
   bool enabled;
+  double height;
 
   @override
   State<PDSwitchField> createState() => _PDSwitchFieldState();
@@ -1324,31 +1340,10 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
             prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
             helperText: widget.helperText,
             border: const OutlineInputBorder(),
-            // suffixIconConstraints: BoxConstraints.tight(const Size(60, 59)),
-            // suffixIcon:
-            // Switch(
-            //   activeColor: widget.enabled
-            //       ? Theme.of(context).colorScheme.primary
-            //       : Theme.of(context).disabledColor,
-            //   activeTrackColor:
-            //       Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            //   inactiveThumbColor: widget.enabled
-            //       ? Theme.of(context).colorScheme.primary
-            //       : Theme.of(context).disabledColor,
-            //   inactiveTrackColor:
-            //       Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            //   value: widget.controller.val,
-            //   onChanged: (val) {
-            //     setState(() {
-            //       widget.controller.val = val;
-            //     });
-            //     widget.onChanged();
-            //   },
-            // ),
           ),
         ),
         Container(
-          height: 59,
+          height: widget.height,
           child: Switch(
             activeColor: widget.enabled
                 ? Theme.of(context).colorScheme.primary
