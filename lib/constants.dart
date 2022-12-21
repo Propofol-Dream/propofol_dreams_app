@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-const numOfDigits = 1;
+const numOfDigits = 0;
 
 const horizontalSidesPaddingPixel = 16.0;
 

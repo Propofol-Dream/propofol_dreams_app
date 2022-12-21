@@ -6,6 +6,7 @@ import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 
 import '../constants.dart';
 
+
 class VolumeScreen extends StatefulWidget {
   const VolumeScreen({Key? key}) : super(key: key);
 
@@ -388,282 +389,276 @@ class _VolumeScreenState extends State<VolumeScreen> {
         ? adultModelController.selection != Model.Marsh
         : pediatricModelController.selection == Model.Eleveld;
 
-    return Scaffold(
-      body: SingleChildScrollView(
-        physics: mediaQuery.viewInsets.bottom <= 0
-            ? NeverScrollableScrollPhysics()
-            : BouncingScrollPhysics(),
-        child: Container(
-          height: mediaQuery.size.height - (Platform.isAndroid ? 48 : 88),
-          margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Container(),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            if (age != null) {
-                              if (age >= 17) {
-                                ageController.text = '8';
-                              } else {
-                                ageController.text = '40';
-                              }
-                              reset();
+    return SingleChildScrollView(
+      physics: mediaQuery.viewInsets.bottom <= 0
+          ? NeverScrollableScrollPhysics()
+          : BouncingScrollPhysics(),
+      child: Container(
+        height: mediaQuery.size.height - (Platform.isAndroid ? 48 : 88),
+        margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            Expanded(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          if (age != null) {
+                            if (age >= 17) {
+                              ageController.text = '8';
+                            } else {
+                              ageController.text = '40';
                             }
-                          },
-                          child: Chip(
-                            avatar: (age ?? 0) >= 17
-                                ? Icon(Icons.face)
-                                : Icon(Icons.child_care_outlined),
-                            label:
-                                (age ?? 0) >= 17 ? Text('Adult') : Text('Paed'),
-                          ),
+                            reset();
+                          }
+                        },
+                        child: Chip(
+                          avatar: (age ?? 0) >= 17
+                              ? Icon(Icons.face)
+                              : Icon(Icons.child_care_outlined),
+                          label:
+                              (age ?? 0) >= 17 ? Text('Adult') : Text('Paed'),
                         ),
-                        SizedBox(
-                          width: 8,
+                      ),
+                      SizedBox(
+                        width: 8,
+                      ),
+                      Chip(
+                          avatar: Icon(Icons.opacity),
+                          label: Text('${(propofolDensity / 10).toInt()} %'))
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                          onPressed: () =>
+                              updatePDTableController(tableController),
+                          icon: tableController.val
+                              ? Icon(Icons.expand_more)
+                              : Icon(Icons.expand_less)),
+                      Text(
+                        modelIsRunnable ? result : emptyResult,
+                        style: TextStyle(
+                            fontSize: tableController.val
+                                ? 34
+                                : 60), //TODO consider font size for tablets
+                      )
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              child: PDTable(
+                colHeaderIcon: Icon(Icons.airline_seat_flat_outlined),
+                colHeaderLabels: modelIsRunnable
+                    ? [
+                        (target! - targetInterval) >= 0
+                            ? (target! - targetInterval).toStringAsFixed(1)
+                            : 0.toStringAsFixed(1),
+                        (target).toStringAsFixed(1),
+                        (target + targetInterval).toStringAsFixed(1)
+                      ]
+                    : ['--', '--', '--'],
+                rowHeaderIcon: Icon(Icons.schedule),
+                rowLabels: modelIsRunnable ? PDTableRows : EmptyTableRows,
+                controller: tableController,
+                tableLabel: 'Confidence\nInterval',
+                highlightLabel: result,
+              ),
+            ),
+            const SizedBox(
+              height: 32,
+            ),
+            Container(
+              width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  PDSegmentedControl(
+                    options: modelOptions,
+                    // int.parse(ageController.text) > 17
+                    //     ? [Model.Marsh, Model.Schnider, Model.Eleveld]
+                    //     : [Model.Paedfusor, Model.Kataria, Model.Eleveld],
+                    segmentedController:
+                        (int.tryParse(ageController.text) ?? 0) > 16
+                            ? adultModelController
+                            : pediatricModelController,
+                    onPressed: run,
+                    assertValues: {
+                      'gender': genderController.val,
+                      'age': (int.tryParse(ageController.text) ?? 0),
+                      'height': (int.tryParse(heightController.text) ?? 0),
+                      'weight': (int.tryParse(weightController.text) ?? 0)
+                    },
+                  ),
+                  Container(
+                      height: 59,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                              side: BorderSide(
+                                color: Theme.of(context).colorScheme.primary,
+                                strokeAlign: StrokeAlign.outside,
+                              ),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(5))),
                         ),
-                        Chip(
-                            avatar: Icon(Icons.opacity),
-                            label: Text('${(propofolDensity / 10).toInt()} %'))
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                            onPressed: () =>
-                                updatePDTableController(tableController),
-                            icon: tableController.val
-                                ? Icon(Icons.expand_more)
-                                : Icon(Icons.expand_less)),
-                        Text(
-                          modelIsRunnable ? result : emptyResult,
-                          style: TextStyle(
-                              fontSize: tableController.val
-                                  ? 34
-                                  : 60), //TODO consider font size for tablets
-                        )
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                child: PDTable(
-                  colHeaderIcon: Icon(Icons.airline_seat_flat_outlined),
-                  colHeaderLabels: modelIsRunnable
-                      ? [
-                          (target! - targetInterval) >= 0
-                              ? (target! - targetInterval).toStringAsFixed(1)
-                              : 0.toStringAsFixed(1),
-                          (target).toStringAsFixed(1),
-                          (target + targetInterval).toStringAsFixed(1)
-                        ]
-                      : ['--', '--', '--'],
-                  rowHeaderIcon: Icon(Icons.schedule),
-                  rowLabels: modelIsRunnable ? PDTableRows : EmptyTableRows,
-                  controller: tableController,
-                  tableLabel: 'Confidence\nInterval',
-                  highlightLabel: result,
-                ),
-              ),
-              const SizedBox(
-                height: 32,
-              ),
-              Container(
-                width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    PDSegmentedControl(
-                      options: modelOptions,
-                      // int.parse(ageController.text) > 17
-                      //     ? [Model.Marsh, Model.Schnider, Model.Eleveld]
-                      //     : [Model.Paedfusor, Model.Kataria, Model.Eleveld],
-                      segmentedController:
-                          (int.tryParse(ageController.text) ?? 0) > 16
-                              ? adultModelController
-                              : pediatricModelController,
-                      onPressed: run,
-                      assertValues: {
-                        'gender': genderController.val,
-                        'age': (int.tryParse(ageController.text) ?? 0),
-                        'height': (int.tryParse(heightController.text) ?? 0),
-                        'weight': (int.tryParse(weightController.text) ?? 0)
-                      },
-                    ),
-                    Container(
-                        height: 59,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                          ),
-                          onPressed: reset,
-                          child: Icon(Icons.refresh),
-                        )),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: (mediaQuery.size.width - 40) / 2,
-                    child: PDSwitchField(
-                      icon: const Icon(Icons.wc),
-                      controller: genderController,
-                      labelTexts: {
-                        true: Gender.Female.toString(),
-                        false: Gender.Male.toString()
-                      },
-                      helperText: '',
-                      onChanged: run,
-                      enabled: genderSwitchControlEnabled,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 8,
-                    height: 0,
-                  ),
-                  Container(
-                    width: (mediaQuery.size.width - 40) / 2,
-                    child: PDTextField(
-                      icon: const Icon(Icons.favorite_border),
-                      labelText: 'Age',
-                      helperText: '',
-                      interval: 1.0,
-                      fractionDigits: 0,
-                      controller: ageController,
-                      range: age != null
-                          ? age >= 17
-                              ? [
-                                  17,
-                                  selectedModel == Model.Schnider ? 100 : 105
-                                ]
-                              : [1, 16]
-                          : [1, 16],
-                      onPressed: updatePDTextEditingController,
-                      onChanged: restart,
-                    ),
-                  ),
+                        onPressed: reset,
+                        child: Icon(Icons.refresh),
+                      )),
                 ],
               ),
-              const SizedBox(
-                height: 8,
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: (mediaQuery.size.width - 40) / 2,
-                    child: PDTextField(
-                      icon: Icon(Icons.straighten),
-                      labelText: 'Height (cm)',
-                      helperText: '',
-                      interval: 1,
-                      fractionDigits: 0,
-                      controller: heightController,
-                      range: [selectedModel.minHeight, selectedModel.maxHeight],
-                      onPressed: updatePDTextEditingController,
-                      onChanged: restart,
-                      enabled: heightTextFieldEnabled,
-                    ),
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            Row(
+              children: [
+                Container(
+                  width: (mediaQuery.size.width - 40) / 2,
+                  child: PDSwitchField(
+                    icon: const Icon(Icons.wc),
+                    controller: genderController,
+                    labelTexts: {
+                      true: Gender.Female.toString(),
+                      false: Gender.Male.toString()
+                    },
+                    helperText: '',
+                    onChanged: run,
+                    enabled: genderSwitchControlEnabled,
                   ),
-                  SizedBox(
-                    width: 8,
-                    height: 0,
+                ),
+                SizedBox(
+                  width: 8,
+                  height: 0,
+                ),
+                Container(
+                  width: (mediaQuery.size.width - 40) / 2,
+                  child: PDTextField(
+                    icon: const Icon(Icons.favorite_border),
+                    labelText: 'Age',
+                    helperText: '',
+                    interval: 1.0,
+                    fractionDigits: 0,
+                    controller: ageController,
+                    range: age != null
+                        ? age >= 17
+                            ? [17, selectedModel == Model.Schnider ? 100 : 105]
+                            : [1, 16]
+                        : [1, 16],
+                    onPressed: updatePDTextEditingController,
+                    onChanged: restart,
                   ),
-                  Container(
-                    width: (mediaQuery.size.width - 40) / 2,
-                    child: PDTextField(
-                      icon: const Icon(Icons.monitor_weight_outlined),
-                      labelText: 'Weight (kg)',
-                      helperText: '',
-                      interval: 1.0,
-                      fractionDigits: 0,
-                      controller: weightController,
-                      range: [selectedModel.minWeight, selectedModel.maxWeight],
-                      onPressed: updatePDTextEditingController,
-                      onChanged: restart,
-                      // onLongPressedStart: onLongPressStartUpdatePDTextEditingController,
-                      // onLongPressedEnd: onLongPressCancelledPDTextEditingController,
-                      // timer: timer,
-                    ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            Row(
+              children: [
+                Container(
+                  width: (mediaQuery.size.width - 40) / 2,
+                  child: PDTextField(
+                    icon: Icon(Icons.straighten),
+                    labelText: 'Height (cm)',
+                    helperText: '',
+                    interval: 1,
+                    fractionDigits: 0,
+                    controller: heightController,
+                    range: [selectedModel.minHeight, selectedModel.maxHeight],
+                    onPressed: updatePDTextEditingController,
+                    onChanged: restart,
+                    enabled: heightTextFieldEnabled,
                   ),
-                ],
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: (mediaQuery.size.width - 40) / 2,
-                    child: PDTextField(
-                      icon: const Icon(Icons.airline_seat_flat_outlined),
-                      // labelText: 'Depth in mcg/mL',
-                      labelText:
-                          '${selectedModel.target.toString().replaceAll('_', ' ')}',
-                      helperText: '',
-                      interval: 0.5,
-                      fractionDigits: 1,
-                      controller: targetController,
-                      range: [kMinTarget, kMaxTarget],
-                      onPressed: updatePDTextEditingController,
-                      onChanged: restart,
-                    ),
+                ),
+                SizedBox(
+                  width: 8,
+                  height: 0,
+                ),
+                Container(
+                  width: (mediaQuery.size.width - 40) / 2,
+                  child: PDTextField(
+                    icon: const Icon(Icons.monitor_weight_outlined),
+                    labelText: 'Weight (kg)',
+                    helperText: '',
+                    interval: 1.0,
+                    fractionDigits: 0,
+                    controller: weightController,
+                    range: [selectedModel.minWeight, selectedModel.maxWeight],
+                    onPressed: updatePDTextEditingController,
+                    onChanged: restart,
+                    // onLongPressedStart: onLongPressStartUpdatePDTextEditingController,
+                    // onLongPressedEnd: onLongPressCancelledPDTextEditingController,
+                    // timer: timer,
                   ),
-                  SizedBox(
-                    width: 8,
-                    height: 0,
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            Row(
+              children: [
+                Container(
+                  width: (mediaQuery.size.width - 40) / 2,
+                  child: PDTextField(
+                    icon: const Icon(Icons.airline_seat_flat_outlined),
+                    // labelText: 'Depth in mcg/mL',
+                    labelText:
+                        '${selectedModel.target.toString().replaceAll('_', ' ')}',
+                    helperText: '',
+                    interval: 0.5,
+                    fractionDigits: 1,
+                    controller: targetController,
+                    range: [kMinTarget, kMaxTarget],
+                    onPressed: updatePDTextEditingController,
+                    onChanged: restart,
                   ),
-                  Container(
-                    width: (mediaQuery.size.width - 40) / 2,
-                    child: PDTextField(
-                      icon: const Icon(Icons.schedule),
-                      // labelText: 'Duration in minutes',
-                      labelText: 'Duration (mins)',
-                      helperText: '',
-                      interval: double.tryParse(durationController.text) != null
-                          ? double.parse(durationController.text) >= 60
-                              ? 10
-                              : 5
-                          : 1,
-                      fractionDigits: 0,
-                      controller: durationController,
-                      range: [kMinDuration, kMaxDuration],
-                      onPressed: updatePDTextEditingController,
-                      onChanged: restart,
-                    ),
+                ),
+                SizedBox(
+                  width: 8,
+                  height: 0,
+                ),
+                Container(
+                  width: (mediaQuery.size.width - 40) / 2,
+                  child: PDTextField(
+                    icon: const Icon(Icons.schedule),
+                    // labelText: 'Duration in minutes',
+                    labelText: 'Duration (mins)',
+                    helperText: '',
+                    interval: double.tryParse(durationController.text) != null
+                        ? double.parse(durationController.text) >= 60
+                            ? 10
+                            : 5
+                        : 1,
+                    fractionDigits: 0,
+                    controller: durationController,
+                    range: [kMinDuration, kMaxDuration],
+                    onPressed: updatePDTextEditingController,
+                    onChanged: restart,
                   ),
-                ],
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+          ],
         ),
       ),
-      bottomNavigationBar:
-          BottomNavigationBar(type: BottomNavigationBarType.fixed, items: const [
-        BottomNavigationBarItem(
-            icon: Icon(Icons.science_outlined), label: 'Volume'),
-        BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Duration'),
-        BottomNavigationBarItem(icon: Icon(Icons.tune), label: 'TCI'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-      ]), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
@@ -797,9 +792,11 @@ class _PDTableState extends State<PDTable> {
                                             widget.rowLabels[buildIndexOutter]
                                                 [buildIndexInner]),
                                       )
-                                    : widget.highlightLabel ==
-                                            widget.rowLabels[buildIndexOutter]
-                                                [buildIndexInner]
+                                    : (widget.highlightLabel ==
+                                                widget.rowLabels[
+                                                        buildIndexOutter]
+                                                    [buildIndexInner]) &&
+                                            (buildIndexInner == 2)
                                         ? Container(
                                             padding: EdgeInsets.symmetric(
                                                 vertical: 4, horizontal: 8),
@@ -932,6 +929,10 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
 
   @override
   Widget build(BuildContext context) {
+    var mediaQuery = MediaQuery.of(context);
+    var screenRatio = mediaQuery.size.width / mediaQuery.size.height;
+    // print(screenRatio);
+
     bool isError = checkError(
         gender:
             widget.assertValues['gender'] as bool ? Gender.Female : Gender.Male,
@@ -1022,7 +1023,7 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
                 ),
                 child: Text(
                   widget.options[buildIndex].toString(),
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: screenRatio >= 0.455 ? 16 : 14),
                 ),
               ),
             );
@@ -1360,12 +1361,14 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
             inactiveTrackColor:
                 Theme.of(context).colorScheme.primary.withOpacity(0.1),
             value: widget.controller.val,
-            onChanged: (val) {
-              setState(() {
-                widget.controller.val = val;
-              });
-              widget.onChanged();
-            },
+            onChanged: widget.enabled
+                ? (val) {
+                    setState(() {
+                      widget.controller.val = val;
+                    });
+                    widget.onChanged();
+                  }
+                : null,
           ),
         ),
       ],

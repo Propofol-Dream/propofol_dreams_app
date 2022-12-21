@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 
 import 'constants.dart';
-import 'screens/volume_screen.dart';
+// import 'screens/volume_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,7 +36,8 @@ class MyApp extends StatelessWidget {
             secondary: PDNavy),
         // colorScheme:
       ),
-      home: const VolumeScreen(),
+      home: const HomeScreen(),
+
     );
   }
 }
