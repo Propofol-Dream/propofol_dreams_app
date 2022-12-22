@@ -24,6 +24,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   final TextEditingController targetController = TextEditingController();
   final TextEditingController durationController = TextEditingController();
   final PDTableController tableController = PDTableController();
+  final ScrollController scrollController = ScrollController();
   final List<Model> modelOptions = [];
   Timer timer = Timer(Duration.zero, () {});
   Duration delay = const Duration(milliseconds: 500);
@@ -82,7 +83,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     List durations = times;
 
     int durationPlusInterval =
-        int.parse(durationController.text) + durationInterval;
+        int.parse(durationController.text) + 6 * durationInterval;
 
     List<String> resultsCol1 = [];
     List<String> resultsCol2 = [];
@@ -104,13 +105,13 @@ class _VolumeScreenState extends State<VolumeScreen> {
       resultsCol2.add('${col2[index].toStringAsFixed(numOfDigits)} mL');
       resultsCol3.add('${col3[index].toStringAsFixed(numOfDigits)} mL');
 
-      if (i == durationPlusInterval - durationInterval) {
+      if (i == durationPlusInterval - 6 * durationInterval) {
         updateResultLabel(col2[index]);
       }
     }
 
     //if duration is greater than 5 mins, add extra row for the 5th mins
-    if (durationPlusInterval - durationInterval > kMinDuration) {
+    if (durationPlusInterval - 6 * durationInterval > kMinDuration) {
       int index = durations.indexWhere((element) {
         if ((element as Duration).inSeconds == kMinDuration * 60) {
           return true;
@@ -199,17 +200,17 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
                   results1 = sim.estimate(
                     target: target - targetInterval,
-                    duration: duration + durationInterval,
+                    duration: duration + 6 * durationInterval,
                   );
 
                   results2 = sim.estimate(
                     target: target,
-                    duration: duration + durationInterval,
+                    duration: duration + 6 * durationInterval,
                   );
 
                   results3 = sim.estimate(
                     target: target + targetInterval,
-                    duration: duration + durationInterval,
+                    duration: duration + 6 * durationInterval,
                   );
                 }
 
@@ -298,7 +299,17 @@ class _VolumeScreenState extends State<VolumeScreen> {
   void initState() {
     reset(resetModelSelection: true);
     tableController.val = false;
+    scrollController.addListener(() {
+      print(scrollController.offset);
+    });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    targetController.dispose();
+    scrollController.dispose();
+    super.dispose();
   }
 
   void reset({bool resetModelSelection = false}) {
@@ -362,7 +373,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     final mediaQuery = MediaQuery.of(context);
 
     final double UIHeight =
-        mediaQuery.size.width / mediaQuery.size.height >= 0.455 ? 56 : 52;
+        mediaQuery.size.width / mediaQuery.size.height >= 0.455 ? 56 : 48;
 
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
@@ -473,7 +484,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     : ['--', '--', '--'],
                 rowHeaderIcon: Icon(Icons.schedule),
                 rowLabels: modelIsRunnable ? PDTableRows : EmptyTableRows,
-                controller: tableController,
+                tableController: tableController,
+                // scrollController: scrollController,
                 tableLabel: 'Confidence\nInterval',
                 highlightLabel: result,
               ),
@@ -528,7 +540,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
               height: 8,
             ),
             Container(
-              height: UIHeight+24,
+              height: UIHeight + 24,
               child: Row(
                 children: [
                   Container(
@@ -561,7 +573,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       controller: ageController,
                       range: age != null
                           ? age >= 17
-                              ? [17, selectedModel == Model.Schnider ? 100 : 105]
+                              ? [
+                                  17,
+                                  selectedModel == Model.Schnider ? 100 : 105
+                                ]
                               : [1, 16]
                           : [1, 16],
                       onPressed: updatePDTextEditingController,
@@ -575,7 +590,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
               height: 8,
             ),
             Container(
-              height: UIHeight+24,
+              height: UIHeight + 24,
               child: Row(
                 children: [
                   Container(
@@ -621,7 +636,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
               height: 8,
             ),
             Container(
-              height: UIHeight+24,
+              height: UIHeight + 24,
               child: Row(
                 children: [
                   Container(
@@ -694,7 +709,8 @@ class PDTableController extends ChangeNotifier {
 class PDTable extends StatefulWidget {
   const PDTable(
       {Key? key,
-      required this.controller,
+      required this.tableController,
+      // this.scrollController,
       required this.tableLabel,
       required this.colHeaderIcon,
       required this.colHeaderLabels,
@@ -703,7 +719,9 @@ class PDTable extends StatefulWidget {
       this.highlightLabel})
       : super(key: key);
 
-  final PDTableController controller;
+  final PDTableController tableController;
+
+  // final ScrollController? scrollController;
   final String tableLabel;
   final Icon colHeaderIcon;
   final List<String> colHeaderLabels;
@@ -716,6 +734,14 @@ class PDTable extends StatefulWidget {
 }
 
 class _PDTableState extends State<PDTable> {
+  @override
+  // void initState() {
+  //   widget.scrollController?.addListener(() {
+  //     print(widget.scrollController?.offset);
+  //   });
+  //   super.initState();
+  // }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -730,7 +756,7 @@ class _PDTableState extends State<PDTable> {
       duration: Duration(milliseconds: 1),
       // height: widget.controller.val ? (20 + PDTableRowHeight) * 4 - 19 :0,
       constraints: BoxConstraints(
-        maxHeight: widget.controller.val ? (20 + PDTableRowHeight) * 4 : 0,
+        maxHeight: widget.tableController.val ? (20 + PDTableRowHeight) * 4 : 0,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -754,6 +780,7 @@ class _PDTableState extends State<PDTable> {
                 ),
                 Container(
                   child: ListView.builder(
+                    // controller: widget.scrollController,
                     shrinkWrap: true,
                     scrollDirection: Axis.horizontal,
                     itemCount: widget.colHeaderLabels.length,
@@ -964,7 +991,7 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
     return Stack(children: [
       Container(
         width: MediaQuery.of(context).size.width -
-            horizontalSidesPaddingPixel*2 -
+            horizontalSidesPaddingPixel * 2 -
             widget.height -
             16,
         child: TextField(
@@ -1037,7 +1064,7 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
                 ),
                 child: Text(
                   widget.options[buildIndex].toString(),
-                  style: TextStyle(fontSize: screenRatio >= 0.455 ? 16 : 14),
+                  style: TextStyle(fontSize: screenRatio >= 0.455 ? 14 : 12),
                 ),
               ),
             );
