@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-const numOfDigits = 0;
+const numOfDigits = 1;
 
 const horizontalSidesPaddingPixel = 16.0;
 
@@ -241,7 +241,7 @@ enum Target {
 
 const int kDilution = 10; // mg/ml
 const int kMaxPumpRate = 750; // ml/hr, as requested on 13 Dec 2022
-// int default_max_pump_rate = 1200; // ml/hr, this is from Engbert's
+// const int kMaxPumpRate = 1200; // ml/hr, this is from Engbert's
 int kMaxInfusion = kDilution * kMaxPumpRate;
 
 const double kMinTarget = 0.5;

@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io' show Platform;
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
+import 'package:propofol_dreams_app/providers/settings.dart';
 
 import '../constants.dart';
 
@@ -14,9 +16,10 @@ class VolumeScreen extends StatefulWidget {
 }
 
 class _VolumeScreenState extends State<VolumeScreen> {
-  final PDSegmentedController adultModelController = PDSegmentedController();
-  final PDSegmentedController pediatricModelController =
-      PDSegmentedController();
+  final PDAdvancedSegmentedController adultModelController =
+      PDAdvancedSegmentedController();
+  final PDAdvancedSegmentedController pediatricModelController =
+      PDAdvancedSegmentedController();
   final PDSwitchController genderController = PDSwitchController();
   final TextEditingController ageController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
@@ -30,7 +33,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   Duration delay = const Duration(milliseconds: 500);
 
   int timeStep = 1; //in secs
-  int propofolDensity = 10;
+
   double targetInterval = 0.5;
   int durationInterval = 10; //in mins
 
@@ -58,22 +61,49 @@ class _VolumeScreenState extends State<VolumeScreen> {
     ]
   ];
 
-  void updatePDSegmentedController(
-      PDSegmentedController controller, dynamic s) {
-    controller.selection = s;
+  @override
+  void initState() {
+    // print('initState');
+    final settings = Provider.of<Settings>(context, listen: false);
+
+    adultModelController.selection = settings.adultModel;
+    pediatricModelController.selection = settings.pediatricModel;
+
+    int? age = int.tryParse(ageController.text);
+    // print(age);
+    if (age == null) {
+      genderController.val = true;
+      ageController.text = 40.toString();
+      heightController.text = 170.toString();
+      weightController.text = 70.toString();
+      targetController.text = 3.0.toString();
+      durationController.text = 60.toString();
+    } else if (age >= 17) {
+      genderController.val = true;
+      ageController.text = 40.toString();
+      heightController.text = 170.toString();
+      weightController.text = 70.toString();
+      targetController.text = 3.0.toString();
+      durationController.text = 60.toString();
+    } else if (age < 17) {
+      genderController.val = true;
+      ageController.text = 8.toString();
+      heightController.text = 130.toString();
+      weightController.text = 26.toString();
+      targetController.text = 3.0.toString();
+      durationController.text = 60.toString();
+    }
+    tableController.val = false;
+
     run();
+    super.initState();
   }
 
-  void updatePDTableController(PDTableController controller) {
-    setState(() {
-      controller.val = !controller.val;
-    });
-  }
-
-  void updatePDTextEditingController() {
-    // print('updatePDTextEditingController');
-    updateModelOptions(int.tryParse(ageController.text) ?? 0);
-    run();
+  @override
+  void dispose() {
+    // targetController.dispose();
+    scrollController.dispose();
+    super.dispose();
   }
 
   void updateRowsAndResult({cols, times}) {
@@ -139,6 +169,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   }
 
   void run({int cycle = 1}) {
+    final settings = Provider.of<Settings>(context, listen: false);
     // print('run');
 
     int? age = int.tryParse(ageController.text);
@@ -199,19 +230,19 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   );
 
                   results1 = sim.estimate(
-                    target: target - targetInterval,
-                    duration: duration + 6 * durationInterval,
-                  );
+                      target: target - targetInterval,
+                      duration: duration + 6 * durationInterval,
+                      dilution: settings.propofolFormulation);
 
                   results2 = sim.estimate(
-                    target: target,
-                    duration: duration + 6 * durationInterval,
-                  );
+                      target: target,
+                      duration: duration + 6 * durationInterval,
+                      dilution: settings.propofolFormulation);
 
                   results3 = sim.estimate(
-                    target: target + targetInterval,
-                    duration: duration + 6 * durationInterval,
-                  );
+                      target: target + targetInterval,
+                      duration: duration + 6 * durationInterval,
+                      dilution: settings.propofolFormulation);
                 }
 
                 DateTime finish = DateTime.now();
@@ -295,21 +326,23 @@ class _VolumeScreenState extends State<VolumeScreen> {
     });
   }
 
-  @override
-  void initState() {
-    reset(resetModelSelection: true);
-    tableController.val = false;
-    scrollController.addListener(() {
-      print(scrollController.offset);
+  void updatePDTableController(PDTableController controller) {
+    setState(() {
+      controller.val = !controller.val;
     });
-    super.initState();
   }
 
-  @override
-  void dispose() {
-    targetController.dispose();
-    scrollController.dispose();
-    super.dispose();
+  void updateModelOptions(int age) {
+    modelOptions.clear();
+    if (age > 16) {
+      modelOptions.add(Model.Marsh);
+      modelOptions.add(Model.Schnider);
+      modelOptions.add(Model.Eleveld);
+    } else if (age <= 16 || age > 0) {
+      modelOptions.add(Model.Paedfusor);
+      modelOptions.add(Model.Kataria);
+      modelOptions.add(Model.Eleveld);
+    }
   }
 
   void reset({bool resetModelSelection = false}) {
@@ -345,27 +378,26 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     updateModelOptions(int.tryParse(ageController.text) ?? 0);
 
-    // updateModelOptions(int.parse(ageController.text));
-    // adultModelController.selection = modelOptions.first;
+    run();
+  }
+
+  void updatePDSegmentedController(dynamic s) {
+    final settings = Provider.of<Settings>(context, listen: false);
+    (int.tryParse(ageController.text) ?? 0) > 16
+        ? settings.adultModel = s
+        : settings.pediatricModel = s;
+    run();
+  }
+
+  void updatePDTextEditingController() {
+    // print('updatePDTextEditingController');
+    updateModelOptions(int.tryParse(ageController.text) ?? 0);
     run();
   }
 
   void restart() {
     updateModelOptions(int.tryParse(ageController.text) ?? 0);
     run();
-  }
-
-  updateModelOptions(int age) {
-    modelOptions.clear();
-    if (age > 16) {
-      modelOptions.add(Model.Marsh);
-      modelOptions.add(Model.Schnider);
-      modelOptions.add(Model.Eleveld);
-    } else if (age <= 16 || age > 0) {
-      modelOptions.add(Model.Paedfusor);
-      modelOptions.add(Model.Kataria);
-      modelOptions.add(Model.Eleveld);
-    }
   }
 
   @override
@@ -375,13 +407,18 @@ class _VolumeScreenState extends State<VolumeScreen> {
     final double UIHeight =
         mediaQuery.size.width / mediaQuery.size.height >= 0.455 ? 56 : 48;
 
+    final settings = context.watch<Settings>();
+
+    int propofolFormulation = settings.propofolFormulation;
+
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
     int? duration = int.tryParse(durationController.text);
     double? target = double.tryParse(targetController.text);
 
-    updateModelOptions(age ?? 0);
+    adultModelController.selection = settings.adultModel;
+    pediatricModelController.selection = settings.pediatricModel;
 
     Model selectedModel = (age ?? 0) >= 17
         ? adultModelController.selection
@@ -401,6 +438,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
     final bool genderSwitchControlEnabled = (age ?? 0) >= 17
         ? adultModelController.selection != Model.Marsh
         : pediatricModelController.selection == Model.Eleveld;
+
+    updateModelOptions(age ?? 0);
+
+    // updateModelOptions(int.parse(ageController.text));
+    // adultModelController.selection = modelOptions.first;
+    // run();
 
     return SingleChildScrollView(
       physics: mediaQuery.viewInsets.bottom <= 0
@@ -444,9 +487,18 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       SizedBox(
                         width: 8,
                       ),
-                      Chip(
-                          avatar: Icon(Icons.opacity),
-                          label: Text('${(propofolDensity / 10).toInt()} %'))
+                      GestureDetector(
+                        onTap: () {
+                          settings.propofolFormulation == 10
+                              ? settings.propofolFormulation = 20
+                              : settings.propofolFormulation = 10;
+                          run();
+                        },
+                        child: Chip(
+                            avatar: Icon(Icons.opacity),
+                            label: Text(
+                                '${(propofolFormulation / 10).toInt()} %')),
+                      )
                     ],
                   ),
                   Row(
@@ -501,14 +553,14 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 children: [
                   Container(
                     height: UIHeight + 20,
-                    child: PDSegmentedControl(
+                    child: PDAdvancedSegmentedControl(
                       height: UIHeight,
                       options: modelOptions,
                       segmentedController:
                           (int.tryParse(ageController.text) ?? 0) > 16
                               ? adultModelController
                               : pediatricModelController,
-                      onPressed: run,
+                      onPressed: updatePDSegmentedController,
                       assertValues: {
                         'gender': genderController.val,
                         'age': (int.tryParse(ageController.text) ?? 0),
@@ -899,8 +951,8 @@ class PDIcon extends StatelessWidget {
   }
 }
 
-class PDSegmentedController extends ChangeNotifier {
-  PDSegmentedController();
+class PDAdvancedSegmentedController extends ChangeNotifier {
+  PDAdvancedSegmentedController();
 
   dynamic _selection;
 
@@ -916,8 +968,8 @@ class PDSegmentedController extends ChangeNotifier {
   }
 }
 
-class PDSegmentedControl extends StatefulWidget {
-  const PDSegmentedControl({
+class PDAdvancedSegmentedControl extends StatefulWidget {
+  const PDAdvancedSegmentedControl({
     Key? key,
     required this.options,
     required this.segmentedController,
@@ -927,21 +979,23 @@ class PDSegmentedControl extends StatefulWidget {
   }) : super(key: key);
 
   final List options;
-  final PDSegmentedController segmentedController;
+  final PDAdvancedSegmentedController segmentedController;
   final Function onPressed;
   final Map<String, Object> assertValues;
   final double height;
 
   @override
-  State<PDSegmentedControl> createState() => _PDSegmentedControlState();
+  State<PDAdvancedSegmentedControl> createState() =>
+      _PDAdvancedSegmentedControlState();
 }
 
-class _PDSegmentedControlState extends State<PDSegmentedControl> {
+class _PDAdvancedSegmentedControlState
+    extends State<PDAdvancedSegmentedControl> {
   @override
-  void dispose() {
-    widget.segmentedController.dispose();
-    super.dispose();
-  }
+  // void dispose() {
+  //   widget.segmentedController.dispose();
+  //   super.dispose();
+  // }
 
   bool checkError(
       {required Gender gender,
@@ -1022,7 +1076,7 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
                     ? () {
                         widget.segmentedController.selection =
                             widget.options[buildIndex];
-                        widget.onPressed();
+                        widget.onPressed(widget.options[buildIndex]);
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
