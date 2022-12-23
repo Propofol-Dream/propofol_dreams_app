@@ -29,7 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // var screenWidth = mediaQuery.size.width;
 
     final settings = context.watch<Settings>();
-    formulationController.val = settings.propofolFormulation == 10?0:1;
+    formulationController.val = settings.dilution == 10?0:1;
     // print(settings.propofolFormulation);
 
     return Column(children: [
@@ -73,10 +73,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   segmentedController: formulationController,
                   onPressed: [
                     () {
-                      settings.propofolFormulation = 10;
+                      settings.dilution = 10;
                     },
                     () {
-                      settings.propofolFormulation = 20;
+                      settings.dilution = 20;
                     }
                   ],
                 ),

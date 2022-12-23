@@ -1,22 +1,19 @@
-import 'package:flutter/foundation.dart';
-import 'package:propofol_dreams_app/constants.dart';
+
+
 import 'dart:math';
+import 'package:propofol_dreams_app/models/patient.dart';
+import 'package:propofol_dreams_app/models/pump.dart';
+import 'package:propofol_dreams_app/models/operation.dart';
+import 'model.dart';
+import 'gender.dart';
+import 'target.dart';
 
 class Simulation {
   Model model;
-  int weight;
-  int height;
-  int age;
-  Gender gender;
-  int time_step;
+  Patient patient;
+  Pump pump;
 
-  Simulation(
-      {required this.model,
-      required this.weight,
-      required this.height,
-      required this.age,
-      required this.gender,
-      this.time_step = 10});
+  Simulation({required this.model, required this.patient, required this.pump});
 
   Map<String, double> get variables {
     double k10 = 0,
@@ -29,39 +26,39 @@ class Simulation {
         V2 = 0,
         V3 = 0;
     if (model == Model.Paedfusor) {
-      k10 = 0.1527 * pow(weight, -0.3); // per min;
+      k10 = 0.1527 * pow(patient.weight, -0.3); // per min;
       k12 = 0.114; // per min
       k13 = 0.0419; // per min
       k21 = 0.055; // per min
       k31 = 0.0033; // per min
       ke0 = 0.26; // per min
 
-      V1 = 0.4584 * weight;
+      V1 = 0.4584 * patient.weight;
       V2 = V1 * k12 / k21;
       V3 = V1 * k13 / k31;
 
-      if (age == 13) {
+      if (patient.age == 13) {
         k10 = 0.0678; // per min
 
-        V1 = 0.4 * weight;
+        V1 = 0.4 * patient.weight;
         V2 = V1 * k12 / k21;
         V3 = V1 * k13 / k31;
-      } else if (age == 14) {
+      } else if (patient.age == 14) {
         k10 = 0.0792; // per min
 
-        V1 = 0.342 * weight;
+        V1 = 0.342 * patient.weight;
         V2 = V1 * k12 / k21;
         V3 = V1 * k13 / k31;
-      } else if (age == 15) {
+      } else if (patient.age == 15) {
         k10 = 0.0954; // per min
 
-        V1 = 0.284 * weight;
+        V1 = 0.284 * patient.weight;
         V2 = V1 * k12 / k21;
         V3 = V1 * k13 / k31;
-      } else if (age == 16) {
+      } else if (patient.age == 16) {
         k10 = 0.119; // per min
 
-        V1 = 0.22857 * weight;
+        V1 = 0.22857 * patient.weight;
         V2 = V1 * k12 / k21;
         V3 = V1 * k13 / k31;
       }
@@ -73,9 +70,9 @@ class Simulation {
       k31 = 0.0038; // per min
       ke0 = 0; // per min
 
-      V1 = 0.41 * weight;
-      V2 = 0.78 * weight + 3.1 * age;
-      V3 = 6.9 * weight;
+      V1 = 0.41 * patient.weight;
+      V2 = 0.78 * patient.weight + 3.1 * patient.age;
+      V3 = 6.9 * patient.weight;
     } else if (model == Model.Marsh) {
       k10 = 0.119; // per min
       k12 = 0.112; // per min
@@ -84,23 +81,23 @@ class Simulation {
       k31 = 0.0033; // per min
       ke0 = 1.2; // per min
 
-      V1 = 0.228 * weight;
-      V2 = 0.463 * weight;
-      V3 = 2.893 * weight;
+      V1 = 0.228 * patient.weight;
+      V2 = 0.463 * patient.weight;
+      V3 = 2.893 * patient.weight;
     } else if (model == Model.Schnider) {
       V1 = 4.27; //litre
-      V2 = 18.9 - 0.391 * (age - 53); //litre
+      V2 = 18.9 - 0.391 * (patient.age - 53); //litre
       V3 = 238.0; //litre
 
       k10 = (0.443 +
-          0.0107 * (weight - 77) -
-          0.0159 * (lbm - 59) +
-          0.0062 * (height - 177)); // per min
+          0.0107 * (patient.weight - 77) -
+          0.0159 * (patient.lbm - 59) +
+          0.0062 * (patient.height - 177)); // per min
 
-      k12 = (0.302 - 0.0056 * (age - 53)); // per min
+      k12 = (0.302 - 0.0056 * (patient.age - 53)); // per min
       k13 = 0.196; // per min
-      k21 =
-          (1.29 - 0.024 * (age - 53)) / (18.9 - 0.391 * (age - 53)); // per min
+      k21 = (1.29 - 0.024 * (patient.age - 53)) /
+          (18.9 - 0.391 * (patient.age - 53)); // per min
       k31 = 0.0035; // per min
       ke0 = 0.456; // per min
       // t_half_keo = np.log(2) / (ke0 * steps_per_min) //deprecated
@@ -113,38 +110,48 @@ class Simulation {
     if (model == Model.Eleveld) {
       bool opioid = true; // arbitralily set YES to intraop opioids
 
-      V1 = 6.28 * (weight / (weight + 33.6)) / (0.675675675676);
-      V2 = 25.5 * (weight / 70) * exp(-0.0156 * (age - 35));
+      V1 = 6.28 * (patient.weight / (patient.weight + 33.6)) / (0.675675675676);
+      V2 = 25.5 * (patient.weight / 70) * exp(-0.0156 * (patient.age - 35));
 
-      V3 = 273 * ffm * (opioid ? exp(-0.0138 * age) : 1) / 54.4752059601377;
+      V3 = 273 *
+          patient.ffm *
+          (opioid ? exp(-0.0138 * patient.age) : 1) /
+          54.4752059601377;
 
-      Cl1 = ((gender == Gender.Male ? 1.79 : 2.1) *
-              (pow((weight / 70), 0.75)) *
-              (pow(pma, 9.06)) /
-              (pow(pma, 9.06) + pow(42.3, 9.06))) *
-          (opioid ? exp(-0.00286 * age) : 1);
+      Cl1 = ((patient.gender == Gender.Male ? 1.79 : 2.1) *
+              (pow((patient.weight / 70), 0.75)) *
+              (pow(patient.pma, 9.06)) /
+              (pow(patient.pma, 9.06) + pow(42.3, 9.06))) *
+          (opioid ? exp(-0.00286 * patient.age) : 1);
 
       Cl2 = 1.75 *
-          (pow(((25.5 * (weight / 70) * exp(-0.0156 * (age - 35))) / 25.5),
+          (pow(
+              ((25.5 *
+                      (patient.weight / 70) *
+                      exp(-0.0156 * (patient.age - 35))) /
+                  25.5),
               0.75)) *
-          (1 + 1.3 * (1 - pma / (pma + 68.3)));
+          (1 + 1.3 * (1 - patient.pma / (patient.pma + 68.3)));
 
       Cl3 = 1.11 *
-          (pow((ffm * (opioid ? exp(-0.0138 * age) : 1) / 54.4752059601377),
+          (pow(
+              (patient.ffm *
+                  (opioid ? exp(-0.0138 * patient.age) : 1) /
+                  54.4752059601377),
               0.75)) *
-          (pma / (pma + 68.3) / 0.964695544);
+          (patient.pma / (patient.pma + 68.3) / 0.964695544);
 
       k10 = Cl1 / V1;
       k12 = Cl2 / V1;
       k13 = Cl3 / V1;
       k21 = Cl2 / V2;
       k31 = Cl3 / V3;
-      ke0 = 0.146 * pow((weight / 70), -0.25);
+      ke0 = 0.146 * pow((patient.weight / 70), -0.25);
     }
 
-    double ce50 = 3.08 * exp(-0.00635 * (age - 35));
+    double ce50 = 3.08 * exp(-0.00635 * (patient.age - 35));
     double baseline_BIS = 93;
-    double delay_BIS = 15 + exp(0.0517 * (age - 35));
+    double delay_BIS = 15 + exp(0.0517 * (patient.age - 35));
 
     return {
       'V1': V1,
@@ -175,39 +182,10 @@ class Simulation {
     return cum_sums;
   }
 
-  double get lbm {
-    if (gender == Gender.Female) {
-      return 1.07 * weight - 148 * pow((weight / height), 2);
-    } else if (gender == Gender.Male) {
-      return 1.1 * weight - 128 * pow((weight / height), 2);
-    }
-    return 0.0;
-  }
-
-  double get bmi {
-    return (weight / pow((height / 100), 2));
-  }
-
-  //fat-free mass
-  double get ffm {
-    double b = bmi;
-    if (gender == Gender.Male) {
-      return (0.88 + (1 - 0.88) / (1 + pow((age / 13.4), -12.7))) *
-          ((9270 * weight) / (6680 + 216 * b));
-    } else {
-      return (1.11 + (1 - 1.11) / (1 + pow((age / 7.1), -1.1))) *
-          ((9270 * weight) / (8780 + 244 * b));
-    }
-  }
-
-  //arbitrarily set pma 40 weeks +age
-  double get pma {
-    return age * 52.143 + 40;
-  }
-
   double get calibrated_effect {
     int time_step = 1; //sec
     int duration = 720;
+    double max_infusion = (pump.dilution * pump.max_pump_rate).toDouble();
 
     int step = 0;
     double k21 = variables['k21'] as double;
@@ -223,12 +201,12 @@ class Simulation {
     List<double> A3s = [];
     List<Duration> times = [];
     List<int> steps = [];
-    List<int> pump_infs = [];
+    List<double> pump_infs = [];
     List<double> concentrations = [];
     List<double> concentrations_effect = [];
 
     for (int time = 0; time <= duration; time += time_step) {
-      int pump_inf = time < 100 ? kMaxInfusion : 0;
+      double pump_inf = time < 100 ? max_infusion : 0;
 
       double A2 = step == 0
           ? 0
@@ -266,18 +244,16 @@ class Simulation {
       concentrations.add(concentration);
       concentrations_effect.add(concentration_effect);
 
-      // print('$time | $pump_inf | $A1 | $A2 | $A3 | ${Duration(seconds: time)} | $concentration | $concentration_effect');
+      // print(
+      //     '$time | $pump_inf | $A1 | $A2 | $A3 | ${Duration(seconds: time)} | $concentration | $concentration_effect');
       step = step + 1;
     }
     return concentrations_effect.reduce(max);
   }
 
-  Map<String, dynamic> estimate(
-      {required double target,
-      required int duration,
-      int dilution = kDilution,
-      int max_pump_rate = kMaxPumpRate}) {
-    double max_infusion = (dilution * max_pump_rate).toDouble(); // mg per hr
+  Map<String, dynamic>  estimate ({required Operation operation}) {
+    double max_infusion =
+        (pump.dilution * pump.max_pump_rate).toDouble(); // mg per hr
 
     int step = 0;
     double k21 = variables['k21'] as double;
@@ -299,59 +275,65 @@ class Simulation {
     List<double> concentrations_effect = [];
 
     //List for volume estimation
-    List<double> targets = [];
+    List<double> depths = [];
     List<double> overshoot_times = [];
     List<double> infs = []; //mg per hr
     List<double> A1_changes = [];
     List<double> cumulative_infused_volumes = []; // mL
 
-    for (int time = 0; time <= duration * 60; time += time_step) {
+    for (int time = 0; time <= operation.duration * 60; time += pump.time_step) {
       double A2 = step == 0
           ? 0
-          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * time_step / 60;
+          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * pump.time_step / 60;
 
       double A3 = step == 0
           ? 0
-          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * time_step / 60;
+          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * pump.time_step / 60;
 
       double concentration_effect = step == 0
           ? 0
           : concentrations_effect.last +
               ke0 *
                   (concentrations.last - concentrations_effect.last) *
-                  time_step /
+                  pump.time_step /
                   60;
 
       double overshoot_time = (step == 0
-          ? target / calibrated_effect * 100 - 1
-          : (target - targets.last > 0
-              ? (target - targets.last) / calibrated_effect * 100 - 1
-              : overshoot_times.last - time_step));
+          ? operation.depth /
+                  calibrated_effect *
+                  100 -
+              1
+          : (operation.depth - depths.last > 0
+              ? (operation.depth - depths.last) /
+                      calibrated_effect *
+                      100 -
+                  1
+              : overshoot_times.last - pump.time_step));
 
       double A1_change = step == 0
           ? 0
           : (A2 * k21 + A3 * k31 - A1s.last * (k10 + k12 + k13)) *
-              time_step /
+          pump.time_step /
               60;
 
       double? inf;
       double? pump_inf;
       double? A1;
 
-      if (model.target == Target.Effect_Site) {
+      if (model.depth == Target.Effect_Site) {
         A1 = step == 0
             ? 0
-            : (pump_infs.last / 60) * time_step / 60 + A1_change + A1s.last;
+            : (pump_infs.last / 60) * pump.time_step / 60 + A1_change + A1s.last;
 
-        inf = step == 0 ? 0 : 3600 * (target * V1 - A1_change - A1) / time_step;
+        inf = 3600 * (operation.depth * V1 - A1_change - A1) / pump.time_step;
 
-        pump_inf = (concentration_effect > target
+        pump_inf = (concentration_effect > operation.depth
             ? 0.0
             : (overshoot_time > 0.0 ? max_infusion : (inf < 0.0 ? 0.0 : inf)));
       } else {
         inf = step == 0
             ? 0
-            : 3600 * (target * V1 - A1_change - A1s.last) / time_step;
+            : 3600 * (operation.depth * V1 - A1_change - A1s.last) / pump.time_step;
 
         pump_inf = (step == 0
             ? inf
@@ -359,19 +341,19 @@ class Simulation {
 
         A1 = step == 0
             ? 0
-            : (pump_inf / 60) * time_step / 60 + A1_change + A1s.last;
+            : (pump_inf / 60) * pump.time_step / 60 + A1_change + A1s.last;
       }
 
       double concentration = A1 / V1;
 
       double cumulative_infused_volume = step == 0
-          ? pump_inf * time_step / 3600 / dilution
+          ? pump_inf * pump.time_step / 3600 / pump.dilution
           : cumulative_infused_volumes.last +
-              pump_inf * time_step / 3600 / dilution;
+              pump_inf * pump.time_step / 3600 / pump.dilution;
 
       times.add(Duration(seconds: time));
       steps.add(step);
-      targets.add(target);
+      depths.add(operation.depth);
       overshoot_times.add(overshoot_time);
       infs.add(inf);
       pump_infs.add(pump_inf);
@@ -384,11 +366,7 @@ class Simulation {
       cumulative_infused_volumes.add(cumulative_infused_volume);
 
       // print(
-      //     '${Duration(seconds: time)} | $cumulative_infused_volume');
-
-
-      // print(
-      //     '$time | $target | $time_step | $overshoot_time | $inf | $pump_inf | $A1_change | $A1 | $A2 | $A3 | ${Duration(seconds: time)} | $concentration | $concentration_effect | $cumulative_infused_volume');
+      //     '$time | ${operation.depth} | ${pump.time_step} | $overshoot_time | $inf | $pump_inf | $A1_change | $A1 | $A2 | $A3 | ${Duration(seconds: time)} | $concentration | $concentration_effect | $cumulative_infused_volume');
       step = step + 1;
     }
 

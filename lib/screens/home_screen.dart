@@ -24,7 +24,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: screens[currenIndex],
+      body: SingleChildScrollView(
+        physics: MediaQuery.of(context).viewInsets.bottom <= 0
+        ? NeverScrollableScrollPhysics()
+        : BouncingScrollPhysics(),
+    child:screens[currenIndex]),
       bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           currentIndex: currenIndex,

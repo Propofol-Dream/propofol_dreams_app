@@ -5,6 +5,11 @@ import 'package:provider/provider.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 import 'package:propofol_dreams_app/providers/settings.dart';
+import 'package:propofol_dreams_app/models/operation.dart';
+import 'package:propofol_dreams_app/models/patient.dart';
+import 'package:propofol_dreams_app/models/pump.dart';
+import 'package:propofol_dreams_app/models/model.dart';
+import 'package:propofol_dreams_app/models/gender.dart';
 
 import '../constants.dart';
 
@@ -20,21 +25,23 @@ class _VolumeScreenState extends State<VolumeScreen> {
       PDAdvancedSegmentedController();
   final PDAdvancedSegmentedController pediatricModelController =
       PDAdvancedSegmentedController();
-  final PDSwitchController genderController = PDSwitchController();
-  final TextEditingController ageController = TextEditingController();
-  final TextEditingController heightController = TextEditingController();
-  final TextEditingController weightController = TextEditingController();
-  final TextEditingController targetController = TextEditingController();
-  final TextEditingController durationController = TextEditingController();
+  PDSwitchController genderController = PDSwitchController();
+  TextEditingController ageController = TextEditingController();
+  TextEditingController heightController = TextEditingController();
+  TextEditingController weightController = TextEditingController();
+  TextEditingController depthController = TextEditingController();
+  TextEditingController durationController = TextEditingController();
   final PDTableController tableController = PDTableController();
   final ScrollController scrollController = ScrollController();
   final List<Model> modelOptions = [];
   Timer timer = Timer(Duration.zero, () {});
   Duration delay = const Duration(milliseconds: 500);
 
-  int timeStep = 1; //in secs
+  // int timeStep = 1; //in secs
+  // int dilution = 10; //mcg/mL
+  // int max_pump_rate = 750;
 
-  double targetInterval = 0.5;
+  double depthInterval = 0.5;
   int durationInterval = 10; //in mins
 
   String result = '-- mL';
@@ -66,42 +73,47 @@ class _VolumeScreenState extends State<VolumeScreen> {
     // print('initState');
     final settings = Provider.of<Settings>(context, listen: false);
 
-    adultModelController.selection = settings.adultModel;
-    pediatricModelController.selection = settings.pediatricModel;
-
-    int? age = int.tryParse(ageController.text);
-    // print(age);
-    if (age == null) {
-      genderController.val = true;
-      ageController.text = 40.toString();
-      heightController.text = 170.toString();
-      weightController.text = 70.toString();
-      targetController.text = 3.0.toString();
-      durationController.text = 60.toString();
-    } else if (age >= 17) {
-      genderController.val = true;
-      ageController.text = 40.toString();
-      heightController.text = 170.toString();
-      weightController.text = 70.toString();
-      targetController.text = 3.0.toString();
-      durationController.text = 60.toString();
-    } else if (age < 17) {
-      genderController.val = true;
-      ageController.text = 8.toString();
-      heightController.text = 130.toString();
-      weightController.text = 26.toString();
-      targetController.text = 3.0.toString();
-      durationController.text = 60.toString();
+    if (settings.inAdultView) {
+      genderController.val =
+          settings.adultGender == Gender.Female ? true : false;
+      ageController.text =
+          settings.adultAge != null ? settings.adultAge.toString() : '';
+      heightController.text =
+          settings.adultHeight != null ? settings.adultHeight.toString() : '';
+      weightController.text =
+          settings.adultWeight != null ? settings.adultWeight.toString() : '';
+      depthController.text =
+          settings.adultDepth != null ? settings.adultDepth.toString() : '';
+      durationController.text = settings.adultDuration != null
+          ? settings.adultDuration.toString()
+          : '';
+    } else {
+      genderController.val =
+          settings.pediatricGender == Gender.Female ? true : false;
+      ageController.text =
+          settings.pediatricAge != null ? settings.pediatricAge.toString() : '';
+      heightController.text = settings.pediatricHeight != null
+          ? settings.pediatricHeight.toString()
+          : '';
+      weightController.text = settings.pediatricWeight != null
+          ? settings.pediatricWeight.toString()
+          : '';
+      depthController.text = settings.pediatricDepth != null
+          ? settings.pediatricDepth.toString()
+          : '';
+      durationController.text = settings.pediatricDuration != null
+          ? settings.pediatricDuration.toString()
+          : '';
     }
     tableController.val = false;
 
-    run();
+    run(initState: true);
     super.initState();
   }
 
   @override
   void dispose() {
-    // targetController.dispose();
+    // depthController.dispose();
     scrollController.dispose();
     super.dispose();
   }
@@ -168,16 +180,38 @@ class _VolumeScreenState extends State<VolumeScreen> {
     PDTableRows = resultRows;
   }
 
-  void run({int cycle = 1}) {
+  void run({initState = false}) {
     final settings = Provider.of<Settings>(context, listen: false);
-    // print('run');
 
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
-    double? target = double.tryParse(targetController.text);
+    double? depth = double.tryParse(depthController.text);
     int? duration = int.tryParse(durationController.text);
     Gender gender = genderController.val ? Gender.Female : Gender.Male;
+
+    if (settings.inAdultView) {
+      //setting provider cannot be happened in initState
+      if (initState == false) {
+        settings.adultModel = adultModelController.selection;
+        settings.adultGender = gender;
+        settings.adultAge = age;
+        settings.adultHeight = height;
+        settings.adultWeight = weight;
+        settings.adultDepth = depth;
+        settings.adultDuration = duration;
+      }
+    } else {
+      if (initState == false) {
+        settings.pediatricModel = pediatricModelController.selection;
+        settings.pediatricGender = gender;
+        settings.pediatricAge = age;
+        settings.pediatricHeight = height;
+        settings.pediatricWeight = weight;
+        settings.pediatricDepth = depth;
+        settings.pediatricDuration = duration;
+      }
+    }
 
     //Check whether Age is null, if so, clear all adult & peadiatric models to Model.None
     //If Age is not null, check whether other input fiels are null
@@ -188,20 +222,20 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
       if (height != null &&
           weight != null &&
-          target != null &&
+          depth != null &&
           duration != null) {
         if (age >= 0) {
           // print('Age >=0');
-          Model model = age >= 17
-              ? adultModelController.selection
-              : pediatricModelController.selection;
+          Model model = Model.None;
+
+          model = age >= 17 ? settings.adultModel : settings.pediatricModel;
 
           if (model != Model.None) {
             // print('model != Model.None');
 
             if (model.isEnable(age: age, height: height, weight: weight) &&
-                target <= kMaxTarget &&
-                target >= kMinTarget &&
+                depth <= kMaxDepth &&
+                depth >= kMinDepth &&
                 duration <= kMaxDuration &&
                 duration >= kMinDuration) {
               // print('model is enable');
@@ -219,31 +253,32 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 var results2;
                 var results3;
 
-                for (int i = 0; i < cycle; i++) {
-                  PDSim.Simulation sim = PDSim.Simulation(
+                PDSim.Simulation sim = PDSim.Simulation(
                     model: model,
-                    weight: weight,
-                    height: height,
-                    age: age,
-                    gender: genderController.val ? Gender.Female : Gender.Male,
-                    time_step: timeStep,
-                  );
+                    patient: Patient(
+                        weight: weight,
+                        age: age,
+                        height: height,
+                        gender: gender),
+                    pump: Pump(
+                        time_step: settings.time_step!,
+                        dilution: settings.dilution!,
+                        max_pump_rate: settings.max_pump_rate!));
 
-                  results1 = sim.estimate(
-                      target: target - targetInterval,
-                      duration: duration + 6 * durationInterval,
-                      dilution: settings.propofolFormulation);
+                results1 = sim.estimate(
+                    operation: Operation(
+                        depth: depth - depthInterval,
+                        duration: duration + 6 * durationInterval));
 
-                  results2 = sim.estimate(
-                      target: target,
-                      duration: duration + 6 * durationInterval,
-                      dilution: settings.propofolFormulation);
+                results2 = sim.estimate(
+                    operation: Operation(
+                        depth: depth,
+                        duration: duration + 6 * durationInterval));
 
-                  results3 = sim.estimate(
-                      target: target + targetInterval,
-                      duration: duration + 6 * durationInterval,
-                      dilution: settings.propofolFormulation);
-                }
+                results3 = sim.estimate(
+                    operation: Operation(
+                        depth: depth + depthInterval,
+                        duration: duration + 6 * durationInterval));
 
                 DateTime finish = DateTime.now();
 
@@ -255,16 +290,18 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   'age': age,
                   'height': height,
                   'weight': weight,
-                  'target': target,
+                  'depth': depth,
                   'duration': duration,
                   'calcuation time':
                       '${calculationDuration.inMilliseconds.toString()} milliseconds'
                 });
-                updateRowsAndResult(cols: [
-                  results1['cumulative_infused_volumes'],
-                  results2['cumulative_infused_volumes'],
-                  results3['cumulative_infused_volumes']
-                ], times: results2['times']);
+                setState(() {
+                  updateRowsAndResult(cols: [
+                    results1['cumulative_infused_volumes'],
+                    results2['cumulative_infused_volumes'],
+                    results3['cumulative_infused_volumes']
+                  ], times: results2['times']);
+                });
               } else {
                 // print('Model does not meet its constraint');
                 setState(() {
@@ -332,71 +369,109 @@ class _VolumeScreenState extends State<VolumeScreen> {
     });
   }
 
-  void updateModelOptions(int age) {
+  void updateModelOptions(bool inAdultView) {
     modelOptions.clear();
-    if (age > 16) {
+    if (inAdultView) {
       modelOptions.add(Model.Marsh);
       modelOptions.add(Model.Schnider);
       modelOptions.add(Model.Eleveld);
-    } else if (age <= 16 || age > 0) {
+    } else {
       modelOptions.add(Model.Paedfusor);
       modelOptions.add(Model.Kataria);
       modelOptions.add(Model.Eleveld);
     }
   }
 
-  void reset({bool resetModelSelection = false}) {
-    if (resetModelSelection == true) {
-      adultModelController.selection = Model.Marsh;
-      pediatricModelController.selection = Model.Paedfusor;
+  void reset({bool toDefault = false}) {
+    final settings = Provider.of<Settings>(context, listen: false);
+
+    if (settings.inAdultView) {
+      genderController.val = toDefault
+          ? true
+          : settings.adultGender == Gender.Female
+              ? true
+              : false;
+      ageController.text = toDefault
+          ? 40.toString()
+          : settings.adultAge != null
+              ? settings.adultAge.toString()
+              : '';
+      heightController.text = toDefault
+          ? 170.toString()
+          : settings.adultHeight != null
+              ? settings.adultHeight.toString()
+              : '';
+      weightController.text = toDefault
+          ? 70.toString()
+          : settings.adultWeight != null
+              ? settings.adultWeight.toString()
+              : '';
+      depthController.text = toDefault
+          ? 3.0.toString()
+          : settings.adultDepth != null
+              ? settings.adultDepth.toString()
+              : '';
+      durationController.text = toDefault
+          ? 60.toString()
+          : settings.adultDuration != null
+              ? settings.adultDuration.toString()
+              : '';
+    } else {
+      genderController.val = toDefault
+          ? true
+          : settings.pediatricGender == Gender.Female
+              ? true
+              : false;
+      ageController.text = toDefault
+          ? 8.toString()
+          : settings.pediatricAge != null
+              ? settings.pediatricAge.toString()
+              : '';
+      heightController.text = toDefault
+          ? 130.toString()
+          : settings.pediatricHeight != null
+              ? settings.pediatricHeight.toString()
+              : '';
+      weightController.text = toDefault
+          ? 26.toString()
+          : settings.pediatricWeight != null
+              ? settings.pediatricWeight.toString()
+              : '';
+      depthController.text = toDefault
+          ? 3.0.toString()
+          : settings.pediatricDepth != null
+              ? settings.pediatricDepth.toString()
+              : '';
+      durationController.text = toDefault
+          ? 60.toString()
+          : settings.pediatricDuration != null
+              ? settings.pediatricDuration.toString()
+              : '';
     }
 
-    int? age = int.tryParse(ageController.text);
-    // print(age);
-    if (age == null) {
-      genderController.val = true;
-      ageController.text = 40.toString();
-      heightController.text = 170.toString();
-      weightController.text = 70.toString();
-      targetController.text = 3.0.toString();
-      durationController.text = 60.toString();
-    } else if (age >= 17) {
-      genderController.val = true;
-      ageController.text = 40.toString();
-      heightController.text = 170.toString();
-      weightController.text = 70.toString();
-      targetController.text = 3.0.toString();
-      durationController.text = 60.toString();
-    } else if (age < 17) {
-      genderController.val = true;
-      ageController.text = 8.toString();
-      heightController.text = 130.toString();
-      weightController.text = 26.toString();
-      targetController.text = 3.0.toString();
-      durationController.text = 60.toString();
-    }
-
-    updateModelOptions(int.tryParse(ageController.text) ?? 0);
+    updateModelOptions(settings.inAdultView);
 
     run();
   }
 
   void updatePDSegmentedController(dynamic s) {
-    final settings = Provider.of<Settings>(context, listen: false);
-    (int.tryParse(ageController.text) ?? 0) > 16
-        ? settings.adultModel = s
-        : settings.pediatricModel = s;
     run();
   }
 
   void updatePDTextEditingController() {
-    // print('updatePDTextEditingController');
-    updateModelOptions(int.tryParse(ageController.text) ?? 0);
+    final settings = Provider.of<Settings>(context, listen: false);
+    int? age = int.tryParse(ageController.text);
+
+    if (age != null) {
+      settings.inAdultView = age >= 17 ? true : false;
+    }
+    updateModelOptions(settings.inAdultView);
     run();
   }
 
   void restart() {
-    updateModelOptions(int.tryParse(ageController.text) ?? 0);
+    final settings = Provider.of<Settings>(context, listen: false);
+    updateModelOptions(settings.inAdultView);
     run();
   }
 
@@ -409,18 +484,18 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     final settings = context.watch<Settings>();
 
-    int propofolFormulation = settings.propofolFormulation;
+    int dilution = settings.dilution ?? 10;
 
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
     int? duration = int.tryParse(durationController.text);
-    double? target = double.tryParse(targetController.text);
+    double? depth = double.tryParse(depthController.text);
 
     adultModelController.selection = settings.adultModel;
     pediatricModelController.selection = settings.pediatricModel;
 
-    Model selectedModel = (age ?? 0) >= 17
+    Model selectedModel = settings.inAdultView
         ? adultModelController.selection
         : pediatricModelController.selection;
 
@@ -428,316 +503,305 @@ class _VolumeScreenState extends State<VolumeScreen> {
         age: age,
         height: height,
         weight: weight,
-        target: target,
+        depth: depth,
         duration: duration);
 
-    final bool heightTextFieldEnabled = (age ?? 0) >= 17
+    final bool heightTextFieldEnabled = settings.inAdultView
         ? adultModelController.selection != Model.Marsh
         : pediatricModelController.selection == Model.Eleveld;
 
-    final bool genderSwitchControlEnabled = (age ?? 0) >= 17
+    final bool genderSwitchControlEnabled = settings.inAdultView
         ? adultModelController.selection != Model.Marsh
         : pediatricModelController.selection == Model.Eleveld;
 
-    updateModelOptions(age ?? 0);
+    updateModelOptions(settings.inAdultView);
 
-    // updateModelOptions(int.parse(ageController.text));
-    // adultModelController.selection = modelOptions.first;
-    // run();
-
-    return SingleChildScrollView(
-      physics: mediaQuery.viewInsets.bottom <= 0
-          ? NeverScrollableScrollPhysics()
-          : BouncingScrollPhysics(),
-      child: Container(
-        height: mediaQuery.size.height - (Platform.isAndroid ? 48 : 88),
-        margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Expanded(
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Container(),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          if (age != null) {
-                            if (age >= 17) {
-                              ageController.text = '8';
-                            } else {
-                              ageController.text = '40';
-                            }
-                            reset();
-                          }
-                        },
-                        child: Chip(
-                          avatar: (age ?? 0) >= 17
-                              ? Icon(Icons.face)
-                              : Icon(Icons.child_care_outlined),
-                          label:
-                              (age ?? 0) >= 17 ? Text('Adult') : Text('Paed'),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 8,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          settings.propofolFormulation == 10
-                              ? settings.propofolFormulation = 20
-                              : settings.propofolFormulation = 10;
-                          run();
-                        },
-                        child: Chip(
-                            avatar: Icon(Icons.opacity),
-                            label: Text(
-                                '${(propofolFormulation / 10).toInt()} %')),
-                      )
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                          onPressed: () =>
-                              updatePDTableController(tableController),
-                          icon: tableController.val
-                              ? Icon(Icons.expand_more)
-                              : Icon(Icons.expand_less)),
-                      Text(
-                        modelIsRunnable ? result : emptyResult,
-                        style: TextStyle(
-                            fontSize: tableController.val
-                                ? 34
-                                : 60), //TODO consider font size for tablets
-                      )
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              child: PDTable(
-                colHeaderIcon: Icon(Icons.airline_seat_flat_outlined),
-                colHeaderLabels: modelIsRunnable
-                    ? [
-                        (target! - targetInterval) >= 0
-                            ? (target! - targetInterval).toStringAsFixed(1)
-                            : 0.toStringAsFixed(1),
-                        (target).toStringAsFixed(1),
-                        (target + targetInterval).toStringAsFixed(1)
-                      ]
-                    : ['--', '--', '--'],
-                rowHeaderIcon: Icon(Icons.schedule),
-                rowLabels: modelIsRunnable ? PDTableRows : EmptyTableRows,
-                tableController: tableController,
-                // scrollController: scrollController,
-                tableLabel: 'Confidence\nInterval',
-                highlightLabel: result,
-              ),
-            ),
-            const SizedBox(
-              height: 32,
-            ),
-            Container(
-              width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    height: UIHeight + 20,
-                    child: PDAdvancedSegmentedControl(
-                      height: UIHeight,
-                      options: modelOptions,
-                      segmentedController:
-                          (int.tryParse(ageController.text) ?? 0) > 16
-                              ? adultModelController
-                              : pediatricModelController,
-                      onPressed: updatePDSegmentedController,
-                      assertValues: {
-                        'gender': genderController.val,
-                        'age': (int.tryParse(ageController.text) ?? 0),
-                        'height': (int.tryParse(heightController.text) ?? 0),
-                        'weight': (int.tryParse(weightController.text) ?? 0)
+    return Container(
+      height: mediaQuery.size.height - (Platform.isAndroid ? 48 : 88),
+      margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Container(),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        if (settings.inAdultView) {
+                          ageController.text = settings.pediatricAge != null
+                              ? settings.pediatricAge.toString()
+                              : '';
+                        } else {
+                          ageController.text = settings.adultAge != null
+                              ? settings.adultAge.toString()
+                              : '';
+                        }
+                        settings.inAdultView = !settings.inAdultView;
+                        reset();
                       },
+                      child: Chip(
+                        avatar: settings.inAdultView
+                            ? Icon(Icons.face)
+                            : Icon(Icons.child_care_outlined),
+                        label:
+                            settings.inAdultView ? Text('Adult') : Text('Paed'),
+                      ),
                     ),
-                  ),
-                  Container(
-                      height: UIHeight,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                color: Theme.of(context).colorScheme.primary,
-                                strokeAlign: StrokeAlign.outside,
-                              ),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(5))),
-                        ),
-                        onPressed: reset,
-                        child: Icon(Icons.refresh),
-                      )),
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            Container(
-              height: UIHeight + 24,
-              child: Row(
-                children: [
-                  Container(
-                    width: (mediaQuery.size.width - 40) / 2,
-                    child: PDSwitchField(
-                      icon: const Icon(Icons.wc),
-                      controller: genderController,
-                      labelTexts: {
-                        true: Gender.Female.toString(),
-                        false: Gender.Male.toString()
+                    SizedBox(
+                      width: 8,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        settings.dilution == 10
+                            ? settings.dilution = 20
+                            : settings.dilution = 10;
+                        run();
                       },
-                      helperText: '',
-                      onChanged: run,
-                      height: UIHeight,
-                      enabled: genderSwitchControlEnabled,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 8,
-                    height: 0,
-                  ),
-                  Container(
-                    width: (mediaQuery.size.width - 40) / 2,
-                    child: PDTextField(
-                      icon: const Icon(Icons.favorite_border),
-                      labelText: 'Age',
-                      helperText: '',
-                      interval: 1.0,
-                      fractionDigits: 0,
-                      controller: ageController,
-                      range: age != null
-                          ? age >= 17
-                              ? [
-                                  17,
-                                  selectedModel == Model.Schnider ? 100 : 105
-                                ]
-                              : [1, 16]
-                          : [1, 16],
-                      onPressed: updatePDTextEditingController,
-                      onChanged: restart,
-                    ),
-                  ),
-                ],
-              ),
+                      child: Chip(
+                          avatar: Icon(Icons.opacity),
+                          label: Text('${(dilution / 10).toInt()} %')),
+                    )
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                        onPressed: () =>
+                            updatePDTableController(tableController),
+                        icon: tableController.val
+                            ? Icon(Icons.expand_more)
+                            : Icon(Icons.expand_less)),
+                    Text(
+                      modelIsRunnable ? result : emptyResult,
+                      style: TextStyle(
+                          fontSize: tableController.val
+                              ? 34
+                              : 60), //TODO consider font size for tablets
+                    )
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(
-              height: 8,
+          ),
+          Container(
+            child: PDTable(
+              colHeaderIcon: Icon(Icons.airline_seat_flat_outlined),
+              colHeaderLabels: modelIsRunnable
+                  ? [
+                      (depth! - depthInterval) >= 0
+                          ? (depth! - depthInterval).toStringAsFixed(1)
+                          : 0.toStringAsFixed(1),
+                      (depth).toStringAsFixed(1),
+                      (depth + depthInterval).toStringAsFixed(1)
+                    ]
+                  : ['--', '--', '--'],
+              rowHeaderIcon: Icon(Icons.schedule),
+              rowLabels: modelIsRunnable ? PDTableRows : EmptyTableRows,
+              tableController: tableController,
+              // scrollController: scrollController,
+              tableLabel: 'Confidence\nInterval',
+              highlightLabel: result,
             ),
-            Container(
-              height: UIHeight + 24,
-              child: Row(
-                children: [
-                  Container(
-                    width: (mediaQuery.size.width - 40) / 2,
-                    child: PDTextField(
-                      icon: Icon(Icons.straighten),
-                      labelText: 'Height (cm)',
-                      helperText: '',
-                      interval: 1,
-                      fractionDigits: 0,
-                      controller: heightController,
-                      range: [selectedModel.minHeight, selectedModel.maxHeight],
-                      onPressed: updatePDTextEditingController,
-                      onChanged: restart,
-                      enabled: heightTextFieldEnabled,
-                    ),
+          ),
+          const SizedBox(
+            height: 32,
+          ),
+          Container(
+            width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: UIHeight + 20,
+                  child: PDAdvancedSegmentedControl(
+                    height: UIHeight,
+                    options: modelOptions,
+                    segmentedController:
+                        settings.inAdultView
+                            ? adultModelController
+                            : pediatricModelController,
+                    onPressed: updatePDSegmentedController,
+                    assertValues: {
+                      'gender': genderController.val,
+                      'age': (int.tryParse(ageController.text) ?? 0),
+                      'height': (int.tryParse(heightController.text) ?? 0),
+                      'weight': (int.tryParse(weightController.text) ?? 0)
+                    },
                   ),
-                  SizedBox(
-                    width: 8,
-                    height: 0,
-                  ),
-                  Container(
-                    width: (mediaQuery.size.width - 40) / 2,
-                    child: PDTextField(
-                      icon: const Icon(Icons.monitor_weight_outlined),
-                      labelText: 'Weight (kg)',
-                      helperText: '',
-                      interval: 1.0,
-                      fractionDigits: 0,
-                      controller: weightController,
-                      range: [selectedModel.minWeight, selectedModel.maxWeight],
-                      onPressed: updatePDTextEditingController,
-                      onChanged: restart,
-                      // onLongPressedStart: onLongPressStartUpdatePDTextEditingController,
-                      // onLongPressedEnd: onLongPressCancelledPDTextEditingController,
-                      // timer: timer,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                Container(
+                    height: UIHeight,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              strokeAlign: StrokeAlign.outside,
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(5))),
+                      ),
+                      onPressed: () => reset(toDefault: true),
+                      child: Icon(Icons.refresh),
+                    )),
+              ],
             ),
-            const SizedBox(
-              height: 8,
-            ),
-            Container(
-              height: UIHeight + 24,
-              child: Row(
-                children: [
-                  Container(
-                    width: (mediaQuery.size.width - 40) / 2,
-                    child: PDTextField(
-                      icon: const Icon(Icons.airline_seat_flat_outlined),
-                      // labelText: 'Depth in mcg/mL',
-                      labelText:
-                          '${selectedModel.target.toString().replaceAll('_', ' ')}',
-                      helperText: '',
-                      interval: 0.5,
-                      fractionDigits: 1,
-                      controller: targetController,
-                      range: [kMinTarget, kMaxTarget],
-                      onPressed: updatePDTextEditingController,
-                      onChanged: restart,
-                    ),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          Container(
+            height: UIHeight + 24,
+            child: Row(
+              children: [
+                Container(
+                  width: (mediaQuery.size.width - 40) / 2,
+                  child: PDSwitchField(
+                    icon: const Icon(Icons.wc),
+                    controller: genderController,
+                    labelTexts: {
+                      true: Gender.Female.toString(),
+                      false: Gender.Male.toString()
+                    },
+                    helperText: '',
+                    onChanged: run,
+                    height: UIHeight,
+                    enabled: genderSwitchControlEnabled,
                   ),
-                  SizedBox(
-                    width: 8,
-                    height: 0,
+                ),
+                SizedBox(
+                  width: 8,
+                  height: 0,
+                ),
+                Container(
+                  width: (mediaQuery.size.width - 40) / 2,
+                  child: PDTextField(
+                    icon: const Icon(Icons.favorite_border),
+                    labelText: 'Age',
+                    helperText: '',
+                    interval: 1.0,
+                    fractionDigits: 0,
+                    controller: ageController,
+                    range: age != null
+                        ? age >= 17
+                            ? [17, selectedModel == Model.Schnider ? 100 : 105]
+                            : [1, 16]
+                        : [1, 16],
+                    onPressed: updatePDTextEditingController,
+                    // onChanged: restart,
                   ),
-                  Container(
-                    width: (mediaQuery.size.width - 40) / 2,
-                    child: PDTextField(
-                      icon: const Icon(Icons.schedule),
-                      // labelText: 'Duration in minutes',
-                      labelText: 'Duration (mins)',
-                      helperText: '',
-                      interval: double.tryParse(durationController.text) != null
-                          ? double.parse(durationController.text) >= 60
-                              ? 10
-                              : 5
-                          : 1,
-                      fractionDigits: 0,
-                      controller: durationController,
-                      range: [kMinDuration, kMaxDuration],
-                      onPressed: updatePDTextEditingController,
-                      onChanged: restart,
-                    ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          Container(
+            height: UIHeight + 24,
+            child: Row(
+              children: [
+                Container(
+                  width: (mediaQuery.size.width - 40) / 2,
+                  child: PDTextField(
+                    icon: Icon(Icons.straighten),
+                    labelText: 'Height (cm)',
+                    helperText: '',
+                    interval: 1,
+                    fractionDigits: 0,
+                    controller: heightController,
+                    range: [selectedModel.minHeight, selectedModel.maxHeight],
+                    onPressed: updatePDTextEditingController,
+                    // onChanged: restart,
+                    enabled: heightTextFieldEnabled,
                   ),
-                ],
-              ),
+                ),
+                SizedBox(
+                  width: 8,
+                  height: 0,
+                ),
+                Container(
+                  width: (mediaQuery.size.width - 40) / 2,
+                  child: PDTextField(
+                    icon: const Icon(Icons.monitor_weight_outlined),
+                    labelText: 'Weight (kg)',
+                    helperText: '',
+                    interval: 1.0,
+                    fractionDigits: 0,
+                    controller: weightController,
+                    range: [selectedModel.minWeight, selectedModel.maxWeight],
+                    onPressed: updatePDTextEditingController,
+                    // onChanged: restart,
+                    // onLongPressedStart: onLongPressStartUpdatePDTextEditingController,
+                    // onLongPressedEnd: onLongPressCancelledPDTextEditingController,
+                    // timer: timer,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(
-              height: 8,
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          Container(
+            height: UIHeight + 24,
+            child: Row(
+              children: [
+                Container(
+                  width: (mediaQuery.size.width - 40) / 2,
+                  child: PDTextField(
+                    icon: const Icon(Icons.airline_seat_flat_outlined),
+                    // labelText: 'Depth in mcg/mL',
+                    labelText:
+                        '${selectedModel.depth.toString().replaceAll('_', ' ')}',
+                    helperText: '',
+                    interval: 0.5,
+                    fractionDigits: 1,
+                    controller: depthController,
+                    range: [kMinDepth, kMaxDepth],
+                    onPressed: updatePDTextEditingController,
+                    // onChanged: restart,
+                  ),
+                ),
+                SizedBox(
+                  width: 8,
+                  height: 0,
+                ),
+                Container(
+                  width: (mediaQuery.size.width - 40) / 2,
+                  child: PDTextField(
+                    icon: const Icon(Icons.schedule),
+                    // labelText: 'Duration in minutes',
+                    labelText: 'Duration (mins)',
+                    helperText: '',
+                    interval: double.tryParse(durationController.text) != null
+                        ? double.parse(durationController.text) >= 60
+                            ? 10
+                            : 5
+                        : 1,
+                    fractionDigits: 0,
+                    controller: durationController,
+                    range: [kMinDuration, kMaxDuration],
+                    onPressed: updatePDTextEditingController,
+                    // onChanged: restart,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+        ],
       ),
     );
   }
@@ -1139,7 +1203,7 @@ class PDTextField extends StatefulWidget {
     required this.fractionDigits,
     required this.controller,
     required this.onPressed,
-    required this.onChanged,
+    // required this.onChanged,
     required this.range,
     this.timer,
     this.enabled = true,
@@ -1153,7 +1217,8 @@ class PDTextField extends StatefulWidget {
   final TextEditingController controller;
   final range;
   Function onPressed;
-  Function onChanged;
+
+  // Function onChanged;
   Function? onLongPressedStart;
   Function? onLongPressedEnd;
   bool enabled;
@@ -1190,12 +1255,12 @@ class _PDTextFieldState extends State<PDTextField> {
 
     return Stack(alignment: Alignment.topRight, children: [
       TextField(
-        onChanged: (val) {
-          double? current = double.tryParse(val);
-          if (current != null) {
-            widget.onPressed();
-          }
-        },
+        // onChanged: (val) {
+        //   double? current = double.tryParse(val);
+        //   if (current != null) {
+        //     widget.onPressed();
+        //   }
+        // },
         enabled: widget.enabled,
         style: TextStyle(
             color: widget.enabled
