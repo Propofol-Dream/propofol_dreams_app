@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'volume_screen.dart';
 import 'duration_screen.dart';
@@ -25,24 +26,35 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        physics: MediaQuery.of(context).viewInsets.bottom <= 0
-        ? NeverScrollableScrollPhysics()
-        : BouncingScrollPhysics(),
-    child:screens[currenIndex]),
+          physics: MediaQuery
+              .of(context)
+              .viewInsets
+              .bottom <= 0
+              ? NeverScrollableScrollPhysics()
+              : BouncingScrollPhysics(),
+          child: screens[currenIndex]),
       bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           currentIndex: currenIndex,
-          onTap: (index) => setState(() {
-                currenIndex = index;
-              }),
-          items: const [
+          onTap: (index) async {
+            await HapticFeedback.heavyImpact();
+            setState(() {
+              currenIndex = index;
+            });
+          },
+          items:[
             BottomNavigationBarItem(
-                icon: Icon(Icons.science_outlined), label: 'Volume'),
+                icon:  Icon(Icons.science_outlined),
+                label: 'Volume'),
             BottomNavigationBarItem(
-                icon: Icon(Icons.schedule), label: 'Duration'),
-            BottomNavigationBarItem(icon: Icon(Icons.tune), label: 'TCI'),
+                icon:  Icon(Icons.schedule),
+                label: 'Duration'),
             BottomNavigationBarItem(
-                icon: Icon(Icons.settings), label: 'Settings'),
+                icon: Icon(Icons.tune),
+                label: 'TCI'),
+            BottomNavigationBarItem(
+                icon:  Icon(Icons.settings),
+                label: 'Settings'),
           ]),
     );
   }

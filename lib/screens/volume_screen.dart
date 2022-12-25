@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
@@ -105,7 +106,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
           ? settings.pediatricDuration.toString()
           : '';
     }
-    tableController.val = false;
+    tableController.val = settings.isVolumeTableExpanded;
 
     run(initState: true);
     super.initState();
@@ -125,7 +126,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     List durations = times;
 
     int durationPlusInterval =
-        int.parse(durationController.text) + 6 * durationInterval;
+        int.parse(durationController.text) + 2 * durationInterval;
 
     List<String> resultsCol1 = [];
     List<String> resultsCol2 = [];
@@ -147,13 +148,13 @@ class _VolumeScreenState extends State<VolumeScreen> {
       resultsCol2.add('${col2[index].toStringAsFixed(numOfDigits)} mL');
       resultsCol3.add('${col3[index].toStringAsFixed(numOfDigits)} mL');
 
-      if (i == durationPlusInterval - 6 * durationInterval) {
+      if (i == durationPlusInterval - 2 * durationInterval) {
         updateResultLabel(col2[index]);
       }
     }
 
     //if duration is greater than 5 mins, add extra row for the 5th mins
-    if (durationPlusInterval - 6 * durationInterval > kMinDuration) {
+    if (durationPlusInterval - 2 * durationInterval > kMinDuration) {
       int index = durations.indexWhere((element) {
         if ((element as Duration).inSeconds == kMinDuration * 60) {
           return true;
@@ -182,7 +183,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
   void run({initState = false}) {
     final settings = Provider.of<Settings>(context, listen: false);
-
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
@@ -253,48 +253,60 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 var results2;
                 var results3;
 
+                Patient patient = Patient(
+                    weight: weight, age: age, height: height, gender: gender);
+
+                Pump pump = Pump(
+                    time_step: settings.time_step!,
+                    dilution: settings.dilution!,
+                    max_pump_rate: settings.max_pump_rate!);
+
+                Operation operation =
+                    Operation(depth: depth, duration: duration);
+
                 PDSim.Simulation sim = PDSim.Simulation(
-                    model: model,
-                    patient: Patient(
-                        weight: weight,
-                        age: age,
-                        height: height,
-                        gender: gender),
-                    pump: Pump(
-                        time_step: settings.time_step!,
-                        dilution: settings.dilution!,
-                        max_pump_rate: settings.max_pump_rate!));
+                    model: model, patient: patient, pump: pump);
 
                 results1 = sim.estimate(
                     operation: Operation(
                         depth: depth - depthInterval,
-                        duration: duration + 6 * durationInterval));
+                        duration: duration + 2 * durationInterval));
 
                 results2 = sim.estimate(
                     operation: Operation(
                         depth: depth,
-                        duration: duration + 6 * durationInterval));
+                        duration: duration + 2 * durationInterval));
 
                 results3 = sim.estimate(
                     operation: Operation(
                         depth: depth + depthInterval,
-                        duration: duration + 6 * durationInterval));
+                        duration: duration + 2 * durationInterval));
 
                 DateTime finish = DateTime.now();
 
                 Duration calculationDuration = finish.difference(start);
                 // print({'duration': calculationDuration.toString()});
 
+                // print({
+                //   'model': model,
+                //   'age': age,
+                //   'height': height,
+                //   'weight': weight,
+                //   'depth': depth,
+                //   'duration': duration,
+                //   'calcuation time':
+                //       '${calculationDuration.inMilliseconds.toString()} milliseconds'
+                // });
+
                 print({
                   'model': model,
-                  'age': age,
-                  'height': height,
-                  'weight': weight,
-                  'depth': depth,
-                  'duration': duration,
+                  'patient': patient,
+                  'operation': operation,
+                  'pump': pump,
                   'calcuation time':
                       '${calculationDuration.inMilliseconds.toString()} milliseconds'
                 });
+
                 setState(() {
                   updateRowsAndResult(cols: [
                     results1['cumulative_infused_volumes'],
@@ -364,8 +376,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
   }
 
   void updatePDTableController(PDTableController controller) {
+    final settings = Provider.of<Settings>(context, listen: false);
+    settings.isVolumeTableExpanded = !settings.isVolumeTableExpanded;
+
     setState(() {
-      controller.val = !controller.val;
+      controller.val = settings.isVolumeTableExpanded;
     });
   }
 
@@ -461,7 +476,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
   void updatePDTextEditingController() {
     final settings = Provider.of<Settings>(context, listen: false);
     int? age = int.tryParse(ageController.text);
-
     if (age != null) {
       settings.inAdultView = age >= 17 ? true : false;
     }
@@ -533,7 +547,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     GestureDetector(
-                      onTap: () {
+                      onTap: () async {
+                        await HapticFeedback.mediumImpact();
                         if (settings.inAdultView) {
                           ageController.text = settings.pediatricAge != null
                               ? settings.pediatricAge.toString()
@@ -550,22 +565,24 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         avatar: settings.inAdultView
                             ? Icon(Icons.face)
                             : Icon(Icons.child_care_outlined),
-                        label:
-                            settings.inAdultView ? Text('Adult') : Text('Paed'),
+                        label: Text(settings.inAdultView ? 'Adult' : 'Paed'),
                       ),
                     ),
                     SizedBox(
                       width: 8,
                     ),
                     GestureDetector(
-                      onTap: () {
+                      onTap: () async {
+                        await HapticFeedback.mediumImpact();
                         settings.dilution == 10
                             ? settings.dilution = 20
                             : settings.dilution = 10;
                         run();
                       },
                       child: Chip(
-                          avatar: Icon(Icons.opacity),
+                          avatar: settings.dilution == 10
+                              ? Icon(Icons.water_drop_outlined)
+                              : Icon(Icons.water_drop),
                           label: Text('${(dilution / 10).toInt()} %')),
                     )
                   ],
@@ -593,7 +610,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
           ),
           Container(
             child: PDTable(
-              colHeaderIcon: Icon(Icons.airline_seat_flat_outlined),
+              colHeaderIcon: Icon(Icons.psychology_outlined),
               colHeaderLabels: modelIsRunnable
                   ? [
                       (depth! - depthInterval) >= 0
@@ -625,10 +642,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   child: PDAdvancedSegmentedControl(
                     height: UIHeight,
                     options: modelOptions,
-                    segmentedController:
-                        settings.inAdultView
-                            ? adultModelController
-                            : pediatricModelController,
+                    segmentedController: settings.inAdultView
+                        ? adultModelController
+                        : pediatricModelController,
                     onPressed: updatePDSegmentedController,
                     assertValues: {
                       'gender': genderController.val,
@@ -650,7 +666,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
                             ),
                             borderRadius: BorderRadius.all(Radius.circular(5))),
                       ),
-                      onPressed: () => reset(toDefault: true),
+                      onPressed: () async {
+                        await HapticFeedback.mediumImpact();
+                        reset(toDefault: true);
+                      },
                       child: Icon(Icons.refresh),
                     )),
               ],
@@ -666,7 +685,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Container(
                   width: (mediaQuery.size.width - 40) / 2,
                   child: PDSwitchField(
-                    icon: const Icon(Icons.wc),
+                    prefixIcon: Icons.wc,
                     controller: genderController,
                     labelTexts: {
                       true: Gender.Female.toString(),
@@ -685,7 +704,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Container(
                   width: (mediaQuery.size.width - 40) / 2,
                   child: PDTextField(
-                    icon: const Icon(Icons.favorite_border),
+                    prefixIcon: Icons.calendar_month,
                     labelText: 'Age',
                     helperText: '',
                     interval: 1.0,
@@ -713,7 +732,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Container(
                   width: (mediaQuery.size.width - 40) / 2,
                   child: PDTextField(
-                    icon: Icon(Icons.straighten),
+                    prefixIcon: Icons.straighten,
                     labelText: 'Height (cm)',
                     helperText: '',
                     interval: 1,
@@ -732,7 +751,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Container(
                   width: (mediaQuery.size.width - 40) / 2,
                   child: PDTextField(
-                    icon: const Icon(Icons.monitor_weight_outlined),
+                    prefixIcon: Icons.monitor_weight_outlined,
                     labelText: 'Weight (kg)',
                     helperText: '',
                     interval: 1.0,
@@ -759,7 +778,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Container(
                   width: (mediaQuery.size.width - 40) / 2,
                   child: PDTextField(
-                    icon: const Icon(Icons.airline_seat_flat_outlined),
+                    prefixIcon: Icons.psychology_outlined,
                     // labelText: 'Depth in mcg/mL',
                     labelText:
                         '${selectedModel.depth.toString().replaceAll('_', ' ')}',
@@ -779,7 +798,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Container(
                   width: (mediaQuery.size.width - 40) / 2,
                   child: PDTextField(
-                    icon: const Icon(Icons.schedule),
+                    prefixIcon: Icons.schedule,
                     // labelText: 'Duration in minutes',
                     labelText: 'Duration (mins)',
                     helperText: '',
@@ -1117,7 +1136,7 @@ class _PDAdvancedSegmentedControlState
           decoration: InputDecoration(
             errorText: errorText,
             errorStyle: isError
-                ? TextStyle(color: Theme.of(context).errorColor)
+                ? TextStyle(color: Theme.of(context).colorScheme.error)
                 : TextStyle(color: Theme.of(context).colorScheme.primary),
             border: const OutlineInputBorder(
                 borderSide: BorderSide(width: 0, style: BorderStyle.none)),
@@ -1137,7 +1156,8 @@ class _PDAdvancedSegmentedControlState
                         age: widget.assertValues['age'],
                         height: widget.assertValues['height'],
                         weight: widget.assertValues['weight'])
-                    ? () {
+                    ? () async {
+                        await HapticFeedback.mediumImpact();
                         widget.segmentedController.selection =
                             widget.options[buildIndex];
                         widget.onPressed(widget.options[buildIndex]);
@@ -1149,12 +1169,12 @@ class _PDAdvancedSegmentedControlState
                           widget.options[buildIndex]
                       ? Theme.of(context).colorScheme.onPrimary
                       : isError
-                          ? Theme.of(context).errorColor
+                          ? Theme.of(context).colorScheme.error
                           : Theme.of(context).colorScheme.primary,
                   backgroundColor: widget.segmentedController.selection ==
                           widget.options[buildIndex]
                       ? isError
-                          ? Theme.of(context).errorColor
+                          ? Theme.of(context).colorScheme.error
                           : Theme.of(context).colorScheme.primary
                       : Theme.of(context).colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
@@ -1165,10 +1185,10 @@ class _PDAdvancedSegmentedControlState
                                 height: widget.assertValues['height'],
                                 weight: widget.assertValues['weight'])
                             ? isError
-                                ? Theme.of(context).errorColor
+                                ? Theme.of(context).colorScheme.error
                                 : Theme.of(context).colorScheme.primary
                             : isError
-                                ? Theme.of(context).errorColor
+                                ? Theme.of(context).colorScheme.error
                                 : Theme.of(context).disabledColor),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
@@ -1182,7 +1202,21 @@ class _PDAdvancedSegmentedControlState
                 ),
                 child: Text(
                   widget.options[buildIndex].toString(),
-                  style: TextStyle(fontSize: screenRatio >= 0.455 ? 14 : 12),
+                  style: TextStyle(
+                      fontSize: screenRatio >= 0.455 ? 14 : 12,
+                      color: widget.options[buildIndex].isEnable(
+                              age: widget.assertValues['age'],
+                              height: widget.assertValues['height'],
+                              weight: widget.assertValues['weight'])
+                          ? isError
+                              ? Theme.of(context).colorScheme.error
+                              : widget.segmentedController.selection ==
+                                      widget.options[buildIndex]
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.primary
+                          : isError
+                              ? Theme.of(context).colorScheme.error
+                              : Theme.of(context).disabledColor),
                 ),
               ),
             );
@@ -1196,7 +1230,7 @@ class _PDAdvancedSegmentedControlState
 class PDTextField extends StatefulWidget {
   PDTextField({
     Key? key,
-    required this.icon,
+    this.prefixIcon,
     required this.labelText,
     required this.helperText,
     required this.interval,
@@ -1210,7 +1244,7 @@ class PDTextField extends StatefulWidget {
   }) : super(key: key);
 
   final String labelText;
-  final Icon icon;
+  final IconData? prefixIcon;
   final String helperText;
   final double interval;
   final int fractionDigits;
@@ -1241,6 +1275,8 @@ class _PDTextFieldState extends State<PDTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<Settings>();
+
     //this controls size of the plus & minus buttons
     double suffixIconConstraintsWidth = 84;
     double suffixIconConstraintsHeight = 59;
@@ -1255,12 +1291,6 @@ class _PDTextFieldState extends State<PDTextField> {
 
     return Stack(alignment: Alignment.topRight, children: [
       TextField(
-        // onChanged: (val) {
-        //   double? current = double.tryParse(val);
-        //   if (current != null) {
-        //     widget.onPressed();
-        //   }
-        // },
         enabled: widget.enabled,
         style: TextStyle(
             color: widget.enabled
@@ -1268,10 +1298,7 @@ class _PDTextFieldState extends State<PDTextField> {
                 : Theme.of(context).disabledColor),
         scrollPadding: EdgeInsets.all(48.0),
         onSubmitted: (val) {
-          // double? current = double.tryParse(val);
-          // if (current != null) {
           widget.onPressed();
-          // }
         },
         controller: widget.controller,
         keyboardType: TextInputType.numberWithOptions(
@@ -1279,7 +1306,14 @@ class _PDTextFieldState extends State<PDTextField> {
         // keyboardType: TextInputType.numberWithOptions(
         //     signed: widget.fractionDigits > 0 ? true : false,
         //     decimal: widget.fractionDigits > 0 ? true : false),
+        keyboardAppearance:
+            settings.isDarkTheme ? Brightness.dark : Brightness.light,
+
         decoration: InputDecoration(
+          filled: widget.enabled ? true : false,
+          fillColor: (isWithinRange && isNumeric)
+              ? Theme.of(context).colorScheme.onPrimary
+              : Theme.of(context).colorScheme.onError,
           errorText: widget.controller.text.isEmpty
               ? 'Please enter a value'
               : isNumeric
@@ -1287,11 +1321,26 @@ class _PDTextFieldState extends State<PDTextField> {
                       ? null
                       : 'min: ${widget.range[0]} and max: ${widget.range[1]}'
                   : 'Please enter a value',
-          prefixIcon: widget.icon,
+          errorStyle: TextStyle(color: Theme.of(context).colorScheme.error),
+          prefixIcon: Icon(
+            widget.prefixIcon,
+            color: widget.enabled
+                ? (isWithinRange && isNumeric)
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.error
+                : Theme.of(context).disabledColor,
+          ),
           prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
           helperText: widget.helperText,
           labelText: widget.labelText,
-          border: const OutlineInputBorder(),
+          border: OutlineInputBorder(),
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: Theme.of(context).colorScheme.primary),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+          ),
         ),
       ),
       widget.controller.text.isNotEmpty
@@ -1317,32 +1366,38 @@ class _PDTextFieldState extends State<PDTextField> {
                       ),
                     ),
                     onTap: widget.enabled
-                        ? () {
+                        ? () async {
                             double? prev =
                                 double.tryParse(widget.controller.text);
                             if (prev != null && prev >= widget.range[0]) {
                               prev -= widget.interval;
-                              prev >= widget.range[0]
-                                  ? widget.controller.text = prev
-                                      .toStringAsFixed(widget.fractionDigits)
-                                  : widget.controller.text = widget.range[0]
-                                      .toStringAsFixed(widget.fractionDigits);
-                              widget.onPressed();
+                              if (prev >= widget.range[0]) {
+                                widget.controller.text =
+                                    prev.toStringAsFixed(widget.fractionDigits);
+                                await HapticFeedback.mediumImpact();
+                              } else {
+                                widget.controller.text = widget.range[0]
+                                    .toStringAsFixed(widget.fractionDigits);
+                              }
                             }
                           }
                         : null,
                     onLongPress: widget.enabled
                         ? () {
-                            widget.timer = Timer.periodic(widget.delay, (t) {
+                            widget.timer =
+                                Timer.periodic(widget.delay, (t) async {
                               double? prev =
                                   double.tryParse(widget.controller.text);
                               if (prev != null && prev >= widget.range[0]) {
                                 prev -= widget.interval;
-                                prev >= widget.range[0]
-                                    ? widget.controller.text = prev
-                                        .toStringAsFixed(widget.fractionDigits)
-                                    : widget.controller.text = widget.range[0]
-                                        .toStringAsFixed(widget.fractionDigits);
+                                if (prev >= widget.range[0]) {
+                                  widget.controller.text = prev
+                                      .toStringAsFixed(widget.fractionDigits);
+                                  await HapticFeedback.mediumImpact();
+                                } else {
+                                  widget.controller.text = widget.range[0]
+                                      .toStringAsFixed(widget.fractionDigits);
+                                }
                               }
                             });
                           }
@@ -1370,32 +1425,38 @@ class _PDTextFieldState extends State<PDTextField> {
                       ),
                     ),
                     onTap: widget.enabled
-                        ? () {
+                        ? () async {
                             double? prev =
                                 double.tryParse(widget.controller.text);
                             if (prev != null && prev <= widget.range[1]) {
                               prev += widget.interval;
-                              prev <= widget.range[1]
-                                  ? widget.controller.text = prev
-                                      .toStringAsFixed(widget.fractionDigits)
-                                  : widget.controller.text = widget.range[1]
-                                      .toStringAsFixed(widget.fractionDigits);
-                              widget.onPressed();
+                              if (prev <= widget.range[1]) {
+                                widget.controller.text =
+                                    prev.toStringAsFixed(widget.fractionDigits);
+                                await HapticFeedback.mediumImpact();
+                              } else {
+                                widget.controller.text = widget.range[1]
+                                    .toStringAsFixed(widget.fractionDigits);
+                              }
                             }
                           }
                         : null,
                     onLongPress: widget.enabled
                         ? () {
-                            widget.timer = Timer.periodic(widget.delay, (t) {
+                            widget.timer =
+                                Timer.periodic(widget.delay, (t) async {
                               double? prev =
                                   double.tryParse(widget.controller.text);
                               if (prev != null && prev <= widget.range[1]) {
                                 prev += widget.interval;
-                                prev <= widget.range[1]
-                                    ? widget.controller.text = prev
-                                        .toStringAsFixed(widget.fractionDigits)
-                                    : widget.controller.text = widget.range[1]
-                                        .toStringAsFixed(widget.fractionDigits);
+                                if (prev <= widget.range[1]) {
+                                  widget.controller.text = prev
+                                      .toStringAsFixed(widget.fractionDigits);
+                                  await HapticFeedback.mediumImpact();
+                                } else {
+                                  widget.controller.text = widget.range[1]
+                                      .toStringAsFixed(widget.fractionDigits);
+                                }
                               }
                             });
                           }
@@ -1436,7 +1497,7 @@ class PDSwitchController extends ChangeNotifier {
 class PDSwitchField extends StatefulWidget {
   PDSwitchField({
     Key? key,
-    required this.icon,
+    required this.prefixIcon,
     required this.labelTexts,
     required this.helperText,
     required this.controller,
@@ -1446,7 +1507,7 @@ class PDSwitchField extends StatefulWidget {
   }) : super(key: key);
 
   final Map<bool, String> labelTexts;
-  final Icon icon;
+  final IconData prefixIcon;
   final String helperText;
   final PDSwitchController controller;
   final Function onChanged;
@@ -1482,10 +1543,21 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
                   ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).disabledColor),
           decoration: InputDecoration(
-            prefixIcon: widget.icon,
+            filled: widget.enabled ? true : false,
+            fillColor: Theme.of(context).colorScheme.onPrimary,
+            prefixIcon: Icon(
+              widget.prefixIcon,
+              color: widget.enabled
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).disabledColor,
+            ),
             prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
             helperText: widget.helperText,
             border: const OutlineInputBorder(),
+            enabledBorder: OutlineInputBorder(
+              borderSide:
+                  BorderSide(color: Theme.of(context).colorScheme.primary),
+            ),
           ),
         ),
         Container(
@@ -1503,7 +1575,8 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
                 Theme.of(context).colorScheme.primary.withOpacity(0.1),
             value: widget.controller.val,
             onChanged: widget.enabled
-                ? (val) {
+                ? (val) async {
+                    await HapticFeedback.mediumImpact();
                     setState(() {
                       widget.controller.val = val;
                     });

@@ -11,6 +11,10 @@ class Patient with ChangeNotifier{
   Patient(
       {required this.weight, required this.height, required this.age, required this.gender});
 
+  String toString(){
+    return '{gender: $gender, age: $age, height: $height, weight: $weight}';
+  }
+
   double get lbm {
     if (gender == Gender.Female) {
       return 1.07 * weight - 148 * pow((weight / height), 2);

@@ -16,15 +16,24 @@ class PumpScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: Text(
-                'We are building this feature for you.\n Click to learn more',style: TextStyle(fontSize: 16),textAlign: TextAlign.center,),
-          ),
-          SizedBox(height: 16,),
-          ElevatedButton(onPressed: _launchURL, child: Text('Learn More'))
-        ]);
+    return
+      Container(
+        height: MediaQuery.of(context).size.height-90,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Center(
+              child: Text(
+                'We are building TCI for you.\n Be the first one to know',
+                style: TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SizedBox(
+              height: 16,
+            ),
+            ElevatedButton(onPressed: _launchURL, child: Text('Learn More'))
+          ]),
+      );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/operation.dart';
@@ -6,6 +7,55 @@ import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/gender.dart';
 
 class Settings with ChangeNotifier {
+  int _themeSelection = 0;
+
+  int get themeSelection {
+    return _themeSelection;
+  }
+
+  void set themeSelection(int i) {
+    _themeSelection = i;
+
+    switch (_themeSelection) {
+      case 0:
+        {
+          isDarkTheme = false;
+        }
+        break;
+
+      case 1:
+        {
+          isDarkTheme = true;
+        }
+        break;
+
+      case 2:
+        {
+          var brightness = SchedulerBinding.instance.window.platformBrightness;
+          isDarkTheme = brightness == Brightness.dark ? true : false;
+        }
+        break;
+
+      default:
+        {
+          isDarkTheme = true;
+        }
+        break;
+    }
+    notifyListeners();
+  }
+
+  bool _isDarkTheme = false;
+
+  bool get isDarkTheme {
+    return _isDarkTheme;
+  }
+
+  void set isDarkTheme(bool b) {
+    _isDarkTheme = b;
+    notifyListeners();
+  }
+
   int? _dilution = 10;
 
   int? get dilution {
@@ -56,60 +106,59 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  Gender? get adultGender{
+  Gender? get adultGender {
     return _adultGender;
   }
 
-  void set adultGender (Gender? g){
+  void set adultGender(Gender? g) {
     _adultGender = g;
     notifyListeners();
   }
 
-  int? get adultAge{
+  int? get adultAge {
     return _adultAge;
   }
 
-  void set adultAge(int? i){
+  void set adultAge(int? i) {
     _adultAge = i;
     notifyListeners();
   }
 
-  int? get adultHeight{
+  int? get adultHeight {
     return _adultHeight;
   }
 
-  void set adultHeight(int? i){
+  void set adultHeight(int? i) {
     _adultHeight = i;
     notifyListeners();
   }
 
-  int? get adultWeight{
+  int? get adultWeight {
     return _adultWeight;
   }
 
-  void set adultWeight(int? i){
+  void set adultWeight(int? i) {
     _adultWeight = i;
     notifyListeners();
   }
 
-  double? get adultDepth{
+  double? get adultDepth {
     return _adultDepth;
   }
 
-  void set adultDepth(double? d){
+  void set adultDepth(double? d) {
     _adultDepth = d;
     notifyListeners();
   }
 
-  int? get adultDuration{
+  int? get adultDuration {
     return _adultDuration;
   }
 
-  void set adultDuration(int? i){
+  void set adultDuration(int? i) {
     _adultDuration = i;
     notifyListeners();
   }
-
 
   Model _pediatricModel = Model.Paedfusor;
   Gender? _pediatricGender = Gender.Female;
@@ -128,90 +177,99 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  Gender? get pediatricGender{
+  Gender? get pediatricGender {
     return _pediatricGender;
   }
 
-  void set pediatricGender (Gender? g){
+  void set pediatricGender(Gender? g) {
     _pediatricGender = g;
     notifyListeners();
   }
 
-  int? get pediatricAge{
+  int? get pediatricAge {
     return _pediatricAge;
   }
 
-  void set pediatricAge(int? i){
+  void set pediatricAge(int? i) {
     _pediatricAge = i;
     notifyListeners();
   }
 
-  int? get pediatricHeight{
+  int? get pediatricHeight {
     return _pediatricHeight;
   }
 
-  void set pediatricHeight(int? i){
+  void set pediatricHeight(int? i) {
     _pediatricHeight = i;
     notifyListeners();
   }
 
-  int? get pediatricWeight{
+  int? get pediatricWeight {
     return _pediatricWeight;
   }
 
-  void set pediatricWeight(int? i){
+  void set pediatricWeight(int? i) {
     _pediatricWeight = i;
     notifyListeners();
   }
 
-  double? get pediatricDepth{
+  double? get pediatricDepth {
     return _pediatricDepth;
   }
 
-  void set pediatricDepth(double? d){
+  void set pediatricDepth(double? d) {
     _pediatricDepth = d;
     notifyListeners();
   }
 
-  int? get pediatricDuration{
+  int? get pediatricDuration {
     return _pediatricDuration;
   }
 
-  void set pediatricDuration(int? i){
+  void set pediatricDuration(int? i) {
     _pediatricDuration = i;
     notifyListeners();
   }
 
   bool _inAdultView = true;
 
-  bool get inAdultView{
+  bool get inAdultView {
     return _inAdultView;
   }
 
-  void set inAdultView(bool b){
+  void set inAdultView(bool b) {
     _inAdultView = b;
     notifyListeners();
   }
 
+  bool _isVolumeTableExpanded = false;
 
+  bool get isVolumeTableExpanded {
+    return _isVolumeTableExpanded;
+  }
 
-  // Patient _adult =
-  //     Patient(weight: 70, height: 170, age: 40, gender: Gender.Female);
-  // Patient _child =
-  //     Patient(weight: 26, height: 130, age: 8, gender: Gender.Female);
-  // Operation _adultOperation = Operation(depth: 3.0, duration: 60);
-  // Operation _childOperation = Operation(depth: 3.0, duration: 60);
+  void set isVolumeTableExpanded(bool b) {
+    _isVolumeTableExpanded = b;
+    notifyListeners();
+  }
 
-  // Pump _pump = Pump(time_step: 1, dilution: 10, max_pump_rate: 750);
-  //
-  // Pump get pump {
-  //   return _pump;
-  // }
-  //
-  // void set pump(Pump p) {
-  //   _pump = p;
-  //   notifyListeners();
-  // }
+// Patient _adult =
+//     Patient(weight: 70, height: 170, age: 40, gender: Gender.Female);
+// Patient _child =
+//     Patient(weight: 26, height: 130, age: 8, gender: Gender.Female);
+// Operation _adultOperation = Operation(depth: 3.0, duration: 60);
+// Operation _childOperation = Operation(depth: 3.0, duration: 60);
+
+// Pump _pump = Pump(time_step: 1, dilution: 10, max_pump_rate: 750);
+//
+// Pump get pump {
+//   return _pump;
+// }
+//
+// void set pump(Pump p) {
+//   _pump = p;
+//   notifyListeners();
+// }
 
 // Patient get adult {
 //   return _adult;

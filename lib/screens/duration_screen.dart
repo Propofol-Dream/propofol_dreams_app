@@ -5,8 +5,11 @@ class DurationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child:Text('Duration'),
+    return Container(
+      height: MediaQuery.of(context).size.height-90,
+      child: Center(
+        child:Text('Duration'),
+      ),
     );
   }
 }
