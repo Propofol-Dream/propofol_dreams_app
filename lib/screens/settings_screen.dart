@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
 
-import 'volume_screen.dart';
+import 'package:propofol_dreams_app/controllers/PDTextField.dart';
+import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
+import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -23,7 +24,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     final settings = Provider.of<Settings>(context, listen: false);
     pumpController.text = settings.max_pump_rate.toString();
-    themeController.val = settings.themeSelection;
+    themeController.val = settings.themeModeSelection == ThemeMode.light
+        ? 0
+        : settings.themeModeSelection == ThemeMode.dark
+            ? 1
+            : 2;
     super.initState();
   }
 
@@ -37,7 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     var mediaQuery = MediaQuery.of(context);
-    var screenWidth = mediaQuery.size.width;
+    // var screenWidth = mediaQuery.size.width;
 
     final double UIHeight =
         mediaQuery.size.width / mediaQuery.size.height >= 0.455 ? 56 : 48;
@@ -175,13 +180,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   segmentedController: themeController,
                   onPressed: [
                     () {
-                      settings.themeSelection=0;
+                      settings.themeModeSelection = ThemeMode.light;
                     },
                     () {
-                      settings.themeSelection=1;
+                      settings.themeModeSelection = ThemeMode.dark;
                     },
                     () {
-                      settings.themeSelection=2;
+                      settings.themeModeSelection = ThemeMode.system;
                     }
                   ],
                 ),
@@ -191,109 +196,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       )
     ]);
-  }
-}
-
-class PDSegmentedController extends ChangeNotifier {
-  PDSegmentedController();
-
-  int _val = 0;
-
-  int get val {
-    return _val;
-  }
-
-  void set val(int v) {
-    _val = v;
-    notifyListeners();
-  }
-}
-
-class PDSegmentedControl extends StatefulWidget {
-  PDSegmentedControl({
-    Key? key,
-    required this.labels,
-    required this.segmentedController,
-    required this.onPressed,
-    this.height,
-    this.fontSize,
-  }) : super(key: key);
-
-  final List<String> labels;
-  final PDSegmentedController segmentedController;
-  final List<Function> onPressed;
-  double? height;
-  double? fontSize;
-
-  @override
-  State<PDSegmentedControl> createState() => _PDSegmentedControlState();
-}
-
-class _PDSegmentedControlState extends State<PDSegmentedControl> {
-  @override
-  // void dispose() {
-  //   widget.segmentedController.dispose();
-  //   super.dispose();
-  // }
-
-  @override
-  Widget build(BuildContext context) {
-    var mediaQuery = MediaQuery.of(context);
-    var screenRatio = mediaQuery.size.width / mediaQuery.size.height;
-
-    return Container(
-      height: widget.height ?? 36,
-      width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
-      child: ListView.builder(
-        // shrinkWrap: true,
-        scrollDirection: Axis.horizontal,
-        itemCount: widget.labels.length,
-        itemBuilder: (buildContext, buildIndex) {
-          return SizedBox(
-            width: (mediaQuery.size.width - 2 * horizontalSidesPaddingPixel) /
-                widget.labels.length,
-            child: ElevatedButton(
-              onPressed: () async{
-                await HapticFeedback.mediumImpact();
-                setState(() {
-                  widget.segmentedController.val = buildIndex;
-                });
-                widget.onPressed[buildIndex]();
-              },
-              style: ElevatedButton.styleFrom(
-                elevation: 0,
-                foregroundColor: widget.segmentedController.val == buildIndex
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onPrimary,
-                backgroundColor: widget.segmentedController.val == buildIndex
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(
-                      strokeAlign: StrokeAlign.outside,
-                      color: Theme.of(context).colorScheme.primary),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
-                    bottomLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
-                    topRight: Radius.circular(
-                        buildIndex == widget.labels.length - 1 ? 5 : 0),
-                    bottomRight: Radius.circular(
-                        buildIndex == widget.labels.length - 1 ? 5 : 0),
-                  ),
-                ),
-              ),
-              child: Text(
-                widget.labels[buildIndex],
-                style: TextStyle(
-                    color: widget.segmentedController.val == buildIndex
-                        ? Theme.of(context).colorScheme.onPrimary
-                        : Theme.of(context).colorScheme.primary,
-                    fontSize: widget.fontSize ?? 14),
-              ),
-            ),
-          );
-        },
-      ),
-    );
   }
 }

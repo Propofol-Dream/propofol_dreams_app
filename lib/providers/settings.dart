@@ -1,35 +1,36 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+
+import 'package:propofol_dreams_app/models/InfusionUnit.dart';
 import 'package:propofol_dreams_app/models/model.dart';
-import 'package:propofol_dreams_app/models/patient.dart';
-import 'package:propofol_dreams_app/models/operation.dart';
-import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/gender.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Settings with ChangeNotifier {
-  int _themeSelection = 0;
+  ThemeMode _themeModeSelection = ThemeMode.light;
 
-  int get themeSelection {
-    return _themeSelection;
+  ThemeMode get themeModeSelection {
+    return _themeModeSelection;
   }
 
-  void set themeSelection(int i) {
-    _themeSelection = i;
+  void set themeModeSelection(ThemeMode tm) {
+    _themeModeSelection = tm;
 
-    switch (_themeSelection) {
-      case 0:
+    switch (_themeModeSelection) {
+      case ThemeMode.light:
         {
           isDarkTheme = false;
         }
         break;
 
-      case 1:
+      case ThemeMode.dark:
         {
           isDarkTheme = true;
         }
         break;
 
-      case 2:
+      case ThemeMode.system:
         {
           var brightness = SchedulerBinding.instance.window.platformBrightness;
           isDarkTheme = brightness == Brightness.dark ? true : false;
@@ -38,7 +39,7 @@ class Settings with ChangeNotifier {
 
       default:
         {
-          isDarkTheme = true;
+          isDarkTheme = false;
         }
         break;
     }
@@ -52,8 +53,34 @@ class Settings with ChangeNotifier {
   }
 
   void set isDarkTheme(bool b) {
+    //the if statement is to prevent rebuilt of any widget;
+    // if (_isDarkTheme != b) {
     _isDarkTheme = b;
     notifyListeners();
+    // }
+  }
+
+  Future<void> load() async {
+    print('Setting load');
+    var pref = await SharedPreferences.getInstance();
+    // print('pref: ${pref.getBool("isDarkTheme")}');
+    // _isDarkTheme = pref.getBool("isDarkTheme") ?? false;
+    // print('settings.isDarkTheme: ${pref.getBool("isDarkTheme")}');
+    print('pref: ${pref.getInt('adultWeight')}');
+    print('settings.adultWeight: ${adultWeight}');
+    _adultWeight = pref.getInt('adultWeight') ?? 70;
+    print('settings.adultWeight: ${adultWeight}');
+    notifyListeners();
+  }
+
+  Future<void> save() async {
+    print('Setting save');
+    var pref = await SharedPreferences.getInstance();
+    // print('settings.isDarkTheme: ${pref.getBool("isDarkTheme")}');
+    // pref.setBool('isDarkTheme', _isDarkTheme);
+    // print('pref: ${pref.getBool("isDarkTheme")}');
+    pref.setInt('adultWeight', _adultWeight!);
+
   }
 
   int? _dilution = 10;
@@ -253,58 +280,36 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-// Patient _adult =
-//     Patient(weight: 70, height: 170, age: 40, gender: Gender.Female);
-// Patient _child =
-//     Patient(weight: 26, height: 130, age: 8, gender: Gender.Female);
-// Operation _adultOperation = Operation(depth: 3.0, duration: 60);
-// Operation _childOperation = Operation(depth: 3.0, duration: 60);
+  double? _infusionRate = 10;
 
-// Pump _pump = Pump(time_step: 1, dilution: 10, max_pump_rate: 750);
-//
-// Pump get pump {
-//   return _pump;
-// }
-//
-// void set pump(Pump p) {
-//   _pump = p;
-//   notifyListeners();
-// }
+  double? get infusionRate {
+    return _infusionRate;
+  }
 
-// Patient get adult {
-//   return _adult;
-// }
-//
-// void set adult(Patient p) {
-//   _adult = p;
-//   notifyListeners();
-// }
-//
-// Patient get child {
-//   return _child;
-// }
-//
-// void set child(Patient p) {
-//   _child = p;
-//   notifyListeners();
-// }
-//
-// Operation get adultOperation {
-//   return _adultOperation;
-// }
-//
-// void set adultOperation(Operation p) {
-//   _adultOperation = p;
-//   notifyListeners();
-// }
-//
-// Operation get childOperation {
-//   return _childOperation;
-// }
-//
-// void set childOperation(Operation p) {
-//   _childOperation = p;
-//   notifyListeners();
-// }
+  void set infusionRate(double? i) {
+    _infusionRate = i;
+    notifyListeners();
+  }
 
+  int? _weight = 70;
+
+  int? get weight {
+    return _weight;
+  }
+
+  void set weight(int? i) {
+    _weight = i;
+    notifyListeners();
+  }
+
+  InfusionUnit _infusinUnit = InfusionUnit.mg_kg_h;
+
+  InfusionUnit get infusionUnit {
+    return _infusinUnit;
+  }
+
+  void set infusionUnit(InfusionUnit iu) {
+    _infusinUnit = iu;
+    notifyListeners();
+  }
 }

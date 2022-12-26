@@ -320,7 +320,7 @@ class Simulation {
       double? pump_inf;
       double? A1;
 
-      if (model.depth == Target.Effect_Site) {
+      if (model.target == Target.Effect_Site) {
         A1 = step == 0
             ? 0
             : (pump_infs.last / 60) * pump.time_step / 60 + A1_change + A1s.last;

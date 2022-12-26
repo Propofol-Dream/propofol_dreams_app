@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants.dart';
 import 'screens/home_screen.dart';
@@ -21,7 +23,76 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        print("app in resumed");
+        Provider.of<Settings>(context, listen: false).load();
+        break;
+      case AppLifecycleState.inactive:
+        print("app in inactive");
+        break;
+      case AppLifecycleState.paused:
+        print("app in paused");
+        Provider.of<Settings>(context, listen: false).save();
+        break;
+      case AppLifecycleState.detached:
+        print("app in detached");
+        break;
+    }
+  }
+
+  @override
+  void initState() {
+    // Provider.of<Settings>(context, listen: false).load().then(
+    //         (value) {
+    //           setState(() {
+    //             _name = prefValue.getString('name')?? "";
+    //             _controller = new TextEditingController(text: _name);
+    //           })
+    //         });
+
+
+
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+
+    var settings = context.read<Settings>();
+    // print('settings: ${settings.isDarkTheme}');
+
+    // loadSharedPref();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  didChangeDependencies() {
+    // loadSharedPref();
+  }
+
+  // void loadSharedPref() async {
+  //   print('loadSharedPref');
+  //   var setting = context.watch<Settings>();
+  //   var pref = await SharedPreferences.getInstance();
+  //   print('pref: ${pref.getBool('isDarkTheme')}');
+  //   setting.isDarkTheme = pref.getBool('isDarkTheme') ?? false;
+  //   print('setting: ${setting.isDarkTheme}');
+  // }
+
+  // void saveSharedPref() async {
+  //   var setting = Provider.of<Settings>(context, listen: false);
+  //   var pref = await SharedPreferences.getInstance();
+  //   print('pref: ${pref.getBool('isDarkTheme')}');
+  //   pref.setBool('isDarkTheme', setting.isDarkTheme);
+  //   print('setting: ${setting.isDarkTheme}');
+  // }
+
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<Settings>();
@@ -36,9 +107,8 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       darkTheme: ThemeData.dark().copyWith(
-          chipTheme: ChipThemeData(
-          labelStyle: TextStyle(color: Color(0xffE0E3DF))
-        ),
+        chipTheme:
+            ChipThemeData(labelStyle: TextStyle(color: Color(0xffE0E3DF))),
         colorScheme: ColorScheme.fromSwatch().copyWith(
           primary: Color(0xff66DBB2),
           onPrimary: Color(0xff003828),
@@ -51,11 +121,7 @@ class _MyAppState extends State<MyApp> {
           surface: Color(0xff191C1B),
         ),
       ),
-      themeMode: settings.themeSelection == 0
-          ? ThemeMode.light
-          : settings.themeSelection == 1
-              ? ThemeMode.dark
-              : ThemeMode.system,
+      themeMode: settings.themeModeSelection,
       home: const HomeScreen(),
     );
   }

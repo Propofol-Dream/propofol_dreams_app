@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-const numOfDigits = 1;
+const numOfDigits = 0;
 
 const horizontalSidesPaddingPixel = 16.0;
 
@@ -58,8 +58,6 @@ const MaterialColor PDRed = MaterialColor(0xFFBA1B1B, colorPDRed);
 
 
 // var buttonHapticFeedback =  HapticFeedback.mediumImpact();
-
-
 
 // const int kDilution = 10; // mg/ml
 // const int kMaxPumpRate = 750; // ml/hr, as requested on 13 Dec 2022

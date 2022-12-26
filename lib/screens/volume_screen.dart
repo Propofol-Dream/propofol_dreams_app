@@ -11,8 +11,11 @@ import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/gender.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants.dart';
+
+import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 
 class VolumeScreen extends StatefulWidget {
   const VolumeScreen({Key? key}) : super(key: key);
@@ -72,7 +75,16 @@ class _VolumeScreenState extends State<VolumeScreen> {
   @override
   void initState() {
     // print('initState');
-    final settings = Provider.of<Settings>(context, listen: false);
+    final settings = context.read<Settings>();
+    // print(settings.adultWeight);
+    //
+    // Provider.of<Settings>(context, listen: false).load().then(
+    //         (value) {
+    //       setState(() {
+    //         weightController.text = settings.adultWeight.toString();
+    //       });
+    //     });
+
 
     if (settings.inAdultView) {
       genderController.val =
@@ -181,8 +193,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
     PDTableRows = resultRows;
   }
 
-  void run({initState = false}) {
+  Future<void> run({initState = false}) async {
     final settings = Provider.of<Settings>(context, listen: false);
+
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
@@ -495,6 +508,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     final double UIHeight =
         mediaQuery.size.width / mediaQuery.size.height >= 0.455 ? 56 : 48;
+    final double UIWidth =
+        (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
 
     final settings = context.watch<Settings>();
 
@@ -527,6 +542,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
     final bool genderSwitchControlEnabled = settings.inAdultView
         ? adultModelController.selection != Model.Marsh
         : pediatricModelController.selection == Model.Eleveld;
+
+    final ageTextFieldEnabled = !(settings.inAdultView &&
+        adultModelController.selection == Model.Marsh);
 
     updateModelOptions(settings.inAdultView);
 
@@ -591,8 +609,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                        onPressed: () =>
-                            updatePDTableController(tableController),
+                        onPressed: () async {
+                          await HapticFeedback.mediumImpact();
+                          updatePDTableController(tableController);
+                        },
                         icon: tableController.val
                             ? Icon(Icons.expand_more)
                             : Icon(Icons.expand_less)),
@@ -683,7 +703,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
             child: Row(
               children: [
                 Container(
-                  width: (mediaQuery.size.width - 40) / 2,
+                  width: UIWidth,
                   child: PDSwitchField(
                     prefixIcon: Icons.wc,
                     controller: genderController,
@@ -702,7 +722,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   height: 0,
                 ),
                 Container(
-                  width: (mediaQuery.size.width - 40) / 2,
+                  width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.calendar_month,
                     labelText: 'Age',
@@ -716,6 +736,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                             : [1, 16]
                         : [1, 16],
                     onPressed: updatePDTextEditingController,
+                    enabled: ageTextFieldEnabled,
                     // onChanged: restart,
                   ),
                 ),
@@ -730,7 +751,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
             child: Row(
               children: [
                 Container(
-                  width: (mediaQuery.size.width - 40) / 2,
+                  width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.straighten,
                     labelText: 'Height (cm)',
@@ -749,7 +770,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   height: 0,
                 ),
                 Container(
-                  width: (mediaQuery.size.width - 40) / 2,
+                  width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.monitor_weight_outlined,
                     labelText: 'Weight (kg)',
@@ -776,12 +797,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
             child: Row(
               children: [
                 Container(
-                  width: (mediaQuery.size.width - 40) / 2,
+                  width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.psychology_outlined,
                     // labelText: 'Depth in mcg/mL',
-                    labelText:
-                        '${selectedModel.depth.toString().replaceAll('_', ' ')}',
+                    labelText: '${selectedModel.target.toString()}',
                     helperText: '',
                     interval: 0.5,
                     fractionDigits: 1,
@@ -796,7 +816,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   height: 0,
                 ),
                 Container(
-                  width: (mediaQuery.size.width - 40) / 2,
+                  width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.schedule,
                     // labelText: 'Duration in minutes',
@@ -842,7 +862,7 @@ class PDTableController extends ChangeNotifier {
 }
 
 class PDTable extends StatefulWidget {
-  const PDTable(
+  PDTable(
       {Key? key,
       required this.tableController,
       // this.scrollController,
@@ -851,7 +871,8 @@ class PDTable extends StatefulWidget {
       required this.colHeaderLabels,
       required this.rowHeaderIcon,
       required this.rowLabels,
-      this.highlightLabel})
+      this.highlightLabel,
+      this.showRowNumbers})
       : super(key: key);
 
   final PDTableController tableController;
@@ -862,7 +883,8 @@ class PDTable extends StatefulWidget {
   final List<String> colHeaderLabels;
   final Icon rowHeaderIcon;
   final List rowLabels;
-  final String? highlightLabel;
+  String? highlightLabel;
+  int? showRowNumbers;
 
   @override
   State<PDTable> createState() => _PDTableState();
@@ -891,7 +913,12 @@ class _PDTableState extends State<PDTable> {
       duration: Duration(milliseconds: 1),
       // height: widget.controller.val ? (20 + PDTableRowHeight) * 4 - 19 :0,
       constraints: BoxConstraints(
-        maxHeight: widget.tableController.val ? (20 + PDTableRowHeight) * 4 : 0,
+        maxHeight: widget.tableController.val
+            ? (20 + PDTableRowHeight) *
+                (widget.showRowNumbers != null
+                    ? widget.showRowNumbers! + 1
+                    : 3 + 1)
+            : 0,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -939,7 +966,11 @@ class _PDTableState extends State<PDTable> {
             color: Theme.of(context).colorScheme.primary,
           ),
           Container(
-            height: (20 + PDTableRowHeight) * 3 - 19,
+            height: (20 + PDTableRowHeight) *
+                    ((widget.showRowNumbers != null)
+                        ? widget.showRowNumbers!
+                        : 3) -
+                19,
             child: ListView.builder(
                 padding: EdgeInsets.zero,
                 itemCount: widget.rowLabels.length,
@@ -1209,272 +1240,21 @@ class _PDAdvancedSegmentedControlState
                               height: widget.assertValues['height'],
                               weight: widget.assertValues['weight'])
                           ? isError
-                              ? Theme.of(context).colorScheme.error
+                              ? widget.segmentedController.selection ==
+                                      widget.options[buildIndex]
+                                  ? Theme.of(context).colorScheme.onError
+                                  : Theme.of(context).colorScheme.error
                               : widget.segmentedController.selection ==
                                       widget.options[buildIndex]
                                   ? Theme.of(context).colorScheme.onPrimary
                                   : Theme.of(context).colorScheme.primary
-                          : isError
-                              ? Theme.of(context).colorScheme.error
-                              : Theme.of(context).disabledColor),
+                          : Theme.of(context).disabledColor),
                 ),
               ),
             );
           },
         ),
       ),
-    ]);
-  }
-}
-
-class PDTextField extends StatefulWidget {
-  PDTextField({
-    Key? key,
-    this.prefixIcon,
-    required this.labelText,
-    required this.helperText,
-    required this.interval,
-    required this.fractionDigits,
-    required this.controller,
-    required this.onPressed,
-    // required this.onChanged,
-    required this.range,
-    this.timer,
-    this.enabled = true,
-  }) : super(key: key);
-
-  final String labelText;
-  final IconData? prefixIcon;
-  final String helperText;
-  final double interval;
-  final int fractionDigits;
-  final TextEditingController controller;
-  final range;
-  Function onPressed;
-
-  // Function onChanged;
-  Function? onLongPressedStart;
-  Function? onLongPressedEnd;
-  bool enabled;
-  Timer? timer;
-  final Duration delay = Duration(milliseconds: 50);
-
-  @override
-  State<PDTextField> createState() => _PDTextFieldState();
-}
-
-class _PDTextFieldState extends State<PDTextField> {
-  // final _textEditingController = TextEditingController();
-
-  // dispose it when the widget is unmounted
-  @override
-  void dispose() {
-    widget.controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final settings = context.watch<Settings>();
-
-    //this controls size of the plus & minus buttons
-    double suffixIconConstraintsWidth = 84;
-    double suffixIconConstraintsHeight = 59;
-
-    var val = widget.fractionDigits > 0
-        ? double.tryParse(widget.controller.text)
-        : int.tryParse(widget.controller.text);
-
-    bool isWithinRange =
-        val != null ? val >= widget.range[0] && val <= widget.range[1] : false;
-    bool isNumeric = widget.controller.text.isEmpty ? false : val != null;
-
-    return Stack(alignment: Alignment.topRight, children: [
-      TextField(
-        enabled: widget.enabled,
-        style: TextStyle(
-            color: widget.enabled
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).disabledColor),
-        scrollPadding: EdgeInsets.all(48.0),
-        onSubmitted: (val) {
-          widget.onPressed();
-        },
-        controller: widget.controller,
-        keyboardType: TextInputType.numberWithOptions(
-            signed: true, decimal: widget.fractionDigits > 0 ? true : false),
-        // keyboardType: TextInputType.numberWithOptions(
-        //     signed: widget.fractionDigits > 0 ? true : false,
-        //     decimal: widget.fractionDigits > 0 ? true : false),
-        keyboardAppearance:
-            settings.isDarkTheme ? Brightness.dark : Brightness.light,
-
-        decoration: InputDecoration(
-          filled: widget.enabled ? true : false,
-          fillColor: (isWithinRange && isNumeric)
-              ? Theme.of(context).colorScheme.onPrimary
-              : Theme.of(context).colorScheme.onError,
-          errorText: widget.controller.text.isEmpty
-              ? 'Please enter a value'
-              : isNumeric
-                  ? isWithinRange
-                      ? null
-                      : 'min: ${widget.range[0]} and max: ${widget.range[1]}'
-                  : 'Please enter a value',
-          errorStyle: TextStyle(color: Theme.of(context).colorScheme.error),
-          prefixIcon: Icon(
-            widget.prefixIcon,
-            color: widget.enabled
-                ? (isWithinRange && isNumeric)
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.error
-                : Theme.of(context).disabledColor,
-          ),
-          prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
-          helperText: widget.helperText,
-          labelText: widget.labelText,
-          border: OutlineInputBorder(),
-          enabledBorder: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: Theme.of(context).colorScheme.primary),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-          ),
-        ),
-      ),
-      widget.controller.text.isNotEmpty
-          ? Container(
-              width: suffixIconConstraintsWidth,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GestureDetector(
-                    child: Container(
-                      alignment: Alignment.center,
-                      width: suffixIconConstraintsWidth / 2,
-                      decoration: BoxDecoration(
-                          border:
-                              Border.all(width: 0, style: BorderStyle.none)),
-                      height: suffixIconConstraintsHeight,
-                      child: Icon(
-                        Icons.remove,
-                        color: widget.enabled
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).disabledColor,
-                      ),
-                    ),
-                    onTap: widget.enabled
-                        ? () async {
-                            double? prev =
-                                double.tryParse(widget.controller.text);
-                            if (prev != null && prev >= widget.range[0]) {
-                              prev -= widget.interval;
-                              if (prev >= widget.range[0]) {
-                                widget.controller.text =
-                                    prev.toStringAsFixed(widget.fractionDigits);
-                                await HapticFeedback.mediumImpact();
-                              } else {
-                                widget.controller.text = widget.range[0]
-                                    .toStringAsFixed(widget.fractionDigits);
-                              }
-                            }
-                          }
-                        : null,
-                    onLongPress: widget.enabled
-                        ? () {
-                            widget.timer =
-                                Timer.periodic(widget.delay, (t) async {
-                              double? prev =
-                                  double.tryParse(widget.controller.text);
-                              if (prev != null && prev >= widget.range[0]) {
-                                prev -= widget.interval;
-                                if (prev >= widget.range[0]) {
-                                  widget.controller.text = prev
-                                      .toStringAsFixed(widget.fractionDigits);
-                                  await HapticFeedback.mediumImpact();
-                                } else {
-                                  widget.controller.text = widget.range[0]
-                                      .toStringAsFixed(widget.fractionDigits);
-                                }
-                              }
-                            });
-                          }
-                        : null,
-                    onLongPressEnd: (_) {
-                      if (widget.timer != null) {
-                        widget.timer!.cancel();
-                        widget.onPressed();
-                      }
-                    },
-                  ),
-                  GestureDetector(
-                    child: Container(
-                      alignment: Alignment.center,
-                      width: suffixIconConstraintsWidth / 2,
-                      height: suffixIconConstraintsHeight,
-                      decoration: BoxDecoration(
-                          border:
-                              Border.all(width: 0, style: BorderStyle.none)),
-                      child: Icon(
-                        Icons.add,
-                        color: widget.enabled
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).disabledColor,
-                      ),
-                    ),
-                    onTap: widget.enabled
-                        ? () async {
-                            double? prev =
-                                double.tryParse(widget.controller.text);
-                            if (prev != null && prev <= widget.range[1]) {
-                              prev += widget.interval;
-                              if (prev <= widget.range[1]) {
-                                widget.controller.text =
-                                    prev.toStringAsFixed(widget.fractionDigits);
-                                await HapticFeedback.mediumImpact();
-                              } else {
-                                widget.controller.text = widget.range[1]
-                                    .toStringAsFixed(widget.fractionDigits);
-                              }
-                            }
-                          }
-                        : null,
-                    onLongPress: widget.enabled
-                        ? () {
-                            widget.timer =
-                                Timer.periodic(widget.delay, (t) async {
-                              double? prev =
-                                  double.tryParse(widget.controller.text);
-                              if (prev != null && prev <= widget.range[1]) {
-                                prev += widget.interval;
-                                if (prev <= widget.range[1]) {
-                                  widget.controller.text = prev
-                                      .toStringAsFixed(widget.fractionDigits);
-                                  await HapticFeedback.mediumImpact();
-                                } else {
-                                  widget.controller.text = widget.range[1]
-                                      .toStringAsFixed(widget.fractionDigits);
-                                }
-                              }
-                            });
-                          }
-                        : null,
-                    onLongPressEnd: (_) {
-                      if (widget.timer != null) {
-                        widget.timer!.cancel();
-                        widget.onPressed();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            )
-          : Container(
-              width: 0,
-              height: 0,
-            )
     ]);
   }
 }

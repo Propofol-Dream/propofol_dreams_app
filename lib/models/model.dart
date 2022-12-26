@@ -10,7 +10,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 150,
-      depth: Target.Plasma),
+      target: Target.Plasma),
   Schnider(
       minAge: 17,
       maxAge: 100,
@@ -18,7 +18,7 @@ enum Model {
       maxHeight: 210,
       minWeight: 0,
       maxWeight: 165,
-      depth: Target.Effect_Site),
+      target: Target.Effect_Site),
   Eleveld(
       minAge: 1,
       maxAge: 105,
@@ -26,7 +26,7 @@ enum Model {
       maxHeight: 210,
       minWeight: 1,
       maxWeight: 250,
-      depth: Target.Effect_Site),
+      target: Target.Effect_Site),
   Paedfusor(
       minAge: 1,
       maxAge: 16,
@@ -34,7 +34,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 5,
       maxWeight: 61,
-      depth: Target.Plasma),
+      target: Target.Plasma),
   Kataria(
       minAge: 3,
       maxAge: 16,
@@ -42,7 +42,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 15,
       maxWeight: 61,
-      depth: Target.Plasma),
+      target: Target.Plasma),
   Zhong(
       minAge: 0,
       maxAge: 999,
@@ -50,7 +50,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 999,
-      depth: Target.Effect_Site),
+      target: Target.Effect_Site),
   None(
       minAge: 0,
       maxAge: 999,
@@ -58,7 +58,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 999,
-      depth: Target.Plasma);
+      target: Target.Plasma);
 
   @override
   String toString() {
@@ -90,7 +90,7 @@ enum Model {
   }
 
   bool isEnable({required int age, required int height, required int weight}) {
-    return this.depth == Target.Plasma
+    return this.target == Target.Plasma
         ? (withinAge(age) && withinWeight(weight))
         : (withinAge(age) && withinHeight(height) && withinWeight(weight));
   }
@@ -101,7 +101,7 @@ enum Model {
         required int? weight,
         required double? depth,
         required int? duration}) {
-    return this.depth == Target.Plasma
+    return this.target == Target.Plasma
         ? (age != null) &&
         (weight != null) &&
         (depth != null) &&
@@ -150,7 +150,7 @@ enum Model {
   final int maxHeight;
   final int minWeight;
   final int maxWeight;
-  final Target depth;
+  final Target target;
 
   const Model({
     required this.minAge,
@@ -159,6 +159,6 @@ enum Model {
     required this.maxHeight,
     required this.minWeight,
     required this.maxWeight,
-    required this.depth,
+    required this.target,
   });
 }

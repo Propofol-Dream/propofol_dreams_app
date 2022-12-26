@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../providers/settings.dart';
 import 'volume_screen.dart';
 import 'duration_screen.dart';
 import 'pump_screen.dart';
@@ -22,8 +25,16 @@ class _HomeScreenState extends State<HomeScreen> {
     SettingsScreen()
   ];
 
+
+
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<Settings>();
+    //this is to set status bar text color
+    settings.isDarkTheme?
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light):
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
+
     return Scaffold(
       body: SingleChildScrollView(
           physics: MediaQuery

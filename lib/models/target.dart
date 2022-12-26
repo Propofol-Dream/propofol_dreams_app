@@ -4,7 +4,7 @@ enum Target {
 
   @override
   String toString() {
-    return name;
+    return name.replaceAll('_', ' ');
   }
 
   const Target();
