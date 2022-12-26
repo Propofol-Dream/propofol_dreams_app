@@ -76,14 +76,16 @@ class _VolumeScreenState extends State<VolumeScreen> {
   void initState() {
     // print('initState');
     final settings = context.read<Settings>();
-    // print(settings.adultWeight);
+    // print('VolumeScreen initState: ${settings.adultWeight}');
     //
-    // Provider.of<Settings>(context, listen: false).load().then(
-    //         (value) {
-    //       setState(() {
-    //         weightController.text = settings.adultWeight.toString();
-    //       });
-    //     });
+    Provider.of<Settings>(context, listen: false).load().then(
+            (value) {
+          setState(() {
+            weightController.text = settings.adultWeight.toString();
+          });
+        });
+    //
+    // print('VolumeScreen initState: ${settings.adultWeight}');
 
 
     if (settings.inAdultView) {

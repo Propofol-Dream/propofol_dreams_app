@@ -7,7 +7,10 @@ import 'constants.dart';
 import 'screens/home_screen.dart';
 import 'providers/settings.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // await Provider.of<Settings>(context, listen: false).load();
+
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (context) => Settings()),
@@ -15,6 +18,25 @@ void main() {
     child: const MyApp(),
   ));
 }
+
+
+
+// SharedPreferences prefs;
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   prefs = await SharedPreferences.getInstance();
+//
+//   // Rest of your code...
+// }
+
+// void main() {
+//   runApp(MultiProvider(
+//     providers: [
+//       ChangeNotifierProvider(create: (context) => Settings()),
+//     ],
+//     child: const MyApp(),
+//   ));
+// }
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -24,6 +46,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
@@ -45,6 +68,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void initState() {
+    Provider.of<Settings>(context, listen: false).load();
     // Provider.of<Settings>(context, listen: false).load().then(
     //         (value) {
     //           setState(() {
