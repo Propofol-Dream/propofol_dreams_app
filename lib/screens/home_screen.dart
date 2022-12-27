@@ -17,13 +17,29 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int currenIndex = 0;
+   int currenIndex = 0;
   final screens = [
     VolumeScreen(),
     DurationScreen(),
     PumpScreen(),
     SettingsScreen()
   ];
+
+  @override
+  void initState() {
+    load();
+    super.initState();
+  }
+
+  Future<void> load() async {
+    var pref = await SharedPreferences.getInstance();
+    if (pref.containsKey('currentScreenIndex')) {
+      final settings = context.read<Settings>();
+      currenIndex = settings.currentScreenIndex = pref.getInt('currentScreenIndex')!;
+    }
+  }
+
+
 
 
 
@@ -50,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: (index) async {
             await HapticFeedback.heavyImpact();
             setState(() {
-              currenIndex = index;
+              currenIndex = settings.currentScreenIndex = index;
             });
           },
           items:[

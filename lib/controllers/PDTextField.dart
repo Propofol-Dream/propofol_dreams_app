@@ -94,13 +94,13 @@ class _PDTextFieldState extends State<PDTextField> {
           fillColor: (isWithinRange && isNumeric)
               ? Theme.of(context).colorScheme.onPrimary
               : Theme.of(context).colorScheme.onError,
-          errorText: widget.controller.text.isEmpty
+          errorText: widget.enabled? widget.controller.text.isEmpty
               ? 'Please enter a value'
               : isNumeric
               ? isWithinRange
               ? null
               : 'min: ${widget.range[0]} and max: ${widget.range[1]}'
-              : 'Please enter a value',
+              : 'Please enter a value':'',
           errorStyle: TextStyle(color: Theme.of(context).colorScheme.error),
           prefixIcon: Icon(
             widget.prefixIcon,
@@ -119,7 +119,7 @@ class _PDTextFieldState extends State<PDTextField> {
             BorderSide(color: Theme.of(context).colorScheme.primary),
           ),
           errorBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+            borderSide: BorderSide(color: widget.enabled ? Theme.of(context).colorScheme.error: Theme.of(context).disabledColor),
           ),
         ),
       ),

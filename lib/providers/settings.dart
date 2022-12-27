@@ -43,6 +43,8 @@ class Settings with ChangeNotifier {
         }
         break;
     }
+
+    setString('themeMode', _themeModeSelection.toString());
     notifyListeners();
   }
 
@@ -56,73 +58,77 @@ class Settings with ChangeNotifier {
     //the if statement is to prevent rebuilt of any widget;
     // if (_isDarkTheme != b) {
     _isDarkTheme = b;
+    setBool('isDarkTheme', b);
     notifyListeners();
     // }
   }
 
-  Future<void> load() async {
-    print('Setting load');
-    var pref = await SharedPreferences.getInstance();
-    // print('pref: ${pref.getBool("isDarkTheme")}');
-    // _isDarkTheme = pref.getBool("isDarkTheme") ?? false;
-    // print('settings.isDarkTheme: ${pref.getBool("isDarkTheme")}');
-    print('pref: ${pref.getInt('adultWeight')}');
-    print('settings.adultWeight: ${adultWeight}');
-    _adultWeight = pref.getInt('adultWeight') ?? 70;
-    print('settings.adultWeight: ${adultWeight}');
-    notifyListeners();
-  }
+  // Future<void> load() async {
+  //   print('Setting load');
+  //   var pref = await SharedPreferences.getInstance();
+  //   // print('pref: ${pref.getBool("isDarkTheme")}');
+  //   // _isDarkTheme = pref.getBool("isDarkTheme") ?? false;
+  //   // print('settings.isDarkTheme: ${pref.getBool("isDarkTheme")}');
+  //   print('pref: ${pref.getInt('adultWeight')}');
+  //   print('settings.adultWeight: ${adultWeight}');
+  //   _adultWeight = pref.getInt('adultWeight') ?? 70;
+  //   print('settings.adultWeight: ${adultWeight}');
+  //   notifyListeners();
+  // }
 
-  Future<void> save() async {
-    print('Setting save');
-    var pref = await SharedPreferences.getInstance();
-    // print('settings.isDarkTheme: ${pref.getBool("isDarkTheme")}');
-    // pref.setBool('isDarkTheme', _isDarkTheme);
-    // print('pref: ${pref.getBool("isDarkTheme")}');
-    pref.setInt('adultWeight', _adultWeight!);
+  // Future<void> save() async {
+  //   print('Setting save');
+  //   var pref = await SharedPreferences.getInstance();
+  //   // print('settings.isDarkTheme: ${pref.getBool("isDarkTheme")}');
+  //   // pref.setBool('isDarkTheme', _isDarkTheme);
+  //   // print('pref: ${pref.getBool("isDarkTheme")}');
+  //   pref.setInt('adultWeight', _adultWeight!);
+  //
+  // }
 
-  }
+  int _dilution = 10;
 
-  int? _dilution = 10;
-
-  int? get dilution {
+  int get dilution {
     return _dilution;
   }
 
-  void set dilution(int? i) {
+  void set dilution(int i) {
     _dilution = i;
+    setInt('dilution', i);
     notifyListeners();
   }
 
-  int? _time_step = 1;
+  int _time_step = 1;
 
-  int? get time_step {
+  int get time_step {
     return _time_step;
   }
 
-  void set time_step(int? i) {
+  void set time_step(int i) {
     _time_step = i;
+    setInt('time_step', i);
     notifyListeners();
   }
 
-  int? _max_pump_rate = 750;
+  int _max_pump_rate = 750;
 
-  int? get max_pump_rate {
+  int get max_pump_rate {
     return _max_pump_rate;
   }
 
-  void set max_pump_rate(int? i) {
+  void set max_pump_rate(int i) {
     _max_pump_rate = i;
+    setInt('max_pump_rate', i);
     notifyListeners();
   }
 
-  Model _adultModel = Model.Marsh;
-  Gender? _adultGender = Gender.Female;
-  int? _adultAge = 40;
-  int? _adultHeight = 170;
-  int? _adultWeight = 70;
-  double? _adultDepth = 3.0;
-  int? _adultDuration = 60;
+  Model _adultModel = Model.None;
+  Gender? _adultGender;
+  int? _adultAge;
+  int? _adultHeight;
+  int? _adultWeight;
+  double? _adultDepth;
+  int? _adultDuration;
 
   Model get adultModel {
     return _adultModel;
@@ -130,6 +136,7 @@ class Settings with ChangeNotifier {
 
   void set adultModel(Model m) {
     _adultModel = m;
+    setString('adultModel', m.toString());
     notifyListeners();
   }
 
@@ -139,6 +146,7 @@ class Settings with ChangeNotifier {
 
   void set adultGender(Gender? g) {
     _adultGender = g;
+    setString('adultGender', g.toString());
     notifyListeners();
   }
 
@@ -148,6 +156,7 @@ class Settings with ChangeNotifier {
 
   void set adultAge(int? i) {
     _adultAge = i;
+    setInt('adultAge', i);
     notifyListeners();
   }
 
@@ -157,6 +166,7 @@ class Settings with ChangeNotifier {
 
   void set adultHeight(int? i) {
     _adultHeight = i;
+    setInt('adultHeight', i);
     notifyListeners();
   }
 
@@ -166,6 +176,7 @@ class Settings with ChangeNotifier {
 
   void set adultWeight(int? i) {
     _adultWeight = i;
+    setInt('adultWeight', i);
     notifyListeners();
   }
 
@@ -175,6 +186,7 @@ class Settings with ChangeNotifier {
 
   void set adultDepth(double? d) {
     _adultDepth = d;
+    setDouble('adultDepth', d);
     notifyListeners();
   }
 
@@ -184,16 +196,17 @@ class Settings with ChangeNotifier {
 
   void set adultDuration(int? i) {
     _adultDuration = i;
+    setInt('adultDuration', i);
     notifyListeners();
   }
 
-  Model _pediatricModel = Model.Paedfusor;
-  Gender? _pediatricGender = Gender.Female;
-  int? _pediatricAge = 8;
-  int? _pediatricHeight = 130;
-  int? _pediatricWeight = 26;
-  double? _pediatricDepth = 3.0;
-  int? _pediatricDuration = 60;
+  Model _pediatricModel = Model.None;
+  Gender? _pediatricGender;
+  int? _pediatricAge;
+  int? _pediatricHeight;
+  int? _pediatricWeight;
+  double? _pediatricDepth;
+  int? _pediatricDuration;
 
   Model get pediatricModel {
     return _pediatricModel;
@@ -201,6 +214,7 @@ class Settings with ChangeNotifier {
 
   void set pediatricModel(Model m) {
     _pediatricModel = m;
+    setString('pediatricModel', m.toString());
     notifyListeners();
   }
 
@@ -210,6 +224,7 @@ class Settings with ChangeNotifier {
 
   void set pediatricGender(Gender? g) {
     _pediatricGender = g;
+    setString('pediatricGender', g.toString());
     notifyListeners();
   }
 
@@ -219,6 +234,7 @@ class Settings with ChangeNotifier {
 
   void set pediatricAge(int? i) {
     _pediatricAge = i;
+    setInt('pediatricAge', i);
     notifyListeners();
   }
 
@@ -228,6 +244,7 @@ class Settings with ChangeNotifier {
 
   void set pediatricHeight(int? i) {
     _pediatricHeight = i;
+    setInt('pediatricHeight', i);
     notifyListeners();
   }
 
@@ -237,6 +254,7 @@ class Settings with ChangeNotifier {
 
   void set pediatricWeight(int? i) {
     _pediatricWeight = i;
+    setInt('pediatricWeight', i);
     notifyListeners();
   }
 
@@ -246,6 +264,7 @@ class Settings with ChangeNotifier {
 
   void set pediatricDepth(double? d) {
     _pediatricDepth = d;
+    setDouble('pediatricDepth', d);
     notifyListeners();
   }
 
@@ -255,6 +274,7 @@ class Settings with ChangeNotifier {
 
   void set pediatricDuration(int? i) {
     _pediatricDuration = i;
+    setInt('pediatricDuration', i);
     notifyListeners();
   }
 
@@ -266,6 +286,7 @@ class Settings with ChangeNotifier {
 
   void set inAdultView(bool b) {
     _inAdultView = b;
+    setBool('inAdultView', b);
     notifyListeners();
   }
 
@@ -277,6 +298,21 @@ class Settings with ChangeNotifier {
 
   void set isVolumeTableExpanded(bool b) {
     _isVolumeTableExpanded = b;
+    setBool('isVolumeTableExpanded', b);
+    notifyListeners();
+  }
+
+
+
+  int? _weight;
+
+  int? get weight {
+    return _weight;
+  }
+
+  void set weight(int? i) {
+    _weight = i;
+    setInt('weight', i);
     notifyListeners();
   }
 
@@ -286,19 +322,9 @@ class Settings with ChangeNotifier {
     return _infusionRate;
   }
 
-  void set infusionRate(double? i) {
-    _infusionRate = i;
-    notifyListeners();
-  }
-
-  int? _weight = 70;
-
-  int? get weight {
-    return _weight;
-  }
-
-  void set weight(int? i) {
-    _weight = i;
+  void set infusionRate(double? d) {
+    _infusionRate = d;
+    setDouble('infusionRate', d);
     notifyListeners();
   }
 
@@ -310,6 +336,59 @@ class Settings with ChangeNotifier {
 
   void set infusionUnit(InfusionUnit iu) {
     _infusinUnit = iu;
+    setString('infusionUnit', iu.toString());
     notifyListeners();
+  }
+
+  int _currentScreenIndex = 0;
+
+  int get currentScreenIndex {
+    return _currentScreenIndex;
+  }
+
+  void set currentScreenIndex(int i) {
+    _currentScreenIndex = i;
+    setInt('currentScreenIndex', i);
+    notifyListeners();
+  }
+
+  Future<void> setInt(String key, int? i) async {
+    var pref = await SharedPreferences.getInstance();
+    if (i != null) {
+      pref.setInt(key, i);
+    }
+    // else {
+    //   pref.remove(key);
+    // }
+  }
+
+  Future<void> setDouble(String key, double? d) async {
+    var pref = await SharedPreferences.getInstance();
+    if (d != null) {
+      pref.setDouble(key, d);
+    }
+    // else {
+    //   pref.remove(key);
+    // }
+  }
+
+  Future<void> setBool(String key, bool? b) async {
+    var pref = await SharedPreferences.getInstance();
+    if (b != null) {
+      pref.setBool(key, b);
+    }
+    // else {
+    //   pref.remove(key);
+    // }
+  }
+
+  Future<void> setString(String key, String? s) async {
+    var pref = await SharedPreferences.getInstance();
+    if (s != null) {
+      pref.setString(key, s);
+    }
+    // else {
+    //   pref.remove(key);
+    // }
   }
 }

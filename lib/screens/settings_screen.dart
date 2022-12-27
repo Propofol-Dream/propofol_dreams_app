@@ -7,6 +7,7 @@ import 'package:propofol_dreams_app/providers/settings.dart';
 import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
 import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -22,21 +23,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void initState() {
-    final settings = Provider.of<Settings>(context, listen: false);
-    pumpController.text = settings.max_pump_rate.toString();
-    themeController.val = settings.themeModeSelection == ThemeMode.light
-        ? 0
-        : settings.themeModeSelection == ThemeMode.dark
-            ? 1
-            : 2;
+    load();
     super.initState();
   }
 
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    // pumpController.dispose();
-    super.dispose();
+  Future<void> load() async {
+    var pref = await SharedPreferences.getInstance();
+    final settings = context.read<Settings>();
+
+    if (pref.containsKey('dilution')) {
+      settings.dilution = pref.getInt('dilution')!;
+      dilutionController.val = settings.dilution == 10 ? 0 : 1;
+    } else {
+      settings.dilution = 10;
+      dilutionController.val = 0;
+    }
+
+    if (pref.containsKey('max_pump_rate')) {
+      settings.max_pump_rate = pref.getInt('max_pump_rate')!;
+      pumpController.text = settings.max_pump_rate.toString();
+    } else {
+      settings.max_pump_rate = 750;
+      pumpController.text = settings.max_pump_rate.toString();
+    }
+
+    if (pref.containsKey('themeMode')) {
+      String? themeMode = pref.getString('themeMode');
+      switch (themeMode) {
+        case 'ThemeMode.light':
+          {
+            // settings.themeModeSelection = ThemeMode.light;
+            themeController.val = 0;
+          }
+          break;
+
+        case 'ThemeMode.dark':
+          {
+            // settings.themeModeSelection = ThemeMode.dark;
+            themeController.val = 1;
+          }
+          break;
+
+        case 'ThemeMode.system':
+          {
+            // settings.themeModeSelection = ThemeMode.system;
+            themeController.val = 2;
+          }
+          break;
+
+        default:
+          {
+            // settings.themeModeSelection = ThemeMode.light;
+            themeController.val = 0;
+          }
+          break;
+      }
+    } else {
+      themeController.val = 0;
+    }
   }
 
   @override
@@ -48,7 +92,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         mediaQuery.size.width / mediaQuery.size.height >= 0.455 ? 56 : 48;
 
     final settings = context.watch<Settings>();
-    dilutionController.val = settings.dilution == 10 ? 0 : 1;
 
     return Column(children: [
       AppBar(
@@ -79,10 +122,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SizedBox(
                   height: 4,
                 ),
-                // Text(
-                //   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus finibus lorem vitae augue tincidunt, at aliquet mauris condimentum. Donec pellentesque tempus dapibus',
-                //   style: TextStyle(fontSize: 14),
-                // ),
                 SizedBox(
                   height: 16,
                 ),
@@ -190,6 +229,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     }
                   ],
                 ),
+                ElevatedButton(
+                    onPressed: () async {
+                      var pref = await SharedPreferences.getInstance();
+                      pref.clear();
+                    },
+                    child: Text('Clear'))
               ],
             ),
           ],

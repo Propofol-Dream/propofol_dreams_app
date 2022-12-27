@@ -17,6 +17,8 @@ import '../constants.dart';
 
 import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 
+import '../models/target.dart';
+
 class VolumeScreen extends StatefulWidget {
   const VolumeScreen({Key? key}) : super(key: key);
 
@@ -40,10 +42,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
   final List<Model> modelOptions = [];
   Timer timer = Timer(Duration.zero, () {});
   Duration delay = const Duration(milliseconds: 500);
-
-  // int timeStep = 1; //in secs
-  // int dilution = 10; //mcg/mL
-  // int max_pump_rate = 750;
 
   double depthInterval = 0.5;
   int durationInterval = 10; //in mins
@@ -74,63 +72,211 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
   @override
   void initState() {
-    // print('initState');
-    final settings = context.read<Settings>();
-    // print('VolumeScreen initState: ${settings.adultWeight}');
-    //
-    Provider.of<Settings>(context, listen: false).load().then(
-            (value) {
-          setState(() {
-            weightController.text = settings.adultWeight.toString();
-          });
-        });
-    //
-    // print('VolumeScreen initState: ${settings.adultWeight}');
+    load();
 
+    // ageController.text = 40.toString();
+    // heightController.text = 170.toString();
+    // weightController.text = 70.toString();
+    // depthController.text = 3.0.toString();
+    // durationController.text = 60.toString();
 
-    if (settings.inAdultView) {
-      genderController.val =
-          settings.adultGender == Gender.Female ? true : false;
-      ageController.text =
-          settings.adultAge != null ? settings.adultAge.toString() : '';
-      heightController.text =
-          settings.adultHeight != null ? settings.adultHeight.toString() : '';
-      weightController.text =
-          settings.adultWeight != null ? settings.adultWeight.toString() : '';
-      depthController.text =
-          settings.adultDepth != null ? settings.adultDepth.toString() : '';
-      durationController.text = settings.adultDuration != null
-          ? settings.adultDuration.toString()
-          : '';
-    } else {
-      genderController.val =
-          settings.pediatricGender == Gender.Female ? true : false;
-      ageController.text =
-          settings.pediatricAge != null ? settings.pediatricAge.toString() : '';
-      heightController.text = settings.pediatricHeight != null
-          ? settings.pediatricHeight.toString()
-          : '';
-      weightController.text = settings.pediatricWeight != null
-          ? settings.pediatricWeight.toString()
-          : '';
-      depthController.text = settings.pediatricDepth != null
-          ? settings.pediatricDepth.toString()
-          : '';
-      durationController.text = settings.pediatricDuration != null
-          ? settings.pediatricDuration.toString()
-          : '';
-    }
-    tableController.val = settings.isVolumeTableExpanded;
-
-    run(initState: true);
     super.initState();
+    // });
   }
 
   @override
   void dispose() {
-    // depthController.dispose();
     scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> load() async {
+    var pref = await SharedPreferences.getInstance();
+    final settings = context.read<Settings>();
+
+    if (pref.containsKey('inAdultView')) {
+      settings.inAdultView = pref.getBool('inAdultView')!;
+    } else {
+      settings.inAdultView = true;
+    }
+
+    if (pref.containsKey('dilution')) {
+      settings.dilution = pref.getInt('dilution')!;
+    } else {
+      settings.dilution = 10;
+    }
+
+    if (pref.containsKey('isVolumeTableExpanded')) {
+      settings.isVolumeTableExpanded = pref.getBool('isVolumeTableExpanded')!;
+      tableController.val = settings.isVolumeTableExpanded;
+    } else {
+      settings.isVolumeTableExpanded =
+          false; //TODO: set isVolumeTableExpanded = true, if device is tablet
+      tableController.val = settings.isVolumeTableExpanded;
+    }
+
+    if (pref.containsKey('adultModel')) {
+      String adultModel = pref.getString('adultModel')!;
+      switch (adultModel) {
+        case 'Marsh':
+          {
+            settings.adultModel = Model.Marsh;
+          }
+          break;
+
+        case 'Schnider':
+          {
+            settings.adultModel = Model.Schnider;
+          }
+          break;
+
+        case 'Eleveld':
+          {
+            settings.adultModel = Model.Eleveld;
+          }
+          break;
+
+        default:
+          {
+            settings.adultModel = Model.None;
+          }
+          break;
+      }
+    } else {
+      settings.adultModel = Model.None;
+    }
+
+    if (pref.containsKey('adultGender')) {
+      String adultGender = pref.getString('adultGender')!;
+      settings.adultGender =
+          adultGender == 'Female' ? Gender.Female : Gender.Male;
+    } else {
+      settings.adultGender = Gender.Female;
+    }
+
+    if (pref.containsKey('adultAge')) {
+      settings.adultAge = pref.getInt('adultAge');
+    } else {
+      settings.adultAge = 40;
+    }
+
+    if (pref.containsKey('adultHeight')) {
+      settings.adultHeight = pref.getInt('adultHeight');
+    } else {
+      settings.adultHeight = 170;
+    }
+
+    if (pref.containsKey('adultWeight')) {
+      settings.adultWeight = pref.getInt('adultWeight');
+    } else {
+      settings.adultWeight = 70;
+    }
+
+    if (pref.containsKey('adultDepth')) {
+      settings.adultDepth = pref.getDouble('adultDepth');
+    } else {
+      settings.adultDepth = 3.0;
+    }
+
+    if (pref.containsKey('adultDuration')) {
+      settings.adultDuration = pref.getInt('adultDuration');
+    } else {
+      settings.adultDuration = 60;
+    }
+
+    if (pref.containsKey('pediatricModel')) {
+      String pediatricModel = pref.getString('pediatricModel')!;
+      switch (pediatricModel) {
+        case 'Paedfusor':
+          {
+            settings.pediatricModel = Model.Paedfusor;
+          }
+          break;
+
+        case 'Kataria':
+          {
+            settings.pediatricModel = Model.Kataria;
+          }
+          break;
+
+        case 'Eleveld':
+          {
+            settings.pediatricModel = Model.Eleveld;
+          }
+          break;
+
+        default:
+          {
+            settings.pediatricModel = Model.None;
+          }
+          break;
+      }
+    } else {
+      settings.pediatricModel = Model.None;
+    }
+
+    if (pref.containsKey('pediatricGender')) {
+      String pediatricGender = pref.getString('pediatricGender')!;
+      settings.pediatricGender =
+          pediatricGender == 'Female' ? Gender.Female : Gender.Male;
+    } else {
+      settings.pediatricGender = Gender.Female;
+    }
+
+    if (pref.containsKey('pediatricAge')) {
+      settings.pediatricAge = pref.getInt('pediatricAge');
+    } else {
+      settings.pediatricAge = 8;
+    }
+
+    if (pref.containsKey('pediatricHeight')) {
+      settings.pediatricHeight = pref.getInt('pediatricHeight');
+    } else {
+      settings.pediatricHeight = 130;
+    }
+
+    if (pref.containsKey('pediatricWeight')) {
+      settings.pediatricWeight = pref.getInt('pediatricWeight');
+    } else {
+      settings.pediatricWeight = 26;
+    }
+
+    if (pref.containsKey('pediatricDepth')) {
+      settings.pediatricDepth = pref.getDouble('pediatricDepth');
+    } else {
+      settings.pediatricDepth = 3.0;
+    }
+
+    if (pref.containsKey('pediatricDuration')) {
+      settings.pediatricDuration = pref.getInt('pediatricDuration');
+    } else {
+      settings.pediatricDuration = 60;
+    }
+
+    if (settings.inAdultView) {
+      adultModelController.selection = settings.adultModel;
+      genderController.val =
+          settings.adultGender == Gender.Female ? true : false;
+      ageController.text = settings.adultAge.toString();
+
+      heightController.text = settings.adultHeight.toString();
+      weightController.text = settings.adultWeight.toString();
+      depthController.text = settings.adultDepth.toString();
+      durationController.text = settings.adultDuration.toString();
+    } else {
+      pediatricModelController.selection = settings.pediatricModel;
+      genderController.val =
+          settings.pediatricGender == Gender.Female ? true : false;
+      ageController.text = settings.pediatricAge.toString();
+      heightController.text = settings.pediatricHeight.toString();
+      weightController.text = settings.pediatricWeight.toString();
+      depthController.text = settings.pediatricDepth.toString();
+      durationController.text = settings.pediatricDuration.toString();
+    }
+
+    updateModelOptions(settings.inAdultView);
+    run(initState: true);
+
   }
 
   void updateRowsAndResult({cols, times}) {
@@ -195,7 +341,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     PDTableRows = resultRows;
   }
 
-  Future<void> run({initState = false}) async {
+  void run({initState = false}) {
     final settings = Provider.of<Settings>(context, listen: false);
 
     int? age = int.tryParse(ageController.text);
@@ -206,7 +352,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     Gender gender = genderController.val ? Gender.Female : Gender.Male;
 
     if (settings.inAdultView) {
-      //setting provider cannot be happened in initState
+      //setting provider cannot be directly under initState
       if (initState == false) {
         settings.adultModel = adultModelController.selection;
         settings.adultGender = gender;
@@ -538,17 +684,15 @@ class _VolumeScreenState extends State<VolumeScreen> {
         duration: duration);
 
     final bool heightTextFieldEnabled = settings.inAdultView
-        ? adultModelController.selection != Model.Marsh
-        : pediatricModelController.selection == Model.Eleveld;
+        ? (adultModelController.selection as Model).target != Target.Plasma
+        : (pediatricModelController.selection as Model).target != Target.Plasma;
 
     final bool genderSwitchControlEnabled = settings.inAdultView
-        ? adultModelController.selection != Model.Marsh
-        : pediatricModelController.selection == Model.Eleveld;
+        ? (adultModelController.selection as Model).target != Target.Plasma
+        : (pediatricModelController.selection as Model).target != Target.Plasma;
 
     final ageTextFieldEnabled = !(settings.inAdultView &&
         adultModelController.selection == Model.Marsh);
-
-    updateModelOptions(settings.inAdultView);
 
     return Container(
       height: mediaQuery.size.height - (Platform.isAndroid ? 48 : 88),
@@ -894,14 +1038,6 @@ class PDTable extends StatefulWidget {
 
 class _PDTableState extends State<PDTable> {
   @override
-  // void initState() {
-  //   widget.scrollController?.addListener(() {
-  //     print(widget.scrollController?.offset);
-  //   });
-  //   super.initState();
-  // }
-
-  @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final double headerColWidth =
@@ -1218,7 +1354,10 @@ class _PDAdvancedSegmentedControlState
                                 height: widget.assertValues['height'],
                                 weight: widget.assertValues['weight'])
                             ? isError
-                                ? Theme.of(context).colorScheme.error
+                                ? widget.segmentedController.selection ==
+                                        widget.options[buildIndex]
+                                    ? Theme.of(context).colorScheme.error
+                                    : Theme.of(context).colorScheme.primary
                                 : Theme.of(context).colorScheme.primary
                             : isError
                                 ? Theme.of(context).colorScheme.error
@@ -1245,12 +1384,14 @@ class _PDAdvancedSegmentedControlState
                               ? widget.segmentedController.selection ==
                                       widget.options[buildIndex]
                                   ? Theme.of(context).colorScheme.onError
-                                  : Theme.of(context).colorScheme.error
+                                  : Theme.of(context).colorScheme.primary
                               : widget.segmentedController.selection ==
                                       widget.options[buildIndex]
                                   ? Theme.of(context).colorScheme.onPrimary
                                   : Theme.of(context).colorScheme.primary
-                          : Theme.of(context).disabledColor),
+                          : isError
+                              ? Theme.of(context).colorScheme.error
+                              : Theme.of(context).disabledColor),
                 ),
               ),
             );

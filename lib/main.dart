@@ -19,8 +19,6 @@ void main() async {
   ));
 }
 
-
-
 // SharedPreferences prefs;
 // void main() async {
 //   WidgetsFlutterBinding.ensureInitialized();
@@ -46,19 +44,18 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
         print("app in resumed");
-        Provider.of<Settings>(context, listen: false).load();
+        // Provider.of<Settings>(context, listen: false).load();
         break;
       case AppLifecycleState.inactive:
         print("app in inactive");
         break;
       case AppLifecycleState.paused:
         print("app in paused");
-        Provider.of<Settings>(context, listen: false).save();
+        // Provider.of<Settings>(context, listen: false).save();
         break;
       case AppLifecycleState.detached:
         print("app in detached");
@@ -68,7 +65,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void initState() {
-    Provider.of<Settings>(context, listen: false).load();
+    // Provider.of<Settings>(context, listen: false).load();
     // Provider.of<Settings>(context, listen: false).load().then(
     //         (value) {
     //           setState(() {
@@ -77,13 +74,21 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     //           })
     //         });
 
+    // final settings = context.read<Settings>();
+    // Provider.of<Settings>(context, listen: false).load();
 
+    // Provider.of<Settings>(context, listen: false).load().then((value) {
+    //   setState(() {
+    //     print('main setState');
+    //     settings.adultWeight = settings.adultWeight;
+    //   });
+    // });
 
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    load();
 
-
-    var settings = context.read<Settings>();
+    // var settings = context.read<Settings>();
     // print('settings: ${settings.isDarkTheme}');
 
     // loadSharedPref();
@@ -95,10 +100,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  @override
-  didChangeDependencies() {
-    // loadSharedPref();
-  }
+  // @override
+  // didChangeDependencies() {
+  //   // loadSharedPref();
+  // }
 
   // void loadSharedPref() async {
   //   print('loadSharedPref');
@@ -116,6 +121,42 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   //   pref.setBool('isDarkTheme', setting.isDarkTheme);
   //   print('setting: ${setting.isDarkTheme}');
   // }
+
+  Future<void> load() async {
+    var pref = await SharedPreferences.getInstance();
+    // final settings = context.read<Settings>();
+
+    if (pref.containsKey('themeMode')) {
+
+      var settings = Provider.of<Settings>(context, listen: false);
+      String? themeMode = pref.getString('themeMode');
+      switch (themeMode) {
+        case 'ThemeMode.light':
+          {
+            settings.themeModeSelection = ThemeMode.light;
+          }
+          break;
+
+        case 'ThemeMode.dark':
+          {
+            settings.themeModeSelection = ThemeMode.dark;
+          }
+          break;
+
+        case 'ThemeMode.system':
+          {
+            settings.themeModeSelection = ThemeMode.system;
+          }
+          break;
+
+        default:
+          {
+            settings.themeModeSelection = ThemeMode.light;
+          }
+          break;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

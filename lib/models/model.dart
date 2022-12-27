@@ -58,7 +58,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 999,
-      target: Target.Plasma);
+      target: Target.Effect_Site);
 
   @override
   String toString() {
