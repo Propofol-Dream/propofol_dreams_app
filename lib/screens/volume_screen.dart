@@ -419,9 +419,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   weight: weight, age: age, height: height, gender: gender);
 
               Pump pump = Pump(
-                  time_step: settings.time_step!,
-                  dilution: settings.dilution!,
-                  max_pump_rate: settings.max_pump_rate!);
+                  time_step: settings.time_step,
+                  dilution: settings.dilution,
+                  max_pump_rate: settings.max_pump_rate);
 
               Operation operation = Operation(depth: depth, duration: duration);
 
@@ -651,7 +651,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     final settings = context.watch<Settings>();
 
-    int dilution = settings.dilution ?? 10;
+    int dilution = settings.dilution;
 
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
@@ -770,7 +770,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
               colHeaderLabels: modelIsRunnable
                   ? [
                       (depth! - depthInterval) >= 0
-                          ? (depth! - depthInterval).toStringAsFixed(1)
+                          ? (depth - depthInterval).toStringAsFixed(1)
                           : 0.toStringAsFixed(1),
                       (depth).toStringAsFixed(1),
                       (depth + depthInterval).toStringAsFixed(1)

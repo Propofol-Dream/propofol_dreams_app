@@ -4,7 +4,7 @@ import 'PDSegmentedController.dart';
 import 'package:propofol_dreams_app/constants.dart';
 
 class PDSegmentedControl extends StatefulWidget {
-  PDSegmentedControl({
+  const PDSegmentedControl({
     Key? key,
     required this.labels,
     required this.segmentedController,
@@ -16,8 +16,8 @@ class PDSegmentedControl extends StatefulWidget {
   final List<String> labels;
   final PDSegmentedController segmentedController;
   final List<Function> onPressed;
-  double? height;
-  double? fontSize;
+  final double? height;
+  final double? fontSize;
 
   @override
   State<PDSegmentedControl> createState() => _PDSegmentedControlState();

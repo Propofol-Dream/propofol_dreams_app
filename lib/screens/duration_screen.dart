@@ -235,7 +235,7 @@ class _DurationScreenState extends State<DurationScreen> {
             weight: weight,
             infusionRate: infusionRate!,
             infusionUnit: infusionUnit,
-            dilution: settings.dilution!);
+            dilution: settings.dilution);
 
         if (i == 50 || i == 20) {
           durations.add(
