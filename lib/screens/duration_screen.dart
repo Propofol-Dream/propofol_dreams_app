@@ -226,7 +226,7 @@ class _DurationScreenState extends State<DurationScreen> {
         infusionRate: infusionRate,
         infusionUnit: infusionUnit)) {
       var settings = context.read<Settings>();
-      durationRows.clear();
+      durationRows=[];
       List<DataRow> durations = [];
 
       for (int i = 60; i >= 10; i -= 10) {

@@ -276,7 +276,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     updateModelOptions(settings.inAdultView);
     run(initState: true);
-
   }
 
   void updateRowsAndResult({cols, times}) {
@@ -352,7 +351,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
     Gender gender = genderController.val ? Gender.Female : Gender.Male;
 
     if (settings.inAdultView) {
-      //setting provider cannot be directly under initState
       if (initState == false) {
         settings.adultModel = adultModelController.selection;
         settings.adultGender = gender;
@@ -378,113 +376,107 @@ class _VolumeScreenState extends State<VolumeScreen> {
     //If Age is not null, check whether other input fiels are null
     //If all input fields are not null and Age is >0, select the model, and check whether the model is Runnable
     //If model is runnable, run the model except Model.None
-    if (age != null) {
-      // print('Age != null');
 
-      if (height != null &&
-          weight != null &&
-          depth != null &&
-          duration != null) {
-        if (age >= 0) {
-          // print('Age >=0');
-          Model model = Model.None;
+    // print('Age != null');
 
-          model = age >= 17 ? settings.adultModel : settings.pediatricModel;
+    if (age != null &&
+        height != null &&
+        weight != null &&
+        depth != null &&
+        duration != null) {
+      if (age >= 0 &&
+          height >= 0 &&
+          weight >= 0 &&
+          depth >= 0 &&
+          duration >= 0) {
 
-          if (model != Model.None) {
-            // print('model != Model.None');
+        Model model  = age >= 17 ? settings.adultModel : settings.pediatricModel;
 
-            if (model.isEnable(age: age, height: height, weight: weight) &&
-                depth <= kMaxDepth &&
-                depth >= kMinDepth &&
-                duration <= kMaxDuration &&
-                duration >= kMinDuration) {
-              // print('model is enable');
+        if (model != Model.None) {
+          // print('model != Model.None');
 
-              if (model.checkConstraints(
-                  weight: weight,
-                  height: height,
-                  age: age,
-                  gender: gender)['assertion'] as bool) {
-                // print('model pass constraints');
+          if (model.isEnable(age: age, height: height, weight: weight) &&
+              depth <= kMaxDepth &&
+              depth >= kMinDepth &&
+              duration <= kMaxDuration &&
+              duration >= kMinDuration) {
+            // print('model is enable');
 
-                DateTime start = DateTime.now();
+            if (model.checkConstraints(
+                weight: weight,
+                height: height,
+                age: age,
+                gender: gender)['assertion'] as bool) {
+              // print('model pass constraints');
 
-                var results1;
-                var results2;
-                var results3;
+              DateTime start = DateTime.now();
 
-                Patient patient = Patient(
-                    weight: weight, age: age, height: height, gender: gender);
+              var results1;
+              var results2;
+              var results3;
 
-                Pump pump = Pump(
-                    time_step: settings.time_step!,
-                    dilution: settings.dilution!,
-                    max_pump_rate: settings.max_pump_rate!);
+              Patient patient = Patient(
+                  weight: weight, age: age, height: height, gender: gender);
 
-                Operation operation =
-                    Operation(depth: depth, duration: duration);
+              Pump pump = Pump(
+                  time_step: settings.time_step!,
+                  dilution: settings.dilution!,
+                  max_pump_rate: settings.max_pump_rate!);
 
-                PDSim.Simulation sim = PDSim.Simulation(
-                    model: model, patient: patient, pump: pump);
+              Operation operation = Operation(depth: depth, duration: duration);
 
-                results1 = sim.estimate(
-                    operation: Operation(
-                        depth: depth - depthInterval,
-                        duration: duration + 2 * durationInterval));
+              PDSim.Simulation sim =
+                  PDSim.Simulation(model: model, patient: patient, pump: pump);
 
-                results2 = sim.estimate(
-                    operation: Operation(
-                        depth: depth,
-                        duration: duration + 2 * durationInterval));
+              results1 = sim.estimate(
+                  operation: Operation(
+                      depth: depth - depthInterval,
+                      duration: duration + 2 * durationInterval));
 
-                results3 = sim.estimate(
-                    operation: Operation(
-                        depth: depth + depthInterval,
-                        duration: duration + 2 * durationInterval));
+              results2 = sim.estimate(
+                  operation: Operation(
+                      depth: depth, duration: duration + 2 * durationInterval));
 
-                DateTime finish = DateTime.now();
+              results3 = sim.estimate(
+                  operation: Operation(
+                      depth: depth + depthInterval,
+                      duration: duration + 2 * durationInterval));
 
-                Duration calculationDuration = finish.difference(start);
-                // print({'duration': calculationDuration.toString()});
+              DateTime finish = DateTime.now();
 
-                // print({
-                //   'model': model,
-                //   'age': age,
-                //   'height': height,
-                //   'weight': weight,
-                //   'depth': depth,
-                //   'duration': duration,
-                //   'calcuation time':
-                //       '${calculationDuration.inMilliseconds.toString()} milliseconds'
-                // });
+              Duration calculationDuration = finish.difference(start);
+              // print({'duration': calculationDuration.toString()});
 
-                print({
-                  'model': model,
-                  'patient': patient,
-                  'operation': operation,
-                  'pump': pump,
-                  'calcuation time':
-                      '${calculationDuration.inMilliseconds.toString()} milliseconds'
-                });
+              // print({
+              //   'model': model,
+              //   'age': age,
+              //   'height': height,
+              //   'weight': weight,
+              //   'depth': depth,
+              //   'duration': duration,
+              //   'calcuation time':
+              //       '${calculationDuration.inMilliseconds.toString()} milliseconds'
+              // });
 
-                setState(() {
-                  updateRowsAndResult(cols: [
-                    results1['cumulative_infused_volumes'],
-                    results2['cumulative_infused_volumes'],
-                    results3['cumulative_infused_volumes']
-                  ], times: results2['times']);
-                });
-              } else {
-                // print('Model does not meet its constraint');
-                setState(() {
-                  result = emptyResult;
-                  PDTableRows = EmptyTableRows;
-                  // print(result);
-                });
-              }
+              print({
+                'model': model,
+                'patient': patient,
+                'operation': operation,
+                'pump': pump,
+                'calcuation time':
+                    '${calculationDuration.inMilliseconds.toString()} milliseconds'
+              });
+
+              setState(() {
+                updateRowsAndResult(cols: [
+                  results1['cumulative_infused_volumes'],
+                  results2['cumulative_infused_volumes'],
+                  results3['cumulative_infused_volumes']
+                ], times: results2['times']);
+              });
             } else {
-              // print('Model is not enable');
+              // print('Model does not meet its constraint');
+
               setState(() {
                 result = emptyResult;
                 PDTableRows = EmptyTableRows;
@@ -492,7 +484,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
               });
             }
           } else {
-            // print('Selected Model = Model.None');
+            // print('Model is not enable');
             setState(() {
               result = emptyResult;
               PDTableRows = EmptyTableRows;
@@ -500,7 +492,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
             });
           }
         } else {
-          // print('Age <0');
+          // print('Selected Model = Model.None');
           setState(() {
             result = emptyResult;
             PDTableRows = EmptyTableRows;
@@ -508,7 +500,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
           });
         }
       } else {
-        // print('Some fields == null');
+        // print('Age <0');
         setState(() {
           result = emptyResult;
           PDTableRows = EmptyTableRows;
@@ -516,15 +508,14 @@ class _VolumeScreenState extends State<VolumeScreen> {
         });
       }
     } else {
-      // print('Age == null');
-      adultModelController.selection = Model.None;
-      pediatricModelController.selection = Model.None;
+      // print('Some fields == null');
       setState(() {
         result = emptyResult;
         PDTableRows = EmptyTableRows;
         // print(result);
       });
     }
+
     // print('run ends');
   }
 
@@ -626,7 +617,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
     }
 
     updateModelOptions(settings.inAdultView);
-
     run();
   }
 
