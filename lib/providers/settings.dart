@@ -8,7 +8,7 @@ import 'package:propofol_dreams_app/models/gender.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Settings with ChangeNotifier {
-  ThemeMode _themeModeSelection = ThemeMode.light;
+  ThemeMode _themeModeSelection = ThemeMode.system;
 
   ThemeMode get themeModeSelection {
     return _themeModeSelection;

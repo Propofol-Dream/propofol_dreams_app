@@ -106,7 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // var screenWidth = mediaQuery.size.width;
 
     final double UIHeight =
-        mediaQuery.size.width / mediaQuery.size.height >= 0.455 ? 56 : 48;
+    mediaQuery.size.aspectRatio >= 0.455 ?  mediaQuery.size.height>=768? 56: 48 : 48;
 
     final settings = context.watch<Settings>();
 
@@ -143,7 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   height: 16,
                 ),
                 PDSegmentedControl(
-                  height: 56,
+                  height: UIHeight,
                   fontSize: 16,
                   labels: ['1 % = 10 mcg/mL', '2 % = 20 mcg/mL'],
                   segmentedController: dilutionController,
@@ -177,16 +177,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SizedBox(
                   height: 4,
                 ),
-                // Text(
-                //   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus finibus lorem vitae augue tincidunt, at aliquet mauris condimentum. Donec pellentesque tempus dapibus',
-                //   style: TextStyle(fontSize: 14),
-                // ),
+
                 SizedBox(
                   height: 16,
                 ),
                 Container(
                   height: UIHeight + 24,
                   child: PDTextField(
+                      height: UIHeight + 2,
                       prefixIcon: null,
                       labelText: 'Pump Rate (mL/hr)',
                       helperText: '',
@@ -230,7 +228,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   height: 16,
                 ),
                 PDSegmentedControl(
-                  height: 56,
+                  height: UIHeight,
                   fontSize: 16,
                   labels: ['Light', 'Dark', 'Auto'],
                   segmentedController: themeController,

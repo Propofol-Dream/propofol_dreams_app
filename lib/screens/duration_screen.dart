@@ -78,8 +78,8 @@ class _DurationScreenState extends State<DurationScreen> {
     infusionUnitController.val = settings.infusionUnit == InfusionUnit.mg_kg_h
         ? 0
         : settings.infusionUnit == InfusionUnit.mcg_kg_min
-        ? 1
-        : 2;
+            ? 1
+            : 2;
 
     load().then((value) {
       setState(() {});
@@ -294,10 +294,21 @@ class _DurationScreenState extends State<DurationScreen> {
     final settings = context.watch<Settings>();
 
     final mediaQuery = MediaQuery.of(context);
-    final UIHeight =
-        mediaQuery.size.width / mediaQuery.size.height >= 0.455 ? 56 : 48;
-    final double UIWidth =
-        (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
+    final double UIHeight = mediaQuery.size.aspectRatio >= 0.455
+        ? mediaQuery.size.height >= 768
+            ? 56
+            : 48
+        : 48;
+
+    final double screenHeight = mediaQuery.size.height -
+        (Platform.isAndroid
+            ? 48
+            : mediaQuery.size.height >= 768
+                ? 88
+                : 56);
+
+    // final double UIWidth =
+    //     (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
 
     bool weightTextFieldEnabled =
         infusionUnits[infusionUnitController.val] == InfusionUnit.mL_hr
@@ -309,8 +320,7 @@ class _DurationScreenState extends State<DurationScreen> {
     InfusionUnit infusionUnit = infusionUnits[infusionUnitController.val];
 
     return Container(
-      height:
-          MediaQuery.of(context).size.height - (Platform.isAndroid ? 48 : 88),
+      height: screenHeight,
       padding: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
       // decoration: BoxDecoration(
       //   borderRadius: BorderRadius.circular(5),
@@ -320,6 +330,7 @@ class _DurationScreenState extends State<DurationScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           DataTable(
+              // dataRowHeight
               columns: durationColumns,
               rows: isRunnable(
                       weight: weight,
@@ -330,37 +341,45 @@ class _DurationScreenState extends State<DurationScreen> {
           SizedBox(
             height: 16,
           ),
-          PDTextField(
-            labelText: 'Weight (kg)',
-            controller: weightController,
-            fractionDigits: 0,
-            helperText: '',
-            interval: 1,
-            onPressed: updateWeight,
-            enabled: weightTextFieldEnabled,
-            range: [0, 250],
+          Container(
+            height: UIHeight + 24,
+            child: PDTextField(
+              height: UIHeight + 2,
+              labelText: 'Weight (kg)',
+              controller: weightController,
+              fractionDigits: 0,
+              helperText: '',
+              interval: 1,
+              onPressed: updateWeight,
+              enabled: weightTextFieldEnabled,
+              range: [0, 250],
+            ),
           ),
           SizedBox(
             height: 8,
           ),
-          PDTextField(
-            labelText: 'Infusion Rate (${[
-              InfusionUnit.mg_kg_h.toString(),
-              InfusionUnit.mcg_kg_min.toString(),
-              InfusionUnit.mL_hr.toString()
-            ][infusionUnitController.val]})',
-            controller: infusionRateController,
-            fractionDigits: 1,
-            helperText: '',
-            interval: 0.5,
-            onPressed: updateInfusionRate,
-            range: [1, 1000],
+          Container(
+            height: UIHeight + 24,
+            child: PDTextField(
+              height: UIHeight + 2,
+              labelText: 'Infusion Rate (${[
+                InfusionUnit.mg_kg_h.toString(),
+                InfusionUnit.mcg_kg_min.toString(),
+                InfusionUnit.mL_hr.toString()
+              ][infusionUnitController.val]})',
+              controller: infusionRateController,
+              fractionDigits: 1,
+              helperText: '',
+              interval: 0.5,
+              onPressed: updateInfusionRate,
+              range: [1, 1000],
+            ),
           ),
           SizedBox(
             height: 8,
           ),
           PDSegmentedControl(
-            height: 56,
+            height: UIHeight,
             fontSize: 14,
             labels: [...infusionUnits.map((e) => e.toString())],
             segmentedController: infusionUnitController,

@@ -44,15 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }else{
       settings.currentScreenIndex = 0;
     }
-
     currenIndex = settings.currentScreenIndex;
-
-
   }
-
-
-
-
 
   @override
   Widget build(BuildContext context) {

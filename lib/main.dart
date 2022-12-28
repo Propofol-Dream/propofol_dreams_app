@@ -86,7 +86,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    load();
+    load().then((value) {
+      setState(() {
+      });
+    });
 
     // var settings = context.read<Settings>();
     // print('settings: ${settings.isDarkTheme}');
@@ -100,34 +103,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  // @override
-  // didChangeDependencies() {
-  //   // loadSharedPref();
-  // }
-
-  // void loadSharedPref() async {
-  //   print('loadSharedPref');
-  //   var setting = context.watch<Settings>();
-  //   var pref = await SharedPreferences.getInstance();
-  //   print('pref: ${pref.getBool('isDarkTheme')}');
-  //   setting.isDarkTheme = pref.getBool('isDarkTheme') ?? false;
-  //   print('setting: ${setting.isDarkTheme}');
-  // }
-
-  // void saveSharedPref() async {
-  //   var setting = Provider.of<Settings>(context, listen: false);
-  //   var pref = await SharedPreferences.getInstance();
-  //   print('pref: ${pref.getBool('isDarkTheme')}');
-  //   pref.setBool('isDarkTheme', setting.isDarkTheme);
-  //   print('setting: ${setting.isDarkTheme}');
-  // }
 
   Future<void> load() async {
     var pref = await SharedPreferences.getInstance();
     final settings = context.read<Settings>();
 
     if (pref.containsKey('themeMode')) {
-      // var settings = context.read<Settings>();
 
       String? themeMode = pref.getString('themeMode');
       switch (themeMode) {
@@ -151,7 +132,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
         default:
           {
-            settings.themeModeSelection = ThemeMode.light;
+            settings.themeModeSelection = ThemeMode.system;
           }
           break;
       }

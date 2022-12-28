@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' show Platform;
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -77,7 +78,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     if (settings.inAdultView) {
       adultModelController.selection = settings.adultModel;
       genderController.val =
-      settings.adultGender == Gender.Female ? true : false;
+          settings.adultGender == Gender.Female ? true : false;
       ageController.text = settings.adultAge.toString();
 
       heightController.text = settings.adultHeight.toString();
@@ -87,7 +88,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     } else {
       pediatricModelController.selection = settings.pediatricModel;
       genderController.val =
-      settings.pediatricGender == Gender.Female ? true : false;
+          settings.pediatricGender == Gender.Female ? true : false;
       ageController.text = settings.pediatricAge.toString();
       heightController.text = settings.pediatricHeight.toString();
       weightController.text = settings.pediatricWeight.toString();
@@ -96,8 +97,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     }
 
     load().then((value) {
-      setState(() {
-      });
+      setState(() {});
     });
 
     super.initState();
@@ -333,7 +333,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     }
 
     //if duration is greater than 5 mins, add extra row for the 5th mins
-    if (durationPlusInterval - 2 * durationInterval > kMinDuration) {
+    if (durationPlusInterval - 2 * durationInterval >= kMinDuration) {
       int index = durations.indexWhere((element) {
         if ((element as Duration).inSeconds == kMinDuration * 60) {
           return true;
@@ -341,10 +341,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
         return false;
       });
 
-      resultDuration.add(durations[index].inMinutes.toString());
-      resultsCol1.add('${col1[index].toStringAsFixed(numOfDigits)} mL');
-      resultsCol2.add('${col2[index].toStringAsFixed(numOfDigits)} mL');
-      resultsCol3.add('${col3[index].toStringAsFixed(numOfDigits)} mL');
+      if(!resultDuration.contains(kMinDuration.toString())) {
+        resultDuration.add(durations[index].inMinutes.toString());
+        resultsCol1.add('${col1[index].toStringAsFixed(numOfDigits)} mL');
+        resultsCol2.add('${col2[index].toStringAsFixed(numOfDigits)} mL');
+        resultsCol3.add('${col3[index].toStringAsFixed(numOfDigits)} mL');
+      }
     }
 
     List resultRows = [];
@@ -409,8 +411,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
           weight >= 0 &&
           depth >= 0 &&
           duration >= 0) {
-
-        Model model  = age >= 17 ? settings.adultModel : settings.pediatricModel;
+        Model model = age >= 17 ? settings.adultModel : settings.pediatricModel;
 
         if (model != Model.None) {
           // print('model != Model.None');
@@ -465,18 +466,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
               DateTime finish = DateTime.now();
 
               Duration calculationDuration = finish.difference(start);
-              // print({'duration': calculationDuration.toString()});
-
-              // print({
-              //   'model': model,
-              //   'age': age,
-              //   'height': height,
-              //   'weight': weight,
-              //   'depth': depth,
-              //   'duration': duration,
-              //   'calcuation time':
-              //       '${calculationDuration.inMilliseconds.toString()} milliseconds'
-              // });
 
               print({
                 'model': model,
@@ -664,10 +653,20 @@ class _VolumeScreenState extends State<VolumeScreen> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
 
-    final double UIHeight =
-        mediaQuery.size.width / mediaQuery.size.height >= 0.455 ? 56 : 48;
+    final double UIHeight = mediaQuery.size.aspectRatio >= 0.455
+        ? mediaQuery.size.height >= 768
+            ? 56
+            : 48
+        : 48;
     final double UIWidth =
         (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
+
+    final double screenHeight = mediaQuery.size.height -
+        (Platform.isAndroid
+            ? 48
+            : mediaQuery.size.height >= 768
+                ? 88
+                : 56);
 
     final settings = context.watch<Settings>();
 
@@ -705,7 +704,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         adultModelController.selection == Model.Marsh);
 
     return Container(
-      height: mediaQuery.size.height - (Platform.isAndroid ? 48 : 88),
+      height: screenHeight,
       margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -764,14 +763,16 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton(
-                        onPressed: () async {
-                          await HapticFeedback.mediumImpact();
-                          updatePDTableController(tableController);
-                        },
-                        icon: tableController.val
-                            ? Icon(Icons.expand_more)
-                            : Icon(Icons.expand_less)),
+                    mediaQuery.size.height >= 768
+                        ? IconButton(
+                            onPressed: () async {
+                              await HapticFeedback.mediumImpact();
+                              updatePDTableController(tableController);
+                            },
+                            icon: tableController.val
+                                ? Icon(Icons.expand_more)
+                                : Icon(Icons.expand_less))
+                        : Container(),
                     Text(
                       modelIsRunnable ? result : emptyResult,
                       style: TextStyle(
@@ -784,26 +785,31 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ],
             ),
           ),
-          Container(
-            child: PDTable(
-              colHeaderIcon: Icon(Icons.psychology_outlined),
-              colHeaderLabels: modelIsRunnable
-                  ? [
-                      (depth! - depthInterval) >= 0
-                          ? (depth - depthInterval).toStringAsFixed(1)
-                          : 0.toStringAsFixed(1),
-                      (depth).toStringAsFixed(1),
-                      (depth + depthInterval).toStringAsFixed(1)
-                    ]
-                  : ['--', '--', '--'],
-              rowHeaderIcon: Icon(Icons.schedule),
-              rowLabels: modelIsRunnable ? PDTableRows : EmptyTableRows,
-              tableController: tableController,
-              // scrollController: scrollController,
-              tableLabel: 'Confidence\nInterval',
-              highlightLabel: result,
-            ),
-          ),
+          mediaQuery.size.height >= 768
+              ? Container(
+                  child: PDTable(
+                    showRowNumbers: mediaQuery.size.height >= 992 ? min(PDTableRows.length,5) : 3,
+                    colHeaderIcon: Icon(Icons.psychology_outlined),
+                    colHeaderLabels: modelIsRunnable
+                        ? [
+                            (depth! - depthInterval) >= 0
+                                ? (depth - depthInterval).toStringAsFixed(1)
+                                : 0.toStringAsFixed(1),
+                            (depth).toStringAsFixed(1),
+                            (depth + depthInterval).toStringAsFixed(1)
+                          ]
+                        : ['--', '--', '--'],
+                    rowHeaderIcon: Icon(Icons.schedule),
+                    rowLabels: modelIsRunnable ? PDTableRows : EmptyTableRows,
+                    tableController: tableController,
+                    // scrollController: scrollController,
+                    tableLabel: 'Confidence\nInterval',
+                    highlightLabel: result,
+                  ),
+                )
+              : SizedBox(
+                  height: 0,
+                ),
           const SizedBox(
             height: 32,
           ),
@@ -880,6 +886,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Container(
                   width: UIWidth,
                   child: PDTextField(
+                    height: UIHeight + 2,
                     prefixIcon: Icons.calendar_month,
                     labelText: 'Age',
                     helperText: '',
@@ -909,6 +916,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Container(
                   width: UIWidth,
                   child: PDTextField(
+                    height: UIHeight + 2,
                     prefixIcon: Icons.straighten,
                     labelText: 'Height (cm)',
                     helperText: '',
@@ -928,6 +936,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Container(
                   width: UIWidth,
                   child: PDTextField(
+                    height: UIHeight + 2,
                     prefixIcon: Icons.monitor_weight_outlined,
                     labelText: 'Weight (kg)',
                     helperText: '',
@@ -955,6 +964,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Container(
                   width: UIWidth,
                   child: PDTextField(
+                    height: UIHeight + 2,
                     prefixIcon: Icons.psychology_outlined,
                     // labelText: 'Depth in mcg/mL',
                     labelText: '${selectedModel.target.toString()}',
@@ -974,6 +984,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Container(
                   width: UIWidth,
                   child: PDTextField(
+                    height: UIHeight + 2,
                     prefixIcon: Icons.schedule,
                     // labelText: 'Duration in minutes',
                     labelText: 'Duration (mins)',
