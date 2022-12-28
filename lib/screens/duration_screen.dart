@@ -26,7 +26,8 @@ class _DurationScreenState extends State<DurationScreen> {
   final TextEditingController weightController = TextEditingController();
   final TextEditingController infusionRateController = TextEditingController();
   final PDSegmentedController infusionUnitController = PDSegmentedController();
-  final PDTableController tableController = PDTableController();
+
+  // final PDTableController tableController = PDTableController();
 
   List<DataColumn> durationColumns = [
     DataColumn(
@@ -70,8 +71,20 @@ class _DurationScreenState extends State<DurationScreen> {
 
   @override
   void initState() {
-    load();
-    // run();
+    var settings = context.read<Settings>();
+
+    weightController.text = settings.weight.toString();
+    infusionRateController.text = settings.infusionRate!.toStringAsFixed(1);
+    infusionUnitController.val = settings.infusionUnit == InfusionUnit.mg_kg_h
+        ? 0
+        : settings.infusionUnit == InfusionUnit.mcg_kg_min
+        ? 1
+        : 2;
+
+    load().then((value) {
+      setState(() {});
+    });
+
     super.initState();
   }
 
@@ -81,20 +94,18 @@ class _DurationScreenState extends State<DurationScreen> {
 
     if (pref.containsKey('weight')) {
       settings.weight = pref.getInt('weight')!;
-      weightController.text = settings.weight.toString();
     } else {
       settings.weight = 70;
-      weightController.text = settings.weight.toString();
     }
+    weightController.text = settings.weight.toString();
 
     if (pref.containsKey('infusionRate')) {
       settings.infusionRate = pref.getDouble('infusionRate')!;
-      infusionRateController.text = settings.infusionRate!.toStringAsFixed(1);
     } else {
       //max_pump_rate cannot be null
       settings.infusionRate = 10.0;
-      infusionRateController.text = settings.infusionRate!.toStringAsFixed(1);
     }
+    infusionRateController.text = settings.infusionRate!.toStringAsFixed(1);
 
     if (pref.containsKey('infusionUnit')) {
       String? infusionUnit = pref.getString('infusionUnit');
@@ -102,33 +113,40 @@ class _DurationScreenState extends State<DurationScreen> {
       switch (infusionUnit) {
         case 'mg/kg/h':
           {
-            infusionUnitController.val = 0;
+            settings.infusionUnit = InfusionUnit.mg_kg_h;
+            // infusionUnitController.val = 0;
           }
           break;
 
         case 'mcg/kg/min':
           {
-            infusionUnitController.val = 1;
+            settings.infusionUnit = InfusionUnit.mcg_kg_min;
+            // infusionUnitController.val = 1;
           }
           break;
 
         case 'mL/hr':
           {
-            infusionUnitController.val = 2;
+            settings.infusionUnit = InfusionUnit.mL_hr;
+            // infusionUnitController.val = 2;
           }
           break;
 
         default:
           {
-            infusionUnitController.val = 0;
+            settings.infusionUnit = InfusionUnit.mg_kg_h;
+            // infusionUnitController.val = 0;
           }
           break;
       }
-      settings.infusionUnit = infusionUnits[infusionUnitController.val];
     } else {
-      infusionUnitController.val = 0;
-      settings.infusionUnit = infusionUnits[infusionUnitController.val];
+      settings.infusionUnit = InfusionUnit.mg_kg_h;
     }
+    infusionUnitController.val = settings.infusionUnit == InfusionUnit.mg_kg_h
+        ? 0
+        : settings.infusionUnit == InfusionUnit.mcg_kg_min
+            ? 1
+            : 2;
 
     run();
   }
@@ -184,7 +202,11 @@ class _DurationScreenState extends State<DurationScreen> {
     int? weight = int.tryParse(weightController.text);
     double? infusionRate = double.tryParse(infusionRateController.text);
     if (previous != current && weight != null && infusionRate != null) {
-      settings.infusionRate = convertInfusionRate(weight: weight, infusionRate: infusionRate, previous: previous, current: current);
+      settings.infusionRate = convertInfusionRate(
+          weight: weight,
+          infusionRate: infusionRate,
+          previous: previous,
+          current: current);
       infusionRateController.text = settings.infusionRate!.toStringAsFixed(1);
     }
 
@@ -226,7 +248,7 @@ class _DurationScreenState extends State<DurationScreen> {
         infusionRate: infusionRate,
         infusionUnit: infusionUnit)) {
       var settings = context.read<Settings>();
-      durationRows=[];
+      durationRows = [];
       List<DataRow> durations = [];
 
       for (int i = 60; i >= 10; i -= 10) {

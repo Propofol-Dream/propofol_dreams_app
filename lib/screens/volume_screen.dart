@@ -72,13 +72,33 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
   @override
   void initState() {
-    load();
+    var settings = context.read<Settings>();
 
-    // ageController.text = 40.toString();
-    // heightController.text = 170.toString();
-    // weightController.text = 70.toString();
-    // depthController.text = 3.0.toString();
-    // durationController.text = 60.toString();
+    if (settings.inAdultView) {
+      adultModelController.selection = settings.adultModel;
+      genderController.val =
+      settings.adultGender == Gender.Female ? true : false;
+      ageController.text = settings.adultAge.toString();
+
+      heightController.text = settings.adultHeight.toString();
+      weightController.text = settings.adultWeight.toString();
+      depthController.text = settings.adultDepth.toString();
+      durationController.text = settings.adultDuration.toString();
+    } else {
+      pediatricModelController.selection = settings.pediatricModel;
+      genderController.val =
+      settings.pediatricGender == Gender.Female ? true : false;
+      ageController.text = settings.pediatricAge.toString();
+      heightController.text = settings.pediatricHeight.toString();
+      weightController.text = settings.pediatricWeight.toString();
+      depthController.text = settings.pediatricDepth.toString();
+      durationController.text = settings.pediatricDuration.toString();
+    }
+
+    load().then((value) {
+      setState(() {
+      });
+    });
 
     super.initState();
     // });

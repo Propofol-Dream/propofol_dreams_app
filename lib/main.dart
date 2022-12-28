@@ -124,11 +124,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   Future<void> load() async {
     var pref = await SharedPreferences.getInstance();
-    // final settings = context.read<Settings>();
+    final settings = context.read<Settings>();
 
     if (pref.containsKey('themeMode')) {
+      // var settings = context.read<Settings>();
 
-      var settings = Provider.of<Settings>(context, listen: false);
       String? themeMode = pref.getString('themeMode');
       switch (themeMode) {
         case 'ThemeMode.light':
@@ -162,6 +162,21 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final settings = context.watch<Settings>();
 
+    // return FutureBuilder(
+    //   future: Provider.of<Settings>(context).load(),
+    //   builder: (context, snapshot) {
+    //     if (snapshot.connectionState == ConnectionState.done) {
+    //       return MaterialApp(
+    //         debugShowCheckedModeBanner: false,
+    //         title: 'Propofol Dreams',
+    //         home: ,
+    //       )
+    //     } else {
+    //       return CircularProgressIndicator();
+    //     }
+    //   },
+    // );
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Propofol Dreams',
@@ -173,7 +188,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       ),
       darkTheme: ThemeData.dark().copyWith(
         chipTheme:
-            ChipThemeData(labelStyle: TextStyle(color: Color(0xffE0E3DF))),
+        ChipThemeData(labelStyle: TextStyle(color: Color(0xffE0E3DF))),
         colorScheme: ColorScheme.fromSwatch().copyWith(
           primary: Color(0xff66DBB2),
           onPrimary: Color(0xff003828),
@@ -189,5 +204,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       themeMode: settings.themeModeSelection,
       home: const HomeScreen(),
     );
+
   }
 }

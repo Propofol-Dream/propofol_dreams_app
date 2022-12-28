@@ -17,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-   int currenIndex = 0;
+   int currenIndex = 1;
   final screens = [
     VolumeScreen(),
     DurationScreen(),

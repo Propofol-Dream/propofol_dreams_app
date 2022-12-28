@@ -71,9 +71,9 @@ class Settings with ChangeNotifier {
   //   // print('settings.isDarkTheme: ${pref.getBool("isDarkTheme")}');
   //   print('pref: ${pref.getInt('adultWeight')}');
   //   print('settings.adultWeight: ${adultWeight}');
-  //   _adultWeight = pref.getInt('adultWeight') ?? 70;
+  //   // adultWeight = pref.getInt('adultWeight') ?? 70;
   //   print('settings.adultWeight: ${adultWeight}');
-  //   notifyListeners();
+  //   // notifyListeners();
   // }
 
   // Future<void> save() async {
@@ -117,9 +117,12 @@ class Settings with ChangeNotifier {
   }
 
   void set max_pump_rate(int i) {
-    _max_pump_rate = i;
-    setInt('max_pump_rate', i);
-    notifyListeners();
+    // print('set max_pump_rate to ${i}');
+    // if(max_pump_rate != i) {
+      _max_pump_rate = i;
+      setInt('max_pump_rate', i);
+      notifyListeners();
+    // }
   }
 
   Model _adultModel = Model.None;
@@ -175,9 +178,13 @@ class Settings with ChangeNotifier {
   }
 
   void set adultWeight(int? i) {
-    _adultWeight = i;
-    setInt('adultWeight', i);
-    notifyListeners();
+    // print(i);
+    // if (_adultWeight != i) {
+      _adultWeight = i;
+      setInt('adultWeight', i);
+      // print('weight setInt');
+      notifyListeners();
+    // }
   }
 
   double? get adultDepth {
@@ -301,8 +308,6 @@ class Settings with ChangeNotifier {
     setBool('isVolumeTableExpanded', b);
     notifyListeners();
   }
-
-
 
   int? _weight;
 

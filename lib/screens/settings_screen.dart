@@ -23,7 +23,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void initState() {
-    load();
+    final settings = context.read<Settings>();
+    dilutionController.val = settings.dilution == 10 ? 0 : 1;
+    pumpController.text = settings.max_pump_rate.toString();
+    themeController.val = settings.themeModeSelection == ThemeMode.light
+        ? 0
+        : settings.themeModeSelection == ThemeMode.dark
+            ? 1
+            : 2;
+
+    load().then((value) {
+      setState(() {});
+    });
     super.initState();
   }
 
@@ -33,58 +44,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (pref.containsKey('dilution')) {
       settings.dilution = pref.getInt('dilution')!;
-      dilutionController.val = settings.dilution == 10 ? 0 : 1;
     } else {
       settings.dilution = 10;
-      dilutionController.val = 0;
     }
+    dilutionController.val = settings.dilution == 10 ? 0 : 1;
 
     if (pref.containsKey('max_pump_rate')) {
       settings.max_pump_rate = pref.getInt('max_pump_rate')!;
-      pumpController.text = settings.max_pump_rate.toString();
     } else {
       settings.max_pump_rate = 750;
-      pumpController.text = settings.max_pump_rate.toString();
     }
+    pumpController.text = settings.max_pump_rate.toString();
 
     if (pref.containsKey('themeMode')) {
       String? themeMode = pref.getString('themeMode');
       switch (themeMode) {
         case 'ThemeMode.light':
           {
-            // settings.themeModeSelection = ThemeMode.light;
-            themeController.val = 0;
+            settings.themeModeSelection = ThemeMode.light;
+            // themeController.val = 0;
           }
           break;
 
         case 'ThemeMode.dark':
           {
-            // settings.themeModeSelection = ThemeMode.dark;
-            themeController.val = 1;
+            settings.themeModeSelection = ThemeMode.dark;
+            // themeController.val = 1;
           }
           break;
 
         case 'ThemeMode.system':
           {
-            // settings.themeModeSelection = ThemeMode.system;
-            themeController.val = 2;
+            settings.themeModeSelection = ThemeMode.system;
           }
           break;
 
         default:
           {
-            // settings.themeModeSelection = ThemeMode.light;
-            themeController.val = 0;
+            settings.themeModeSelection = ThemeMode.system;
+
           }
           break;
       }
     } else {
-      themeController.val = 0;
+      settings.themeModeSelection = ThemeMode.system;
     }
+
+    themeController.val = settings.themeModeSelection == ThemeMode.light
+        ? 0
+        : settings.themeModeSelection == ThemeMode.dark
+        ? 1
+        : 2;
   }
 
   @override
   Widget build(BuildContext context) {
+    // print('settings screen build');
+
+
     var mediaQuery = MediaQuery.of(context);
     // var screenWidth = mediaQuery.size.width;
 
