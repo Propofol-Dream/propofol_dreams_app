@@ -27,16 +27,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    load();
+    final settings = context.read<Settings>();
+    currenIndex = settings.currentScreenIndex;
+    load().then((value) {
+      setState(() {
+      });
+    });
     super.initState();
   }
 
   Future<void> load() async {
+    final settings = context.read<Settings>();
     var pref = await SharedPreferences.getInstance();
     if (pref.containsKey('currentScreenIndex')) {
-      final settings = context.read<Settings>();
-      currenIndex = settings.currentScreenIndex = pref.getInt('currentScreenIndex')!;
+      settings.currentScreenIndex = pref.getInt('currentScreenIndex')!;
+    }else{
+      settings.currentScreenIndex = 0;
     }
+
+    currenIndex = settings.currentScreenIndex;
+
+
   }
 
 
