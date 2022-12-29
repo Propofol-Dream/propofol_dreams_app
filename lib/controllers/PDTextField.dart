@@ -105,7 +105,7 @@ class _PDTextFieldState extends State<PDTextField> {
                       ? isWithinRange
                           ? null
                           : 'min: ${widget.range[0]} and max: ${widget.range[1]}'
-                      : 'Please enter a value numeric'
+                      : 'Please enter a value'
               : '',
           errorStyle: TextStyle(color: Theme.of(context).colorScheme.error),
           prefixIcon: Icon(
