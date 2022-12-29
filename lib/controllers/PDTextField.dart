@@ -62,13 +62,16 @@ class _PDTextFieldState extends State<PDTextField> {
     double suffixIconConstraintsWidth = 84;
     double suffixIconConstraintsHeight = widget.height ?? 56;
 
-    var val = widget.fractionDigits > 0
+    var val =     widget.fractionDigits > 0
         ? double.tryParse(widget.controller.text)
         : int.tryParse(widget.controller.text);
+    // double.tryParse(widget.controller.text);
+
 
     bool isWithinRange =
         val != null ? val >= widget.range[0] && val <= widget.range[1] : false;
     bool isNumeric = widget.controller.text.isEmpty ? false : val != null;
+
 
     return Stack(alignment: Alignment.topRight, children: [
       TextField(
@@ -102,7 +105,7 @@ class _PDTextFieldState extends State<PDTextField> {
                       ? isWithinRange
                           ? null
                           : 'min: ${widget.range[0]} and max: ${widget.range[1]}'
-                      : 'Please enter a value'
+                      : 'Please enter a value numeric'
               : '',
           errorStyle: TextStyle(color: Theme.of(context).colorScheme.error),
           prefixIcon: Icon(

@@ -69,4 +69,9 @@ const double kMaxDepth = 10;
 const int kMinDuration = 5; //5 mins
 const int kMaxDuration = 600; //600mins
 
+const int screenBreakPoint1 = 704; //768 previoulsy
+const int screenBreakPoint2 = 992; //768 previoulsy
+
+
+
 

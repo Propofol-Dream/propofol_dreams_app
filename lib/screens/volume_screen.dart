@@ -341,7 +341,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         return false;
       });
 
-      if(!resultDuration.contains(kMinDuration.toString())) {
+      if (!resultDuration.contains(kMinDuration.toString())) {
         resultDuration.add(durations[index].inMinutes.toString());
         resultsCol1.add('${col1[index].toStringAsFixed(numOfDigits)} mL');
         resultsCol2.add('${col2[index].toStringAsFixed(numOfDigits)} mL');
@@ -653,8 +653,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
 
+    // print(mediaQuery.size.height);
+
     final double UIHeight = mediaQuery.size.aspectRatio >= 0.455
-        ? mediaQuery.size.height >= 768
+        ? mediaQuery.size.height >= screenBreakPoint1
             ? 56
             : 48
         : 48;
@@ -664,7 +666,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     final double screenHeight = mediaQuery.size.height -
         (Platform.isAndroid
             ? 48
-            : mediaQuery.size.height >= 768
+            : mediaQuery.size.height >= screenBreakPoint1
                 ? 88
                 : 56);
 
@@ -763,7 +765,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    mediaQuery.size.height >= 768
+                    mediaQuery.size.height >= screenBreakPoint1
                         ? IconButton(
                             onPressed: () async {
                               await HapticFeedback.mediumImpact();
@@ -785,10 +787,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ],
             ),
           ),
-          mediaQuery.size.height >= 768
+          mediaQuery.size.height >= screenBreakPoint1
               ? Container(
                   child: PDTable(
-                    showRowNumbers: mediaQuery.size.height >= 992 ? min(PDTableRows.length,5) : 3,
+                    showRowNumbers: mediaQuery.size.height >= screenBreakPoint2
+                        ? min(PDTableRows.length, 5)
+                        : 3,
                     colHeaderIcon: Icon(Icons.psychology_outlined),
                     colHeaderLabels: modelIsRunnable
                         ? [
@@ -1068,134 +1072,134 @@ class _PDTableState extends State<PDTable> {
         ((mediaQuery.size.width - horizontalSidesPaddingPixel * 2) /
             (widget.colHeaderLabels.length + 1));
 
+    var tableHeight = (20 + PDTableRowHeight) *
+        (widget.showRowNumbers! > 0 ? widget.showRowNumbers! + 1 : 3 + 1);
+
+    var rowsHeight = (20 + PDTableRowHeight) *
+            ((widget.showRowNumbers! > 0) ? widget.showRowNumbers! : 3) -
+        19;
+
     return AnimatedContainer(
       duration: Duration(milliseconds: 1),
       // height: widget.controller.val ? (20 + PDTableRowHeight) * 4 - 19 :0,
       constraints: BoxConstraints(
-        maxHeight: widget.tableController.val
-            ? (20 + PDTableRowHeight) *
-                (widget.showRowNumbers != null
-                    ? widget.showRowNumbers! + 1
-                    : 3 + 1)
-            : 0,
+        maxHeight: widget.tableController.val ? tableHeight : 0,
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          //This is the header row
-          Container(
-            height: PDTableRowHeight,
-            width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
-            child: Row(
-              children: [
-                Container(
-                  width: headerColWidth,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      widget.tableLabel,
-                      style: TextStyle(fontSize: 10),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            //This is the header row
+            Container(
+              height: PDTableRowHeight,
+              width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
+              child: Row(
+                children: [
+                  Container(
+                    width: headerColWidth,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        widget.tableLabel,
+                        style: TextStyle(fontSize: 10),
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  child: ListView.builder(
-                    // controller: widget.scrollController,
-                    shrinkWrap: true,
-                    scrollDirection: Axis.horizontal,
-                    itemCount: widget.colHeaderLabels.length,
-                    itemBuilder: (buildContext, buildIndex) {
-                      return Container(
-                        width: headerColWidth,
-                        child: Align(
-                          child: PDIcon(
-                            icon: widget.colHeaderIcon,
-                            text: Text(widget.colHeaderLabels[buildIndex]),
+                  Container(
+                    child: ListView.builder(
+                      // controller: widget.scrollController,
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: widget.colHeaderLabels.length,
+                      itemBuilder: (buildContext, buildIndex) {
+                        return Container(
+                          width: headerColWidth,
+                          child: Align(
+                            child: PDIcon(
+                              icon: widget.colHeaderIcon,
+                              text: Text(widget.colHeaderLabels[buildIndex]),
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Divider(
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          Container(
-            height: (20 + PDTableRowHeight) *
-                    ((widget.showRowNumbers != null)
-                        ? widget.showRowNumbers!
-                        : 3) -
-                19,
-            child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: widget.rowLabels.length,
-                itemBuilder: (buildContext, buildIndexOutter) {
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Container(
-                        height: PDTableRowHeight,
-                        child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount:
-                                widget.rowLabels[buildIndexOutter].length,
-                            itemBuilder: (buildContext, buildIndexInner) {
-                              return Container(
-                                width: rowColWidth,
-                                alignment: buildIndexInner == 0
-                                    ? Alignment.centerLeft
-                                    : Alignment.center,
-                                child: buildIndexInner == 0
-                                    ? PDIcon(
-                                        icon: widget.rowHeaderIcon,
-                                        text: Text(
-                                            widget.rowLabels[buildIndexOutter]
-                                                [buildIndexInner]),
-                                      )
-                                    : (widget.highlightLabel ==
-                                                widget.rowLabels[
-                                                        buildIndexOutter]
-                                                    [buildIndexInner]) &&
-                                            (buildIndexInner == 2)
-                                        ? Container(
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 4, horizontal: 8),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(5),
-                                              border: Border.all(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .primary), //TODO: manullay adjust light/dark theme here
-                                            ),
-                                            child: Text(
-                                                widget.rowLabels[
-                                                        buildIndexOutter]
-                                                    [buildIndexInner],
-                                                style: TextStyle(
+            Divider(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            Container(
+              height: rowsHeight,
+              child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  itemCount: widget.rowLabels.length,
+                  itemBuilder: (buildContext, buildIndexOutter) {
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Container(
+                          height: PDTableRowHeight,
+                          child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount:
+                                  widget.rowLabels[buildIndexOutter].length,
+                              itemBuilder: (buildContext, buildIndexInner) {
+                                return Container(
+                                  width: rowColWidth,
+                                  alignment: buildIndexInner == 0
+                                      ? Alignment.centerLeft
+                                      : Alignment.center,
+                                  child: buildIndexInner == 0
+                                      ? PDIcon(
+                                          icon: widget.rowHeaderIcon,
+                                          text: Text(
+                                              widget.rowLabels[buildIndexOutter]
+                                                  [buildIndexInner]),
+                                        )
+                                      : (widget.highlightLabel ==
+                                                  widget.rowLabels[
+                                                          buildIndexOutter]
+                                                      [buildIndexInner]) &&
+                                              (buildIndexInner == 2)
+                                          ? Container(
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 4, horizontal: 8),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                border: Border.all(
                                                     color: Theme.of(context)
                                                         .colorScheme
-                                                        .primary)), //TODO: manullay adjust light/dark theme here
-                                          )
-                                        : Text(
-                                            widget.rowLabels[buildIndexOutter]
-                                                [buildIndexInner]),
-                              );
-                            }),
-                      ),
-                      Divider(
-                        color: Theme.of(context).colorScheme.primary,
-                      )
-                    ],
-                  );
-                }),
-          ),
-        ],
+                                                        .primary), //TODO: manullay adjust light/dark theme here
+                                              ),
+                                              child: Text(
+                                                  widget.rowLabels[
+                                                          buildIndexOutter]
+                                                      [buildIndexInner],
+                                                  style: TextStyle(
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .primary)), //TODO: manullay adjust light/dark theme here
+                                            )
+                                          : Text(
+                                              widget.rowLabels[buildIndexOutter]
+                                                  [buildIndexInner]),
+                                );
+                              }),
+                        ),
+                        Divider(
+                          color: Theme.of(context).colorScheme.primary,
+                        )
+                      ],
+                    );
+                  }),
+            ),
+          ],
+        ),
       ),
     );
   }

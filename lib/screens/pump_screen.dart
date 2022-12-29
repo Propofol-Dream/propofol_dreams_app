@@ -5,7 +5,7 @@ class PumpScreen extends StatelessWidget {
   const PumpScreen({Key? key}) : super(key: key);
 
   _launchURL() async {
-    const url = 'https://propofoldreams.org';
+    const url = 'https://propofoldreams.org/in_app_redirect/';
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);

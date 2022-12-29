@@ -333,7 +333,7 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  InfusionUnit _infusinUnit = InfusionUnit.mg_kg_h;
+  InfusionUnit _infusinUnit = InfusionUnit.mg_kg_hr;
 
   InfusionUnit get infusionUnit {
     return _infusinUnit;

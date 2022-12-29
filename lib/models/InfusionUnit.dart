@@ -1,5 +1,5 @@
 enum InfusionUnit {
-  mg_kg_h(),
+  mg_kg_hr(),
   mcg_kg_min(),
   mL_hr();
 

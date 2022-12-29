@@ -244,12 +244,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     }
                   ],
                 ),
-                ElevatedButton(
-                    onPressed: () async {
-                      var pref = await SharedPreferences.getInstance();
-                      pref.clear();
-                    },
-                    child: Text('Clear'))
+                // ElevatedButton(
+                //     onPressed: () async {
+                //       var pref = await SharedPreferences.getInstance();
+                //       pref.clear();
+                //     },
+                //     child: Text('Clear'))
               ],
             ),
           ],
