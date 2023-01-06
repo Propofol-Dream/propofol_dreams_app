@@ -171,7 +171,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Maxium Pump Rate',
+                  'Maximum Pump Rate',
                   style: TextStyle(fontSize: 16),
                 ),
                 SizedBox(

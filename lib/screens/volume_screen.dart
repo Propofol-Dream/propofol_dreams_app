@@ -446,22 +446,31 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
               Operation operation = Operation(depth: depth, duration: duration);
 
-              PDSim.Simulation sim =
-                  PDSim.Simulation(model: model, patient: patient, pump: pump);
+              Operation operation1 = Operation(
+                  depth: depth - depthInterval,
+                  duration: duration + 2 * durationInterval);
 
-              results1 = sim.estimate(
-                  operation: Operation(
-                      depth: depth - depthInterval,
-                      duration: duration + 2 * durationInterval));
+              Operation operation2 = Operation(
+                  depth: depth, duration: duration + 2 * durationInterval);
 
-              results2 = sim.estimate(
-                  operation: Operation(
-                      depth: depth, duration: duration + 2 * durationInterval));
+              Operation operation3 = Operation(
+                  depth: depth + depthInterval,
+                  duration: duration + 2 * durationInterval);
 
-              results3 = sim.estimate(
-                  operation: Operation(
-                      depth: depth + depthInterval,
-                      duration: duration + 2 * durationInterval));
+              PDSim.Simulation sim1 =
+                  PDSim.Simulation(model: model, patient: patient, pump: pump, operation: operation1);
+
+              PDSim.Simulation sim2 =
+              PDSim.Simulation(model: model, patient: patient, pump: pump, operation: operation2);
+
+              PDSim.Simulation sim3 =
+              PDSim.Simulation(model: model, patient: patient, pump: pump, operation: operation3);
+
+              results1 = sim1.estimate;
+
+              results2 = sim2.estimate;
+
+              results3 = sim3.estimate;
 
               DateTime finish = DateTime.now();
 

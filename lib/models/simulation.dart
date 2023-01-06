@@ -1,5 +1,3 @@
-
-
 import 'dart:math';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
@@ -12,8 +10,9 @@ class Simulation {
   Model model;
   Patient patient;
   Pump pump;
+  Operation operation;
 
-  Simulation({required this.model, required this.patient, required this.pump});
+  Simulation({required this.model, required this.patient, required this.pump, required this.operation});
 
   Map<String, double> get variables {
     double k10 = 0,
@@ -251,7 +250,7 @@ class Simulation {
     return concentrations_effect.reduce(max);
   }
 
-  Map<String, dynamic>  estimate ({required Operation operation}) {
+  Map<String, dynamic> get estimate {
     double max_infusion =
         (pump.dilution * pump.max_pump_rate).toDouble(); // mg per hr
 
@@ -378,4 +377,23 @@ class Simulation {
       'cumulative_infused_volumes': cumulative_infused_volumes
     });
   }
+
+  Map<String, String> toJson(Map<String, dynamic>map){
+    Map<String, String> json = {};
+
+    for (var key in map.keys) {
+      if (!json.containsKey(key)) {
+        String values = '[';
+        for (var val in map[key]){
+          values = values + '\'$val\', ';
+        }
+        values = values.substring(0,values.length-2) +']';
+        // print(values);
+        json['\'${key.toString()}\''] = values;
+      }
+    }
+
+    return(json);
+  }
+
 }

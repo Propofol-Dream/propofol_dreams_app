@@ -6,7 +6,6 @@ import 'package:propofol_dreams_app/models/simulation.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/gender.dart';
 
-
 void main() {
   int cycle = 1;
 
@@ -45,14 +44,22 @@ void main() {
     Duration duration = Duration.zero;
     for (int i = 0; i < cycle; i++) {
       Simulation sim = Simulation(
-        model: Model.Eleveld,
-        patient: Patient(weight: 80, age: 40, height: 170, gender: Gender.Male),
-        pump: Pump(time_step: 5, dilution: 20, max_pump_rate: 1200),
-      );
+          model: Model.Eleveld,
+          patient:
+              Patient(weight: 80, age: 40, height: 170, gender: Gender.Male),
+          pump: Pump(time_step: 5, dilution: 20, max_pump_rate: 1200),
+          operation: Operation(duration: 10, depth: 2.5));
       // sim.estimate(target: 2.5, duration: 5,dilution: 20,max_pump_rate: 1200);
-      sim.estimate(operation: Operation(duration: 10, depth: 2.5));
+      var res = sim.estimate;
+
+      var json = sim.toJson(res);
+      print(json);
+
       // print(res['times'].last);
-      // print(res['cumulative_infused_volumes'].last);
+      // print(res.values);
+      // print(res);
+      // print(sim.toJson(res));
+
       // print(sim.calibrated_effect);
       // print(sim.variables);
     }
