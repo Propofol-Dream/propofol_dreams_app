@@ -440,22 +440,22 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   weight: weight, age: age, height: height, gender: gender);
 
               Pump pump = Pump(
-                  time_step: settings.time_step,
+                  time_step: Duration(seconds: settings.time_step) ,
                   dilution: settings.dilution,
                   max_pump_rate: settings.max_pump_rate);
 
-              Operation operation = Operation(depth: depth, duration: duration);
+              Operation operation = Operation(depth: depth, duration: Duration(minutes:duration )    );
 
               Operation operation1 = Operation(
                   depth: depth - depthInterval,
-                  duration: duration + 2 * durationInterval);
+                  duration: Duration(minutes: duration + 2 * durationInterval));
 
               Operation operation2 = Operation(
-                  depth: depth, duration: duration + 2 * durationInterval);
+                  depth: depth, duration: Duration(minutes: duration + 2 * durationInterval));
 
               Operation operation3 = Operation(
                   depth: depth + depthInterval,
-                  duration: duration + 2 * durationInterval);
+                  duration: Duration(minutes: duration + 2 * durationInterval));
 
               PDSim.Simulation sim1 =
                   PDSim.Simulation(model: model, patient: patient, pump: pump, operation: operation1);

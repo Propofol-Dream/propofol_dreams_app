@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
@@ -12,7 +13,11 @@ class Simulation {
   Pump pump;
   Operation operation;
 
-  Simulation({required this.model, required this.patient, required this.pump, required this.operation});
+  Simulation(
+      {required this.model,
+      required this.patient,
+      required this.pump,
+      required this.operation});
 
   Map<String, double> get variables {
     double k10 = 0,
@@ -181,12 +186,18 @@ class Simulation {
     return cum_sums;
   }
 
-  double get calibrated_effect {
-    int time_step = 1; //sec
-    int duration = 720;
+  Map<String, dynamic> get calibrate {
+    // Pump trialPump = Pump(
+    // time_step: Duration(seconds: 1),
+    //     time_step: pump.time_step,
+    //     dilution: pump.dilution,
+    //     max_pump_rate: pump.max_pump_rate);
+    Operation trialOperation =
+        Operation(depth: 0, duration: Duration(seconds: 720));
+
     double max_infusion = (pump.dilution * pump.max_pump_rate).toDouble();
 
-    int step = 0;
+    Duration time = Duration(seconds: 0);
     double k21 = variables['k21'] as double;
     double k31 = variables['k31'] as double;
     double k10 = variables['k10'] as double;
@@ -204,8 +215,15 @@ class Simulation {
     List<double> concentrations = [];
     List<double> concentrations_effect = [];
 
-    for (int time = 0; time <= duration; time += time_step) {
-      double pump_inf = time < 100 ? max_infusion : 0;
+    double time_step = pump.time_step.inMilliseconds / 1000; //sec
+    int operation_duration = trialOperation.duration.inSeconds;
+
+    double total_step = operation_duration / time_step;
+
+    double steps_to_100_secs = 100 / time_step;
+
+    for (int step = 0; step <= total_step; step += 1) {
+      double pump_inf = step < steps_to_100_secs ? max_infusion : 0;
 
       double A2 = step == 0
           ? 0
@@ -234,8 +252,8 @@ class Simulation {
                   time_step /
                   60;
 
-      times.add(Duration(seconds: time));
       steps.add(step);
+      times.add(time);
       pump_infs.add(pump_inf);
       A1s.add(A1);
       A2s.add(A2);
@@ -243,18 +261,32 @@ class Simulation {
       concentrations.add(concentration);
       concentrations_effect.add(concentration_effect);
 
-      // print(
-      //     '$time | $pump_inf | $A1 | $A2 | $A3 | ${Duration(seconds: time)} | $concentration | $concentration_effect');
-      step = step + 1;
+      time = time + pump.time_step;
     }
-    return concentrations_effect.reduce(max);
+
+    // print(concentrations_effect.reduce(max));
+
+    return ({
+      'steps': steps,
+      'times': times,
+      'pump_infs': pump_infs,
+      'A1s': A1s,
+      'A2s': A2s,
+      'A3s': A3s,
+      'concentrations': concentrations,
+      'concentrations_effect': concentrations_effect,
+      'peak_effect': concentrations_effect.reduce(max)
+    });
+
+    // return concentrations_effect.reduce(max);
   }
 
   Map<String, dynamic> get estimate {
     double max_infusion =
         (pump.dilution * pump.max_pump_rate).toDouble(); // mg per hr
 
-    int step = 0;
+    // int step = 0;
+    Duration time = Duration(seconds: 0);
     double k21 = variables['k21'] as double;
     double k31 = variables['k31'] as double;
     double k10 = variables['k10'] as double;
@@ -280,39 +312,60 @@ class Simulation {
     List<double> A1_changes = [];
     List<double> cumulative_infused_volumes = []; // mL
 
-    for (int time = 0; time <= operation.duration * 60; time += pump.time_step) {
+    double time_step = pump.time_step.inMilliseconds /
+        1000; // this is to allow time_step in milliseconds
+    int operation_duration = operation.duration.inSeconds;
+    double total_step = operation_duration / time_step;
+
+    // print(time_step);
+    // print(operation_duration);
+    // print(total_step);
+
+    for (int step = 0; step <= total_step; step += 1) {
+      //find bolus if time = Duration.zero
+      double? bolus = time == Duration.zero
+          ? pump.bolusSequence != null
+              ? pump.bolusSequence![Duration.zero]
+              : null
+          : null;
+
+      //find manual pump inf
+      double? manual_pump_inf = pump.pumpInfusionSequences != null
+          ? pump.pumpInfusionSequences![time]
+          : null;
+
+      // find manual depth
+      double? manual_depth =
+          pump.depthSequences != null ? pump.depthSequences![time] : null;
+
       double A2 = step == 0
           ? 0
-          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * pump.time_step / 60;
+          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * time_step / 60;
 
       double A3 = step == 0
           ? 0
-          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * pump.time_step / 60;
+          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * time_step / 60;
 
       double concentration_effect = step == 0
           ? 0
           : concentrations_effect.last +
               ke0 *
                   (concentrations.last - concentrations_effect.last) *
-                  pump.time_step /
+                  time_step /
                   60;
 
+      double depth = step == 0 ? operation.depth : manual_depth ?? depths.last;
+
       double overshoot_time = (step == 0
-          ? operation.depth /
-                  calibrated_effect *
-                  100 -
-              1
-          : (operation.depth - depths.last > 0
-              ? (operation.depth - depths.last) /
-                      calibrated_effect *
-                      100 -
-                  1
-              : overshoot_times.last - pump.time_step));
+          ? depth / calibrate['peak_effect'] * 100 - 1
+          : (depth - depths.last > 0
+              ? (depth - depths.last) / calibrate['peak_effect'] * 100 - 1
+              : overshoot_times.last - time_step));
 
       double A1_change = step == 0
           ? 0
           : (A2 * k21 + A3 * k31 - A1s.last * (k10 + k12 + k13)) *
-          pump.time_step /
+              time_step /
               60;
 
       double? inf;
@@ -320,39 +373,56 @@ class Simulation {
       double? A1;
 
       if (model.target == Target.Effect_Site) {
+        // A1 = step == 0
+        //     ? 0
+        //     : (pump_infs.last / 60) * time_step / 60 + A1_change + A1s.last;
+
         A1 = step == 0
-            ? 0
-            : (pump_infs.last / 60) * pump.time_step / 60 + A1_change + A1s.last;
+            ? bolus ?? 0
+            : (pump_infs.last / 60) * time_step / 60 + A1_change + A1s.last;
 
-        inf = 3600 * (operation.depth * V1 - A1_change - A1) / pump.time_step;
+        inf = 3600 * (depth * V1 - A1_change - A1) / time_step;
 
-        pump_inf = (concentration_effect > operation.depth
-            ? 0.0
-            : (overshoot_time > 0.0 ? max_infusion : (inf < 0.0 ? 0.0 : inf)));
+        // pump_inf = (concentration_effect > operation.depth
+        //     ? 0.0
+        //     : (overshoot_time > 0.0 ? max_infusion : (inf < 0.0 ? 0.0 : inf)));
+
+        pump_inf = manual_pump_inf ??
+            ((concentration_effect > depth
+                ? 0.0
+                : (overshoot_time > 0.0
+                    ? max_infusion
+                    : (inf < 0.0 ? 0.0 : inf))));
       } else {
         inf = step == 0
             ? 0
-            : 3600 * (operation.depth * V1 - A1_change - A1s.last) / pump.time_step;
+            : 3600 * (depth * V1 - A1_change - A1s.last) / time_step;
 
-        pump_inf = (step == 0
-            ? inf
-            : (inf > max_infusion ? max_infusion : (inf < 0 ? 0 : inf)));
+        pump_inf = manual_pump_inf ??
+            (step == 0
+                ? inf
+                : (inf > max_infusion ? max_infusion : (inf < 0 ? 0 : inf)));
+
+        // A1 = step == 0
+        //     ? 0
+        //     : (pump_inf / 60) * time_step / 60 + A1_change + A1s.last;
 
         A1 = step == 0
-            ? 0
-            : (pump_inf / 60) * pump.time_step / 60 + A1_change + A1s.last;
+            ? bolus ?? 0
+            : (pump_inf / 60) * time_step / 60 + A1_change + A1s.last;
       }
 
       double concentration = A1 / V1;
 
       double cumulative_infused_volume = step == 0
-          ? pump_inf * pump.time_step / 3600 / pump.dilution
+          ? pump_inf * time_step / 3600 / pump.dilution +
+              (bolus != null ? bolus / pump.dilution : 0)
           : cumulative_infused_volumes.last +
-              pump_inf * pump.time_step / 3600 / pump.dilution;
+              pump_inf * time_step / 3600 / pump.dilution;
 
-      times.add(Duration(seconds: time));
       steps.add(step);
-      depths.add(operation.depth);
+      times.add(time);
+      depths.add(depth);
       overshoot_times.add(overshoot_time);
       infs.add(inf);
       pump_infs.add(pump_inf);
@@ -363,37 +433,63 @@ class Simulation {
       concentrations.add(concentration);
       concentrations_effect.add(concentration_effect);
       cumulative_infused_volumes.add(cumulative_infused_volume);
-
-      // print(
-      //     '$time | ${operation.depth} | ${pump.time_step} | $overshoot_time | $inf | $pump_inf | $A1_change | $A1 | $A2 | $A3 | ${Duration(seconds: time)} | $concentration | $concentration_effect | $cumulative_infused_volume');
-      step = step + 1;
+// print(time);
+      time = time + pump.time_step;
     }
+    // print(times.last);
 
     return ({
+      'steps': steps,
       'times': times,
+      'depth': depths,
+      'overshoot_times': overshoot_times,
+      'infs': infs,
       'pump_infs': pump_infs,
+      'A1_changes': A1_changes,
+      'A1s': A1s,
+      'A2s': A2s,
+      'A3s': A3s,
       'concentrations': concentrations,
       'concentrations_effect': concentrations_effect,
       'cumulative_infused_volumes': cumulative_infused_volumes
     });
   }
 
-  Map<String, String> toJson(Map<String, dynamic>map){
+  Map<String, String> toJson(Map<String, dynamic> map) {
     Map<String, String> json = {};
 
     for (var key in map.keys) {
       if (!json.containsKey(key)) {
         String values = '[';
-        for (var val in map[key]){
+        for (var val in map[key]) {
           values = values + '\'$val\', ';
         }
-        values = values.substring(0,values.length-2) +']';
+        values = values.substring(0, values.length - 2) + ']';
         // print(values);
         json['\'${key.toString()}\''] = values;
       }
     }
-
-    return(json);
+    return (json);
   }
 
+  String toCsv(Map<String, dynamic> map) {
+    String csv = '';
+    int length = 0;
+
+    map.keys.forEach((key) {
+      csv = csv + '$key, ';
+      length = map[key].length;
+    });
+    csv = csv.substring(0, csv.length - 2) + '\n';
+
+    // print(length);
+    for (int i = 0; i < length - 1; i++) {
+      map.keys.forEach((key) {
+        csv = csv + '${map[key][i]}, ';
+      });
+      csv = csv.substring(0, csv.length - 2) + '\n';
+      // print(i);
+    }
+    return csv;
+  }
 }

@@ -1,12 +1,11 @@
 class Operation{
   double depth;
-  int duration;
+  Duration duration;
 
   Operation({required this.depth, required this.duration});
 
   String toString(){
-    return '{depth: $depth, duration: $duration}';
+    return '{depth: $depth, duration: ${duration.toString()}}';
   }
-
 
 }
