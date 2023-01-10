@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'package:propofol_dreams_app/constants.dart';
 
 class Pump {
   Duration time_step;
@@ -38,6 +39,26 @@ class Pump {
         ifAbsent: () => bolus);
   }
 
+  void updateBolusSequence_new({required double bolus}) {
+    bolusSequence ??= <Duration, double>{};
+
+    double durationInDouble =
+        bolus / (kMaxHumanlyPossiblePushRate / 3600 * dilution);
+    double steps = durationInDouble / time_step.inMilliseconds * 1000;
+
+    for (int i = 0; i < steps; i++) {
+      double bolus = steps - i >= 1
+          ? kMaxHumanlyPossiblePushRate.toDouble() * dilution
+          : kMaxHumanlyPossiblePushRate.toDouble() * dilution * (steps - i);
+
+      bolusSequence?.update(
+          Duration(milliseconds: time_step.inMilliseconds * i),
+          (value) => bolus,
+          ifAbsent: () => bolus);
+    }
+    print(bolusSequence);
+  }
+
   bool get isManual {
     return bolusSequence != null ||
         pumpInfusionSequences != null ||
@@ -49,15 +70,15 @@ class Pump {
         '{time step: ${time_step.toString()}, dilution: $dilution, max pump rate: $max_pump_rate';
 
     //TODO add sequence in output
-    if(bolusSequence != null){
+    if (bolusSequence != null) {
       str += ', bolus_sequence: ${bolusSequence![Duration.zero]}';
     }
 
-    if(pumpInfusionSequences != null){
+    if (pumpInfusionSequences != null) {
       str += ', pump_infusion_sequences: under development';
     }
 
-    if(depthSequences != null){
+    if (depthSequences != null) {
       str += ', depth_sequences: under development';
     }
 
