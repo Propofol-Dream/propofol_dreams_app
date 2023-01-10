@@ -197,19 +197,20 @@ class Trial {
 
       if (proposedPumpInfusion != null) {
         List<double> proposedPumpInfusions = proposeInjection(
-            injection: proposedPumpInfusion, interval: 5, last: 3);
+            injection: proposedPumpInfusion, interval: 10, last: 3);
         for (int j = 0; j < proposedPumpInfusions.length; j++) {
           Pump p = manualPump();
           p.updatePumpInfusionSequence(
               start: start, end: end, pumpInfusion: proposedPumpInfusions[j]);
-          Map<String, dynamic> proposed =
-              estimate(manualPump: p, duration: end);
+          Map<String, dynamic> proposed = estimateChunk(
+              alternativeEstimate: estimate(manualPump: p, duration: end),
+              start: start,
+              end: end);
 
           Map<String, dynamic> result = {
             'pump_infusion': proposedPumpInfusions[j]
           };
           result.addAll(compare(baseline: baseline, proposed: proposed));
-
           results.add(result);
         }
       }
@@ -238,7 +239,7 @@ class Trial {
     }
 
     for (int i = 0; i < tmpBaseline.length - 1; i++) {
-      double deviation = (tmpBaseline[i] - tmpProposed[i]) *
+      double deviation = (tmpProposed[i] - tmpBaseline[i]) *
           simulation.pump.time_step.inMilliseconds /
           1000;
       deviations.add(deviation);
