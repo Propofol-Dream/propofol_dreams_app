@@ -90,11 +90,11 @@ void main() {
         Patient(weight: 75, age: 20, height: 170, gender: Gender.Male);
 
     Pump pump = Pump(
-        time_step: Duration(seconds: 1), dilution: 10, max_pump_rate: 10000);
+        time_step: Duration(milliseconds: 100), dilution: 10, max_pump_rate: 10000);
 
     Operation operation = Operation(
       depth: 3,
-      duration: Duration(minutes:15),
+      duration: Duration(seconds:30),
     );
 
     pump.updateBolusSequence(bolus: 120);
@@ -110,4 +110,8 @@ void main() {
     final filename = '/Users/eddy/Documents/output.csv';
     var file = await File(filename).writeAsString(sim.toCsv(sim.estimate));
   });
+
+
+
+
 }

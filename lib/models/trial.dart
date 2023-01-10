@@ -29,7 +29,7 @@ class Trial {
         depthSequences: depthSequences);
   }
 
-  Map<String, dynamic> estimate(
+  Map<String, List> estimate(
       {Pump? manualPump, required Duration duration}) {
     Operation trialOperation =
         Operation(depth: simulation.operation.depth, duration: duration);
@@ -101,7 +101,7 @@ class Trial {
     // } else {
     //   return baseline['cumulative_infused_volumes'][index];
     // }
-    return estimate(duration: duration)['cumulative_infused_volumes'].last;
+    return estimate(duration: duration)['cumulative_infused_volumes']?.last;
   }
 
   //pump infusion is in mg/hr
@@ -266,13 +266,13 @@ class Trial {
     };
   }
 
-  Map<String, dynamic> estimateChunk(
-      {Map<String, dynamic>? alternativeEstimate,
+  Map<String, List> estimateChunk(
+      {Map<String, List>? alternativeEstimate,
       required Duration start,
       required Duration end}) {
     var estimates = alternativeEstimate ?? estimate(duration: end);
 
-    List<Duration> times = estimates['times'];
+    List<Duration> times = estimates['times'] as List<Duration>;
     int i = times.indexOf(start);
 
     estimates.values.forEach((v) {

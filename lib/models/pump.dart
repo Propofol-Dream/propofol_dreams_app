@@ -56,7 +56,7 @@ class Pump {
           (value) => bolus,
           ifAbsent: () => bolus);
     }
-    print(bolusSequence);
+
   }
 
   bool get isManual {

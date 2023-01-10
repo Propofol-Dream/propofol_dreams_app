@@ -281,7 +281,7 @@ class Simulation {
     // return concentrations_effect.reduce(max);
   }
 
-  Map<String, dynamic> get estimate {
+  Map<String, List> get estimate {
     double max_infusion =
         (pump.dilution * pump.max_pump_rate).toDouble(); // mg per hr
 
@@ -323,6 +323,7 @@ class Simulation {
 
     for (int step = 0; step <= total_step; step += 1) {
       //find bolus if time = Duration.zero
+      //TODO update bolusSequence_new
       double? bolus = time == Duration.zero
           ? pump.bolusSequence != null
               ? pump.bolusSequence![Duration.zero]
