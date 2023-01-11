@@ -322,13 +322,6 @@ class Simulation {
     // print(total_step);
 
     for (int step = 0; step <= total_step; step += 1) {
-      //find bolus if time = Duration.zero
-      //TODO update bolusSequence_new
-      double? bolus = time == Duration.zero
-          ? pump.bolusSequence != null
-              ? pump.bolusSequence![Duration.zero]
-              : null
-          : null;
 
       //find manual pump inf
       double? manual_pump_inf = pump.pumpInfusionSequences != null
@@ -379,7 +372,7 @@ class Simulation {
         //     : (pump_infs.last / 60) * time_step / 60 + A1_change + A1s.last;
 
         A1 = step == 0
-            ? bolus ?? 0
+            ? 0
             : (pump_infs.last / 60) * time_step / 60 + A1_change + A1s.last;
 
         inf = 3600 * (depth * V1 - A1_change - A1) / time_step;
@@ -409,15 +402,14 @@ class Simulation {
         //     : (pump_inf / 60) * time_step / 60 + A1_change + A1s.last;
 
         A1 = step == 0
-            ? bolus ?? 0
+            ? 0
             : (pump_inf / 60) * time_step / 60 + A1_change + A1s.last;
       }
 
       double concentration = A1 / V1;
 
       double cumulative_infused_volume = step == 0
-          ? pump_inf * time_step / 3600 / pump.dilution +
-              (bolus != null ? bolus / pump.dilution : 0)
+          ? pump_inf * time_step / 3600 / pump.dilution
           : cumulative_infused_volumes.last +
               pump_inf * time_step / 3600 / pump.dilution;
 

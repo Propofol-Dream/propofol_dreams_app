@@ -90,15 +90,15 @@ void main() {
         Patient(weight: 75, age: 20, height: 170, gender: Gender.Male);
 
     Pump pump = Pump(
-        time_step: Duration(milliseconds: 100), dilution: 10, max_pump_rate: 10000);
+        time_step: Duration(seconds: 1), dilution: 10, max_pump_rate: 10000);
 
     Operation operation = Operation(
       depth: 3,
-      duration: Duration(seconds:30),
+      duration: Duration(minutes:30),
     );
 
-    pump.updateBolusSequence(bolus: 120);
-    pump.updatePumpInfusionSequence(start: Duration.zero, end: Duration(minutes: 15), pumpInfusion: 650);
+    // pump.updateBolusSequence(bolus: 120);
+    // pump.updatePumpInfusionSequence(start: Duration.zero, end: Duration(minutes: 15), pumpInfusion: 650);
 
     Simulation sim = Simulation(
         model: model,

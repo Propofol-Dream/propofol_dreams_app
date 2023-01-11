@@ -40,15 +40,15 @@ void main() {
   //   print(pump.depthSequences);
   // });
 
-  test('Boluse Sequence', (){
+  test('New Boluse Sequence', (){
     Pump pump = Pump(time_step: Duration(milliseconds: 1000), dilution: 10, max_pump_rate: 750);
-    pump.updateBolusSequence_new(bolus: 138.88888888);
+    pump.updateBolusSequence(bolus: 138.88888888);
     // print(pump.bolusSequence);
     // print(pump.bolusSequence![Duration(seconds: 1)]);
     // pump.updateDepthSequence(at: Duration(seconds: 4), depth: 3.3);
     // pump.updateDepthSequence(at: Duration(seconds: 2), depth: 4.5);
     // print(pump.isManual);
-    // print(pump);
+    print(pump.pumpInfusionSequences);
 
   });
 }

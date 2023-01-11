@@ -33,14 +33,14 @@ class Pump {
     depthSequences?.update(at, (value) => depth, ifAbsent: () => depth);
   }
 
-  void updateBolusSequence({required double bolus}) {
-    bolusSequence ??= <Duration, double>{};
-    bolusSequence?.update(Duration.zero, (value) => bolus,
-        ifAbsent: () => bolus);
-  }
+  // void updateBolusSequence_old({required double bolus}) {
+  //   bolusSequence ??= <Duration, double>{};
+  //   bolusSequence?.update(Duration.zero, (value) => bolus,
+  //       ifAbsent: () => bolus);
+  // }
 
-  void updateBolusSequence_new({required double bolus}) {
-    bolusSequence ??= <Duration, double>{};
+  void updateBolusSequence({required double bolus}) {
+    pumpInfusionSequences ??= SplayTreeMap<Duration, double>();
 
     double durationInDouble =
         bolus / (kMaxHumanlyPossiblePushRate / 3600 * dilution);
@@ -51,7 +51,7 @@ class Pump {
           ? kMaxHumanlyPossiblePushRate.toDouble() * dilution
           : kMaxHumanlyPossiblePushRate.toDouble() * dilution * (steps - i);
 
-      bolusSequence?.update(
+      pumpInfusionSequences?.update(
           Duration(milliseconds: time_step.inMilliseconds * i),
           (value) => bolus,
           ifAbsent: () => bolus);

@@ -29,8 +29,7 @@ class Trial {
         depthSequences: depthSequences);
   }
 
-  Map<String, List> estimate(
-      {Pump? manualPump, required Duration duration}) {
+  Map<String, List> estimate({Pump? manualPump, required Duration duration}) {
     Operation trialOperation =
         Operation(depth: simulation.operation.depth, duration: duration);
 
@@ -48,7 +47,7 @@ class Trial {
   }
 
   Map<String, dynamic> get forecast_bolus {
-    return estimate(duration: Duration(seconds: 200));
+    return estimate(manualPump: manualPump(), duration: Duration(seconds: 200));
   }
 
   //bolus is in mg not mcg nor mL
@@ -69,27 +68,52 @@ class Trial {
     return bolusVolumes * simulation.pump.dilution;
   }
 
-  Duration get bolusExpiresTime {
+  Duration get pumpStartsAt {
     List vol = forecast_bolus['cumulative_infused_volumes'];
     int index = vol.lastIndexOf(bolusVolumes);
-    Duration d = forecast_bolus['times'][index];
+    Duration d = forecast_bolus['times'][index + 1];
+    return d;
+  }
+
+  Duration get bolusStopsAt {
+    List vol = forecast_bolus['cumulative_infused_volumes'];
+    int index = vol.indexOf(bolusVolumes);
+    Duration d = forecast_bolus['times'][index + 1];
     return d;
     // return Duration.zero;
   }
 
-  List<double> proposeInjection(
-      {required double injection, required int interval, int last = 0}) {
+  List<double> proposeTrialPumpInfusion(
+      {required double pumpInfusion, required int interval, int last = 0}) {
     List<double> amounts = [];
-    for (double amount = 0; amount < injection + interval; amount += interval) {
+    for (double amount = 0;
+        amount < pumpInfusion + interval;
+        amount += interval) {
       amounts.add(amount);
     }
     if (last == 0) {
-      return amounts;
+      return amounts.reversed.toList();
     } else if (last <= amounts.length) {
-      return (amounts.skip(amounts.length - last).take(last)).toList();
+      return (amounts.skip(amounts.length - last).take(last))
+          .toList()
+          .reversed
+          .toList();
     } else {
       return [];
     }
+  }
+
+  List<double> proposeTrialBolus(
+      {required double bolus, double lowerBand = 0.2}) {
+    double start = (bolus / 10).round() * 10;
+    double end = (bolus * (1 - lowerBand) / 10).round() * 10;
+    List<double> proposed = [];
+
+    for (double d = start; d >= end; d -= 10) {
+      proposed.add(d);
+    }
+
+    return proposed;
   }
 
   double findCumulativeInfusedVolumes({required Duration duration}) {
@@ -110,7 +134,7 @@ class Trial {
         simulation.pump.dilution;
   }
 
-  Map<String, double> proposePumpInfusion(
+  Map<String, double> pumpInfusion(
       {double? proposedBolus, required Duration start, required Duration end}) {
     double startInfusion = 0;
     double endInfusion = 0;
@@ -141,43 +165,34 @@ class Trial {
       result['proposed_bolus'] = proposedBolus;
     }
     return result;
-
-    // start <= bolusExpiresTime
-    //     ? startInfusion = 0
-    //     : startInfusion = findPumpInfusion(duration: start);
-    // end == (Duration.zero) || end > Duration(minutes: 600)
-    //     ? endInfusion = 0
-    //     : endInfusion = findPumpInfusion(duration: end);
-    //
-    // double trueBolus = start <= bolusExpiresTime ? bolus : 0;
-    //
-    // return {'start': startInfusion, 'bolus': trueBolus, 'end': endInfusion};
   }
 
   List<Map<String, dynamic>> propose(
       {required Duration start, required Duration end}) {
-    //if start is earlier than bolusExpiresTime, then get a list of proposed bolus
-
     List<Map<String, dynamic>> results = [];
-    Map<String, dynamic> baseline = estimateChunk(start: start, end: end);
+    Map<String, dynamic> baseline = estimateChunk(
+        alternativeEstimate: estimate(manualPump: manualPump(), duration: end),
+        start: start,
+        end: end);
 
     if (start == Duration.zero) {
-      List<double> proposedBolus =
-          proposeInjection(injection: bolus, interval: 10, last: 3);
+      List<double> proposedBolus = proposeTrialBolus(bolus: bolus);
       for (int i = 0; i < proposedBolus.length; i++) {
-        double? proposedPumpInfusion = proposePumpInfusion(
+        double? pumpInf = pumpInfusion(
             proposedBolus: proposedBolus[i],
             start: start,
             end: end)['pump_infusion'];
-        if (proposedPumpInfusion != null) {
-          List<double> proposedPumpInfusions = proposeInjection(
-              injection: proposedPumpInfusion, interval: 10, last: 3);
+        if (pumpInf != null) {
+          List<double> proposedPumpInfusions = proposeTrialPumpInfusion(
+              pumpInfusion: pumpInf, interval: 10, last: 5);
 
           for (int j = 0; j < proposedPumpInfusions.length; j++) {
             Pump p = manualPump();
             p.updateBolusSequence(bolus: proposedBolus[i]);
             p.updatePumpInfusionSequence(
-                start: start, end: end, pumpInfusion: proposedPumpInfusions[j]);
+                start: bolusStopsAt,
+                end: end,
+                pumpInfusion: proposedPumpInfusions[j]);
             Map<String, dynamic> proposed =
                 estimate(manualPump: p, duration: end);
 
@@ -193,11 +208,11 @@ class Trial {
       }
     } else {
       double? proposedPumpInfusion =
-          proposePumpInfusion(start: start, end: end)['pump_infusion'];
+          pumpInfusion(start: start, end: end)['pump_infusion'];
 
       if (proposedPumpInfusion != null) {
-        List<double> proposedPumpInfusions = proposeInjection(
-            injection: proposedPumpInfusion, interval: 10, last: 3);
+        List<double> proposedPumpInfusions = proposeTrialPumpInfusion(
+            pumpInfusion: proposedPumpInfusion, interval: 10, last: 5);
         for (int j = 0; j < proposedPumpInfusions.length; j++) {
           Pump p = manualPump();
           p.updatePumpInfusionSequence(
@@ -238,6 +253,8 @@ class Trial {
       tmpProposed = proposed['concentrations'];
     }
 
+    double squaredErrors = 0;
+
     for (int i = 0; i < tmpBaseline.length - 1; i++) {
       double deviation = (tmpProposed[i] - tmpBaseline[i]) *
           simulation.pump.time_step.inMilliseconds /
@@ -247,20 +264,16 @@ class Trial {
       squared_deviations.add(squared_deviation);
     }
 
-    //TODO: work out the Durations inMilliseconds / 1000
-    List<Duration> times = baseline['times'];
-    Duration start = times.reduce((a, b) => a < b ? a : b);
-    Duration end = times.reduce((a, b) => a > b ? a : b);
+    double sse = squared_deviations.reduce((value, element) => value + element);
 
-    double AUC =
-        (squared_deviations.reduce((value, element) => value + element) /
-            (end - start).inMilliseconds *
-            1000);
+    double rmse = sqrt(sse / tmpProposed.length);
+
     double lowest_deviation = (deviations.reduce(min));
     double highest_deviation = (deviations.reduce(max));
 
     return {
-      'AUC': AUC,
+      'SSE': sse,
+      'RMSE': rmse,
       'max pos dev': highest_deviation,
       'max neg dev': lowest_deviation
     };
