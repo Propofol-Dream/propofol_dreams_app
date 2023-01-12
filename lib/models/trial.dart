@@ -46,11 +46,13 @@ class Trial {
     return estimate(duration: Duration(minutes: 600));
   }
 
+  //TODO implement this into Simulation class
   Map<String, dynamic> get forecast_bolus {
     return estimate(manualPump: manualPump(), duration: Duration(seconds: 200));
   }
 
   //bolus is in mg not mcg nor mL
+  //this is the Engbers old bolus function
   double get bolusVolumes {
     // DateTime start = DateTime.now();
     // int i = forecast_bolus['pump_infs'].indexWhere((element) => element == 0);

@@ -186,7 +186,7 @@ class Simulation {
     return cum_sums;
   }
 
-  Map<String, dynamic> get calibrate {
+  Map<String, List> get calibrate {
     // Pump trialPump = Pump(
     // time_step: Duration(seconds: 1),
     //     time_step: pump.time_step,
@@ -275,10 +275,119 @@ class Simulation {
       'A3s': A3s,
       'concentrations': concentrations,
       'concentrations_effect': concentrations_effect,
-      'peak_effect': concentrations_effect.reduce(max)
+      // 'peak_effect': concentrations_effect.reduce(max)
     });
 
     // return concentrations_effect.reduce(max);
+  }
+
+  double get maxCalibratedEffect {
+    List<double> result = calibrate['concentrations_effect'] as List<double>;
+    return result.reduce(max);
+  }
+
+  Map<String, List> get peak {
+    Operation trialOperation =
+        Operation(depth: 0, duration: Duration(seconds: 720));
+
+    // double max_infusion = (pump.dilution * pump.max_pump_rate).toDouble();
+
+    Duration time = Duration(seconds: 0);
+    double k21 = variables['k21'] as double;
+    double k31 = variables['k31'] as double;
+    double k10 = variables['k10'] as double;
+    double k12 = variables['k12'] as double;
+    double k13 = variables['k13'] as double;
+    double V1 = variables['V1'] as double;
+    double ke0 = variables['ke0'] as double;
+
+    List<double> A1s = [];
+    List<double> A2s = [];
+    List<double> A3s = [];
+    List<Duration> times = [];
+    List<int> steps = [];
+    List<double> pump_infs = [];
+    List<double> concentrations = [];
+    List<double> concentrations_effect = [];
+
+    double time_step = pump.time_step.inMilliseconds / 1000; //sec
+    int operation_duration = trialOperation.duration.inSeconds;
+
+    double total_step = operation_duration / time_step;
+
+    // double steps_to_100_secs = 100 / time_step;
+
+    for (int step = 0; step <= total_step; step += 1) {
+      double pump_inf = 0;
+
+      double A2 = step == 0
+          ? 0
+          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * time_step / 60;
+
+      double A3 = step == 0
+          ? 0
+          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * time_step / 60;
+
+      double A1 = step == 0
+          ? 10
+          : (pump_infs.last / 60 +
+                      A2 * k21 +
+                      A3 * k31 -
+                      A1s.last * (k10 + k12 + k13)) *
+                  time_step /
+                  60 +
+              A1s.last;
+
+      double concentration = A1 / V1;
+      double concentration_effect = step == 0
+          ? 0
+          : concentrations_effect.last +
+              ke0 *
+                  (concentrations.last - concentrations_effect.last) *
+                  time_step /
+                  60;
+
+      steps.add(step);
+      times.add(time);
+      pump_infs.add(pump_inf);
+      A1s.add(A1);
+      A2s.add(A2);
+      A3s.add(A3);
+      concentrations.add(concentration);
+      concentrations_effect.add(concentration_effect);
+      time = time + pump.time_step;
+    }
+
+    return ({
+      'steps': steps,
+      'times': times,
+      'pump_infs': pump_infs,
+      'A1s': A1s,
+      'A2s': A2s,
+      'A3s': A3s,
+      'concentrations': concentrations,
+      'concentrations_effect': concentrations_effect,
+    });
+  }
+
+  double get maxCe {
+    List<double> ce = peak['concentrations_effect'] as List<double>;
+    return ce.reduce(max);
+  }
+
+  Duration get maxCeReachesAt {
+    List<Duration> durations = peak['times'] as List<Duration>;
+    List<double> ces = peak['concentrations_effect'] as List<double>;
+    int index = ces.indexOf(maxCe);
+
+    return durations[index];
+  }
+
+  double ceAt({required Duration duration}){
+    List<Duration> durations = peak['times'] as List<Duration>;
+    int index = durations.indexOf(duration);
+    List<double> ces = peak['concentrations_effect'] as List<double>;
+    return ces[index];
   }
 
   Map<String, List> get estimate {
@@ -322,7 +431,6 @@ class Simulation {
     // print(total_step);
 
     for (int step = 0; step <= total_step; step += 1) {
-
       //find manual pump inf
       double? manual_pump_inf = pump.pumpInfusionSequences != null
           ? pump.pumpInfusionSequences![time]
@@ -351,9 +459,9 @@ class Simulation {
       double depth = step == 0 ? operation.depth : manual_depth ?? depths.last;
 
       double overshoot_time = (step == 0
-          ? depth / calibrate['peak_effect'] * 100 - 1
+          ? depth / maxCalibratedEffect * 100 - 1
           : (depth - depths.last > 0
-              ? (depth - depths.last) / calibrate['peak_effect'] * 100 - 1
+              ? (depth - depths.last) / maxCalibratedEffect * 100 - 1
               : overshoot_times.last - time_step));
 
       double A1_change = step == 0

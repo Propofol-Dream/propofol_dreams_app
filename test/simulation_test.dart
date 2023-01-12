@@ -84,34 +84,32 @@ void main() {
   //   // print('Test Duration: ${duration}');
   // });
 
-  test('Simulate', () async {
+  test('Peaking Fn', () async {
     Model model = Model.Eleveld;
     Patient patient =
-        Patient(weight: 75, age: 20, height: 170, gender: Gender.Male);
+        Patient(weight: 58, age: 50, height: 160, gender: Gender.Female);
 
     Pump pump = Pump(
-        time_step: Duration(seconds: 1), dilution: 10, max_pump_rate: 10000);
+        time_step: Duration(milliseconds: 10),
+        dilution: 10,
+        max_pump_rate: 10000);
 
     Operation operation = Operation(
       depth: 3,
-      duration: Duration(minutes:30),
+      duration: Duration(minutes: 30),
     );
 
     // pump.updateBolusSequence(bolus: 120);
     // pump.updatePumpInfusionSequence(start: Duration.zero, end: Duration(minutes: 15), pumpInfusion: 650);
 
     Simulation sim = Simulation(
-        model: model,
-        patient: patient,
-        pump: pump,
-        operation: operation);
+        model: model, patient: patient, pump: pump, operation: operation);
 
-    // print(sim.calibrate['peak_effect']);
-    final filename = '/Users/eddy/Documents/output.csv';
-    var file = await File(filename).writeAsString(sim.toCsv(sim.estimate));
+    print(sim.maxCe);
+    print(sim.maxCeReachesAt);
+    print(sim.ceAt(duration: Duration(seconds: 90)));
+
+    // final filename = '/Users/eddy/Documents/output.csv';
+    // var file = await File(filename).writeAsString(sim.toCsv(sim.peak));
   });
-
-
-
-
 }
