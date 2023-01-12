@@ -33,7 +33,7 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
   @override
   Widget build(BuildContext context) {
     var mediaQuery = MediaQuery.of(context);
-    var screenRatio = mediaQuery.size.width / mediaQuery.size.height;
+    // var screenRatio = mediaQuery.size.width / mediaQuery.size.height;
 
     return Container(
       height: widget.height ?? 36,

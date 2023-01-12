@@ -86,15 +86,15 @@ class Settings with ChangeNotifier {
   //
   // }
 
-  int _dilution = 10;
+  int _density = 10;
 
-  int get dilution {
-    return _dilution;
+  int get density {
+    return _density;
   }
 
-  void set dilution(int i) {
-    _dilution = i;
-    setInt('dilution', i);
+  void set density(int i) {
+    _density = i;
+    setInt('density', i);
     notifyListeners();
   }
 
@@ -130,7 +130,7 @@ class Settings with ChangeNotifier {
   int? _adultAge;
   int? _adultHeight;
   int? _adultWeight;
-  double? _adultDepth;
+  double? _adultTarget;
   int? _adultDuration;
 
   Model get adultModel {
@@ -187,13 +187,13 @@ class Settings with ChangeNotifier {
     // }
   }
 
-  double? get adultDepth {
-    return _adultDepth;
+  double? get adultTarget {
+    return _adultTarget;
   }
 
-  void set adultDepth(double? d) {
-    _adultDepth = d;
-    setDouble('adultDepth', d);
+  void set adultTarget(double? d) {
+    _adultTarget = d;
+    setDouble('adultTarget', d);
     notifyListeners();
   }
 
@@ -212,7 +212,7 @@ class Settings with ChangeNotifier {
   int? _pediatricAge;
   int? _pediatricHeight;
   int? _pediatricWeight;
-  double? _pediatricDepth;
+  double? _pediatricTarget;
   int? _pediatricDuration;
 
   Model get pediatricModel {
@@ -265,13 +265,13 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  double? get pediatricDepth {
-    return _pediatricDepth;
+  double? get pediatricTarget {
+    return _pediatricTarget;
   }
 
-  void set pediatricDepth(double? d) {
-    _pediatricDepth = d;
-    setDouble('pediatricDepth', d);
+  void set pediatricTarget(double? d) {
+    _pediatricTarget = d;
+    setDouble('pediatricTarget', d);
     notifyListeners();
   }
 

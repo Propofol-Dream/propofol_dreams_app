@@ -1,11 +1,12 @@
 class Operation{
-  double depth;
+  double target;
   Duration duration;
 
-  Operation({required this.depth, required this.duration});
+  Operation({required this.target, required this.duration});
 
+  @override
   String toString(){
-    return '{depth: $depth, duration: ${duration.toString()}}';
+    return '{target: $target, duration: ${duration.toString()}}';
   }
 
 }

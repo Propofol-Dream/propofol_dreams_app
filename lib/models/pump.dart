@@ -2,35 +2,35 @@ import 'dart:collection';
 import 'package:propofol_dreams_app/constants.dart';
 
 class Pump {
-  Duration time_step;
-  int dilution;
-  int max_pump_rate;
+  Duration timeStep;
+  int density;
+  int maxPumpRate;
   Map<Duration, double>? bolusSequence;
   SplayTreeMap<Duration, double>? pumpInfusionSequences;
-  SplayTreeMap<Duration, double>? depthSequences;
+  SplayTreeMap<Duration, double>? targetSequences;
 
   Pump(
-      {required this.time_step,
-      required this.dilution,
-      required this.max_pump_rate,
+      {required this.timeStep,
+      required this.density,
+      required this.maxPumpRate,
       this.bolusSequence,
       this.pumpInfusionSequences,
-      this.depthSequences});
+      this.targetSequences});
 
   void updatePumpInfusionSequence(
       {required Duration start,
       required Duration end,
       required double pumpInfusion}) {
     pumpInfusionSequences ??= SplayTreeMap<Duration, double>();
-    for (Duration d = start; d <= end; d += time_step) {
+    for (Duration d = start; d <= end; d += timeStep) {
       pumpInfusionSequences?.update(d, (value) => pumpInfusion,
           ifAbsent: () => pumpInfusion);
     }
   }
 
-  void updateDepthSequence({required Duration at, required double depth}) {
-    depthSequences ??= SplayTreeMap<Duration, double>();
-    depthSequences?.update(at, (value) => depth, ifAbsent: () => depth);
+  void updateTargetSequence({required Duration at, required double target}) {
+    targetSequences ??= SplayTreeMap<Duration, double>();
+    targetSequences?.update(at, (value) => target, ifAbsent: () => target);
   }
 
   // void updateBolusSequence_old({required double bolus}) {
@@ -43,16 +43,16 @@ class Pump {
     pumpInfusionSequences ??= SplayTreeMap<Duration, double>();
 
     double durationInDouble =
-        bolus / (kMaxHumanlyPossiblePushRate / 3600 * dilution);
-    double steps = durationInDouble / time_step.inMilliseconds * 1000;
+        bolus / (kMaxHumanlyPossiblePushRate / 3600 * density);
+    double steps = durationInDouble / timeStep.inMilliseconds * 1000;
 
     for (int i = 0; i < steps; i++) {
       double bolus = steps - i >= 1
-          ? kMaxHumanlyPossiblePushRate.toDouble() * dilution
-          : kMaxHumanlyPossiblePushRate.toDouble() * dilution * (steps - i);
+          ? kMaxHumanlyPossiblePushRate.toDouble() * density
+          : kMaxHumanlyPossiblePushRate.toDouble() * density * (steps - i);
 
       pumpInfusionSequences?.update(
-          Duration(milliseconds: time_step.inMilliseconds * i),
+          Duration(milliseconds: timeStep.inMilliseconds * i),
           (value) => bolus,
           ifAbsent: () => bolus);
     }
@@ -62,12 +62,13 @@ class Pump {
   bool get isManual {
     return bolusSequence != null ||
         pumpInfusionSequences != null ||
-        depthSequences != null;
+        targetSequences != null;
   }
 
+  @override
   String toString() {
     String str =
-        '{time step: ${time_step.toString()}, dilution: $dilution, max pump rate: $max_pump_rate';
+        '{time step: ${timeStep.toString()}, density: $density, max pump rate: $maxPumpRate';
 
     //TODO add sequence in output
     if (bolusSequence != null) {
@@ -78,11 +79,11 @@ class Pump {
       str += ', pump_infusion_sequences: under development';
     }
 
-    if (depthSequences != null) {
-      str += ', depth_sequences: under development';
+    if (targetSequences != null) {
+      str += ', target_sequences: under development';
     }
 
-    str = str + '}';
+    str = '$str}';
 
     return str;
   }

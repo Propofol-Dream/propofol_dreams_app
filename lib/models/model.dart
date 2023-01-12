@@ -90,7 +90,7 @@ enum Model {
   }
 
   bool isEnable({required int age, required int height, required int weight}) {
-    return this.target == Target.Plasma
+    return target == Target.Plasma
         ? (withinAge(age) && withinWeight(weight))
         : (withinAge(age) && withinHeight(height) && withinWeight(weight));
   }
@@ -99,16 +99,16 @@ enum Model {
       {required int? age,
         required int? height,
         required int? weight,
-        required double? depth,
+        required double? target,
         required int? duration}) {
     return this.target == Target.Plasma
         ? (age != null) &&
         (weight != null) &&
-        (depth != null) &&
+        (target != null) &&
         (duration != null)
         : (age != null) &&
         (weight != null) &&
-        (depth != null) &&
+        (target != null) &&
         (duration != null) &&
         (height != null);
   }
@@ -135,7 +135,7 @@ enum Model {
       double minBMI = 14;
       double maxBMI = gender == Gender.Male ? 42 : 39;
       isAssertive = tmpBMI >= minBMI && tmpBMI <= maxBMI;
-      text = isAssertive ? '' : '[BMI] min: ${minBMI} and max: ${maxBMI}';
+      text = isAssertive ? '' : '[BMI] min: $minBMI and max: $maxBMI';
       return {'assertion': isAssertive, 'text': text};
     } else if (this == Model.Eleveld) {
       // text = 'Effect Site';

@@ -9,7 +9,7 @@ class PDSegmentedController extends ChangeNotifier {
     return _val;
   }
 
-  void set val(int v) {
+  set val(int v) {
     _val = v;
     notifyListeners();
   }

@@ -11,6 +11,7 @@ class Patient with ChangeNotifier{
   Patient(
       {required this.weight, required this.height, required this.age, required this.gender});
 
+  @override
   String toString(){
     return '{gender: $gender, age: $age, height: $height, weight: $weight}';
   }

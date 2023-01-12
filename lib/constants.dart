@@ -63,8 +63,8 @@ const MaterialColor PDRed = MaterialColor(0xFFBA1B1B, colorPDRed);
 // // const int kMaxPumpRate = 1200; // ml/hr, this is from Engbert's
 // int kMaxInfusion = kDilution * kMaxPumpRate;
 
-const double kMinDepth = 0.5;
-const double kMaxDepth = 10;
+const double kMinTarget = 0.5;
+const double kMaxTarget = 10;
 
 const int kMinDuration = 5; //5 mins
 const int kMaxDuration = 600; //600mins

@@ -1,4 +1,4 @@
-import 'dart:collection';
+
 import 'dart:math';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
@@ -154,8 +154,8 @@ class Simulation {
     }
 
     double ce50 = 3.08 * exp(-0.00635 * (patient.age - 35));
-    double baseline_BIS = 93;
-    double delay_BIS = 15 + exp(0.0517 * (patient.age - 35));
+    double baselineBIS = 93;
+    double delayBIS = 15 + exp(0.0517 * (patient.age - 35));
 
     return {
       'V1': V1,
@@ -171,19 +171,19 @@ class Simulation {
       'Cl2': Cl2,
       'Cl3': Cl3,
       'ce50': ce50,
-      'baseline_BIS': baseline_BIS,
-      'delay_BIS': delay_BIS,
+      'baseline_BIS': baselineBIS,
+      'delay_BIS': delayBIS,
     };
   }
 
   List<double> cumulativeSum(List<double> l) {
     double cumSum = 0;
-    List<double> cum_sums = [];
-    l.forEach((i) {
-      cumSum += i;
-      cum_sums.add(cumSum);
-    });
-    return cum_sums;
+    List<double> cumSums = [];
+    for (double d in l) {
+      cumSum += d;
+      cumSums.add(cumSum);
+    }
+    return cumSums;
   }
 
   Map<String, List> get calibrate {
@@ -193,11 +193,11 @@ class Simulation {
     //     dilution: pump.dilution,
     //     max_pump_rate: pump.max_pump_rate);
     Operation trialOperation =
-        Operation(depth: 0, duration: Duration(seconds: 720));
+        Operation(target: 0, duration: const Duration(seconds: 720));
 
-    double max_infusion = (pump.dilution * pump.max_pump_rate).toDouble();
+    double maxInfusion = (pump.density * pump.maxPumpRate).toDouble();
 
-    Duration time = Duration(seconds: 0);
+    Duration time = const Duration(seconds: 0);
     double k21 = variables['k21'] as double;
     double k31 = variables['k31'] as double;
     double k10 = variables['k10'] as double;
@@ -211,57 +211,55 @@ class Simulation {
     List<double> A3s = [];
     List<Duration> times = [];
     List<int> steps = [];
-    List<double> pump_infs = [];
+    List<double> pumpInfs = [];
     List<double> concentrations = [];
-    List<double> concentrations_effect = [];
+    List<double> concentrationsEffect = [];
 
-    double time_step = pump.time_step.inMilliseconds / 1000; //sec
-    int operation_duration = trialOperation.duration.inSeconds;
+    double timeStep = pump.timeStep.inMilliseconds / 1000; //sec
+    int operationDuration = trialOperation.duration.inSeconds;
+    double totalStep = operationDuration / timeStep;
+    double stepsTo100Secs = const Duration(seconds: 100).inSeconds / timeStep;
 
-    double total_step = operation_duration / time_step;
-
-    double steps_to_100_secs = 100 / time_step;
-
-    for (int step = 0; step <= total_step; step += 1) {
-      double pump_inf = step < steps_to_100_secs ? max_infusion : 0;
+    for (int step = 0; step <= totalStep; step += 1) {
+      double pumpInf = step < stepsTo100Secs ? maxInfusion : 0;
 
       double A2 = step == 0
           ? 0
-          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * time_step / 60;
+          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * timeStep / 60;
 
       double A3 = step == 0
           ? 0
-          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * time_step / 60;
+          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * timeStep / 60;
 
       double A1 = step == 0
           ? 0
-          : (pump_infs.last / 60 +
+          : (pumpInfs.last / 60 +
                       A2 * k21 +
                       A3 * k31 -
                       A1s.last * (k10 + k12 + k13)) *
-                  time_step /
+                  timeStep /
                   60 +
               A1s.last;
 
       double concentration = A1 / V1;
-      double concentration_effect = step == 0
+      double concentrationEffect = step == 0
           ? 0
-          : concentrations_effect.last +
+          : concentrationsEffect.last +
               ke0 *
-                  (concentrations.last - concentrations_effect.last) *
-                  time_step /
+                  (concentrations.last - concentrationsEffect.last) *
+                  timeStep /
                   60;
 
       steps.add(step);
       times.add(time);
-      pump_infs.add(pump_inf);
+      pumpInfs.add(pumpInf);
       A1s.add(A1);
       A2s.add(A2);
       A3s.add(A3);
       concentrations.add(concentration);
-      concentrations_effect.add(concentration_effect);
+      concentrationsEffect.add(concentrationEffect);
 
-      time = time + pump.time_step;
+      time = time + pump.timeStep;
     }
 
     // print(concentrations_effect.reduce(max));
@@ -269,12 +267,12 @@ class Simulation {
     return ({
       'steps': steps,
       'times': times,
-      'pump_infs': pump_infs,
+      'pump_infs': pumpInfs,
       'A1s': A1s,
       'A2s': A2s,
       'A3s': A3s,
       'concentrations': concentrations,
-      'concentrations_effect': concentrations_effect,
+      'concentrations_effect': concentrationsEffect,
       // 'peak_effect': concentrations_effect.reduce(max)
     });
 
@@ -288,11 +286,11 @@ class Simulation {
 
   Map<String, List> get peak {
     Operation trialOperation =
-        Operation(depth: 0, duration: Duration(seconds: 720));
+        Operation(target: 0, duration: const Duration(seconds: 720));
 
     // double max_infusion = (pump.dilution * pump.max_pump_rate).toDouble();
 
-    Duration time = Duration(seconds: 0);
+    Duration time =  Duration.zero;
     double k21 = variables['k21'] as double;
     double k31 = variables['k31'] as double;
     double k10 = variables['k10'] as double;
@@ -306,67 +304,67 @@ class Simulation {
     List<double> A3s = [];
     List<Duration> times = [];
     List<int> steps = [];
-    List<double> pump_infs = [];
+    List<double> pumpInfs = [];
     List<double> concentrations = [];
-    List<double> concentrations_effect = [];
+    List<double> concentrationsEffect = [];
 
-    double time_step = pump.time_step.inMilliseconds / 1000; //sec
-    int operation_duration = trialOperation.duration.inSeconds;
+    double timeStep = pump.timeStep.inMilliseconds / 1000; //sec
+    int operationDuration = trialOperation.duration.inSeconds;
 
-    double total_step = operation_duration / time_step;
+    double totalStep = operationDuration / timeStep;
 
     // double steps_to_100_secs = 100 / time_step;
 
-    for (int step = 0; step <= total_step; step += 1) {
-      double pump_inf = 0;
+    for (int step = 0; step <= totalStep; step += 1) {
+      double pumpInf = 0;
 
       double A2 = step == 0
           ? 0
-          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * time_step / 60;
+          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * timeStep / 60;
 
       double A3 = step == 0
           ? 0
-          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * time_step / 60;
+          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * timeStep / 60;
 
       double A1 = step == 0
           ? 10
-          : (pump_infs.last / 60 +
+          : (pumpInfs.last / 60 +
                       A2 * k21 +
                       A3 * k31 -
                       A1s.last * (k10 + k12 + k13)) *
-                  time_step /
+                  timeStep /
                   60 +
               A1s.last;
 
       double concentration = A1 / V1;
-      double concentration_effect = step == 0
+      double concentrationEffect = step == 0
           ? 0
-          : concentrations_effect.last +
+          : concentrationsEffect.last +
               ke0 *
-                  (concentrations.last - concentrations_effect.last) *
-                  time_step /
+                  (concentrations.last - concentrationsEffect.last) *
+                  timeStep /
                   60;
 
       steps.add(step);
       times.add(time);
-      pump_infs.add(pump_inf);
+      pumpInfs.add(pumpInf);
       A1s.add(A1);
       A2s.add(A2);
       A3s.add(A3);
       concentrations.add(concentration);
-      concentrations_effect.add(concentration_effect);
-      time = time + pump.time_step;
+      concentrationsEffect.add(concentrationEffect);
+      time = time + pump.timeStep;
     }
 
     return ({
       'steps': steps,
       'times': times,
-      'pump_infs': pump_infs,
+      'pump_infs': pumpInfs,
       'A1s': A1s,
       'A2s': A2s,
       'A3s': A3s,
       'concentrations': concentrations,
-      'concentrations_effect': concentrations_effect,
+      'concentrations_effect': concentrationsEffect,
     });
   }
 
@@ -391,11 +389,11 @@ class Simulation {
   }
 
   Map<String, List> get estimate {
-    double max_infusion =
-        (pump.dilution * pump.max_pump_rate).toDouble(); // mg per hr
+    double maxInfusion =
+        (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
 
     // int step = 0;
-    Duration time = Duration(seconds: 0);
+    Duration time = Duration.zero;
     double k21 = variables['k21'] as double;
     double k31 = variables['k31'] as double;
     double k10 = variables['k10'] as double;
@@ -410,68 +408,68 @@ class Simulation {
     List<double> A3s = [];
     List<Duration> times = [];
     List<int> steps = [];
-    List<double> pump_infs = []; //mg per hr
+    List<double> pumpInfs = []; //mg per hr
     List<double> concentrations = [];
-    List<double> concentrations_effect = [];
+    List<double> concentrationsEffect = [];
 
     //List for volume estimation
-    List<double> depths = [];
-    List<double> overshoot_times = [];
+    List<double> targets = [];
+    List<double> overshootTimes = [];
     List<double> infs = []; //mg per hr
-    List<double> A1_changes = [];
-    List<double> cumulative_infused_volumes = []; // mL
+    List<double> A1Changes = [];
+    List<double> cumulativeInfusedVolumes = []; // mL
 
-    double time_step = pump.time_step.inMilliseconds /
+    double timeStep = pump.timeStep.inMilliseconds /
         1000; // this is to allow time_step in milliseconds
-    int operation_duration = operation.duration.inSeconds;
-    double total_step = operation_duration / time_step;
+    int operationDuration = operation.duration.inSeconds;
+    double totalStep = operationDuration / timeStep;
 
     // print(time_step);
     // print(operation_duration);
     // print(total_step);
 
-    for (int step = 0; step <= total_step; step += 1) {
+    for (int step = 0; step <= totalStep; step += 1) {
       //find manual pump inf
-      double? manual_pump_inf = pump.pumpInfusionSequences != null
+      double? manualPumpInf = pump.pumpInfusionSequences != null
           ? pump.pumpInfusionSequences![time]
           : null;
 
-      // find manual depth
-      double? manual_depth =
-          pump.depthSequences != null ? pump.depthSequences![time] : null;
+      // find manual target
+      double? manualTarget =
+          pump.targetSequences != null ? pump.targetSequences![time] : null;
 
       double A2 = step == 0
           ? 0
-          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * time_step / 60;
+          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * timeStep / 60;
 
       double A3 = step == 0
           ? 0
-          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * time_step / 60;
+          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * timeStep / 60;
 
-      double concentration_effect = step == 0
+      double concentrationEffect = step == 0
           ? 0
-          : concentrations_effect.last +
+          : concentrationsEffect.last +
               ke0 *
-                  (concentrations.last - concentrations_effect.last) *
-                  time_step /
+                  (concentrations.last - concentrationsEffect.last) *
+                  timeStep /
                   60;
 
-      double depth = step == 0 ? operation.depth : manual_depth ?? depths.last;
+      double target = step == 0 ? operation.target : manualTarget ?? targets.last;
 
-      double overshoot_time = (step == 0
-          ? depth / maxCalibratedEffect * 100 - 1
-          : (depth - depths.last > 0
-              ? (depth - depths.last) / maxCalibratedEffect * 100 - 1
-              : overshoot_times.last - time_step));
+      double overshootTime = (step == 0
+          ? target / maxCalibratedEffect * 100 - 1
+          : (target - targets.last > 0
+              ? (target - targets.last) / maxCalibratedEffect * 100 - 1
+              : overshootTimes.last - timeStep));
 
-      double A1_change = step == 0
+      double A1Change = step == 0
           ? 0
           : (A2 * k21 + A3 * k31 - A1s.last * (k10 + k12 + k13)) *
-              time_step /
+              timeStep /
               60;
 
       double? inf;
-      double? pump_inf;
+      double? pumpInf;
       double? A1;
 
       if (model.target == Target.Effect_Site) {
@@ -481,29 +479,29 @@ class Simulation {
 
         A1 = step == 0
             ? 0
-            : (pump_infs.last / 60) * time_step / 60 + A1_change + A1s.last;
+            : (pumpInfs.last / 60) * timeStep / 60 + A1Change + A1s.last;
 
-        inf = 3600 * (depth * V1 - A1_change - A1) / time_step;
+        inf = 3600 * (target * V1 - A1Change - A1) / timeStep;
 
-        // pump_inf = (concentration_effect > operation.depth
+        // pump_inf = (concentration_effect > operation.target
         //     ? 0.0
         //     : (overshoot_time > 0.0 ? max_infusion : (inf < 0.0 ? 0.0 : inf)));
 
-        pump_inf = manual_pump_inf ??
-            ((concentration_effect > depth
+        pumpInf = manualPumpInf ??
+            ((concentrationEffect > target
                 ? 0.0
-                : (overshoot_time > 0.0
-                    ? max_infusion
+                : (overshootTime > 0.0
+                    ? maxInfusion
                     : (inf < 0.0 ? 0.0 : inf))));
       } else {
         inf = step == 0
             ? 0
-            : 3600 * (depth * V1 - A1_change - A1s.last) / time_step;
+            : 3600 * (target * V1 - A1Change - A1s.last) / timeStep;
 
-        pump_inf = manual_pump_inf ??
+        pumpInf = manualPumpInf ??
             (step == 0
                 ? inf
-                : (inf > max_infusion ? max_infusion : (inf < 0 ? 0 : inf)));
+                : (inf > maxInfusion ? maxInfusion : (inf < 0 ? 0 : inf)));
 
         // A1 = step == 0
         //     ? 0
@@ -511,48 +509,48 @@ class Simulation {
 
         A1 = step == 0
             ? 0
-            : (pump_inf / 60) * time_step / 60 + A1_change + A1s.last;
+            : (pumpInf / 60) * timeStep / 60 + A1Change + A1s.last;
       }
 
       double concentration = A1 / V1;
 
-      double cumulative_infused_volume = step == 0
-          ? pump_inf * time_step / 3600 / pump.dilution
-          : cumulative_infused_volumes.last +
-              pump_inf * time_step / 3600 / pump.dilution;
+      double cumulativeInfusedVolume = step == 0
+          ? pumpInf * timeStep / 3600 / pump.density
+          : cumulativeInfusedVolumes.last +
+              pumpInf * timeStep / 3600 / pump.density;
 
       steps.add(step);
       times.add(time);
-      depths.add(depth);
-      overshoot_times.add(overshoot_time);
+      targets.add(target);
+      overshootTimes.add(overshootTime);
       infs.add(inf);
-      pump_infs.add(pump_inf);
-      A1_changes.add(A1_change);
+      pumpInfs.add(pumpInf);
+      A1Changes.add(A1Change);
       A1s.add(A1);
       A2s.add(A2);
       A3s.add(A3);
       concentrations.add(concentration);
-      concentrations_effect.add(concentration_effect);
-      cumulative_infused_volumes.add(cumulative_infused_volume);
+      concentrationsEffect.add(concentrationEffect);
+      cumulativeInfusedVolumes.add(cumulativeInfusedVolume);
 // print(time);
-      time = time + pump.time_step;
+      time = time + pump.timeStep;
     }
     // print(times.last);
 
     return ({
       'steps': steps,
       'times': times,
-      'depth': depths,
-      'overshoot_times': overshoot_times,
+      'target': targets,
+      'overshoot_times': overshootTimes,
       'infs': infs,
-      'pump_infs': pump_infs,
-      'A1_changes': A1_changes,
+      'pump_infs': pumpInfs,
+      'A1_changes': A1Changes,
       'A1s': A1s,
       'A2s': A2s,
       'A3s': A3s,
       'concentrations': concentrations,
-      'concentrations_effect': concentrations_effect,
-      'cumulative_infused_volumes': cumulative_infused_volumes
+      'concentrations_effect': concentrationsEffect,
+      'cumulative_infused_volumes': cumulativeInfusedVolumes
     });
   }
 
@@ -563,9 +561,9 @@ class Simulation {
       if (!json.containsKey(key)) {
         String values = '[';
         for (var val in map[key]) {
-          values = values + '\'$val\', ';
+          values = '$values\'$val\', ';
         }
-        values = values.substring(0, values.length - 2) + ']';
+        values = '${values.substring(0, values.length - 2)}]';
         // print(values);
         json['\'${key.toString()}\''] = values;
       }
@@ -577,18 +575,18 @@ class Simulation {
     String csv = '';
     int length = 0;
 
-    map.keys.forEach((key) {
-      csv = csv + '$key, ';
+    for (var key in map.keys) {
+      csv = '$csv$key, ';
       length = map[key].length;
-    });
-    csv = csv.substring(0, csv.length - 2) + '\n';
+    }
+    csv = '${csv.substring(0, csv.length - 2)}\n';
 
     // print(length);
     for (int i = 0; i < length - 1; i++) {
-      map.keys.forEach((key) {
-        csv = csv + '${map[key][i]}, ';
-      });
-      csv = csv.substring(0, csv.length - 2) + '\n';
+      for (var key in map.keys) {
+        csv = '$csv${map[key][i]}, ';
+      }
+      csv = '${csv.substring(0, csv.length - 2)}\n';
       // print(i);
     }
     return csv;

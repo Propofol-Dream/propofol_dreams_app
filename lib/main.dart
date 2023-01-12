@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -44,21 +43,22 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        print("app in resumed");
+        // print("app in resumed");
         // Provider.of<Settings>(context, listen: false).load();
         break;
       case AppLifecycleState.inactive:
-        print("app in inactive");
+        // print("app in inactive");
         break;
       case AppLifecycleState.paused:
-        print("app in paused");
+        // print("app in paused");
         // Provider.of<Settings>(context, listen: false).save();
         break;
       case AppLifecycleState.detached:
-        print("app in detached");
+        // print("app in detached");
         break;
     }
   }
@@ -169,17 +169,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       ),
       darkTheme: ThemeData.dark().copyWith(
         chipTheme:
-        ChipThemeData(labelStyle: TextStyle(color: Color(0xffE0E3DF))),
+        const ChipThemeData(labelStyle: TextStyle(color: Color(0xffE0E3DF))),
         colorScheme: ColorScheme.fromSwatch().copyWith(
-          primary: Color(0xff66DBB2),
-          onPrimary: Color(0xff003828),
-          primaryContainer: Color(0xff00513B),
-          onPrimaryContainer: Color(0xff83F8CD),
-          background: Color(0xff191C1B),
-          onBackground: Color(0xffE0E3DF),
-          error: Color(0xffFFB4A9),
-          onError: Color(0xff680003),
-          surface: Color(0xff191C1B),
+          primary: const Color(0xff66DBB2),
+          onPrimary: const Color(0xff003828),
+          primaryContainer: const Color(0xff00513B),
+          onPrimaryContainer: const Color(0xff83F8CD),
+          background: const Color(0xff191C1B),
+          onBackground: const Color(0xffE0E3DF),
+          error: const Color(0xffFFB4A9),
+          onError: const Color(0xff680003),
+          surface: const Color(0xff191C1B),
         ),
       ),
       themeMode: settings.themeModeSelection,

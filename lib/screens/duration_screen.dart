@@ -12,7 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 
 import '../providers/settings.dart';
-import 'package:propofol_dreams_app/constants.dart';
+
 
 
 class DurationScreen extends StatefulWidget {
@@ -181,16 +181,16 @@ class _DurationScreenState extends State<DurationScreen> {
       return infusionRate / 1000 * 60;
     } else if (previous == InfusionUnit.mg_kg_hr &&
         current == InfusionUnit.mL_hr) {
-      return infusionRate * weight / settings.dilution;
+      return infusionRate * weight / settings.density;
     } else if (previous == InfusionUnit.mL_hr &&
         current == InfusionUnit.mg_kg_hr) {
-      return infusionRate / weight * settings.dilution;
+      return infusionRate / weight * settings.density;
     } else if (previous == InfusionUnit.mL_hr &&
         current == InfusionUnit.mcg_kg_min) {
-      return infusionRate / weight * settings.dilution * 1000 / 60;
+      return infusionRate / weight * settings.density * 1000 / 60;
     } else if (previous == InfusionUnit.mcg_kg_min &&
         current == InfusionUnit.mL_hr) {
-      return infusionRate * weight / settings.dilution / 1000 * 60;
+      return infusionRate * weight / settings.density / 1000 * 60;
     } else {
       return 0;
     }
@@ -224,12 +224,12 @@ class _DurationScreenState extends State<DurationScreen> {
       int? weight,
       required double infusionRate,
       required InfusionUnit infusionUnit,
-      required int dilution}) {
+      required int density}) {
     double res = 0.0;
     if (infusionUnit == InfusionUnit.mg_kg_hr) {
-      res = volume * dilution / weight! / infusionRate * 60;
+      res = volume * density / weight! / infusionRate * 60;
     } else if (infusionUnit == InfusionUnit.mcg_kg_min) {
-      res = volume * dilution / weight! / infusionRate * 1000;
+      res = volume * density / weight! / infusionRate * 1000;
     } else if (infusionUnit == InfusionUnit.mL_hr) {
       res = volume / infusionRate * 60;
     }
@@ -270,7 +270,7 @@ class _DurationScreenState extends State<DurationScreen> {
             weight: weight,
             infusionRate: infusionRate!,
             infusionUnit: infusionUnit,
-            dilution: settings.dilution);
+            density: settings.density);
 
         if (volumes[i] == 50 || volumes[i] == 20) {
           durations.add(

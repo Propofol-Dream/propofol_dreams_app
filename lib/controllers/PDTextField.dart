@@ -29,7 +29,7 @@ class PDTextField extends StatefulWidget {
   final double interval;
   final int fractionDigits;
   final TextEditingController controller;
-  final range;
+  final List<num> range;
   Function onPressed;
 
   // Function onChanged;
@@ -37,7 +37,7 @@ class PDTextField extends StatefulWidget {
   Function? onLongPressedEnd;
   bool enabled;
   Timer? timer;
-  final Duration delay = Duration(milliseconds: 50);
+  final Duration delay = const Duration(milliseconds: 50);
   double? height;
 
   @override
@@ -80,7 +80,7 @@ class _PDTextFieldState extends State<PDTextField> {
             color: widget.enabled
                 ? Theme.of(context).colorScheme.primary
                 : Theme.of(context).disabledColor),
-        scrollPadding: EdgeInsets.all(48.0),
+        scrollPadding: const EdgeInsets.all(48.0),
         onSubmitted: (val) {
           widget.onPressed();
         },
@@ -119,7 +119,7 @@ class _PDTextFieldState extends State<PDTextField> {
           prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
           helperText: widget.helperText,
           labelText: widget.labelText,
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
           enabledBorder: OutlineInputBorder(
             borderSide:
                 BorderSide(color: Theme.of(context).colorScheme.primary),
@@ -141,20 +141,6 @@ class _PDTextFieldState extends State<PDTextField> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GestureDetector(
-                    child: Container(
-                      alignment: Alignment.center,
-                      width: suffixIconConstraintsWidth / 2,
-                      height: suffixIconConstraintsHeight,
-                      decoration: BoxDecoration(
-                          border:
-                              Border.all(width: 0, style: BorderStyle.none)),
-                      child: Icon(
-                        Icons.remove,
-                        color: widget.enabled
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).disabledColor,
-                      ),
-                    ),
                     onTap: widget.enabled
                         ? () async {
                             double? prev =
@@ -199,8 +185,6 @@ class _PDTextFieldState extends State<PDTextField> {
                         widget.onPressed();
                       }
                     },
-                  ),
-                  GestureDetector(
                     child: Container(
                       alignment: Alignment.center,
                       width: suffixIconConstraintsWidth / 2,
@@ -209,12 +193,14 @@ class _PDTextFieldState extends State<PDTextField> {
                           border:
                               Border.all(width: 0, style: BorderStyle.none)),
                       child: Icon(
-                        Icons.add,
+                        Icons.remove,
                         color: widget.enabled
                             ? Theme.of(context).colorScheme.primary
                             : Theme.of(context).disabledColor,
                       ),
                     ),
+                  ),
+                  GestureDetector(
                     onTap: widget.enabled
                         ? () async {
                             double? prev =
@@ -259,6 +245,20 @@ class _PDTextFieldState extends State<PDTextField> {
                         widget.onPressed();
                       }
                     },
+                    child: Container(
+                      alignment: Alignment.center,
+                      width: suffixIconConstraintsWidth / 2,
+                      height: suffixIconConstraintsHeight,
+                      decoration: BoxDecoration(
+                          border:
+                              Border.all(width: 0, style: BorderStyle.none)),
+                      child: Icon(
+                        Icons.add,
+                        color: widget.enabled
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).disabledColor,
+                      ),
+                    ),
                   ),
                 ],
               ),

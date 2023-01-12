@@ -17,14 +17,14 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final PDSegmentedController dilutionController = PDSegmentedController();
+  final PDSegmentedController densityController = PDSegmentedController();
   final PDSegmentedController themeController = PDSegmentedController();
   final TextEditingController pumpController = TextEditingController();
 
   @override
   void initState() {
     final settings = context.read<Settings>();
-    dilutionController.val = settings.dilution == 10 ? 0 : 1;
+    densityController.val = settings.density == 10 ? 0 : 1;
     pumpController.text = settings.max_pump_rate.toString();
     themeController.val = settings.themeModeSelection == ThemeMode.light
         ? 0
@@ -42,12 +42,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     var pref = await SharedPreferences.getInstance();
     final settings = context.read<Settings>();
 
-    if (pref.containsKey('dilution')) {
-      settings.dilution = pref.getInt('dilution')!;
+    if (pref.containsKey('density')) {
+      settings.density = pref.getInt('density')!;
     } else {
-      settings.dilution = 10;
+      settings.density = 10;
     }
-    dilutionController.val = settings.dilution == 10 ? 0 : 1;
+    densityController.val = settings.density == 10 ? 0 : 1;
 
     if (pref.containsKey('max_pump_rate')) {
       settings.max_pump_rate = pref.getInt('max_pump_rate')!;
@@ -146,13 +146,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   height: UIHeight,
                   fontSize: 16,
                   labels: ['1 % = 10 mcg/mL', '2 % = 20 mcg/mL'],
-                  segmentedController: dilutionController,
+                  segmentedController: densityController,
                   onPressed: [
                     () {
-                      settings.dilution = 10;
+                      settings.density = 10;
                     },
                     () {
-                      settings.dilution = 20;
+                      settings.density = 20;
                     }
                   ],
                 ),

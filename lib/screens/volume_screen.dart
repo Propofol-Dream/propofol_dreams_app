@@ -36,7 +36,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   TextEditingController ageController = TextEditingController();
   TextEditingController heightController = TextEditingController();
   TextEditingController weightController = TextEditingController();
-  TextEditingController depthController = TextEditingController();
+  TextEditingController targetController = TextEditingController();
   TextEditingController durationController = TextEditingController();
   final PDTableController tableController = PDTableController();
   final ScrollController scrollController = ScrollController();
@@ -44,7 +44,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   Timer timer = Timer(Duration.zero, () {});
   Duration delay = const Duration(milliseconds: 500);
 
-  double depthInterval = 0.5;
+  double targetInterval = 0.5;
   int durationInterval = 10; //in mins
 
   String result = '-- mL';
@@ -83,7 +83,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
       heightController.text = settings.adultHeight.toString();
       weightController.text = settings.adultWeight.toString();
-      depthController.text = settings.adultDepth.toString();
+      targetController.text = settings.adultTarget.toString();
       durationController.text = settings.adultDuration.toString();
     } else {
       pediatricModelController.selection = settings.pediatricModel;
@@ -92,7 +92,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
       ageController.text = settings.pediatricAge.toString();
       heightController.text = settings.pediatricHeight.toString();
       weightController.text = settings.pediatricWeight.toString();
-      depthController.text = settings.pediatricDepth.toString();
+      targetController.text = settings.pediatricTarget.toString();
       durationController.text = settings.pediatricDuration.toString();
     }
 
@@ -120,10 +120,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
       settings.inAdultView = true;
     }
 
-    if (pref.containsKey('dilution')) {
-      settings.dilution = pref.getInt('dilution')!;
+    if (pref.containsKey('density')) {
+      settings.density = pref.getInt('density')!;
     } else {
-      settings.dilution = 10;
+      settings.density = 10;
     }
 
     if (pref.containsKey('isVolumeTableExpanded')) {
@@ -192,10 +192,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
       settings.adultWeight = 70;
     }
 
-    if (pref.containsKey('adultDepth')) {
-      settings.adultDepth = pref.getDouble('adultDepth');
+    if (pref.containsKey('adultTarget')) {
+      settings.adultTarget = pref.getDouble('adultTarget');
     } else {
-      settings.adultDepth = 3.0;
+      settings.adultTarget = 3.0;
     }
 
     if (pref.containsKey('adultDuration')) {
@@ -261,10 +261,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
       settings.pediatricWeight = 26;
     }
 
-    if (pref.containsKey('pediatricDepth')) {
-      settings.pediatricDepth = pref.getDouble('pediatricDepth');
+    if (pref.containsKey('pediatricTarget')) {
+      settings.pediatricTarget = pref.getDouble('pediatricTarget');
     } else {
-      settings.pediatricDepth = 3.0;
+      settings.pediatricTarget = 3.0;
     }
 
     if (pref.containsKey('pediatricDuration')) {
@@ -281,7 +281,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
       heightController.text = settings.adultHeight.toString();
       weightController.text = settings.adultWeight.toString();
-      depthController.text = settings.adultDepth.toString();
+      targetController.text = settings.adultTarget.toString();
       durationController.text = settings.adultDuration.toString();
     } else {
       pediatricModelController.selection = settings.pediatricModel;
@@ -290,7 +290,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
       ageController.text = settings.pediatricAge.toString();
       heightController.text = settings.pediatricHeight.toString();
       weightController.text = settings.pediatricWeight.toString();
-      depthController.text = settings.pediatricDepth.toString();
+      targetController.text = settings.pediatricTarget.toString();
       durationController.text = settings.pediatricDuration.toString();
     }
 
@@ -368,7 +368,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
-    double? depth = double.tryParse(depthController.text);
+    double? target = double.tryParse(targetController.text);
     int? duration = int.tryParse(durationController.text);
     Gender gender = genderController.val ? Gender.Female : Gender.Male;
 
@@ -379,7 +379,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         settings.adultAge = age;
         settings.adultHeight = height;
         settings.adultWeight = weight;
-        settings.adultDepth = depth;
+        settings.adultTarget = target;
         settings.adultDuration = duration;
       }
     } else {
@@ -389,7 +389,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         settings.pediatricAge = age;
         settings.pediatricHeight = height;
         settings.pediatricWeight = weight;
-        settings.pediatricDepth = depth;
+        settings.pediatricTarget = target;
         settings.pediatricDuration = duration;
       }
     }
@@ -404,12 +404,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
     if (age != null &&
         height != null &&
         weight != null &&
-        depth != null &&
+        target != null &&
         duration != null) {
       if (age >= 0 &&
           height >= 0 &&
           weight >= 0 &&
-          depth >= 0 &&
+          target >= 0 &&
           duration >= 0) {
         Model model = age >= 17 ? settings.adultModel : settings.pediatricModel;
 
@@ -417,8 +417,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
           // print('model != Model.None');
 
           if (model.isEnable(age: age, height: height, weight: weight) &&
-              depth <= kMaxDepth &&
-              depth >= kMinDepth &&
+              target <= kMaxTarget &&
+              target >= kMinTarget &&
               duration <= kMaxDuration &&
               duration >= kMinDuration) {
             // print('model is enable');
@@ -440,21 +440,21 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   weight: weight, age: age, height: height, gender: gender);
 
               Pump pump = Pump(
-                  time_step: Duration(seconds: settings.time_step) ,
-                  dilution: settings.dilution,
-                  max_pump_rate: settings.max_pump_rate);
+                  timeStep: Duration(seconds: settings.time_step) ,
+                  density: settings.density,
+                  maxPumpRate: settings.max_pump_rate);
 
-              Operation operation = Operation(depth: depth, duration: Duration(minutes:duration )    );
+              Operation operation = Operation(target: target, duration: Duration(minutes:duration )    );
 
               Operation operation1 = Operation(
-                  depth: depth - depthInterval,
+                  target: target - targetInterval,
                   duration: Duration(minutes: duration + 2 * durationInterval));
 
               Operation operation2 = Operation(
-                  depth: depth, duration: Duration(minutes: duration + 2 * durationInterval));
+                  target: target, duration: Duration(minutes: duration + 2 * durationInterval));
 
               Operation operation3 = Operation(
-                  depth: depth + depthInterval,
+                  target: target + targetInterval,
                   duration: Duration(minutes: duration + 2 * durationInterval));
 
               PDSim.Simulation sim1 =
@@ -591,10 +591,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
           : settings.adultWeight != null
               ? settings.adultWeight.toString()
               : '';
-      depthController.text = toDefault
+      targetController.text = toDefault
           ? 3.0.toString()
-          : settings.adultDepth != null
-              ? settings.adultDepth.toString()
+          : settings.adultTarget != null
+              ? settings.adultTarget.toString()
               : '';
       durationController.text = toDefault
           ? 60.toString()
@@ -622,10 +622,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
           : settings.pediatricWeight != null
               ? settings.pediatricWeight.toString()
               : '';
-      depthController.text = toDefault
+      targetController.text = toDefault
           ? 3.0.toString()
-          : settings.pediatricDepth != null
-              ? settings.pediatricDepth.toString()
+          : settings.pediatricTarget != null
+              ? settings.pediatricTarget.toString()
               : '';
       durationController.text = toDefault
           ? 60.toString()
@@ -681,13 +681,13 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     final settings = context.watch<Settings>();
 
-    int dilution = settings.dilution;
+    int density = settings.density;
 
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
     int? duration = int.tryParse(durationController.text);
-    double? depth = double.tryParse(depthController.text);
+    double? target = double.tryParse(targetController.text);
 
     adultModelController.selection = settings.adultModel;
     pediatricModelController.selection = settings.pediatricModel;
@@ -700,7 +700,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         age: age,
         height: height,
         weight: weight,
-        depth: depth,
+        target: target,
         duration: duration);
 
     final bool heightTextFieldEnabled = settings.inAdultView
@@ -758,16 +758,16 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     GestureDetector(
                       onTap: () async {
                         await HapticFeedback.mediumImpact();
-                        settings.dilution == 10
-                            ? settings.dilution = 20
-                            : settings.dilution = 10;
+                        settings.density == 10
+                            ? settings.density = 20
+                            : settings.density = 10;
                         run();
                       },
                       child: Chip(
-                          avatar: settings.dilution == 10
+                          avatar: settings.density == 10
                               ? Icon(Icons.water_drop_outlined)
                               : Icon(Icons.water_drop),
-                          label: Text('${(dilution / 10).toInt()} %')),
+                          label: Text('${(density / 10).toInt()} %')),
                     )
                   ],
                 ),
@@ -805,11 +805,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     colHeaderIcon: Icon(Icons.psychology_outlined),
                     colHeaderLabels: modelIsRunnable
                         ? [
-                            (depth! - depthInterval) >= 0
-                                ? (depth - depthInterval).toStringAsFixed(1)
+                            (target! - targetInterval) >= 0
+                                ? (target - targetInterval).toStringAsFixed(1)
                                 : 0.toStringAsFixed(1),
-                            (depth).toStringAsFixed(1),
-                            (depth + depthInterval).toStringAsFixed(1)
+                            (target).toStringAsFixed(1),
+                            (target + targetInterval).toStringAsFixed(1)
                           ]
                         : ['--', '--', '--'],
                     rowHeaderIcon: Icon(Icons.schedule),
@@ -979,13 +979,13 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   child: PDTextField(
                     height: UIHeight + 2,
                     prefixIcon: Icons.psychology_outlined,
-                    // labelText: 'Depth in mcg/mL',
+                    // labelText: 'Target in mcg/mL',
                     labelText: '${selectedModel.target.toString()}',
                     helperText: '',
                     interval: 0.5,
                     fractionDigits: 1,
-                    controller: depthController,
-                    range: [kMinDepth, kMaxDepth],
+                    controller: targetController,
+                    range: [kMinTarget, kMaxTarget],
                     onPressed: updatePDTextEditingController,
                     // onChanged: restart,
                   ),

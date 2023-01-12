@@ -1,14 +1,14 @@
 import 'dart:collection';
 import 'dart:math';
 
-import 'package:flutter/services.dart';
+
 import 'package:propofol_dreams_app/models/target.dart';
 
-import 'model.dart';
+
 import 'simulation.dart';
 import 'pump.dart';
 import 'operation.dart';
-import 'patient.dart';
+
 import 'package:propofol_dreams_app/constants.dart';
 
 class Trial {
@@ -19,19 +19,19 @@ class Trial {
   Pump manualPump(
       {Map<Duration, double>? bolusSequence,
       SplayTreeMap<Duration, double>? pumpInfusionSequences,
-      SplayTreeMap<Duration, double>? depthSequences}) {
+      SplayTreeMap<Duration, double>? targetSequences}) {
     return Pump(
-        time_step: simulation.pump.time_step,
-        dilution: simulation.pump.dilution,
-        max_pump_rate: kMaxHumanlyPossiblePushRate,
+        timeStep: simulation.pump.timeStep,
+        density: simulation.pump.density,
+        maxPumpRate: kMaxHumanlyPossiblePushRate,
         bolusSequence: bolusSequence,
         pumpInfusionSequences: pumpInfusionSequences,
-        depthSequences: depthSequences);
+        targetSequences: targetSequences);
   }
 
   Map<String, List> estimate({Pump? manualPump, required Duration duration}) {
     Operation trialOperation =
-        Operation(depth: simulation.operation.depth, duration: duration);
+        Operation(target: simulation.operation.target, duration: duration);
 
     Simulation trialSimulation = Simulation(
         model: simulation.model,
@@ -42,12 +42,12 @@ class Trial {
     return trialSimulation.estimate;
   }
 
-  Map<String, dynamic> get baseline {
+  Map<String, List> get baseline {
     return estimate(duration: Duration(minutes: 600));
   }
 
   //TODO implement this into Simulation class
-  Map<String, dynamic> get forecast_bolus {
+  Map<String, List> get forecast_bolus {
     return estimate(manualPump: manualPump(), duration: Duration(seconds: 200));
   }
 
@@ -57,7 +57,7 @@ class Trial {
     // DateTime start = DateTime.now();
     // int i = forecast_bolus['pump_infs'].indexWhere((element) => element == 0);
     // double b = forecast_bolus['cumulative_infused_volumes'][i];
-    double b = findMostCommon(forecast_bolus['cumulative_infused_volumes']);
+    double b = findMostCommon(forecast_bolus['cumulative_infused_volumes']!);
     // DateTime end = DateTime.now();
     // Duration  d = end.difference(start);
     // print(d);
@@ -67,20 +67,20 @@ class Trial {
   }
 
   double get bolus {
-    return bolusVolumes * simulation.pump.dilution;
+    return bolusVolumes * simulation.pump.density;
   }
 
   Duration get pumpStartsAt {
-    List vol = forecast_bolus['cumulative_infused_volumes'];
-    int index = vol.lastIndexOf(bolusVolumes);
-    Duration d = forecast_bolus['times'][index + 1];
+    List? vol = forecast_bolus['cumulative_infused_volumes'];
+    int? index = vol?.lastIndexOf(bolusVolumes);
+    Duration d = forecast_bolus['times']![index! + 1];
     return d;
   }
 
   Duration get bolusStopsAt {
-    List vol = forecast_bolus['cumulative_infused_volumes'];
-    int index = vol.indexOf(bolusVolumes);
-    Duration d = forecast_bolus['times'][index + 1];
+    List? vol = forecast_bolus['cumulative_infused_volumes'];
+    int? index = vol?.indexOf(bolusVolumes);
+    Duration d = forecast_bolus['times']![index! + 1];
     return d;
     // return Duration.zero;
   }
@@ -133,7 +133,7 @@ class Trial {
   //pump infusion is in mg/hr
   double findPumpInfusion({required Duration duration}) {
     return findCumulativeInfusedVolumes(duration: duration) *
-        simulation.pump.dilution;
+        simulation.pump.density;
   }
 
   Map<String, double> pumpInfusion(
@@ -153,7 +153,7 @@ class Trial {
 
     double pumpInfusion = (endInfusion - startInfusion - (proposedBolus ?? 0)) /
         duration *
-        simulation.pump.time_step.inSeconds *
+        simulation.pump.timeStep.inSeconds *
         3600;
 
     Map<String, double> result = {
@@ -259,7 +259,7 @@ class Trial {
 
     for (int i = 0; i < tmpBaseline.length - 1; i++) {
       double deviation = (tmpProposed[i] - tmpBaseline[i]) *
-          simulation.pump.time_step.inMilliseconds /
+          simulation.pump.timeStep.inMilliseconds /
           1000;
       deviations.add(deviation);
       double squared_deviation = pow(deviation, 2) as double;
