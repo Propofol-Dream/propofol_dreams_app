@@ -24,7 +24,7 @@ class Trial {
         timeStep: simulation.pump.timeStep,
         density: simulation.pump.density,
         maxPumpRate: kMaxHumanlyPossiblePushRate,
-        bolusSequence: bolusSequence,
+        // bolusSequence: bolusSequence,
         pumpInfusionSequences: pumpInfusionSequences,
         targetSequences: targetSequences);
   }
@@ -190,7 +190,7 @@ class Trial {
 
           for (int j = 0; j < proposedPumpInfusions.length; j++) {
             Pump p = manualPump();
-            p.updateBolusSequence(bolus: proposedBolus[i]);
+            // p.updateBolusSequence(bolus: proposedBolus[i]);
             p.updatePumpInfusionSequence(
                 start: bolusStopsAt,
                 end: end,

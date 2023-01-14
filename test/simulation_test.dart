@@ -10,33 +10,31 @@ import 'dart:io';
 import 'package:propofol_dreams_app/constants.dart';
 
 void main() {
-
-  test('Peaking Fn', () async {
+  test('Bolus', () async {
     Model model = Model.Eleveld;
     Patient patient =
         Patient(weight: 58, age: 50, height: 160, gender: Gender.Female);
 
-    Pump pump = Pump(
-        timeStep: Duration(milliseconds: 1000),
-        density: 10,
-        maxPumpRate: 10000);
+    Pump pump =
+        Pump(timeStep: Duration(seconds: 1), density: 10, maxPumpRate: 1200);
 
     Operation operation = Operation(
-      target: 3,
-      duration: Duration(minutes: 30),
+      target: 4,
+      duration: Duration(minutes: 30)
     );
-
-    // pump.updateBolusSequence(bolus: 120);
-    // pump.updatePumpInfusionSequence(start: Duration.zero, end: Duration(minutes: 15), pumpInfusion: 650);
 
     Simulation sim = Simulation(
         model: model, patient: patient, pump: pump, operation: operation);
 
-    print(sim.maxCe);
-    print(sim.maxCeReachesAt);
-    print(sim.ceAt(duration: Duration(seconds: 90)));
+    pump.updateTarget(at: Duration(minutes: 10), target: 8);
+    pump.updateBolus(at: Duration(minutes: 10), bolus: sim.estimateBolus(8-operation.target));
 
-    // final filename = '/Users/eddy/Documents/output.csv';
-    // var file = await File(filename).writeAsString(sim.toCsv(sim.peak));
+
+    print(sim.estimateBolus(8-operation.target));
+    print(pump.infuseBolusRate(bolus: sim.estimateBolus(4)));
+    print(pump.infuseBolusDuration(bolus: sim.estimateBolus(4)));
+
+    final filename = '/Users/eddy/Documents/output.csv';
+    var file = await File(filename).writeAsString(sim.toCsv(sim.estimate2));
   });
 }

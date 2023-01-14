@@ -19,7 +19,7 @@ void main() {
 
   test('New Boluse Sequence', (){
     Pump pump = Pump(timeStep: Duration(milliseconds: 1000), density: 10, maxPumpRate: 750);
-    pump.updateBolusSequence(bolus: 138.88888888);
+    // pump.updateBolusSequence(bolus: 138.88888888);
     // print(pump.bolusSequence);
     // print(pump.bolusSequence![Duration(seconds: 1)]);
     // pump.updateTargetSequence(at: Duration(seconds: 4), target: 3.3);

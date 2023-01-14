@@ -1,5 +1,5 @@
-
 import 'dart:math';
+import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/operation.dart';
@@ -290,7 +290,7 @@ class Simulation {
 
     // double max_infusion = (pump.dilution * pump.max_pump_rate).toDouble();
 
-    Duration time =  Duration.zero;
+    Duration time = Duration.zero;
     double k21 = variables['k21'] as double;
     double k31 = variables['k31'] as double;
     double k10 = variables['k10'] as double;
@@ -312,8 +312,6 @@ class Simulation {
     int operationDuration = trialOperation.duration.inSeconds;
 
     double totalStep = operationDuration / timeStep;
-
-    // double steps_to_100_secs = 100 / time_step;
 
     for (int step = 0; step <= totalStep; step += 1) {
       double pumpInf = 0;
@@ -381,17 +379,94 @@ class Simulation {
     return durations[index];
   }
 
-  double ceAt({required Duration duration}){
+  double ceAt({required Duration duration}) {
     List<Duration> durations = peak['times'] as List<Duration>;
     int index = durations.indexOf(duration);
     List<double> ces = peak['concentrations_effect'] as List<double>;
     return ces[index];
   }
 
-  Map<String, List> get estimate {
-    double maxInfusion =
-        (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
+  double get bolus {
+    if (model.target == Target.Effect_Site) {
+      return operation.target / maxCe * pump.density;
+    } else if (model.target == Target.Plasma) {
+      double V1 = variables['V1'] as double;
+      return operation.target * V1;
+    } else {
+      return -1;
+    }
+  }
 
+  // double bolus ({required double targetDifference}) {
+  //   if (model.target == Target.Effect_Site) {
+  //     return targetDifference / maxCe * pump.density;
+  //   } else if (model.target == Target.Plasma) {
+  //     double V1 = variables['V1'] as double;
+  //     return targetDifference * V1;
+  //   } else {
+  //     return -1;
+  //   }
+  // }
+
+  Duration get pushBolusDuration {
+    double infusionInSecs =
+        bolus / (pump.density * kMaxHumanlyPossiblePushRate / 3600);
+    double timeStepInSecs = pump.timeStep.inMilliseconds / 1000;
+
+    int infusionInTimeStep = (infusionInSecs / timeStepInSecs).floor();
+    return Duration(
+        milliseconds: pump.timeStep.inMilliseconds * (infusionInTimeStep + 1));
+  }
+
+  // Duration bolusDuration ({required double bolus, required bool infusedByHand}) {
+  //   double infusionInSecs =
+  //       bolus / (pump.density * (infusedByHand ? kMaxHumanlyPossiblePushRate:pump.maxPumpRate) / 3600);
+  //   double timeStepInSecs = pump.timeStep.inMilliseconds / 1000;
+  //
+  //   int infusionInTimeStep = (infusionInSecs / timeStepInSecs).floor();
+  //   return Duration(
+  //       milliseconds: pump.timeStep.inMilliseconds * (infusionInTimeStep+1));
+  // }
+
+  double get pushBolusRate {
+    return bolus / (pushBolusDuration.inMilliseconds / 1000 / 3600);
+  }
+
+  double estimateBolus(double targetDifference) {
+    if (targetDifference <= 0) return 0;
+
+    double result = 0.0;
+    if (model.target == Target.Effect_Site) {
+      result = targetDifference / maxCe * pump.density;
+    } else if (model.target == Target.Plasma) {
+      double V1 = variables['V1'] as double;
+      result = targetDifference * V1;
+    }
+    return result;
+  }
+
+  // Duration infuseBolusDuration({required double estimatedBolus}) {
+  //   double infusionInSecs =
+  //       estimatedBolus / (pump.density * pump.maxPumpRate / 3600);
+  //   double timeStepInSecs = pump.timeStep.inMilliseconds / 1000;
+  //
+  //   int infusionInTimeStep = (infusionInSecs / timeStepInSecs).floor();
+  //   return Duration(
+  //       milliseconds: pump.timeStep.inMilliseconds * (infusionInTimeStep + 1));
+  // }
+  //
+  // double infuseBolusRate({required double estimatedBolus}) {
+  //   return estimatedBolus /
+  //       (infuseBolusDuration(estimatedBolus: estimatedBolus).inMilliseconds /
+  //           1000 /
+  //           3600);
+  // }
+
+  // double bolusInfusionRate ({required double bolus, required Duration bolusDuration}) {
+  //   return bolus / (bolusDuration.inMilliseconds / 1000 / 3600);
+  // }
+
+  Map<String, List> get estimate {
     // int step = 0;
     Duration time = Duration.zero;
     double k21 = variables['k21'] as double;
@@ -424,19 +499,16 @@ class Simulation {
     int operationDuration = operation.duration.inSeconds;
     double totalStep = operationDuration / timeStep;
 
-    // print(time_step);
-    // print(operation_duration);
-    // print(total_step);
-
     for (int step = 0; step <= totalStep; step += 1) {
       //find manual pump inf
-      double? manualPumpInf = pump.pumpInfusionSequences != null
-          ? pump.pumpInfusionSequences![time]
-          : null;
+      double? manualPumpInf = pump.pumpInfusionSequences?[time];
 
-      // find manual target
-      double? manualTarget =
-          pump.targetSequences != null ? pump.targetSequences![time] : null;
+      //find manual target
+      double? manualTarget = pump.targetSequences?[time];
+
+      //find max Pump Infusion Rate
+      double maxPumpInfusionRate =
+          (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
 
       double A2 = step == 0
           ? 0
@@ -454,7 +526,8 @@ class Simulation {
                   timeStep /
                   60;
 
-      double target = step == 0 ? operation.target : manualTarget ?? targets.last;
+      double target =
+          step == 0 ? operation.target : manualTarget ?? targets.last;
 
       double overshootTime = (step == 0
           ? target / maxCalibratedEffect * 100 - 1
@@ -473,25 +546,17 @@ class Simulation {
       double? A1;
 
       if (model.target == Target.Effect_Site) {
-        // A1 = step == 0
-        //     ? 0
-        //     : (pump_infs.last / 60) * time_step / 60 + A1_change + A1s.last;
-
         A1 = step == 0
             ? 0
             : (pumpInfs.last / 60) * timeStep / 60 + A1Change + A1s.last;
 
         inf = 3600 * (target * V1 - A1Change - A1) / timeStep;
 
-        // pump_inf = (concentration_effect > operation.target
-        //     ? 0.0
-        //     : (overshoot_time > 0.0 ? max_infusion : (inf < 0.0 ? 0.0 : inf)));
-
         pumpInf = manualPumpInf ??
             ((concentrationEffect > target
                 ? 0.0
                 : (overshootTime > 0.0
-                    ? maxInfusion
+                    ? maxPumpInfusionRate
                     : (inf < 0.0 ? 0.0 : inf))));
       } else {
         inf = step == 0
@@ -501,11 +566,9 @@ class Simulation {
         pumpInf = manualPumpInf ??
             (step == 0
                 ? inf
-                : (inf > maxInfusion ? maxInfusion : (inf < 0 ? 0 : inf)));
-
-        // A1 = step == 0
-        //     ? 0
-        //     : (pump_inf / 60) * time_step / 60 + A1_change + A1s.last;
+                : (inf > maxPumpInfusionRate
+                    ? maxPumpInfusionRate
+                    : (inf < 0 ? 0 : inf)));
 
         A1 = step == 0
             ? 0
@@ -532,7 +595,6 @@ class Simulation {
       concentrations.add(concentration);
       concentrationsEffect.add(concentrationEffect);
       cumulativeInfusedVolumes.add(cumulativeInfusedVolume);
-// print(time);
       time = time + pump.timeStep;
     }
     // print(times.last);
@@ -542,6 +604,148 @@ class Simulation {
       'times': times,
       'target': targets,
       'overshoot_times': overshootTimes,
+      'infs': infs,
+      'pump_infs': pumpInfs,
+      'A1_changes': A1Changes,
+      'A1s': A1s,
+      'A2s': A2s,
+      'A3s': A3s,
+      'concentrations': concentrations,
+      'concentrations_effect': concentrationsEffect,
+      'cumulative_infused_volumes': cumulativeInfusedVolumes
+    });
+  }
+
+  Map<String, List> get estimate2 {
+    // int step = 0;
+    Duration time = Duration.zero;
+    double k21 = variables['k21'] as double;
+    double k31 = variables['k31'] as double;
+    double k10 = variables['k10'] as double;
+    double k12 = variables['k12'] as double;
+    double k13 = variables['k13'] as double;
+    double V1 = variables['V1'] as double;
+    double ke0 = variables['ke0'] as double;
+
+    //List for calibrated_effect only
+    List<double> A1s = [];
+    List<double> A2s = [];
+    List<double> A3s = [];
+    List<Duration> times = [];
+    List<int> steps = [];
+    List<double> pumpInfs = []; //mg per hr
+    List<double> concentrations = [];
+    List<double> concentrationsEffect = [];
+
+    //List for volume estimation
+    List<double> targets = [];
+    List<double> overshootTimes = [];
+    List<double> infs = []; //mg per hr
+    List<double> A1Changes = [];
+    List<double> cumulativeInfusedVolumes = []; // mL
+
+    double timeStep = pump.timeStep.inMilliseconds /
+        1000; // this is to allow time_step in milliseconds
+    int operationDuration = operation.duration.inSeconds;
+    double totalStep = operationDuration / timeStep;
+
+    for (int step = 0; step <= totalStep; step += 1) {
+      //find manual pump inf
+      double? manualPumpInf = pump.pumpInfusionSequences?[time];
+
+      //find manual target
+      double? manualTarget = pump.targetSequences?[time];
+
+      //find max Pump Infusion Rate
+      double maxPumpInfusionRate =
+          (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
+
+      double A2 = step == 0
+          ? 0
+          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * timeStep / 60;
+
+      double A3 = step == 0
+          ? 0
+          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * timeStep / 60;
+
+      double concentrationEffect = step == 0
+          ? 0
+          : concentrationsEffect.last +
+              ke0 *
+                  (concentrations.last - concentrationsEffect.last) *
+                  timeStep /
+                  60;
+
+      double target =
+          step == 0 ? operation.target : manualTarget ?? targets.last;
+
+      double A1Change = step == 0
+          ? 0
+          : (A2 * k21 + A3 * k31 - A1s.last * (k10 + k12 + k13)) *
+              timeStep /
+              60;
+
+      double? inf;
+      double? pumpInf;
+      double? A1;
+
+      if (model.target == Target.Effect_Site) {
+        A1 = step == 0
+            ? 0
+            : (pumpInfs.last / 60) * timeStep / 60 + A1Change + A1s.last;
+
+        inf = 3600 * (target * V1 - A1Change - A1) / timeStep;
+
+        pumpInf = manualPumpInf ??
+            ((concentrationEffect > target
+                ? 0.0
+                : (time < pushBolusDuration
+                    ? pushBolusRate
+                    : (inf < 0.0 ? 0.0 : inf))));
+      } else {
+        inf = step == 0
+            ? 0
+            : 3600 * (target * V1 - A1Change - A1s.last) / timeStep;
+
+        pumpInf = manualPumpInf ??
+            (time < pushBolusDuration
+                ? pushBolusRate
+                : (inf > maxPumpInfusionRate
+                    ? maxPumpInfusionRate
+                    : (inf < 0 ? 0 : inf)));
+
+        A1 = step == 0
+            ? 0
+            : (pumpInf / 60) * timeStep / 60 + A1Change + A1s.last;
+      }
+
+      double concentration = A1 / V1;
+
+      double cumulativeInfusedVolume = step == 0
+          ? pumpInf * timeStep / 3600 / pump.density
+          : cumulativeInfusedVolumes.last +
+              pumpInf * timeStep / 3600 / pump.density;
+
+      steps.add(step);
+      times.add(time);
+      targets.add(target);
+      infs.add(inf);
+      pumpInfs.add(pumpInf);
+      A1Changes.add(A1Change);
+      A1s.add(A1);
+      A2s.add(A2);
+      A3s.add(A3);
+      concentrations.add(concentration);
+      concentrationsEffect.add(concentrationEffect);
+      cumulativeInfusedVolumes.add(cumulativeInfusedVolume);
+      time = time + pump.timeStep;
+    }
+    // print(times.last);
+
+    return ({
+      'steps': steps,
+      'times': times,
+      'target': targets,
       'infs': infs,
       'pump_infs': pumpInfs,
       'A1_changes': A1Changes,
