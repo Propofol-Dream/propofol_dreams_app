@@ -450,6 +450,8 @@ class Simulation {
     List<double> A1Changes = [];
     List<double> cumulativeInfusedVolumes = []; // mL
 
+    double maxCalibratedE = maxCalibratedEffect;
+
     double timeStep = pump.timeStep.inMilliseconds /
         1000; // this is to allow time_step in milliseconds
     int operationDuration = operation.duration.inSeconds;
@@ -486,9 +488,9 @@ class Simulation {
           step == 0 ? operation.target : manualTarget ?? targets.last;
 
       double overshootTime = (step == 0
-          ? target / maxCalibratedEffect * 100 - 1
+          ? target / maxCalibratedE * 100 - 1
           : (target - targets.last > 0
-              ? (target - targets.last) / maxCalibratedEffect * 100 - 1
+              ? (target - targets.last) / maxCalibratedE * 100 - 1
               : overshootTimes.last - timeStep));
 
       double A1Change = step == 0

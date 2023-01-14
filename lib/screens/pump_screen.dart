@@ -40,7 +40,7 @@ class _PumpScreenState extends State<PumpScreen> {
         Pump(timeStep: Duration(seconds: 1), density: 10, maxPumpRate: 1200);
 
     Operation operation =
-        Operation(target: 4, duration: Duration(minutes: 9999));
+        Operation(target: 4, duration: Duration(minutes: 600));
 
     PDSim.Simulation sim = PDSim.Simulation(
         model: model, patient: patient, pump: pump, operation: operation);
@@ -60,7 +60,7 @@ class _PumpScreenState extends State<PumpScreen> {
     Duration duration = end.difference(start);
 
     setState(() {
-      volume = result + ' ' + duration.toString();
+      volume = result + ' ' + duration.inMilliseconds.toString() +' milliseconds';
     });
   }
 
