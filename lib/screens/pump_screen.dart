@@ -71,8 +71,8 @@ class _PumpScreenState extends State<PumpScreen> {
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Center(
           child: Text(
-            // 'We are building TCI for you.\n Be the first one to know',
-            volume,
+            'We are building TCI for you.\n Be the first one to know',
+            // volume,
             style: TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
           ),
@@ -80,8 +80,8 @@ class _PumpScreenState extends State<PumpScreen> {
         SizedBox(
           height: 16,
         ),
-        // ElevatedButton(onPressed: _launchURL, child: Text('Learn More'))
-        ElevatedButton(onPressed: run, child: Text('Run'))
+        ElevatedButton(onPressed: _launchURL, child: Text('Learn More'))
+        // ElevatedButton(onPressed: run, child: Text('Run'))
       ]),
     );
   }

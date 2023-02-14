@@ -145,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 PDSegmentedControl(
                   height: UIHeight,
                   fontSize: 16,
-                  labels: ['1 % = 10 mcg/mL', '2 % = 20 mcg/mL'],
+                  labels: ['1 % = 10 mg/mL', '2 % = 20 mg/mL'],
                   segmentedController: densityController,
                   onPressed: [
                     () {
