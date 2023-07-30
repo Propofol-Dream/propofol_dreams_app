@@ -19,14 +19,11 @@ class Pump {
       this.targetSequences});
 
   void updatePumpInfusionSequence(
-      {required Duration start,
-      required Duration end,
+      {required Duration at,
       required double pumpInfusion}) {
     pumpInfusionSequences ??= SplayTreeMap<Duration, double>();
-    for (Duration d = start; d <= end; d += timeStep) {
-      pumpInfusionSequences?.update(d, (value) => pumpInfusion,
-          ifAbsent: () => pumpInfusion);
-    }
+    pumpInfusionSequences?.update(at, (value) => pumpInfusion,
+        ifAbsent: () => pumpInfusion);
   }
 
   void updateTarget({required Duration at, required double target}) {
@@ -48,12 +45,12 @@ class Pump {
         (infuseBolusDuration(bolus: bolus).inMilliseconds / 1000 / 3600);
   }
 
-  void updateBolus({required Duration at, required double bolus}) {
-    updatePumpInfusionSequence(
-        start: at,
-        end: (at + infuseBolusDuration(bolus: bolus) - timeStep),
-        pumpInfusion: infuseBolusRate(bolus: bolus));
-  }
+  // void updateBolus({required Duration at, required double bolus}) {
+  //   updatePumpInfusionSequence(
+  //       start: at,
+  //       end: (at + infuseBolusDuration(bolus: bolus) - timeStep),
+  //       pumpInfusion: infuseBolusRate(bolus: bolus));
+  // }
 
   // void updateBolusSequence_old({required double bolus}) {
   //   bolusSequence ??= <Duration, double>{};

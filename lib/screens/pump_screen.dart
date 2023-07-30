@@ -46,9 +46,9 @@ class _PumpScreenState extends State<PumpScreen> {
         model: model, patient: patient, pump: pump, operation: operation);
 
     pump.updateTarget(at: Duration(minutes: 10), target: 8);
-    pump.updateBolus(
-        at: Duration(minutes: 10),
-        bolus: sim.estimateBolus(8 - operation.target));
+    // pump.updateBolus(
+    //     at: Duration(minutes: 10),
+    //     bolus: sim.estimateBolus(8 - operation.target));
 
     var tmp = sim.estimate2;
     result = tmp['cumulative_infused_volumes']!.last.toString();

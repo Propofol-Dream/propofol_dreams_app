@@ -384,6 +384,31 @@ class Simulation {
     return ces[index];
   }
 
+  double get bolus {
+    if (model.target == Target.Effect_Site) {
+      return operation.target / maxCe * pump.density;
+    } else if (model.target == Target.Plasma) {
+      double V1 = variables['V1'] as double;
+      return operation.target * V1;
+    } else {
+      return -1;
+    }
+  }
+
+  Duration get pushBolusDuration {
+    double infusionInSecs =
+        bolus / (pump.density * kMaxHumanlyPossiblePushRate / 3600);
+    double timeStepInSecs = pump.timeStep.inMilliseconds / 1000;
+
+    int infusionInTimeStep = (infusionInSecs / timeStepInSecs).floor();
+    return Duration(
+        milliseconds: pump.timeStep.inMilliseconds * (infusionInTimeStep + 1));
+  }
+
+  double get pushBolusRate {
+    return bolus / (pushBolusDuration.inMilliseconds / 1000 / 3600);
+  }
+
   double estimateBolus(double targetDifference) {
     if (targetDifference <= 0) return 0;
 
@@ -432,16 +457,16 @@ class Simulation {
     int operationDuration = operation.duration.inSeconds;
     double totalStep = operationDuration / timeStep;
 
-    //find max Pump Infusion Rate
-    double maxPumpInfusionRate =
-      (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
-
     for (int step = 0; step <= totalStep; step += 1) {
       //find manual pump inf
       double? manualPumpInf = pump.pumpInfusionSequences?[time];
 
       //find manual target
       double? manualTarget = pump.targetSequences?[time];
+
+      //find max Pump Infusion Rate
+      double maxPumpInfusionRate =
+          (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
 
       double A2 = step == 0
           ? 0
@@ -547,35 +572,6 @@ class Simulation {
       'concentrations_effect': concentrationsEffect,
       'cumulative_infused_volumes': cumulativeInfusedVolumes
     });
-  }
-
-  //This is not inital bolus, Engbert's algo doesn't require bolus to be calculated
-  //This was designed for calculate hand push bolus, but may not be required any more
-  double get bolus {
-    if (model.target == Target.Effect_Site) {
-      return operation.target / maxCe * pump.density;
-    } else if (model.target == Target.Plasma) {
-      double V1 = variables['V1'] as double;
-      return operation.target * V1;
-    } else {
-      return -1;
-    }
-  }
-
-  //This was hand push bolus, not pump infused bolus, and may not be required any more
-  Duration get pushBolusDuration {
-    double infusionInSecs =
-        bolus / (pump.density * kMaxHumanlyPossiblePushRate / 3600);
-    double timeStepInSecs = pump.timeStep.inMilliseconds / 1000;
-
-    int infusionInTimeStep = (infusionInSecs / timeStepInSecs).floor();
-    return Duration(
-        milliseconds: pump.timeStep.inMilliseconds * (infusionInTimeStep + 1));
-  }
-
-   //This was hand push bolus, not pump infused bolus, and may not be required any more
-  double get pushBolusRate {
-    return bolus / (pushBolusDuration.inMilliseconds / 1000 / 3600);
   }
 
   Map<String, List> get estimate2 {
