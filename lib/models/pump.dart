@@ -26,31 +26,37 @@ class Pump {
         ifAbsent: () => pumpInfusion);
   }
 
-  void updateTarget({required Duration at, required double target}) {
+  void copyPumpInfusionSequences({required List<Duration> times, required List<double> pumpInfs}){
+    for (int i = 0; i < times.length; i++) {
+      updatePumpInfusionSequence(at: times[i], pumpInfusion: pumpInfs[i]);
+    }
+  }
+
+  void updateTargetSequences({required Duration at, required double target}) {
     targetSequences ??= SplayTreeMap<Duration, double>();
     targetSequences?.update(at, (value) => target, ifAbsent: () => target);
   }
 
-  Duration infuseBolusDuration({required double bolus}) {
-    double infusionInSecs = bolus / (density * maxPumpRate / 3600);
+  Duration bolusInfusionDuration({required double bolus}) {
+    double infusionInSecs = bolus / (maxPumpRate * density / 3600);
     double timeStepInSecs = timeStep.inMilliseconds / 1000;
 
     int infusionInTimeStep = (infusionInSecs / timeStepInSecs).floor();
     return Duration(
-        milliseconds: timeStep.inMilliseconds * (infusionInTimeStep + 1));
+        milliseconds: timeStep.inMilliseconds * (infusionInTimeStep));
   }
 
-  double infuseBolusRate({required double bolus}) {
-    return bolus /
-        (infuseBolusDuration(bolus: bolus).inMilliseconds / 1000 / 3600);
-  }
-
-  // void updateBolus({required Duration at, required double bolus}) {
-  //   updatePumpInfusionSequence(
-  //       start: at,
-  //       end: (at + infuseBolusDuration(bolus: bolus) - timeStep),
-  //       pumpInfusion: infuseBolusRate(bolus: bolus));
+  // double bolusInfusionRate({required double bolus}) {
+  //   return bolus /
+  //       (bolusInfusionDuration(bolus: bolus).inMilliseconds / 1000 / 3600);
   // }
+
+  void infuseBolus({required Duration startsAt, required double bolus}) {
+    Duration endAt = startsAt + bolusInfusionDuration(bolus: bolus) - timeStep;
+    for (Duration i = startsAt; i <=endAt; i=i+timeStep) {
+      updatePumpInfusionSequence(at: i, pumpInfusion: (maxPumpRate * density).toDouble());
+    }
+  }
 
   // void updateBolusSequence_old({required double bolus}) {
   //   bolusSequence ??= <Duration, double>{};
@@ -100,7 +106,6 @@ class Pump {
     }
 
     str = '$str}';
-
     return str;
   }
 }

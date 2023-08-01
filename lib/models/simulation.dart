@@ -384,15 +384,28 @@ class Simulation {
     return ces[index];
   }
 
-  double estimateBolus(double targetDifference) {
-    if (targetDifference <= 0) return 0;
+  double estimateBolusInfused({required double targetIncreasedBy}) {
+    if (targetIncreasedBy <= 0) return 0;
 
     double result = 0.0;
     if (model.target == Target.Effect_Site) {
-      result = targetDifference / maxCe * pump.density;
+      result = targetIncreasedBy / maxCe * pump.density;
     } else if (model.target == Target.Plasma) {
       double V1 = variables['V1'] as double;
-      result = targetDifference * V1;
+      result = targetIncreasedBy * V1;
+    }
+    return result;
+  }
+
+  double estimateTargetIncreased({required double bolusInfusedBy}) {
+    if (bolusInfusedBy <= 0) return 0;
+
+    double result = 0.0;
+    if (model.target == Target.Effect_Site) {
+      result = bolusInfusedBy * maxCe / pump.density;
+    } else if (model.target == Target.Plasma) {
+      double V1 = variables['V1'] as double;
+      result = bolusInfusedBy / V1;
     }
     return result;
   }
@@ -752,6 +765,7 @@ class Simulation {
     csv = '${csv.substring(0, csv.length - 2)}\n';
 
     for (int i = 0; i < length; i++) {
+      // print(i.toString() + ' : ' + (length-1).toString());
       for (var key in map.keys) {
         csv = '$csv${map[key][i]}, ';
       }

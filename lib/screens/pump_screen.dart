@@ -45,7 +45,7 @@ class _PumpScreenState extends State<PumpScreen> {
     PDSim.Simulation sim = PDSim.Simulation(
         model: model, patient: patient, pump: pump, operation: operation);
 
-    pump.updateTarget(at: Duration(minutes: 10), target: 8);
+    pump.updateTargetSequences(at: Duration(minutes: 10), target: 8);
     // pump.updateBolus(
     //     at: Duration(minutes: 10),
     //     bolus: sim.estimateBolus(8 - operation.target));
