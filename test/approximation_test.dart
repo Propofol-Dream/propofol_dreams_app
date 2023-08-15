@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:propofol_dreams_app/models/operation.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
@@ -6,102 +8,152 @@ import 'package:propofol_dreams_app/models/simulation.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/gender.dart';
 
-import 'dart:io';
-import 'package:propofol_dreams_app/constants.dart';
-
 void main() {
   test('Approximation', () async {
 
+    int weight = 80;
+    int age = 40;
+    int height = 170;
+    Gender gender = Gender.Male;
+    Duration timeStep = Duration(seconds: 1);
+    int density = 10;
+    int maxPumpRate = 1200;
+    double target = 4;
+    Duration duration = Duration(minutes: 60);
+    int weightBound = 4;
+    double bolusBound = 0.1;
+
+    // Set up lists of results
+    List<int> weightGuesses = [];
+    List<int> bolusGuesses = [];
+    List<double> SSEs = [];
+    List<double> MdPEs = [];
+    List<double> MdAPEs = [];
+    List<double> maxPEs = [];
+    int weightBestGuess = -1;
+    int bolusBestGuess = -1;
+
     // Set up for baseline model
     Model baselineModel = Model.Eleveld;
-    Patient baselinePatient = Patient(weight: 80, age: 40, height: 170, gender: Gender.Male);
-    Pump baselinePump = Pump(timeStep: Duration(seconds: 1), density: 10, maxPumpRate: 1200);
-    Operation baselineOperation = Operation(target: 4, duration: Duration(minutes: 60));
+    Patient baselinePatient = Patient(weight: weight, age: age, height: height, gender: gender);
+    Pump baselinePump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
+    Operation baselineOperation = Operation(target: target, duration: duration);
     Simulation baselineSim = Simulation(
         model: baselineModel, patient: baselinePatient, pump: baselinePump, operation: baselineOperation);
 
-    // double baselineBolus = baselineSim.estimateBolusInfused(targetIncreasedBy: baselineOperation.target);
+    int minWeightGuess = (baselinePatient.weightGuess - weightBound).toInt();
+    int maxWeightGuess = (baselinePatient.weightGuess + weightBound).toInt();
+    int minBolusGuess = (baselinePatient.bolusGuess * (1 - bolusBound)).toInt();
+    int maxBolusGuess = (baselinePatient.bolusGuess * (1 + bolusBound)).toInt();
 
-    double trialBolus = 120;
+    for (int weightGuess = minWeightGuess; weightGuess <= maxWeightGuess; weightGuess++){
 
-    // Set up for compared model
-    Model comparedModel = Model.Marsh;
-    int adjstedWeight = 120;
-    Patient comparedPatient = Patient(weight: adjstedWeight, age: 40, height: 170, gender: Gender.Male);
-    Pump comparedPump = Pump(timeStep: Duration(seconds: 1), density: 10, maxPumpRate: 1200);
-    Simulation comparedSim = Simulation(
-        model: comparedModel, patient: comparedPatient, pump: comparedPump, operation: baselineOperation);
+      for (int bolusGuess = minBolusGuess; bolusGuess <= maxBolusGuess; bolusGuess++){
+        // Set up for compared model
+        Model comparedModel = Model.Marsh;
+        Patient comparedPatient = Patient(weight: weightGuess, age: age, height: height, gender: gender);
+        Pump comparedPump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
+        Simulation comparedSim = Simulation(
+            model: comparedModel, patient: comparedPatient, pump: comparedPump, operation: baselineOperation);
 
-    comparedPump.infuseBolus(startsAt: Duration.zero, bolus: trialBolus);
+        // Infuse the bolus via the pump
+        comparedPump.infuseBolus(startsAt: Duration.zero, bolus: bolusGuess.toDouble());
 
-    Map<String, List> comparedResult = comparedSim.estimate;
-    List<Duration> times = comparedResult['times'] as List<Duration>;
-    List<double> pumpInfs = comparedResult['pump_infs'] as List<double>;
+        Map<String, List> comparedEstimate = comparedSim.estimate;
+        List<Duration> times = comparedEstimate['times'] as List<Duration>;
+        List<double> pumpInfs = comparedEstimate['pump_infs'] as List<double>;
 
-    // Set up for final model
-    Pump finalPump = Pump(timeStep: Duration(seconds: 1), density: 10, maxPumpRate: 1200);
-    finalPump.copyPumpInfusionSequences(times: times, pumpInfs: pumpInfs);
+        // Set up for final model
+        Pump finalPump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
+        finalPump.copyPumpInfusionSequences(times: times, pumpInfs: pumpInfs);
+        Simulation finalSim = Simulation(model: baselineModel, patient: baselinePatient, pump: finalPump, operation: baselineOperation);
 
-    Simulation finalSim = Simulation(model: baselineModel, patient: baselinePatient, pump: finalPump, operation: baselineOperation);
+        Map<String, List> baselineEstimate = baselineSim.estimate;
+        Map<String, List> finalEstimate = finalSim.estimate;
 
-    final filename = '/Users/eddy/Documents/output.csv';
-    var file = await File(filename).writeAsString(finalSim.toCsv(finalSim.estimate));
-    
-    // Duration start = Duration(seconds: 200);
-    // Duration end = Duration(seconds: 210);
-    //
-    // for (Duration i = start; i <= end; i=i+pump.timeStep) {
-    //   pump.updatePumpInfusionSequence(at: i, pumpInfusion: 12000);
-    //   print(i);
-    // }
-    //
+        //Extract CEs and CPs from the three models
+        List<double> baselineCEs = baselineEstimate['concentrations_effect'] as List<double>;
+        List<double> finalCEs = finalEstimate['concentrations_effect'] as List<double>;
+
+        List<double> CEPErrors = [];
+        List<double> CEPercentageErrors = [];
+        List<double> CEAbsolutePercentageErrors = [];
+
+        for (int i = 0; i < finalCEs.length; i++) {
+          double error = finalCEs[i] - baselineCEs[i];
+          CEPErrors.add(error);
+          CEPercentageErrors.add(error/baselineCEs[i]);
+          CEAbsolutePercentageErrors.add(error.abs()/baselineCEs[i]);
+        }
+
+        double SSE = CEPErrors.reduce((value, element) => value + element * element);
+        double MdPE = calculateMedian(CEPercentageErrors);
+        double MdAPE = calculateMedian(CEAbsolutePercentageErrors);
+        double maxPE = CEAbsolutePercentageErrors.where((element) => !element.isNaN).reduce(max);
+
+        weightGuesses.add(weightGuess);
+        bolusGuesses.add(bolusGuess);
+        SSEs.add(SSE);
+        MdPEs.add(MdPE);
+        MdAPEs.add(MdAPE);
+        maxPEs.add(maxPE);
+      }
+    }
+
+    List<int> minIndices = findMinIndices(SSEs);
+
+    if(minIndices.length > 1){
+      List<double> filteredMaxPEs = [];
+      for (int i = 0; i < minIndices.length; i++){
+        filteredMaxPEs.add(maxPEs[minIndices[i]]);
+      }
+      int filteredMinIndex = findMinIndices(filteredMaxPEs).first;
+      weightBestGuess = weightGuesses[minIndices[filteredMinIndex]];
+      bolusBestGuess = bolusGuesses[minIndices[filteredMinIndex]];
+    }
+    else{
+      weightBestGuess = weightGuesses[minIndices.first];
+      bolusBestGuess = bolusGuesses[minIndices.first];
+    }
+
+    print(weightBestGuess);
+    print(bolusBestGuess);
+
+
+
     // final filename = '/Users/eddy/Documents/output.csv';
-    // var file = await File(filename).writeAsString(sim.toCsv(sim.estimate));
-  });
+    // var file = await File(filename).writeAsString(finalSim.toCsv(finalSim.estimate));
 
-  // test('Update Pump Target Sequences', () async {
-  //   Model model = Model.Eleveld;
-  //   Patient patient =
-  //   Patient(weight: 80, age: 40, height: 170, gender: Gender.Male);
-  //
-  //   Pump pump =
-  //   Pump(timeStep: Duration(seconds: 1), density: 10, maxPumpRate: 1200);
-  //
-  //   Operation operation =
-  //   Operation(target: 4, duration: Duration(seconds: 1100));
-  //
-  //   Simulation sim = Simulation(
-  //       model: model, patient: patient, pump: pump, operation: operation);
-  //
-  //   pump.updateTargetSequences(at: Duration(seconds: 300), target: 10);
-  //
-  //   final filename = '/Users/eddy/Documents/output.csv';
-  //   var file = await File(filename).writeAsString(sim.toCsv(sim.estimate));
-  // });
-  //
-  // test('Update Pump Pump Infusion Sequences', () async {
-  //   Model model = Model.Eleveld;
-  //   Patient patient =
-  //   Patient(weight: 80, age: 40, height: 170, gender: Gender.Male);
-  //
-  //   Pump pump =
-  //   Pump(timeStep: Duration(seconds: 1), density: 10, maxPumpRate: 1200);
-  //
-  //   Operation operation =
-  //   Operation(target: 4, duration: Duration(seconds: 1100));
-  //
-  //   Simulation sim = Simulation(
-  //       model: model, patient: patient, pump: pump, operation: operation);
-  //
-  //   Duration start = Duration(seconds: 200);
-  //   Duration end = Duration(seconds: 210);
-  //
-  //   for (Duration i = start; i <= end; i=i+pump.timeStep) {
-  //     pump.updatePumpInfusionSequence(at: i, pumpInfusion: 12000);
-  //     print(i);
-  //   }
-  //
-  //   final filename = '/Users/eddy/Documents/output.csv';
-  //   var file = await File(filename).writeAsString(sim.toCsv(sim.estimate));
-  // });
+  });
 }
+
+double calculateMedian(List<double> numbers) {
+  // Sort the list in ascending order
+  numbers.sort();
+
+  int length = numbers.length;
+
+  if (length % 2 == 1) {
+    // For odd-length list, return the middle element
+    return numbers[length ~/ 2];
+  } else {
+    // For even-length list, return the average of the two middle elements
+    double middle1 = numbers[length ~/ 2 - 1];
+    double middle2 = numbers[length ~/ 2];
+    return (middle1 + middle2) / 2;
+  }
+}
+
+List<int> findMinIndices(List<double> numbers) {
+  List<int> minIndices = [];
+  double minValue = numbers.where((element) => !element.isNaN).reduce(min);
+  for (int i = 0; i < numbers.length; i++) {
+    if (numbers[i] == minValue) {
+      minIndices.add(i);
+    }
+  }
+  return minIndices;
+}
+
+
+
