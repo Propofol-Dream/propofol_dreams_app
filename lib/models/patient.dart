@@ -11,6 +11,10 @@ class Patient with ChangeNotifier{
   Patient(
       {required this.weight, required this.height, required this.age, required this.gender});
 
+  Patient copy() {
+    return Patient(weight: weight, height: height, age: age, gender: gender);
+  }
+
   @override
   String toString(){
     return '{gender: $gender, age: $age, height: $height, weight: $weight}';
@@ -56,21 +60,6 @@ class Patient with ChangeNotifier{
           1.144e-4 * height * height - 4.308e-4 * weight * bmi - 0.2029 * age + 1.047e-3 * age * age -
           0.003866 * age * weight + 3.305e-6 * age * weight * weight + 0.001263 * age * bmi - 0.09866 * bmi);
     }
-  }
-
-  double get bolusGuess{
-    if (gender == Gender.Female) {
-      return(1.31 + 3.063 * weight - 2.312e-3 * weight * weight + 6.172e-6 * weight * weight * weight -
-          0.1026 * height + 4.375e-4 * height * height - 5.997e-4 * weight * bmi - 0.5831 * age +
-          0.004267 * age * age - 0.01399 * age * weight - 3.716e-5 * age * weight * weight +
-          3.345e-7 * age * age * weight * weight + 0.001912 * age * bmi - 0.1885 * bmi);
-    } else {
-      return(7.92 + 2.983 * weight - 2.339e-3 * weight * weight + 6.439e-6 * weight * weight * weight -
-          0.1693 * height + 6.393e-4 * height * height - 5.025e-4 * weight * bmi - 0.5454 * age +
-          0.003780 * age * age - 0.01376 * age * weight - 4.149e-5 * age * weight * weight +
-          3.661e-7 * age * age * weight * weight + 0.002259 * age * bmi - 0.2682 * bmi);
-    }
-
   }
 
 }

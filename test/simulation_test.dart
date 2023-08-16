@@ -25,9 +25,9 @@ void main() {
         model: model, patient: patient, pump: pump, operation: operation);
 
     pump.updateTargetSequences(at: Duration(minutes: 10), target: 4.5);
-    pump.updateBolus(
-        at: Duration(minutes: 10),
-        bolus: sim.estimateBolusInfused(4.5 - operation.target));
+    // pump.updateBolus(
+    //     at: Duration(minutes: 10),
+    //     bolus: sim.estimateBolusInfused(4.5 - operation.target));
 
     // print(sim.estimateBolus(8-operation.target));
     // print(pump.infuseBolusRate(bolus: sim.estimateBolus(4)));

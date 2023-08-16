@@ -64,7 +64,8 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
                     : Theme.of(context).colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(
                   side: BorderSide(
-                      strokeAlign: StrokeAlign.outside,
+                      // strokeAlign: StrokeAlign.outside, //deprecated in flutter 3.7
+                      strokeAlign: BorderSide.strokeAlignOutside,
                       color: Theme.of(context).colorScheme.primary),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(buildIndex == 0 ? 5 : 0),

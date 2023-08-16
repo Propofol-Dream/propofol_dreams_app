@@ -857,7 +857,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         shape: RoundedRectangleBorder(
                             side: BorderSide(
                               color: Theme.of(context).colorScheme.primary,
-                              strokeAlign: StrokeAlign.outside,
+                              // strokeAlign: StrokeAlign.outside, //depreicated in flutter 3.7
+                              strokeAlign: BorderSide.strokeAlignOutside,
                             ),
                             borderRadius: BorderRadius.all(Radius.circular(5))),
                       ),
@@ -1382,7 +1383,8 @@ class _PDAdvancedSegmentedControlState
                       : Theme.of(context).colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
                     side: BorderSide(
-                        strokeAlign: StrokeAlign.outside,
+                        // strokeAlign: StrokeAlign.outside, // deprecated in flutter 3.7
+                        strokeAlign: BorderSide.strokeAlignOutside,
                         color: widget.options[buildIndex].isEnable(
                                 age: widget.assertValues['age'],
                                 height: widget.assertValues['height'],

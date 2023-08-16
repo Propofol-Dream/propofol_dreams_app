@@ -37,7 +37,7 @@ void main() {
     // Simulation trailSimulation = Simulation(
     //     model: model, patient: patient, pump: trialPump, operation: operation);
 
-    Trial trial = Trial(simulation: sim);
+    Trial trial = Trial(baselineSimulation: sim);
     print(trial.bolus);
     Duration start = Duration.zero;
     Duration end = Duration(minutes: 15);

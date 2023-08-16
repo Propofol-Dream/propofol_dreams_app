@@ -3,9 +3,9 @@ import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/operation.dart';
-import 'model.dart';
-import 'gender.dart';
-import 'target.dart';
+import 'package:propofol_dreams_app/models/model.dart';
+import 'package:propofol_dreams_app/models/gender.dart';
+import 'package:propofol_dreams_app/models/target.dart';
 
 class Simulation {
   Model model;
@@ -18,6 +18,10 @@ class Simulation {
       required this.patient,
       required this.pump,
       required this.operation});
+
+  Simulation copy() {
+    return Simulation(model: model, patient: patient, pump: pump, operation: operation);
+  }
 
   Map<String, double> get variables {
     double k10 = 0,
@@ -562,7 +566,27 @@ class Simulation {
     });
   }
 
-  //This is not inital bolus, Engbert's algo doesn't require bolus to be calculated
+  double get bolusGuess{
+
+    double guess = patient.gender == Gender.Female
+        ?
+    (1.31 + 3.063 * patient.weight - 2.312e-3 * patient.weight * patient.weight + 6.172e-6 * patient.weight * patient.weight * patient.weight -
+        0.1026 * patient.height + 4.375e-4 * patient.height * patient.height - 5.997e-4 * patient.weight * patient.bmi - 0.5831 * patient.age +
+        0.004267 * patient.age * patient.age - 0.01399 * patient.age * patient.weight - 3.716e-5 * patient.age * patient.weight * patient.weight +
+        3.345e-7 * patient.age * patient.age * patient.weight * patient.weight + 0.001912 * patient.age * patient.bmi - 0.1885 * patient.bmi)
+        :
+    (7.92 + 2.983 * patient.weight - 2.339e-3 * patient.weight * patient.weight + 6.439e-6 * patient.weight * patient.weight * patient.weight -
+        0.1693 * patient.height + 6.393e-4 * patient.height * patient.height - 5.025e-4 * patient.weight * patient.bmi - 0.5454 * patient.age +
+        0.003780 * patient.age * patient.age - 0.01376 * patient.age * patient.weight - 4.149e-5 * patient.age * patient.weight * patient.weight +
+        3.661e-7 * patient.age * patient.age * patient.weight * patient.weight + 0.002259 * patient.age * patient.bmi - 0.2682 * patient.bmi);
+
+    guess = guess / 4 * operation.target / 10 * pump.density;
+
+    return guess;
+
+  }
+
+  //This is not initial bolus, Engbert's algo doesn't require bolus to be calculated
   //This was designed for calculate hand push bolus, but may not be required any more
   double get bolus {
     if (model.target == Target.Effect_Site) {

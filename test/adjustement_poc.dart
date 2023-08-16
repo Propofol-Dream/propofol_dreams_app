@@ -9,7 +9,8 @@ import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/gender.dart';
 
 void main() {
-  test('Approximation', () async {
+  test('Adjustment', () async {
+
 
     int weight = 80;
     int age = 40;
@@ -19,9 +20,10 @@ void main() {
     int density = 10;
     int maxPumpRate = 1200;
     double target = 4;
-    Duration duration = Duration(minutes: 60);
-    int weightBound = 4;
-    double bolusBound = 0.1;
+    Duration duration = Duration(minutes: 180);
+
+    int weightBound = 0; // 0 = No brute force
+    double bolusBound = 0.0; // 0.0 = No brute force
 
     // Set up lists of results
     List<int> weightGuesses = [];
@@ -40,11 +42,13 @@ void main() {
     Operation baselineOperation = Operation(target: target, duration: duration);
     Simulation baselineSim = Simulation(
         model: baselineModel, patient: baselinePatient, pump: baselinePump, operation: baselineOperation);
-
     int minWeightGuess = (baselinePatient.weightGuess - weightBound).toInt();
     int maxWeightGuess = (baselinePatient.weightGuess + weightBound).toInt();
-    int minBolusGuess = (baselinePatient.bolusGuess * (1 - bolusBound)).toInt();
-    int maxBolusGuess = (baselinePatient.bolusGuess * (1 + bolusBound)).toInt();
+    int minBolusGuess = (baselineSim.bolusGuess * (1 - bolusBound)).toInt();
+    int maxBolusGuess = (baselineSim.bolusGuess * (1 + bolusBound)).toInt();
+
+    print("weight bounds: $minWeightGuess - $maxWeightGuess");
+    print("bolus bounds: $minBolusGuess - $maxBolusGuess");
 
     for (int weightGuess = minWeightGuess; weightGuess <= maxWeightGuess; weightGuess++){
 
@@ -116,10 +120,9 @@ void main() {
       bolusBestGuess = bolusGuesses[minIndices.first];
     }
 
-    print(weightBestGuess);
-    print(bolusBestGuess);
-
-
+    print("combination: ${SSEs.length}");
+    print("weightBestGuess: $weightBestGuess");
+    print("bolusBestGuess: $bolusBestGuess");
 
     // final filename = '/Users/eddy/Documents/output.csv';
     // var file = await File(filename).writeAsString(finalSim.toCsv(finalSim.estimate));

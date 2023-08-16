@@ -16,15 +16,15 @@ import 'dart:io';
 
 void main() {
 
-  test('New Boluse Sequence', (){
-    Pump pump = Pump(timeStep: Duration(milliseconds: 1000), density: 10, maxPumpRate: 750);
-    // pump.updateBolusSequence(bolus: 138.88888888);
-    // print(pump.bolusSequence);
-    // print(pump.bolusSequence![Duration(seconds: 1)]);
-    // pump.updateTargetSequence(at: Duration(seconds: 4), target: 3.3);
-    // pump.updateTargetSequence(at: Duration(seconds: 2), target: 4.5);
-    // print(pump.isManual);
-    print(pump.pumpInfusionSequences);
+  test('copy()', (){
+    double target = 4;
+    Duration duration = Duration(minutes: 180);
+
+    Operation baselineOperation = Operation(target: target, duration: duration);
+    Operation newOp = baselineOperation.copy();
+    newOp.target = 20;
+    print(newOp.target);
+    print (baselineOperation.target);
 
   });
 }

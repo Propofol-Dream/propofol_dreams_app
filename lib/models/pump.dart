@@ -18,6 +18,10 @@ class Pump {
       this.pumpInfusionSequences,
       this.targetSequences});
 
+  Pump copy() {
+    return Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate, pumpInfusionSequences: pumpInfusionSequences, targetSequences: targetSequences);
+  }
+
   void updatePumpInfusionSequence(
       {required Duration at,
       required double pumpInfusion}) {
