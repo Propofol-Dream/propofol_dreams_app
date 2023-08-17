@@ -11,30 +11,27 @@ import 'package:propofol_dreams_app/constants.dart';
 
 void main() {
   test('Bolus', () async {
-    Model model = Model.Eleveld;
-    Patient patient =
-    Patient(weight: 58, age: 50, height: 160, gender: Gender.Female);
+    int weight = 80;
+    int age = 40;
+    int height = 170;
+    Gender gender = Gender.Male;
+    Duration timeStep = Duration(seconds: 1);
+    int density = 10;
+    int maxPumpRate = 1200;
+    double target = 4;
+    Duration duration = Duration(minutes: 180);
 
-    Pump pump =
-    Pump(timeStep: Duration(seconds: 1), density: 10, maxPumpRate: 1200);
+    // Set up for the model
+    Model baselineModel = Model.Eleveld;
+    Patient baselinePatient = Patient(weight: weight, age: age, height: height, gender: gender);
+    Pump baselinePump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
+    Operation baselineOperation = Operation(target: target, duration: duration);
+    Simulation baselineSim = Simulation(
+        model: baselineModel, patient: baselinePatient, pump: baselinePump, operation: baselineOperation);
 
-    Operation operation =
-    Operation(target: 4, duration: Duration(minutes: 30));
+    print(baselineSim.estimateBolusInfused(targetIncreasedBy: target));
 
-    Simulation sim = Simulation(
-        model: model, patient: patient, pump: pump, operation: operation);
-
-    pump.updateTargetSequences(at: Duration(minutes: 10), target: 4.5);
-    // pump.updateBolus(
-    //     at: Duration(minutes: 10),
-    //     bolus: sim.estimateBolusInfused(4.5 - operation.target));
-
-    // print(sim.estimateBolus(8-operation.target));
-    // print(pump.infuseBolusRate(bolus: sim.estimateBolus(4)));
-    // print(pump.infuseBolusDuration(bolus: sim.estimateBolus(4)));
-    // sim.estimate2;
-
-    final filename = '/Users/eddy/Documents/output.csv';
-    var file = await File(filename).writeAsString(sim.toCsv(sim.estimate2));
+    // final filename = '/Users/eddy/Documents/output.csv';
+    // var file = await File(filename).writeAsString(sim.toCsv(sim.estimate2));
   });
 }

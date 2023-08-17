@@ -116,7 +116,7 @@ class Simulation {
     double Cl3 = k31 * V3; //litre / steps per min
 
     if (model == Model.Eleveld) {
-      bool opioid = true; // arbitralily set YES to intraop opioids
+      bool opioid = true; // arbitrarily set YES to intraop opioids
 
       V1 = 6.28 * (patient.weight / (patient.weight + 33.6)) / (0.675675675676);
       V2 = 25.5 * (patient.weight / 70) * exp(-0.0156 * (patient.age - 35));
@@ -191,11 +191,6 @@ class Simulation {
   }
 
   Map<String, List> get calibrate {
-    // Pump trialPump = Pump(
-    // time_step: Duration(seconds: 1),
-    //     time_step: pump.time_step,
-    //     dilution: pump.dilution,
-    //     max_pump_rate: pump.max_pump_rate);
     Operation trialOperation =
         Operation(target: 0, duration: const Duration(seconds: 720));
 
@@ -570,12 +565,12 @@ class Simulation {
 
     double guess = patient.gender == Gender.Female
         ?
-    (1.31 + 3.063 * patient.weight - 2.312e-3 * patient.weight * patient.weight + 6.172e-6 * patient.weight * patient.weight * patient.weight -
+    (41.31 + 3.063 * patient.weight - 2.312e-3 * patient.weight * patient.weight + 6.172e-6 * patient.weight * patient.weight * patient.weight -
         0.1026 * patient.height + 4.375e-4 * patient.height * patient.height - 5.997e-4 * patient.weight * patient.bmi - 0.5831 * patient.age +
         0.004267 * patient.age * patient.age - 0.01399 * patient.age * patient.weight - 3.716e-5 * patient.age * patient.weight * patient.weight +
         3.345e-7 * patient.age * patient.age * patient.weight * patient.weight + 0.001912 * patient.age * patient.bmi - 0.1885 * patient.bmi)
         :
-    (7.92 + 2.983 * patient.weight - 2.339e-3 * patient.weight * patient.weight + 6.439e-6 * patient.weight * patient.weight * patient.weight -
+    (47.92 + 2.983 * patient.weight - 2.339e-3 * patient.weight * patient.weight + 6.439e-6 * patient.weight * patient.weight * patient.weight -
         0.1693 * patient.height + 6.393e-4 * patient.height * patient.height - 5.025e-4 * patient.weight * patient.bmi - 0.5454 * patient.age +
         0.003780 * patient.age * patient.age - 0.01376 * patient.age * patient.weight - 4.149e-5 * patient.age * patient.weight * patient.weight +
         3.661e-7 * patient.age * patient.age * patient.weight * patient.weight + 0.002259 * patient.age * patient.bmi - 0.2682 * patient.bmi);

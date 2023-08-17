@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 import 'package:propofol_dreams_app/providers/settings.dart';
@@ -12,13 +13,13 @@ import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/gender.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:propofol_dreams_app/models/target.dart';
 
 import '../constants.dart';
 
 import 'package:propofol_dreams_app/controllers/PDTextField.dart';
-
-import '../models/target.dart';
+import 'package:propofol_dreams_app/controllers/PDSwitchController.dart';
+import 'package:propofol_dreams_app/controllers/PDSwitchField.dart';
 
 class VolumeScreen extends StatefulWidget {
   const VolumeScreen({Key? key}) : super(key: key);
@@ -80,7 +81,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
       genderController.val =
           settings.adultGender == Gender.Female ? true : false;
       ageController.text = settings.adultAge.toString();
-
       heightController.text = settings.adultHeight.toString();
       weightController.text = settings.adultWeight.toString();
       targetController.text = settings.adultTarget.toString();
@@ -96,12 +96,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
       durationController.text = settings.pediatricDuration.toString();
     }
 
-    load().then((value) {
-      setState(() {});
-    });
+    load();
 
     super.initState();
-    // });
+
   }
 
   @override
@@ -296,6 +294,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     updateModelOptions(settings.inAdultView);
     run(initState: true);
+
   }
 
   void updateRowsAndResult({cols, times}) {
@@ -363,6 +362,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   }
 
   void run({initState = false}) {
+
     final settings = Provider.of<Settings>(context, listen: false);
 
     int? age = int.tryParse(ageController.text);
@@ -372,8 +372,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
     int? duration = int.tryParse(durationController.text);
     Gender gender = genderController.val ? Gender.Female : Gender.Male;
 
-    if (settings.inAdultView) {
-      if (initState == false) {
+    if (initState == false) {
+      if (settings.inAdultView) {
         settings.adultModel = adultModelController.selection;
         settings.adultGender = gender;
         settings.adultAge = age;
@@ -381,9 +381,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         settings.adultWeight = weight;
         settings.adultTarget = target;
         settings.adultDuration = duration;
-      }
-    } else {
-      if (initState == false) {
+      } else {
         settings.pediatricModel = pediatricModelController.selection;
         settings.pediatricGender = gender;
         settings.pediatricAge = age;
@@ -440,31 +438,42 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   weight: weight, age: age, height: height, gender: gender);
 
               Pump pump = Pump(
-                  timeStep: Duration(seconds: settings.time_step) ,
+                  timeStep: Duration(seconds: settings.time_step),
                   density: settings.density,
                   maxPumpRate: settings.max_pump_rate);
 
-              Operation operation = Operation(target: target, duration: Duration(minutes:duration )    );
+              Operation operation = Operation(
+                  target: target, duration: Duration(minutes: duration));
 
               Operation operation1 = Operation(
                   target: target - targetInterval,
                   duration: Duration(minutes: duration + 2 * durationInterval));
 
               Operation operation2 = Operation(
-                  target: target, duration: Duration(minutes: duration + 2 * durationInterval));
+                  target: target,
+                  duration: Duration(minutes: duration + 2 * durationInterval));
 
               Operation operation3 = Operation(
                   target: target + targetInterval,
                   duration: Duration(minutes: duration + 2 * durationInterval));
 
-              PDSim.Simulation sim1 =
-                  PDSim.Simulation(model: model, patient: patient, pump: pump, operation: operation1);
+              PDSim.Simulation sim1 = PDSim.Simulation(
+                  model: model,
+                  patient: patient,
+                  pump: pump,
+                  operation: operation1);
 
-              PDSim.Simulation sim2 =
-              PDSim.Simulation(model: model, patient: patient, pump: pump, operation: operation2);
+              PDSim.Simulation sim2 = PDSim.Simulation(
+                  model: model,
+                  patient: patient,
+                  pump: pump,
+                  operation: operation2);
 
-              PDSim.Simulation sim3 =
-              PDSim.Simulation(model: model, patient: patient, pump: pump, operation: operation3);
+              PDSim.Simulation sim3 = PDSim.Simulation(
+                  model: model,
+                  patient: patient,
+                  pump: pump,
+                  operation: operation3);
 
               results1 = sim1.estimate;
 
@@ -533,7 +542,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
         // print(result);
       });
     }
-
     // print('run ends');
   }
 
@@ -914,7 +922,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         : [1, 16],
                     onPressed: updatePDTextEditingController,
                     enabled: ageTextFieldEnabled,
-                    // onChanged: restart,
                   ),
                 ),
               ],
@@ -939,7 +946,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     controller: heightController,
                     range: [selectedModel.minHeight, selectedModel.maxHeight],
                     onPressed: updatePDTextEditingController,
-                    // onChanged: restart,
                     enabled: heightTextFieldEnabled,
                   ),
                 ),
@@ -1435,116 +1441,5 @@ class _PDAdvancedSegmentedControlState
         ),
       ),
     ]);
-  }
-}
-
-class PDSwitchController extends ChangeNotifier {
-  PDSwitchController();
-
-  bool _val = true;
-
-  bool get val {
-    return _val;
-  }
-
-  void set val(bool v) {
-    _val = v;
-    notifyListeners();
-  }
-}
-
-class PDSwitchField extends StatefulWidget {
-  PDSwitchField({
-    Key? key,
-    required this.prefixIcon,
-    required this.labelTexts,
-    required this.helperText,
-    required this.controller,
-    required this.onChanged,
-    required this.height,
-    this.enabled = true,
-  }) : super(key: key);
-
-  final Map<bool, String> labelTexts;
-  final IconData prefixIcon;
-  final String helperText;
-  final PDSwitchController controller;
-  final Function onChanged;
-  bool enabled;
-  double height;
-
-  @override
-  State<PDSwitchField> createState() => _PDSwitchFieldState();
-}
-
-class _PDSwitchFieldState extends State<PDSwitchField> {
-  // dispose it when the widget is unmounted
-  @override
-  void dispose() {
-    widget.controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    TextEditingController textEditingController =
-        TextEditingController(text: widget.labelTexts[widget.controller.val]!);
-
-    return Stack(
-      alignment: Alignment.topRight,
-      children: [
-        TextField(
-          enabled: widget.enabled,
-          readOnly: true,
-          controller: textEditingController,
-          style: TextStyle(
-              color: widget.enabled
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).disabledColor),
-          decoration: InputDecoration(
-            filled: widget.enabled ? true : false,
-            fillColor: Theme.of(context).colorScheme.onPrimary,
-            prefixIcon: Icon(
-              widget.prefixIcon,
-              color: widget.enabled
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).disabledColor,
-            ),
-            prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
-            helperText: widget.helperText,
-            border: const OutlineInputBorder(),
-            enabledBorder: OutlineInputBorder(
-              borderSide:
-                  BorderSide(color: Theme.of(context).colorScheme.primary),
-            ),
-          ),
-        ),
-        Container(
-          height: widget.height,
-          child: Switch(
-            activeColor: widget.enabled
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).disabledColor,
-            activeTrackColor:
-                Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            inactiveThumbColor: widget.enabled
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).disabledColor,
-            inactiveTrackColor:
-                Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            value: widget.controller.val,
-            onChanged: widget.enabled
-                ? (val) async {
-                    await HapticFeedback.mediumImpact();
-                    setState(() {
-                      widget.controller.val = val;
-                    });
-                    widget.onChanged();
-                  }
-                : null,
-          ),
-        ),
-      ],
-    );
   }
 }

@@ -19,6 +19,7 @@ class Adjustment {
   ({
     int weightBestGuess,
     int bolusBestGuess,
+    double initialCPTarget,
     int length,
     List<int> weightGuesses,
     List<int> bolusGuesses,
@@ -30,12 +31,14 @@ class Adjustment {
     // Set up results
     List<int> weightGuesses = [];
     List<int> bolusGuesses = [];
+    List<double> comparedSimulationTargetIncEstimates = [];
     List<double> SSEs = [];
     List<double> MdPEs = [];
     List<double> MdAPEs = [];
     List<double> maxPEs = [];
     int weightBestGuess = -1;
     int bolusBestGuess = -1;
+    double initialCPTarget = -1;
 
     // Set up for baseline model
     int minWeightGuess =
@@ -99,6 +102,8 @@ class Adjustment {
           CEAbsolutePercentageErrors.add(error.abs() / baselineCEs[i]);
         }
 
+        double comparedSimulationtargetIncEstimate = comparedSimulation.estimateTargetIncreased(bolusInfusedBy: bolusGuess.toDouble());
+
         double SSE =
             CEPErrors.reduce((value, element) => value + element * element);
         double MdPE = calculateMedian(CEPercentageErrors);
@@ -109,6 +114,7 @@ class Adjustment {
 
         weightGuesses.add(weightGuess);
         bolusGuesses.add(bolusGuess);
+        comparedSimulationTargetIncEstimates.add(comparedSimulationtargetIncEstimate);
         SSEs.add(SSE);
         MdPEs.add(MdPE);
         MdAPEs.add(MdAPE);
@@ -126,14 +132,17 @@ class Adjustment {
       int filteredMinIndex = findMinIndices(filteredMaxPEs).first;
       weightBestGuess = weightGuesses[minIndices[filteredMinIndex]];
       bolusBestGuess = bolusGuesses[minIndices[filteredMinIndex]];
+      initialCPTarget = comparedSimulationTargetIncEstimates[minIndices[filteredMinIndex]];
     } else {
       weightBestGuess = weightGuesses[minIndices.first];
       bolusBestGuess = bolusGuesses[minIndices.first];
+      initialCPTarget = comparedSimulationTargetIncEstimates[minIndices.first];
     }
 
     return (
       weightBestGuess: weightBestGuess,
       bolusBestGuess: bolusBestGuess,
+      initialCPTarget: initialCPTarget,
       length: SSEs.length,
       weightGuesses: weightGuesses,
       bolusGuesses: bolusGuesses,

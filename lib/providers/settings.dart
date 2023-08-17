@@ -14,7 +14,7 @@ class Settings with ChangeNotifier {
     return _themeModeSelection;
   }
 
-  void set themeModeSelection(ThemeMode tm) {
+  set themeModeSelection(ThemeMode tm) {
     _themeModeSelection = tm;
 
     switch (_themeModeSelection) {
@@ -54,13 +54,10 @@ class Settings with ChangeNotifier {
     return _isDarkTheme;
   }
 
-  void set isDarkTheme(bool b) {
-    //the if statement is to prevent rebuilt of any widget;
-    // if (_isDarkTheme != b) {
+  set isDarkTheme(bool b) {
     _isDarkTheme = b;
     setBool('isDarkTheme', b);
     notifyListeners();
-    // }
   }
 
   // Future<void> load() async {
@@ -92,7 +89,7 @@ class Settings with ChangeNotifier {
     return _density;
   }
 
-  void set density(int i) {
+  set density(int i) {
     _density = i;
     setInt('density', i);
     notifyListeners();
@@ -104,7 +101,7 @@ class Settings with ChangeNotifier {
     return _time_step;
   }
 
-  void set time_step(int i) {
+  set time_step(int i) {
     _time_step = i;
     setInt('time_step', i);
     notifyListeners();
@@ -116,13 +113,10 @@ class Settings with ChangeNotifier {
     return _max_pump_rate;
   }
 
-  void set max_pump_rate(int i) {
-    // print('set max_pump_rate to ${i}');
-    // if(max_pump_rate != i) {
-      _max_pump_rate = i;
-      setInt('max_pump_rate', i);
-      notifyListeners();
-    // }
+  set max_pump_rate(int i) {
+    _max_pump_rate = i;
+    setInt('max_pump_rate', i);
+    notifyListeners();
   }
 
   Model _adultModel = Model.None;
@@ -137,7 +131,7 @@ class Settings with ChangeNotifier {
     return _adultModel;
   }
 
-  void set adultModel(Model m) {
+  set adultModel(Model m) {
     _adultModel = m;
     setString('adultModel', m.toString());
     notifyListeners();
@@ -147,7 +141,7 @@ class Settings with ChangeNotifier {
     return _adultGender;
   }
 
-  void set adultGender(Gender? g) {
+  set adultGender(Gender? g) {
     _adultGender = g;
     setString('adultGender', g.toString());
     notifyListeners();
@@ -157,7 +151,7 @@ class Settings with ChangeNotifier {
     return _adultAge;
   }
 
-  void set adultAge(int? i) {
+  set adultAge(int? i) {
     _adultAge = i;
     setInt('adultAge', i);
     notifyListeners();
@@ -167,7 +161,7 @@ class Settings with ChangeNotifier {
     return _adultHeight;
   }
 
-  void set adultHeight(int? i) {
+  set adultHeight(int? i) {
     _adultHeight = i;
     setInt('adultHeight', i);
     notifyListeners();
@@ -177,13 +171,13 @@ class Settings with ChangeNotifier {
     return _adultWeight;
   }
 
-  void set adultWeight(int? i) {
+  set adultWeight(int? i) {
     // print(i);
     // if (_adultWeight != i) {
-      _adultWeight = i;
-      setInt('adultWeight', i);
-      // print('weight setInt');
-      notifyListeners();
+    _adultWeight = i;
+    setInt('adultWeight', i);
+    // print('weight setInt');
+    notifyListeners();
     // }
   }
 
@@ -191,7 +185,7 @@ class Settings with ChangeNotifier {
     return _adultTarget;
   }
 
-  void set adultTarget(double? d) {
+  set adultTarget(double? d) {
     _adultTarget = d;
     setDouble('adultTarget', d);
     notifyListeners();
@@ -201,7 +195,7 @@ class Settings with ChangeNotifier {
     return _adultDuration;
   }
 
-  void set adultDuration(int? i) {
+  set adultDuration(int? i) {
     _adultDuration = i;
     setInt('adultDuration', i);
     notifyListeners();
@@ -219,7 +213,7 @@ class Settings with ChangeNotifier {
     return _pediatricModel;
   }
 
-  void set pediatricModel(Model m) {
+  set pediatricModel(Model m) {
     _pediatricModel = m;
     setString('pediatricModel', m.toString());
     notifyListeners();
@@ -229,7 +223,7 @@ class Settings with ChangeNotifier {
     return _pediatricGender;
   }
 
-  void set pediatricGender(Gender? g) {
+  set pediatricGender(Gender? g) {
     _pediatricGender = g;
     setString('pediatricGender', g.toString());
     notifyListeners();
@@ -239,7 +233,7 @@ class Settings with ChangeNotifier {
     return _pediatricAge;
   }
 
-  void set pediatricAge(int? i) {
+  set pediatricAge(int? i) {
     _pediatricAge = i;
     setInt('pediatricAge', i);
     notifyListeners();
@@ -249,7 +243,7 @@ class Settings with ChangeNotifier {
     return _pediatricHeight;
   }
 
-  void set pediatricHeight(int? i) {
+  set pediatricHeight(int? i) {
     _pediatricHeight = i;
     setInt('pediatricHeight', i);
     notifyListeners();
@@ -259,7 +253,7 @@ class Settings with ChangeNotifier {
     return _pediatricWeight;
   }
 
-  void set pediatricWeight(int? i) {
+  set pediatricWeight(int? i) {
     _pediatricWeight = i;
     setInt('pediatricWeight', i);
     notifyListeners();
@@ -269,7 +263,7 @@ class Settings with ChangeNotifier {
     return _pediatricTarget;
   }
 
-  void set pediatricTarget(double? d) {
+  set pediatricTarget(double? d) {
     _pediatricTarget = d;
     setDouble('pediatricTarget', d);
     notifyListeners();
@@ -279,7 +273,7 @@ class Settings with ChangeNotifier {
     return _pediatricDuration;
   }
 
-  void set pediatricDuration(int? i) {
+  set pediatricDuration(int? i) {
     _pediatricDuration = i;
     setInt('pediatricDuration', i);
     notifyListeners();
@@ -291,7 +285,7 @@ class Settings with ChangeNotifier {
     return _inAdultView;
   }
 
-  void set inAdultView(bool b) {
+  set inAdultView(bool b) {
     _inAdultView = b;
     setBool('inAdultView', b);
     notifyListeners();
@@ -303,7 +297,7 @@ class Settings with ChangeNotifier {
     return _isVolumeTableExpanded;
   }
 
-  void set isVolumeTableExpanded(bool b) {
+  set isVolumeTableExpanded(bool b) {
     _isVolumeTableExpanded = b;
     setBool('isVolumeTableExpanded', b);
     notifyListeners();
@@ -315,7 +309,7 @@ class Settings with ChangeNotifier {
     return _weight;
   }
 
-  void set weight(int? i) {
+  set weight(int? i) {
     _weight = i;
     setInt('weight', i);
     notifyListeners();
@@ -327,7 +321,7 @@ class Settings with ChangeNotifier {
     return _infusionRate;
   }
 
-  void set infusionRate(double? d) {
+  set infusionRate(double? d) {
     _infusionRate = d;
     setDouble('infusionRate', d);
     notifyListeners();
@@ -339,9 +333,77 @@ class Settings with ChangeNotifier {
     return _infusinUnit;
   }
 
-  void set infusionUnit(InfusionUnit iu) {
+  set infusionUnit(InfusionUnit iu) {
     _infusinUnit = iu;
     setString('infusionUnit', iu.toString());
+    notifyListeners();
+  }
+
+  Gender? _AMWCGender;
+  int? _AMWCAge;
+  int? _AMWCHeight;
+  int? _AMWCWeight;
+  double? _AMWCTarget;
+  int? _AMWCDuration;
+
+  Gender? get AMWCGender {
+    return _AMWCGender;
+  }
+
+  set AMWCGender(Gender? g) {
+    _AMWCGender = g;
+    setString('AMWCGender', g.toString());
+    notifyListeners();
+  }
+
+  int? get AMWCAge {
+    return _AMWCAge;
+  }
+
+  set AMWCAge(int? i) {
+    _AMWCAge = i;
+    setInt('AMWCAge', i);
+    notifyListeners();
+  }
+
+  int? get AMWCHeight {
+    return _AMWCHeight;
+  }
+
+  set AMWCHeight(int? i) {
+    _AMWCHeight = i;
+    setInt('AMWCHeight', i);
+    notifyListeners();
+  }
+
+  int? get AMWCWeight {
+    return _AMWCWeight;
+  }
+
+  set AMWCWeight(int? i) {
+    _AMWCWeight = i;
+    setInt('AMWCWeight', i);
+    notifyListeners();
+    // }
+  }
+
+  double? get AMWCTarget {
+    return _AMWCTarget;
+  }
+
+  set AMWCTarget(double? d) {
+    _AMWCTarget = d;
+    setDouble('AMWCTarget', d);
+    notifyListeners();
+  }
+
+  int? get AMWCDuration {
+    return _AMWCDuration;
+  }
+
+  set AMWCDuration(int? i) {
+    _AMWCDuration = i;
+    setInt('AMWCDuration', i);
     notifyListeners();
   }
 
@@ -351,7 +413,7 @@ class Settings with ChangeNotifier {
     return _currentScreenIndex;
   }
 
-  void set currentScreenIndex(int i) {
+  set currentScreenIndex(int i) {
     _currentScreenIndex = i;
     setInt('currentScreenIndex', i);
     notifyListeners();
@@ -362,9 +424,7 @@ class Settings with ChangeNotifier {
     if (i != null) {
       pref.setInt(key, i);
     }
-    // else {
-    //   pref.remove(key);
-    // }
+
   }
 
   Future<void> setDouble(String key, double? d) async {
@@ -372,9 +432,7 @@ class Settings with ChangeNotifier {
     if (d != null) {
       pref.setDouble(key, d);
     }
-    // else {
-    //   pref.remove(key);
-    // }
+
   }
 
   Future<void> setBool(String key, bool? b) async {
@@ -382,9 +440,7 @@ class Settings with ChangeNotifier {
     if (b != null) {
       pref.setBool(key, b);
     }
-    // else {
-    //   pref.remove(key);
-    // }
+
   }
 
   Future<void> setString(String key, String? s) async {
@@ -392,8 +448,5 @@ class Settings with ChangeNotifier {
     if (s != null) {
       pref.setString(key, s);
     }
-    // else {
-    //   pref.remove(key);
-    // }
   }
 }

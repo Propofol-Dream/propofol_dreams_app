@@ -22,8 +22,8 @@ void main() {
     double target = 4;
     Duration duration = Duration(minutes: 180);
 
-    int weightBound = 4; // 0 = No brute force
-    double bolusBound = 0.1; // 0.0 = No brute force
+    int weightBound = 0; // 0 = No brute force
+    double bolusBound = 0.0; // 0.0 = No brute force
 
     // Set up for the model
     Model baselineModel = Model.Eleveld;
@@ -36,8 +36,11 @@ void main() {
     Adjustment adj = Adjustment(baselineSimulation: baselineSim, weightBound: weightBound, bolusBound: bolusBound);
 
     var result = adj.calculate();
-    print(result.weightBestGuess);
-    print(result.bolusBestGuess);
+    print("weightBestGuess: ${result.weightBestGuess}");
+    print("bolusBestGuess: ${result.bolusBestGuess}");
+    print("initialCPTarget: ${result.initialCPTarget}");
+    print(baselinePatient.weightGuess);
+
 
   });
 }
