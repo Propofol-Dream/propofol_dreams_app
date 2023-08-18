@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:propofol_dreams_app/models/adjustement.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,7 +38,9 @@ class _PumpScreenState extends State<PumpScreen> {
   TextEditingController targetController = TextEditingController();
   TextEditingController durationController = TextEditingController();
 
-  int abw = 66;
+  String weightBestGuess = "--";
+  String bolusBestGuess = "--";
+  String initialCPTarget = "--";
 
   @override
   void initState() {
@@ -61,7 +64,6 @@ class _PumpScreenState extends State<PumpScreen> {
   }
 
   Future<void> load() async {
-    print("pump load");
     var pref = await SharedPreferences.getInstance();
     final settings = context.read<Settings>();
 
@@ -116,7 +118,6 @@ class _PumpScreenState extends State<PumpScreen> {
     durationController.text = settings.AMWCDuration.toString();
 
     run(initState: true);
-    print("pump load end");
   }
 
   _launchURL() async {
@@ -140,15 +141,13 @@ class _PumpScreenState extends State<PumpScreen> {
   }
 
   run({initState = false}) async {
-    print("pump run");
-
     final settings = Provider.of<Settings>(context, listen: false);
 
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
     double? target = double.tryParse(targetController.text);
-    int? duration = int.tryParse(durationController.text);
+    // int? duration = int.tryParse(durationController.text);
     Gender gender = genderController.val ? Gender.Female : Gender.Male;
 
     if (initState == false) {
@@ -157,50 +156,77 @@ class _PumpScreenState extends State<PumpScreen> {
       settings.AMWCHeight = height;
       settings.AMWCWeight = weight;
       settings.AMWCTarget = target;
-      settings.AMWCDuration = duration;
+      // settings.AMWCDuration = duration;
     }
 
-    setState(() {
-      abw = 100;
-    });
-    // DateTime start = DateTime.now();
-    // String result = '';
-    //
-    // Model model = Model.Eleveld;
-    // Patient patient =
-    //     Patient(weight: 58, age: 50, height: 160, gender: Gender.Female);
-    //
-    // Pump pump =
-    //     Pump(timeStep: Duration(seconds: 1), density: 10, maxPumpRate: 1200);
-    //
-    // Operation operation =
-    //     Operation(target: 4, duration: Duration(minutes: 600));
-    //
-    // PDSim.Simulation sim = PDSim.Simulation(
-    //     model: model, patient: patient, pump: pump, operation: operation);
-    //
-    // pump.updateTargetSequences(at: Duration(minutes: 10), target: 8);
-    // // pump.updateBolus(
-    // //     at: Duration(minutes: 10),
-    // //     bolus: sim.estimateBolus(8 - operation.target));
-    //
-    // var tmp = sim.estimate2;
-    // result = tmp['cumulative_infused_volumes']!.last.toString();
-    //
-    // // result = sim.maxCeReachesAt.toString();
-    //
-    // DateTime end = DateTime.now();
-    //
-    // Duration duration = end.difference(start);
-    //
-    // setState(() {
-    //   volume = result + ' ' + duration.inMilliseconds.toString() +' milliseconds';
-    // });
+    if (age != null && height != null && weight != null && target != null) {
+      if (age >= 14 &&
+          age <= 105 &&
+          height >= 100 &&
+          height <= 220 &&
+          weight >= 40 &&
+          weight <= 350 &&
+          target >= 0.5 &&
+          target <= 8.0) {
+        DateTime start = DateTime.now();
+
+        Model model = Model.Eleveld;
+        Patient patient =
+            Patient(weight: weight, height: height, age: age, gender: gender);
+        Pump pump = Pump(
+            timeStep: Duration(seconds: settings.time_step),
+            density: settings.density,
+            maxPumpRate: settings.max_pump_rate);
+        Operation operation =
+            Operation(target: target, duration: Duration(hours: 3));
+        PDSim.Simulation simulation = PDSim.Simulation(
+            model: model, patient: patient, pump: pump, operation: operation);
+
+        Adjustment adjustment = Adjustment(
+            baselineSimulation: simulation, weightBound: 0, bolusBound: 0.0);
+
+        var result = adjustment.calculate();
+
+        DateTime finish = DateTime.now();
+
+        Duration calculationDuration = finish.difference(start);
+
+        setState(() {
+          weightBestGuess = result.weightBestGuess.toString();
+          bolusBestGuess = (result.bolusBestGuess/10.round() *10).toString();
+          initialCPTarget = result.initialCPTarget.round().toString();
+
+          print({
+            'weightBestGuess': weightBestGuess,
+            'bolusBestGuess': bolusBestGuess,
+            'initialCPTarget': initialCPTarget,
+            'calcuation time':
+            '${calculationDuration.inMilliseconds.toString()} milliseconds'
+          });
+
+
+        });
+      } else {
+        setState(() {
+          weightBestGuess = "--";
+          bolusBestGuess = "--";
+          initialCPTarget = "--";
+        });
+      }
+    } else {
+      setState(() {
+        weightBestGuess = "--";
+        bolusBestGuess = "--";
+        initialCPTarget = "--";
+      });
+    }
+
   }
 
   @override
   Widget build(BuildContext context) {
-    print("pump build");
+    // print(weightBestGuess);
+
     final mediaQuery = MediaQuery.of(context);
 
     final double UIHeight = mediaQuery.size.aspectRatio >= 0.455
@@ -283,7 +309,7 @@ class _PumpScreenState extends State<PumpScreen> {
                                       style: TextStyle(fontSize: 14),
                                     ),
                                     Text(
-                                      "$abw kg",
+                                      "$weightBestGuess kg",
                                       style: TextStyle(fontSize: 24),
                                     ),
                                   ],
@@ -316,11 +342,11 @@ class _PumpScreenState extends State<PumpScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "Initial to induction",
+                                      "Induction CpT",
                                       style: TextStyle(fontSize: 14),
                                     ),
                                     Text(
-                                      "11 mcg/mL",
+                                      "$bolusBestGuess mcg/mL",
                                       style: TextStyle(fontSize: 24),
                                     ),
                                   ],
@@ -353,11 +379,11 @@ class _PumpScreenState extends State<PumpScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "Adjustement to adjustement",
+                                      "Adjustement Bolus",
                                       style: TextStyle(fontSize: 14),
                                     ),
                                     Text(
-                                      "101 mg",
+                                      "$initialCPTarget mg",
                                       style: TextStyle(fontSize: 24),
                                     ),
                                   ],
@@ -530,26 +556,24 @@ class _PumpScreenState extends State<PumpScreen> {
                   width: 8,
                   height: 0,
                 ),
-                Container(
-                  width: UIWidth,
-                  child: PDTextField(
-                    height: UIHeight + 2,
-                    prefixIcon: Icons.schedule,
-                    // labelText: 'Duration in minutes',
-                    labelText: 'Duration (mins)',
-                    helperText: '',
-                    interval: double.tryParse(durationController.text) != null
-                        ? double.parse(durationController.text) >= 60
-                            ? 10
-                            : 5
-                        : 1,
-                    fractionDigits: 0,
-                    controller: durationController,
-                    range: [kMinDuration, kMaxDuration],
-                    onPressed: updatePDTextEditingController,
-                    // onChanged: restart,
-                  ),
-                ),
+                // Container(
+                //   width: UIWidth,
+                //   child: PDTextField(
+                //     height: UIHeight + 2,
+                //     prefixIcon: Icons.schedule,
+                //     labelText: 'Duration (mins)',
+                //     helperText: '',
+                //     interval: double.tryParse(durationController.text) != null
+                //         ? double.parse(durationController.text) >= 60
+                //             ? 10
+                //             : 5
+                //         : 1,
+                //     fractionDigits: 0,
+                //     controller: durationController,
+                //     range: [kMinDuration, kMaxDuration],
+                //     onPressed: updatePDTextEditingController,
+                //   ),
+                // ),
               ],
             ),
           ),

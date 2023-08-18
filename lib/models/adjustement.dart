@@ -42,13 +42,13 @@ class Adjustment {
 
     // Set up for baseline model
     int minWeightGuess =
-        (baselineSimulation.patient.weightGuess - weightBound).toInt();
+        (baselineSimulation.patient.weightGuess - weightBound).round();
     int maxWeightGuess =
-        (baselineSimulation.patient.weightGuess + weightBound).toInt();
+        (baselineSimulation.patient.weightGuess + weightBound).round();
     int minBolusGuess =
-        (baselineSimulation.bolusGuess * (1 - bolusBound)).toInt();
+        (baselineSimulation.bolusGuess * (1 - bolusBound)).round();
     int maxBolusGuess =
-        (baselineSimulation.bolusGuess * (1 + bolusBound)).toInt();
+        (baselineSimulation.bolusGuess * (1 + bolusBound)).round();
 
     for (int weightGuess = minWeightGuess;
         weightGuess <= maxWeightGuess;
