@@ -102,7 +102,7 @@ class Adjustment {
           CEAbsolutePercentageErrors.add(error.abs() / baselineCEs[i]);
         }
 
-        double comparedSimulationtargetIncEstimate = comparedSimulation.estimateTargetIncreased(bolusInfusedBy: bolusGuess.toDouble());
+        double comparedSimulationTargetIncEstimate = comparedSimulation.estimateTargetIncreased(bolusInfusedBy: bolusGuess.toDouble());
 
         double SSE =
             CEPErrors.reduce((value, element) => value + element * element);
@@ -114,7 +114,7 @@ class Adjustment {
 
         weightGuesses.add(weightGuess);
         bolusGuesses.add(bolusGuess);
-        comparedSimulationTargetIncEstimates.add(comparedSimulationtargetIncEstimate);
+        comparedSimulationTargetIncEstimates.add(comparedSimulationTargetIncEstimate);
         SSEs.add(SSE);
         MdPEs.add(MdPE);
         MdAPEs.add(MdAPE);

@@ -193,7 +193,7 @@ class _PumpScreenState extends State<PumpScreen> {
 
         setState(() {
           weightBestGuess = result.weightBestGuess.toString();
-          bolusBestGuess = (result.bolusBestGuess/10.round() *10).toString();
+          bolusBestGuess = ((result.bolusBestGuess/10).round() * 10).toString();
           initialCPTarget = result.initialCPTarget.round().toString();
 
           print({
