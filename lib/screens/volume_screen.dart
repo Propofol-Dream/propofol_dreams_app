@@ -76,6 +76,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
   void initState() {
     var settings = context.read<Settings>();
 
+    tableController.val = false;
+
     if (settings.inAdultView) {
       adultModelController.selection = settings.adultModel;
       genderController.val =
@@ -99,7 +101,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
     load();
 
     super.initState();
-
   }
 
   @override
@@ -294,7 +295,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     updateModelOptions(settings.inAdultView);
     run(initState: true);
-
   }
 
   void updateRowsAndResult({cols, times}) {
@@ -362,7 +362,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
   }
 
   void run({initState = false}) {
-
     final settings = Provider.of<Settings>(context, listen: false);
 
     int? age = int.tryParse(ageController.text);
@@ -755,9 +754,20 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       },
                       child: Chip(
                         avatar: settings.inAdultView
-                            ? Icon(Icons.face)
-                            : Icon(Icons.child_care_outlined),
-                        label: Text(settings.inAdultView ? 'Adult' : 'Paed'),
+                            ? Icon(
+                                Icons.face,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              )
+                            : Icon(
+                                Icons.child_care_outlined,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                        label: Text(
+                          settings.inAdultView ? 'Adult' : 'Paed',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary),
+                        ),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                     SizedBox(
@@ -772,10 +782,22 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         run();
                       },
                       child: Chip(
-                          avatar: settings.density == 10
-                              ? Icon(Icons.water_drop_outlined)
-                              : Icon(Icons.water_drop),
-                          label: Text('${(density / 10).toInt()} %')),
+                        avatar: settings.density == 10
+                            ? Icon(
+                                Icons.water_drop_outlined,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              )
+                            : Icon(
+                                Icons.water_drop,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                        label: Text(
+                          '${(density / 10).toInt()} %',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary),
+                        ),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                      ),
                     )
                   ],
                 ),
@@ -810,7 +832,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     showRowNumbers: mediaQuery.size.height >= screenBreakPoint2
                         ? min(PDTableRows.length, 5)
                         : 3,
-                    colHeaderIcon: Icon(Icons.psychology_outlined),
+                    colHeaderIcon: Icon(Icons.psychology_alt_outlined),
                     colHeaderLabels: modelIsRunnable
                         ? [
                             (target! - targetInterval) >= 0
@@ -874,7 +896,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         await HapticFeedback.mediumImpact();
                         reset(toDefault: true);
                       },
-                      child: Icon(Icons.refresh),
+                      child: Icon(Icons.restart_alt_outlined),
                     )),
               ],
             ),
@@ -985,7 +1007,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   width: UIWidth,
                   child: PDTextField(
                     height: UIHeight + 2,
-                    prefixIcon: Icons.psychology_outlined,
+                    prefixIcon: Icons.psychology_alt_outlined,
                     // labelText: 'Target in mcg/mL',
                     labelText: '${selectedModel.target.toString()}',
                     helperText: '',

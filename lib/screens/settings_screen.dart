@@ -52,7 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (pref.containsKey('max_pump_rate')) {
       settings.max_pump_rate = pref.getInt('max_pump_rate')!;
     } else {
-      settings.max_pump_rate = 750;
+      settings.max_pump_rate = 1200;
     }
     pumpController.text = settings.max_pump_rate.toString();
 

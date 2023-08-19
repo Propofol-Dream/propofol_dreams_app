@@ -16,39 +16,31 @@ class Adjustment {
       required this.weightBound,
       required this.bolusBound});
 
-  ({
-    int weightBestGuess,
-    int bolusBestGuess,
-    double initialCPTarget,
-    int length,
-    List<int> weightGuesses,
-    List<int> bolusGuesses,
-    List<double> SSEs,
-    List<double> MdPEs,
-    List<double> MdAPEs,
-    List<double> maxPEs
-  }) calculate() {
+  ({List<double> MDAPEs, List<double> MDPEs, List<double> MaxAPEs, List<double> SSEs, double adjustmentBolus, List<Simulation> baselineSimulations, int bolusBestGuess, List<int> bolusGuesses, List<Simulation> comparedSimulations, List<Simulation> finalSimulations, int guessIndex, double inductionCPTarget, double initialCPTarget, int length, int weightBestGuess, List<int> weightGuesses}) calculate() {
     // Set up results
     List<int> weightGuesses = [];
     List<int> bolusGuesses = [];
+    List<Simulation> baselineSimulations = [];
+    List<Simulation> comparedSimulations = [];
+    List<Simulation> finalSimulations = [];
     List<double> comparedSimulationTargetIncEstimates = [];
     List<double> SSEs = [];
-    List<double> MdPEs = [];
-    List<double> MdAPEs = [];
-    List<double> maxPEs = [];
+    List<double> MDPEs = [];
+    List<double> MDAPEs = [];
+    List<double> MaxAPEs = [];
     int weightBestGuess = -1;
     int bolusBestGuess = -1;
     double initialCPTarget = -1;
 
     // Set up for baseline model
-    int minWeightGuess =
-        (baselineSimulation.patient.weightGuess - weightBound).round();
-    int maxWeightGuess =
-        (baselineSimulation.patient.weightGuess + weightBound).round();
-    int minBolusGuess =
-        (baselineSimulation.bolusGuess * (1 - bolusBound)).round();
-    int maxBolusGuess =
-        (baselineSimulation.bolusGuess * (1 + bolusBound)).round();
+    double weightGuess = baselineSimulation.weightGuess;
+    double boluesGuess = baselineSimulation.bolusGuess;
+
+    int minWeightGuess = (weightGuess - weightBound).round();
+    int maxWeightGuess = (minWeightGuess + weightBound).round();
+
+    int minBolusGuess = (boluesGuess * (1 - bolusBound)).round();
+    int maxBolusGuess = (boluesGuess * (1 + bolusBound)).round();
 
     for (int weightGuess = minWeightGuess;
         weightGuess <= maxWeightGuess;
@@ -56,6 +48,7 @@ class Adjustment {
       for (int bolusGuess = minBolusGuess;
           bolusGuess <= maxBolusGuess;
           bolusGuess++) {
+
         // Set up for compared model
         Model comparedModel = Model.Marsh;
         Patient comparedPatient = baselineSimulation.patient.copy();
@@ -69,6 +62,7 @@ class Adjustment {
             patient: comparedPatient,
             pump: comparedPump,
             operation: baselineSimulation.operation);
+        // print(comparedPump.pumpInfusionSequences);
 
         // Get the pump_infs sequence out from the compared model
         Map<String, List> comparedEstimate = comparedSimulation.estimate;
@@ -80,6 +74,7 @@ class Adjustment {
         finalPump.copyPumpInfusionSequences(times: times, pumpInfs: pumpInfs);
         Simulation finalSimulation = baselineSimulation.copy();
         finalSimulation.pump = finalPump;
+        // print(finalPump.pumpInfusionSequences);
 
         // Extract estimates from baseline & final simulations
         Map<String, List> baselineEstimate = baselineSimulation.estimate;
@@ -102,7 +97,8 @@ class Adjustment {
           CEAbsolutePercentageErrors.add(error.abs() / baselineCEs[i]);
         }
 
-        double comparedSimulationTargetIncEstimate = comparedSimulation.estimateTargetIncreased(bolusInfusedBy: bolusGuess.toDouble());
+        double comparedSimulationTargetIncEstimate = comparedSimulation
+            .estimateTargetIncreased(bolusInfusedBy: bolusGuess.toDouble());
 
         double SSE =
             CEPErrors.reduce((value, element) => value + element * element);
@@ -114,58 +110,84 @@ class Adjustment {
 
         weightGuesses.add(weightGuess);
         bolusGuesses.add(bolusGuess);
-        comparedSimulationTargetIncEstimates.add(comparedSimulationTargetIncEstimate);
+
+        baselineSimulations.add(baselineSimulation);
+        comparedSimulations.add(comparedSimulation);
+        finalSimulations.add(finalSimulation);
+
+        comparedSimulationTargetIncEstimates
+            .add(comparedSimulationTargetIncEstimate);
         SSEs.add(SSE);
-        MdPEs.add(MdPE);
-        MdAPEs.add(MdAPE);
-        maxPEs.add(maxPE);
+        MDPEs.add(MdPE);
+        MDAPEs.add(MdAPE);
+        MaxAPEs.add(maxPE);
       }
     }
 
     List<int> minIndices = findMinIndices(SSEs);
+    int guessIndex = 0;
 
     if (minIndices.length > 1) {
       List<double> filteredMaxPEs = [];
       for (int i = 0; i < minIndices.length; i++) {
-        filteredMaxPEs.add(maxPEs[minIndices[i]]);
+        filteredMaxPEs.add(MaxAPEs[minIndices[i]]);
       }
       int filteredMinIndex = findMinIndices(filteredMaxPEs).first;
-      weightBestGuess = weightGuesses[minIndices[filteredMinIndex]];
-      bolusBestGuess = bolusGuesses[minIndices[filteredMinIndex]];
-      initialCPTarget = comparedSimulationTargetIncEstimates[minIndices[filteredMinIndex]];
+      guessIndex = minIndices[filteredMinIndex];
+
+      // weightBestGuess = weightGuesses[minIndices[filteredMinIndex]];
+      // bolusBestGuess = bolusGuesses[minIndices[filteredMinIndex]];
+      // initialCPTarget =
+      //     comparedSimulationTargetIncEstimates[minIndices[filteredMinIndex]];
     } else {
-      weightBestGuess = weightGuesses[minIndices.first];
-      bolusBestGuess = bolusGuesses[minIndices.first];
-      initialCPTarget = comparedSimulationTargetIncEstimates[minIndices.first];
+      guessIndex = minIndices.first;
+      // weightBestGuess = weightGuesses[minIndices.first];
+      // bolusBestGuess = bolusGuesses[minIndices.first];
+      // initialCPTarget = comparedSimulationTargetIncEstimates[minIndices.first];
     }
+
+    weightBestGuess = weightGuesses[guessIndex];
+    bolusBestGuess = bolusGuesses[guessIndex];
+    initialCPTarget = comparedSimulationTargetIncEstimates[guessIndex];
+
+    double inductionCPTarget =
+        initialCPTarget / 4 * baselineSimulation.operation.target;
+    double adjustmentBolus = bolusBestGuess / baselineSimulation.operation.target;
 
     return (
       weightBestGuess: weightBestGuess,
       bolusBestGuess: bolusBestGuess,
+      adjustmentBolus: adjustmentBolus,
       initialCPTarget: initialCPTarget,
+      inductionCPTarget: inductionCPTarget,
       length: SSEs.length,
       weightGuesses: weightGuesses,
       bolusGuesses: bolusGuesses,
+      guessIndex: guessIndex,
+      baselineSimulations: baselineSimulations,
+      comparedSimulations: comparedSimulations,
+      finalSimulations: finalSimulations,
       SSEs: SSEs,
-      MdPEs: MdPEs,
-      MdAPEs: MdAPEs,
-      maxPEs: maxPEs
+      MDPEs: MDPEs,
+      MDAPEs: MDAPEs,
+      MaxAPEs: MaxAPEs
     );
   }
 
   double calculateMedian(List<double> numbers) {
     // Sort the list in ascending order
-    numbers.sort();
+    List<double> tmp = List.from(numbers);
+    tmp.sort();
 
-    int length = numbers.length;
+    int length = tmp.length;
 
     if (length % 2 == 1) {
       // For odd-length list, return the middle element
-      return numbers[length ~/ 2];
+      return tmp[length ~/ 2];
     } else {
       // For even-length list, return the average of the two middle elements
-      double middle1 = numbers[length ~/ 2 - 1];
-      double middle2 = numbers[length ~/ 2];
+      double middle1 = tmp[length ~/ 2 - 1];
+      double middle2 = tmp[length ~/ 2];
       return (middle1 + middle2) / 2;
     }
   }

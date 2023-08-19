@@ -20,7 +20,8 @@ class Simulation {
       required this.operation});
 
   Simulation copy() {
-    return Simulation(model: model, patient: patient, pump: pump, operation: operation);
+    return Simulation(
+        model: model, patient: patient, pump: pump, operation: operation);
   }
 
   Map<String, double> get variables {
@@ -109,7 +110,6 @@ class Simulation {
       k31 = 0.0035; // per min
       ke0 = 0.456; // per min
       // t_half_keo = np.log(2) / (ke0 * steps_per_min) //deprecated
-
     }
     double Cl1 = k10 * V1; //litre / steps per min
     double Cl2 = k21 * V2; //litre / steps per min
@@ -191,92 +191,103 @@ class Simulation {
   }
 
   Map<String, List> get calibrate {
-    Operation trialOperation =
-        Operation(target: 0, duration: const Duration(seconds: 720));
+    Pump testPump = pump.copy();
 
-    double maxInfusion = (pump.density * pump.maxPumpRate).toDouble();
-
-    Duration time = const Duration(seconds: 0);
-    double k21 = variables['k21'] as double;
-    double k31 = variables['k31'] as double;
-    double k10 = variables['k10'] as double;
-    double k12 = variables['k12'] as double;
-    double k13 = variables['k13'] as double;
-    double V1 = variables['V1'] as double;
-    double ke0 = variables['ke0'] as double;
-
-    List<double> A1s = [];
-    List<double> A2s = [];
-    List<double> A3s = [];
-    List<Duration> times = [];
-    List<int> steps = [];
-    List<double> pumpInfs = [];
-    List<double> concentrations = [];
-    List<double> concentrationsEffect = [];
-
-    double timeStep = pump.timeStep.inMilliseconds / 1000; //sec
-    int operationDuration = trialOperation.duration.inSeconds;
-    double totalStep = operationDuration / timeStep;
-    double stepsTo100Secs = const Duration(seconds: 100).inSeconds / timeStep;
-
-    for (int step = 0; step <= totalStep; step += 1) {
-      double pumpInf = step < stepsTo100Secs ? maxInfusion : 0;
-
-      double A2 = step == 0
-          ? 0
-          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * timeStep / 60;
-
-      double A3 = step == 0
-          ? 0
-          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * timeStep / 60;
-
-      double A1 = step == 0
-          ? 0
-          : (pumpInfs.last / 60 +
-                      A2 * k21 +
-                      A3 * k31 -
-                      A1s.last * (k10 + k12 + k13)) *
-                  timeStep /
-                  60 +
-              A1s.last;
-
-      double concentration = A1 / V1;
-      double concentrationEffect = step == 0
-          ? 0
-          : concentrationsEffect.last +
-              ke0 *
-                  (concentrations.last - concentrationsEffect.last) *
-                  timeStep /
-                  60;
-
-      steps.add(step);
-      times.add(time);
-      pumpInfs.add(pumpInf);
-      A1s.add(A1);
-      A2s.add(A2);
-      A3s.add(A3);
-      concentrations.add(concentration);
-      concentrationsEffect.add(concentrationEffect);
-
-      time = time + pump.timeStep;
+    for (Duration i = Duration.zero;
+        i < Duration(seconds: 100);
+        i = i + testPump.timeStep) {
+      double maxInfusion = (testPump.density * testPump.maxPumpRate).toDouble();
+      testPump.updatePumpInfusionSequence(at: i, pumpInfusion: maxInfusion);
     }
 
-    // print(concentrations_effect.reduce(max));
-
-    return ({
-      'steps': steps,
-      'times': times,
-      'pump_infs': pumpInfs,
-      'A1s': A1s,
-      'A2s': A2s,
-      'A3s': A3s,
-      'concentrations': concentrations,
-      'concentrations_effect': concentrationsEffect,
-      // 'peak_effect': concentrations_effect.reduce(max)
-    });
-
-    // return concentrations_effect.reduce(max);
+    return test(testPump: testPump);
   }
+
+  // Map<String, List> get calibrate {
+  //   Operation trialOperation =
+  //       Operation(target: 0, duration: const Duration(seconds: 720));
+  //
+  //   double maxInfusion = (pump.density * pump.maxPumpRate).toDouble();
+  //
+  //   Duration time = const Duration(seconds: 0);
+  //   double k21 = variables['k21'] as double;
+  //   double k31 = variables['k31'] as double;
+  //   double k10 = variables['k10'] as double;
+  //   double k12 = variables['k12'] as double;
+  //   double k13 = variables['k13'] as double;
+  //   double V1 = variables['V1'] as double;
+  //   double ke0 = variables['ke0'] as double;
+  //
+  //   List<double> A1s = [];
+  //   List<double> A2s = [];
+  //   List<double> A3s = [];
+  //   List<Duration> times = [];
+  //   List<int> steps = [];
+  //   List<double> pumpInfs = [];
+  //   List<double> concentrations = [];
+  //   List<double> concentrationsEffect = [];
+  //
+  //   double timeStep = pump.timeStep.inMilliseconds / 1000; //sec
+  //   int operationDuration = trialOperation.duration.inSeconds;
+  //   double totalStep = operationDuration / timeStep;
+  //   double stepsTo100Secs = const Duration(seconds: 100).inSeconds / timeStep;
+  //
+  //   for (int step = 0; step <= totalStep; step += 1) {
+  //     double pumpInf = step < stepsTo100Secs ? maxInfusion : 0;
+  //
+  //     double A2 = step == 0
+  //         ? 0
+  //         : A2s.last + (k12 * A1s.last - k21 * A2s.last) * timeStep / 60;
+  //
+  //     double A3 = step == 0
+  //         ? 0
+  //         : A3s.last + (k13 * A1s.last - k31 * A3s.last) * timeStep / 60;
+  //
+  //     double A1 = step == 0
+  //         ? 0
+  //         : (pumpInfs.last / 60 +
+  //                     A2 * k21 +
+  //                     A3 * k31 -
+  //                     A1s.last * (k10 + k12 + k13)) *
+  //                 timeStep /
+  //                 60 +
+  //             A1s.last;
+  //
+  //     double concentration = A1 / V1;
+  //     double concentrationEffect = step == 0
+  //         ? 0
+  //         : concentrationsEffect.last +
+  //             ke0 *
+  //                 (concentrations.last - concentrationsEffect.last) *
+  //                 timeStep /
+  //                 60;
+  //
+  //     steps.add(step);
+  //     times.add(time);
+  //     pumpInfs.add(pumpInf);
+  //     A1s.add(A1);
+  //     A2s.add(A2);
+  //     A3s.add(A3);
+  //     concentrations.add(concentration);
+  //     concentrationsEffect.add(concentrationEffect);
+  //
+  //     time = time + pump.timeStep;
+  //   }
+  //
+  //   // print(concentrations_effect.reduce(max));
+  //
+  //   return ({
+  //     'steps': steps,
+  //     'times': times,
+  //     'pump_infs': pumpInfs,
+  //     'A1s': A1s,
+  //     'A2s': A2s,
+  //     'A3s': A3s,
+  //     'concentrations': concentrations,
+  //     'concentrations_effect': concentrationsEffect,
+  //   });
+  //
+  // }
 
   double get maxCalibratedEffect {
     List<double> result = calibrate['concentrations_effect'] as List<double>;
@@ -284,6 +295,95 @@ class Simulation {
   }
 
   Map<String, List> get peak {
+    return test(initialA1: 10);
+  }
+
+  // Map<String, List> get peak {
+  //   Operation trialOperation =
+  //       Operation(target: 0, duration: const Duration(seconds: 720));
+  //
+  //   Duration time = Duration.zero;
+  //   double k21 = variables['k21'] as double;
+  //   double k31 = variables['k31'] as double;
+  //   double k10 = variables['k10'] as double;
+  //   double k12 = variables['k12'] as double;
+  //   double k13 = variables['k13'] as double;
+  //   double V1 = variables['V1'] as double;
+  //   double ke0 = variables['ke0'] as double;
+  //
+  //   List<double> A1s = [];
+  //   List<double> A2s = [];
+  //   List<double> A3s = [];
+  //   List<Duration> times = [];
+  //   List<int> steps = [];
+  //   List<double> pumpInfs = [];
+  //   List<double> concentrations = [];
+  //   List<double> concentrationsEffect = [];
+  //
+  //   double timeStep = pump.timeStep.inMilliseconds / 1000; //sec
+  //   int operationDuration = trialOperation.duration.inSeconds;
+  //
+  //   double totalStep = operationDuration / timeStep;
+  //
+  //   for (int step = 0; step <= totalStep; step += 1) {
+  //     double pumpInf = 0;
+  //
+  //     double A2 = step == 0
+  //         ? 0
+  //         : A2s.last + (k12 * A1s.last - k21 * A2s.last) * timeStep / 60;
+  //
+  //     double A3 = step == 0
+  //         ? 0
+  //         : A3s.last + (k13 * A1s.last - k31 * A3s.last) * timeStep / 60;
+  //
+  //     double A1 = step == 0
+  //         ? 10
+  //         : (pumpInfs.last / 60 +
+  //                     A2 * k21 +
+  //                     A3 * k31 -
+  //                     A1s.last * (k10 + k12 + k13)) *
+  //                 timeStep /
+  //                 60 +
+  //             A1s.last;
+  //
+  //     double concentration = A1 / V1;
+  //     double concentrationEffect = step == 0
+  //         ? 0
+  //         : concentrationsEffect.last +
+  //             ke0 *
+  //                 (concentrations.last - concentrationsEffect.last) *
+  //                 timeStep /
+  //                 60;
+  //
+  //     steps.add(step);
+  //     times.add(time);
+  //     pumpInfs.add(pumpInf);
+  //     A1s.add(A1);
+  //     A2s.add(A2);
+  //     A3s.add(A3);
+  //     concentrations.add(concentration);
+  //     concentrationsEffect.add(concentrationEffect);
+  //     time = time + pump.timeStep;
+  //   }
+  //
+  //   return ({
+  //     'steps': steps,
+  //     'times': times,
+  //     'pump_infs': pumpInfs,
+  //     'A1s': A1s,
+  //     'A2s': A2s,
+  //     'A3s': A3s,
+  //     'concentrations': concentrations,
+  //     'concentrations_effect': concentrationsEffect,
+  //   });
+  // }
+
+  double get maxCe {
+    List<double> ce = peak['concentrations_effect'] as List<double>;
+    return ce.reduce(max);
+  }
+
+  Map<String, List> test({Pump? testPump, double? initialA1}) {
     Operation trialOperation =
         Operation(target: 0, duration: const Duration(seconds: 720));
 
@@ -307,11 +407,12 @@ class Simulation {
 
     double timeStep = pump.timeStep.inMilliseconds / 1000; //sec
     int operationDuration = trialOperation.duration.inSeconds;
-
     double totalStep = operationDuration / timeStep;
 
     for (int step = 0; step <= totalStep; step += 1) {
-      double pumpInf = 0;
+      double? manualPumpInf = testPump?.pumpInfusionSequences?[time];
+
+      double pumpInf = manualPumpInf ?? 0;
 
       double A2 = step == 0
           ? 0
@@ -322,7 +423,7 @@ class Simulation {
           : A3s.last + (k13 * A1s.last - k31 * A3s.last) * timeStep / 60;
 
       double A1 = step == 0
-          ? 10
+          ? initialA1 ?? 0
           : (pumpInfs.last / 60 +
                       A2 * k21 +
                       A3 * k31 -
@@ -363,11 +464,7 @@ class Simulation {
     });
   }
 
-  double get maxCe {
-    List<double> ce = peak['concentrations_effect'] as List<double>;
-    return ce.reduce(max);
-  }
-
+  // TODO: depreciate maxCeReachesAt, as it is not in use
   Duration get maxCeReachesAt {
     List<Duration> durations = peak['times'] as List<Duration>;
     List<double> ces = peak['concentrations_effect'] as List<double>;
@@ -376,6 +473,7 @@ class Simulation {
     return durations[index];
   }
 
+  // TODO: depreciate ceAt, as it is not in use
   double ceAt({required Duration duration}) {
     List<Duration> durations = peak['times'] as List<Duration>;
     int index = durations.indexOf(duration);
@@ -403,8 +501,16 @@ class Simulation {
     if (model.target == Target.Effect_Site) {
       result = bolusInfusedBy * maxCe / pump.density;
     } else if (model.target == Target.Plasma) {
-      double V1 = variables['V1'] as double;
-      result = bolusInfusedBy / V1;
+      result = (-15.693+sqrt(pow(15.693,2)+4*0.2197*bolusInfusedBy*70/patient.weight))/(0.4394);
+
+      // Pump testPump = pump.copy();
+      // testPump.infuseBolus(startsAt: Duration.zero, bolus: bolusInfusedBy);
+      // Map<String, List> testResult = test(testPump: testPump);
+      // List<double> CP = testResult['concentrations'] as List<double>;
+      // result = CP.reduce(max);
+
+      // double V1 = variables['V1'] as double;
+      // result = bolusInfusedBy / V1;
     }
     return result;
   }
@@ -446,7 +552,9 @@ class Simulation {
 
     //find max Pump Infusion Rate
     double maxPumpInfusionRate =
-      (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
+        (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
+
+    // print(pump.pumpInfusionSequences);
 
     for (int step = 0; step <= totalStep; step += 1) {
       //find manual pump inf
@@ -561,24 +669,141 @@ class Simulation {
     });
   }
 
-  double get bolusGuess{
+  double get weightGuess {
+    double guess = 0.0;
 
-    double guess = patient.gender == Gender.Female
-        ?
-    (41.31 + 3.063 * patient.weight - 2.312e-3 * patient.weight * patient.weight + 6.172e-6 * patient.weight * patient.weight * patient.weight -
-        0.1026 * patient.height + 4.375e-4 * patient.height * patient.height - 5.997e-4 * patient.weight * patient.bmi - 0.5831 * patient.age +
-        0.004267 * patient.age * patient.age - 0.01399 * patient.age * patient.weight - 3.716e-5 * patient.age * patient.weight * patient.weight +
-        3.345e-7 * patient.age * patient.age * patient.weight * patient.weight + 0.001912 * patient.age * patient.bmi - 0.1885 * patient.bmi)
-        :
-    (47.92 + 2.983 * patient.weight - 2.339e-3 * patient.weight * patient.weight + 6.439e-6 * patient.weight * patient.weight * patient.weight -
-        0.1693 * patient.height + 6.393e-4 * patient.height * patient.height - 5.025e-4 * patient.weight * patient.bmi - 0.5454 * patient.age +
-        0.003780 * patient.age * patient.age - 0.01376 * patient.age * patient.weight - 4.149e-5 * patient.age * patient.weight * patient.weight +
-        3.661e-7 * patient.age * patient.age * patient.weight * patient.weight + 0.002259 * patient.age * patient.bmi - 0.2682 * patient.bmi);
-
-    guess = guess / 4 * operation.target / 10 * pump.density;
+    if (pump.density == 10) {
+      guess = patient.gender == Gender.Female
+          ? (15.24 +
+              1.033 * patient.weight -
+              0.001552 * patient.weight * patient.weight +
+              2.119e-6 * patient.weight * patient.weight * patient.weight +
+              8.909e-5 * patient.height * patient.height -
+              4.423e-4 * patient.weight * patient.bmi -
+              0.1928 * patient.age +
+              9.729e-4 * patient.age * patient.age -
+              0.003927 * patient.age * patient.weight +
+              1.779e-6 * patient.age * patient.weight * patient.weight +
+              0.001165 * patient.age * patient.bmi -
+              0.08306 * patient.bmi)
+          : (15.03 +
+              0.9526 * patient.weight -
+              0.001513 * patient.weight * patient.weight +
+              1.991e-6 * patient.weight * patient.weight * patient.weight +
+              1.144e-4 * patient.height * patient.height -
+              4.308e-4 * patient.weight * patient.bmi -
+              0.2029 * patient.age +
+              1.047e-3 * patient.age * patient.age -
+              0.003866 * patient.age * patient.weight +
+              3.305e-6 * patient.age * patient.weight * patient.weight +
+              0.001263 * patient.age * patient.bmi -
+              0.09866 * patient.bmi);
+    } else {
+      guess = patient.gender == Gender.Female
+          ? (17.92 +
+              0.9685 * patient.weight -
+              0.001057 * pow(patient.weight, 2) +
+              1.21e-6 * pow(patient.weight, 3) +
+              9.414e-5 * pow(patient.height, 2) -
+              4.366e-4 * patient.weight * patient.bmi -
+              0.2552 * patient.age +
+              1.281e-3 * pow(patient.age, 2) -
+              0.003136 * patient.age * patient.weight -
+              6.911e-7 * patient.age * pow(patient.weight, 2) +
+              0.001090 * patient.age * patient.bmi -
+              0.07710 * patient.bmi)
+          : (16.42 +
+              0.9375 * patient.weight -
+              0.001365 * pow(patient.weight, 2) +
+              1.838e-6 * pow(patient.weight, 3) +
+              1.256e-4 * pow(patient.height, 2) -
+              4.43e-4 * patient.weight * patient.bmi -
+              0.2637 * patient.age +
+              1.557e-3 * pow(patient.age, 2) -
+              0.003772 * patient.age * patient.weight +
+              3.321e-6 * patient.age * pow(patient.weight, 2) +
+              0.001355 * patient.age * patient.bmi -
+              0.09703 * patient.bmi);
+    }
 
     return guess;
+  }
 
+  double get bolusGuess {
+    double guess = 0.0;
+
+    if (pump.density == 10) {
+      guess = patient.gender == Gender.Female
+          ? (41.31 +
+              3.063 * patient.weight -
+              2.312e-3 * patient.weight * patient.weight +
+              6.172e-6 * patient.weight * patient.weight * patient.weight -
+              0.1026 * patient.height +
+              4.375e-4 * patient.height * patient.height -
+              5.997e-4 * patient.weight * patient.bmi -
+              0.5831 * patient.age +
+              0.004267 * patient.age * patient.age -
+              0.01399 * patient.age * patient.weight -
+              3.716e-5 * patient.age * patient.weight * patient.weight +
+              3.345e-7 *
+                  patient.age *
+                  patient.age *
+                  patient.weight *
+                  patient.weight +
+              0.001912 * patient.age * patient.bmi -
+              0.1885 * patient.bmi)
+          : (47.92 +
+              2.983 * patient.weight -
+              2.339e-3 * patient.weight * patient.weight +
+              6.439e-6 * patient.weight * patient.weight * patient.weight -
+              0.1693 * patient.height +
+              6.393e-4 * patient.height * patient.height -
+              5.025e-4 * patient.weight * patient.bmi -
+              0.5454 * patient.age +
+              0.003780 * patient.age * patient.age -
+              0.01376 * patient.age * patient.weight -
+              4.149e-5 * patient.age * patient.weight * patient.weight +
+              3.661e-7 *
+                  patient.age *
+                  patient.age *
+                  patient.weight *
+                  patient.weight +
+              0.002259 * patient.age * patient.bmi -
+              0.2682 * patient.bmi);
+    } else {
+      guess = patient.gender == Gender.Female
+          ? (58.18 +
+              3.358 * patient.weight -
+              3.991e-3 * pow(patient.weight, 2) +
+              8.628e-6 * pow(patient.weight, 3) -
+              0.3385 * patient.height +
+              1.058e-3 * pow(patient.height, 2) -
+              0.5662 * patient.age +
+              0.005773 * pow(patient.age, 2) -
+              0.01759 * patient.age * patient.weight -
+              2.245e-5 * patient.age * pow(patient.weight, 2) +
+              3.48e-7 * pow(patient.age, 2) * pow(patient.weight, 2) +
+              0.002268 * patient.age * patient.bmi -
+              0.3347 * patient.bmi)
+          : (36.37 +
+              3.024 * patient.weight -
+              2.734e-3 * pow(patient.weight, 2) +
+              6.121e-6 * pow(patient.weight, 3) +
+              3.25e-4 * pow(patient.height, 2) -
+              1.287e-3 * patient.weight * patient.bmi -
+              1.023 * patient.age +
+              0.01396 * pow(patient.age, 2) -
+              4.776e-5 * pow(patient.age, 3) -
+              0.01692 * patient.age * patient.weight -
+              1.859e-5 * patient.age * pow(patient.weight, 2) +
+              2.843e-7 * pow(patient.age, 2) * pow(patient.weight, 2) +
+              0.002622 * patient.age * patient.bmi -
+              0.077 * patient.bmi);
+    }
+
+    guess = guess / 4 * operation.target;
+
+    return guess;
   }
 
   //This is not initial bolus, Engbert's algo doesn't require bolus to be calculated
@@ -605,156 +830,153 @@ class Simulation {
         milliseconds: pump.timeStep.inMilliseconds * (infusionInTimeStep + 1));
   }
 
-   //This was hand push bolus, not pump infused bolus, and may not be required any more
+  //This was hand push bolus, not pump infused bolus, and may not be required any more
   double get pushBolusRate {
     return bolus / (pushBolusDuration.inMilliseconds / 1000 / 3600);
   }
 
-  Map<String, List> get estimate2 {
-
-    Duration time = Duration.zero;
-    double k21 = variables['k21'] as double;
-    double k31 = variables['k31'] as double;
-    double k10 = variables['k10'] as double;
-    double k12 = variables['k12'] as double;
-    double k13 = variables['k13'] as double;
-    double V1 = variables['V1'] as double;
-    double ke0 = variables['ke0'] as double;
-
-    // find max Pump Infusion Rate
-    double maxPumpInfusionRate =
-        (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
-
-    Duration pushBolusD = pushBolusDuration;
-
-    double pushBolusR = pushBolusRate;
-
-    List<double> A1s = [];
-    List<double> A2s = [];
-    List<double> A3s = [];
-    List<Duration> times = [];
-    List<int> steps = [];
-    List<double> pumpInfs = []; //mg per hr
-    List<double> concentrations = [];
-    List<double> concentrationsEffect = [];
-
-    //List for volume estimation
-    List<double> targets = [];
-    List<double> overshootTimes = [];
-    List<double> infs = []; //mg per hr
-    List<double> A1Changes = [];
-    List<double> cumulativeInfusedVolumes = []; // mL
-
-    double timeStep = pump.timeStep.inMilliseconds /
-        1000; // this is to allow time_step in milliseconds
-    int operationDuration = operation.duration.inSeconds;
-    double totalStep = operationDuration / timeStep;
-
-    for (int step = 0; step <= totalStep; step += 1) {
-      //find manual pump inf
-      double? manualPumpInf = pump.pumpInfusionSequences?[time];
-
-      //find manual target
-      double? manualTarget = pump.targetSequences?[time];
-
-      double A2 = step == 0
-          ? 0
-          : A2s.last + (k12 * A1s.last - k21 * A2s.last) * timeStep / 60;
-
-      double A3 = step == 0
-          ? 0
-          : A3s.last + (k13 * A1s.last - k31 * A3s.last) * timeStep / 60;
-
-      double concentrationEffect = step == 0
-          ? 0
-          : concentrationsEffect.last +
-              ke0 *
-                  (concentrations.last - concentrationsEffect.last) *
-                  timeStep /
-                  60;
-
-      double target =
-          step == 0 ? operation.target : manualTarget ?? targets.last;
-
-      double A1Change = step == 0
-          ? 0
-          : (A2 * k21 + A3 * k31 - A1s.last * (k10 + k12 + k13)) *
-              timeStep /
-              60;
-
-      double? inf;
-      double? pumpInf;
-      double? A1;
-
-      if (model.target == Target.Effect_Site) {
-        A1 = step == 0
-            ? 0
-            : (pumpInfs.last / 60) * timeStep / 60 + A1Change + A1s.last;
-
-        inf = 3600 * (target * V1 - A1Change - A1) / timeStep;
-
-        pumpInf = manualPumpInf ??
-            ((concentrationEffect > target
-                ? 0.0
-                : (time < pushBolusD
-                    ? pushBolusR
-                    : (inf < 0.0 ? 0.0 : inf))));
-      } else {
-        inf = step == 0
-            ? 0
-            : 3600 * (target * V1 - A1Change - A1s.last) / timeStep;
-
-        pumpInf = manualPumpInf ??
-            (time < pushBolusD
-                ? pushBolusR
-                : (inf > maxPumpInfusionRate
-                    ? maxPumpInfusionRate
-                    : (inf < 0 ? 0 : inf)));
-
-        A1 = step == 0
-            ? 0
-            : (pumpInf / 60) * timeStep / 60 + A1Change + A1s.last;
-      }
-
-      double concentration = A1 / V1;
-
-      double cumulativeInfusedVolume = step == 0
-          ? pumpInf * timeStep / 3600 / pump.density
-          : cumulativeInfusedVolumes.last +
-              pumpInf * timeStep / 3600 / pump.density;
-
-      steps.add(step);
-      times.add(time);
-      targets.add(target);
-      infs.add(inf);
-      pumpInfs.add(pumpInf);
-      A1Changes.add(A1Change);
-      A1s.add(A1);
-      A2s.add(A2);
-      A3s.add(A3);
-      concentrations.add(concentration);
-      concentrationsEffect.add(concentrationEffect);
-      cumulativeInfusedVolumes.add(cumulativeInfusedVolume);
-      time = time + pump.timeStep;
-      // print(time);
-    }
-    // print(times.last);
-
-    return ({
-      'steps': steps,
-      'times': times,
-      'target': targets,
-      'infs': infs,
-      'pump_infs': pumpInfs,
-      'A1_changes': A1Changes,
-      'A1s': A1s,
-      'A2s': A2s,
-      'A3s': A3s,
-      'concentrations': concentrations,
-      'concentrations_effect': concentrationsEffect,
-      'cumulative_infused_volumes': cumulativeInfusedVolumes
-    });
-  }
+  // Map<String, List> get estimate2 {
+  //   Duration time = Duration.zero;
+  //   double k21 = variables['k21'] as double;
+  //   double k31 = variables['k31'] as double;
+  //   double k10 = variables['k10'] as double;
+  //   double k12 = variables['k12'] as double;
+  //   double k13 = variables['k13'] as double;
+  //   double V1 = variables['V1'] as double;
+  //   double ke0 = variables['ke0'] as double;
+  //
+  //   // find max Pump Infusion Rate
+  //   double maxPumpInfusionRate =
+  //       (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
+  //
+  //   Duration pushBolusD = pushBolusDuration;
+  //
+  //   double pushBolusR = pushBolusRate;
+  //
+  //   List<double> A1s = [];
+  //   List<double> A2s = [];
+  //   List<double> A3s = [];
+  //   List<Duration> times = [];
+  //   List<int> steps = [];
+  //   List<double> pumpInfs = []; //mg per hr
+  //   List<double> concentrations = [];
+  //   List<double> concentrationsEffect = [];
+  //
+  //   //List for volume estimation
+  //   List<double> targets = [];
+  //   List<double> overshootTimes = [];
+  //   List<double> infs = []; //mg per hr
+  //   List<double> A1Changes = [];
+  //   List<double> cumulativeInfusedVolumes = []; // mL
+  //
+  //   double timeStep = pump.timeStep.inMilliseconds /
+  //       1000; // this is to allow time_step in milliseconds
+  //   int operationDuration = operation.duration.inSeconds;
+  //   double totalStep = operationDuration / timeStep;
+  //
+  //   for (int step = 0; step <= totalStep; step += 1) {
+  //     //find manual pump inf
+  //     double? manualPumpInf = pump.pumpInfusionSequences?[time];
+  //
+  //     //find manual target
+  //     double? manualTarget = pump.targetSequences?[time];
+  //
+  //     double A2 = step == 0
+  //         ? 0
+  //         : A2s.last + (k12 * A1s.last - k21 * A2s.last) * timeStep / 60;
+  //
+  //     double A3 = step == 0
+  //         ? 0
+  //         : A3s.last + (k13 * A1s.last - k31 * A3s.last) * timeStep / 60;
+  //
+  //     double concentrationEffect = step == 0
+  //         ? 0
+  //         : concentrationsEffect.last +
+  //             ke0 *
+  //                 (concentrations.last - concentrationsEffect.last) *
+  //                 timeStep /
+  //                 60;
+  //
+  //     double target =
+  //         step == 0 ? operation.target : manualTarget ?? targets.last;
+  //
+  //     double A1Change = step == 0
+  //         ? 0
+  //         : (A2 * k21 + A3 * k31 - A1s.last * (k10 + k12 + k13)) *
+  //             timeStep /
+  //             60;
+  //
+  //     double? inf;
+  //     double? pumpInf;
+  //     double? A1;
+  //
+  //     if (model.target == Target.Effect_Site) {
+  //       A1 = step == 0
+  //           ? 0
+  //           : (pumpInfs.last / 60) * timeStep / 60 + A1Change + A1s.last;
+  //
+  //       inf = 3600 * (target * V1 - A1Change - A1) / timeStep;
+  //
+  //       pumpInf = manualPumpInf ??
+  //           ((concentrationEffect > target
+  //               ? 0.0
+  //               : (time < pushBolusD ? pushBolusR : (inf < 0.0 ? 0.0 : inf))));
+  //     } else {
+  //       inf = step == 0
+  //           ? 0
+  //           : 3600 * (target * V1 - A1Change - A1s.last) / timeStep;
+  //
+  //       pumpInf = manualPumpInf ??
+  //           (time < pushBolusD
+  //               ? pushBolusR
+  //               : (inf > maxPumpInfusionRate
+  //                   ? maxPumpInfusionRate
+  //                   : (inf < 0 ? 0 : inf)));
+  //
+  //       A1 = step == 0
+  //           ? 0
+  //           : (pumpInf / 60) * timeStep / 60 + A1Change + A1s.last;
+  //     }
+  //
+  //     double concentration = A1 / V1;
+  //
+  //     double cumulativeInfusedVolume = step == 0
+  //         ? pumpInf * timeStep / 3600 / pump.density
+  //         : cumulativeInfusedVolumes.last +
+  //             pumpInf * timeStep / 3600 / pump.density;
+  //
+  //     steps.add(step);
+  //     times.add(time);
+  //     targets.add(target);
+  //     infs.add(inf);
+  //     pumpInfs.add(pumpInf);
+  //     A1Changes.add(A1Change);
+  //     A1s.add(A1);
+  //     A2s.add(A2);
+  //     A3s.add(A3);
+  //     concentrations.add(concentration);
+  //     concentrationsEffect.add(concentrationEffect);
+  //     cumulativeInfusedVolumes.add(cumulativeInfusedVolume);
+  //     time = time + pump.timeStep;
+  //     // print(time);
+  //   }
+  //   // print(times.last);
+  //
+  //   return ({
+  //     'steps': steps,
+  //     'times': times,
+  //     'target': targets,
+  //     'infs': infs,
+  //     'pump_infs': pumpInfs,
+  //     'A1_changes': A1Changes,
+  //     'A1s': A1s,
+  //     'A2s': A2s,
+  //     'A3s': A3s,
+  //     'concentrations': concentrations,
+  //     'concentrations_effect': concentrationsEffect,
+  //     'cumulative_infused_volumes': cumulativeInfusedVolumes
+  //   });
+  // }
 
   Map<String, String> toJson(Map<String, dynamic> map) {
     Map<String, String> json = {};

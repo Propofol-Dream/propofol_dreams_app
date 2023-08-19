@@ -4,7 +4,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:propofol_dreams_app/models/adjustement.dart';
+import 'package:propofol_dreams_app/models/adjustment.dart';
+import 'package:propofol_dreams_app/screens/home_screen.dart';
+import 'package:propofol_dreams_app/screens/settings_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,24 +25,28 @@ import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 
 import '../constants.dart';
 
-class PumpScreen extends StatefulWidget {
-  PumpScreen({Key? key}) : super(key: key);
+class AdjustmentScreen extends StatefulWidget {
+  AdjustmentScreen({Key? key}) : super(key: key);
 
   @override
-  State<PumpScreen> createState() => _PumpScreenState();
+  State<AdjustmentScreen> createState() => _AdjustmentScreenState();
 }
 
-class _PumpScreenState extends State<PumpScreen> {
+class _AdjustmentScreenState extends State<AdjustmentScreen> {
   PDSwitchController genderController = PDSwitchController();
   TextEditingController ageController = TextEditingController();
   TextEditingController heightController = TextEditingController();
   TextEditingController weightController = TextEditingController();
   TextEditingController targetController = TextEditingController();
-  TextEditingController durationController = TextEditingController();
+
+  // TextEditingController durationController = TextEditingController();
 
   String weightBestGuess = "--";
-  String bolusBestGuess = "--";
-  String initialCPTarget = "--";
+  String adjustmentBolus = "--";
+  String inductionCPTarget = "--";
+  String MDPE = "--";
+  String MDAPE = "--";
+  String MaxAPE = "--";
 
   @override
   void initState() {
@@ -51,7 +57,7 @@ class _PumpScreenState extends State<PumpScreen> {
     heightController.text = settings.AMWCHeight.toString();
     weightController.text = settings.AMWCWeight.toString();
     targetController.text = settings.AMWCTarget.toString();
-    durationController.text = settings.AMWCDuration.toString();
+    // durationController.text = settings.AMWCDuration.toString();
 
     load();
 
@@ -115,7 +121,7 @@ class _PumpScreenState extends State<PumpScreen> {
     heightController.text = settings.AMWCHeight.toString();
     weightController.text = settings.AMWCWeight.toString();
     targetController.text = settings.AMWCTarget.toString();
-    durationController.text = settings.AMWCDuration.toString();
+    // durationController.text = settings.AMWCDuration.toString();
 
     run(initState: true);
   }
@@ -193,34 +199,70 @@ class _PumpScreenState extends State<PumpScreen> {
 
         setState(() {
           weightBestGuess = result.weightBestGuess.toString();
-          bolusBestGuess = ((result.bolusBestGuess/10).round() * 10).toString();
-          initialCPTarget = result.initialCPTarget.round().toString();
+          inductionCPTarget = result.inductionCPTarget.toStringAsFixed(1);
+          // inductionCPTarget = result.inductionCPTarget.toStringAsFixed(2);
+          adjustmentBolus = result.adjustmentBolus.round().toString();
+          // ((result.adjustmentBolus / 10).round() * 10).toString();
+          int guesIndex = result.guessIndex;
+
+          MDPE = (result.MDPEs[guesIndex] * 100).toStringAsFixed(1);
+          MDAPE = (result.MDAPEs[guesIndex] * 100).toStringAsFixed(1);
+          MaxAPE = (result.MaxAPEs[guesIndex] * 100).toStringAsFixed(1);
 
           print({
             'weightBestGuess': weightBestGuess,
-            'bolusBestGuess': bolusBestGuess,
-            'initialCPTarget': initialCPTarget,
+            'adjustmentBolus': adjustmentBolus,
+            'inductionCPTarget': inductionCPTarget,
             'calcuation time':
-            '${calculationDuration.inMilliseconds.toString()} milliseconds'
+                '${calculationDuration.inMilliseconds.toString()} milliseconds'
           });
-
-
         });
       } else {
         setState(() {
           weightBestGuess = "--";
-          bolusBestGuess = "--";
-          initialCPTarget = "--";
+          adjustmentBolus = "--";
+          inductionCPTarget = "--";
         });
       }
     } else {
       setState(() {
         weightBestGuess = "--";
-        bolusBestGuess = "--";
-        initialCPTarget = "--";
+        adjustmentBolus = "--";
+        inductionCPTarget = "--";
       });
     }
+  }
 
+  void reset({bool toDefault = false}) {
+    final settings = Provider.of<Settings>(context, listen: false);
+
+    genderController.val = toDefault
+        ? true
+        : settings.AMWCGender == Gender.Female
+            ? true
+            : false;
+    ageController.text = toDefault
+        ? 40.toString()
+        : settings.AMWCAge != null
+            ? settings.AMWCAge.toString()
+            : '';
+    heightController.text = toDefault
+        ? 170.toString()
+        : settings.AMWCHeight != null
+            ? settings.AMWCHeight.toString()
+            : '';
+    weightController.text = toDefault
+        ? 70.toString()
+        : settings.AMWCWeight != null
+            ? settings.AMWCWeight.toString()
+            : '';
+    targetController.text = toDefault
+        ? 3.0.toString()
+        : settings.AMWCTarget != null
+            ? settings.AMWCTarget.toString()
+            : '';
+
+    run();
   }
 
   @override
@@ -249,6 +291,65 @@ class _PumpScreenState extends State<PumpScreen> {
     final settings = context.watch<Settings>();
     int density = settings.density;
 
+    AlertDialog displayInfoDialog() {
+      return AlertDialog(
+        title: Text('Info'),
+        content: SingleChildScrollView(
+          child: Text.rich(
+            TextSpan(text: """
+The purpose of EleMarsh Mode is to make the Marsh model mimic the Eleveld model.
+
+It achieves this via:
+  (1) adjusting the Marsh input weight
+  (2) supplemental bolus so that Cp targeting mimics Ce targeting.
+              """, children: [
+              TextSpan(text: "\n\n"),
+              TextSpan(
+                  text: "How to use this EleMarsh:",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: """
+
+
+  1. Enter patient details and your desired Ce target.
+
+  2. EleMarsh will generate 3 values - Adjusted Body Weight, Induction CpT, and Adjustment Bolus.
+
+  3. Use the Adjusted Body Weight as the Marsh input weight on your TCI pump.
+
+  4. Use the Induction CpT as the initial CpT setting. As soon as the pump gives the bolus, drop the CpT down to your desired CeT. Your Marsh model will now closely mimic the behaviour of the Eleveld Model.
+
+  5. If you need to increase Ce target, simply increase the Cp target on your TCI pump to give the calculated Adjustment Bolus then drop Cp back to your new desired Ce.
+\n\n
+"""),
+              TextSpan(
+                text: """
+Additional info for each of the calculated values:
+                """,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(text: """
+
+  Adjusted Body Weight - input this weight into the Marsh Model to convert its behaviour to the Eleveld Model.
+
+  Induction CpT - the starting CpT to set on your TCI pump to quickly get to the desired CeT. Once the bolus has been given, drop CpT back down to CeT. The purpose of this value is to convert plasma targeting (Marsh) to effect site targeting (Eleveld).
+
+  Adjustment Bolus - for every 1 mcg/mL increase in CeT you want to achieve, increase the CpT on the TCI pump such that it delivers this bolus before dropping CpT down to your new desired CeT. The purpose of this value is to convert plasma targeting (Marsh) to effect site targeting (Eleveld).
+                """),
+            ]),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Close the modal
+              Navigator.of(context).pop();
+            },
+            child: Text('Close'),
+          ),
+        ],
+      );
+    }
+
     return Container(
       height: screenHeight,
       margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
@@ -263,29 +364,103 @@ class _PumpScreenState extends State<PumpScreen> {
                   child: Container(),
                 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    GestureDetector(
-                      onTap: () async {
-                        await HapticFeedback.mediumImpact();
-                        settings.density == 10
-                            ? settings.density = 20
-                            : settings.density = 10;
-                        run();
-                      },
-                      child: Chip(
-                          avatar: settings.density == 10
-                              ? Icon(Icons.water_drop_outlined)
-                              : Icon(Icons.water_drop),
-                          label: Text('${(density / 10).toInt()} %')),
+                    Container(
+                      height: 24, //fontSize + 12 padding
+                      child: Row(
+                        children: [
+                          Text(
+                            "EleMarsh Mode",
+                            style: TextStyle(fontSize: 24),
+                          ),
+                          const SizedBox(
+                            width: 8,
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              await HapticFeedback.mediumImpact();
+                              // Show the modal
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return displayInfoDialog();
+                                },
+                              );
+                            },
+                            child: Icon(
+                              Icons.info_outline,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        // GestureDetector(
+                        //   onTap: () async {
+                        //     await HapticFeedback.mediumImpact();
+                        //
+                        //     // run();
+                        //   },
+                        //   child: Chip(
+                        //     avatar: Icon(
+                        //       Icons.speed_outlined,
+                        //       color: Theme.of(context).colorScheme.onPrimary,
+                        //     ),
+                        //     label: Text(
+                        //       '${settings.max_pump_rate.toString()}',
+                        //       style: TextStyle(
+                        //           color: Theme.of(context).colorScheme.onPrimary),
+                        //     ),
+                        //     backgroundColor: Theme.of(context).colorScheme.primary,
+                        //   ),
+                        // ),
+                        // SizedBox(width: 8,),
+                        GestureDetector(
+                          onTap: () async {
+                            await HapticFeedback.mediumImpact();
+                            settings.density == 10
+                                ? settings.density = 20
+                                : settings.density = 10;
+                            run();
+                          },
+                          child: Chip(
+                            avatar: settings.density == 10
+                                ? Icon(
+                                    Icons.water_drop_outlined,
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                  )
+                                : Icon(
+                                    Icons.water_drop,
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                  ),
+                            label: Text(
+                              '${(density / 10).toInt()} %',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary),
+                            ),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      ],
                     )
                   ],
+                ),
+                const SizedBox(
+                  height: 8,
                 ),
                 ClipRRect(
                   borderRadius: BorderRadius.all(Radius.circular(10.0)),
                   // Add your desired radius here
                   child: Container(
-                    height: rowHeight * 3,
+                    height: rowHeight * 4,
                     child: Column(
                       children: [
                         Container(
@@ -306,7 +481,10 @@ class _PumpScreenState extends State<PumpScreen> {
                                   children: [
                                     Text(
                                       "Adjusted Body Weight",
-                                      style: TextStyle(fontSize: 14),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     Text(
                                       "$weightBestGuess kg",
@@ -343,11 +521,13 @@ class _PumpScreenState extends State<PumpScreen> {
                                   children: [
                                     Text(
                                       "Induction CpT",
-                                      style: TextStyle(fontSize: 14),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                      ),
                                     ),
                                     Text(
-                                      "$bolusBestGuess mcg/mL",
-                                      style: TextStyle(fontSize: 24),
+                                      "$inductionCPTarget mcg/mL",
+                                      style: TextStyle(fontSize: 20),
                                     ),
                                   ],
                                 ),
@@ -379,12 +559,86 @@ class _PumpScreenState extends State<PumpScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "Adjustement Bolus",
+                                      "Adjustment Bolus",
                                       style: TextStyle(fontSize: 14),
                                     ),
                                     Text(
-                                      "$initialCPTarget mg",
-                                      style: TextStyle(fontSize: 24),
+                                      "$adjustmentBolus mg",
+                                      style: TextStyle(fontSize: 20),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(left: 16.0),
+                                child: Divider(
+                                  height: 1.0,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        Container(
+                          height: rowHeight,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Divider(
+                                height: 0.0,
+                                color: Colors.transparent,
+                              ),
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "MDPE",
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                        SizedBox(
+                                          width: 8.0,
+                                        ),
+                                        Text(
+                                          "$MDPE %",
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "MDAPE",
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                        SizedBox(
+                                          width: 8.0,
+                                        ),
+                                        Text(
+                                          "$MDAPE %",
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "MaxAPE",
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                        SizedBox(
+                                          width: 8.0,
+                                        ),
+                                        Text(
+                                          "$MaxAPE %",
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -414,34 +668,7 @@ class _PumpScreenState extends State<PumpScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: UIHeight + 20,
-                  child: Text(
-                    "Adjusted Marsh \nWeight Calculator",
-                    style: TextStyle(fontSize: 24),
-                  ),
-                ),
-                Container(
-                    height: UIHeight,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                              // strokeAlign: StrokeAlign.outside, //depreicated in flutter 3.7
-                              strokeAlign: BorderSide.strokeAlignOutside,
-                            ),
-                            borderRadius: BorderRadius.all(Radius.circular(5))),
-                      ),
-                      onPressed: () async {
-                        // await HapticFeedback.mediumImpact();
-                        // reset(toDefault: true);
-                      },
-                      child: Icon(Icons.refresh),
-                    )),
-              ],
+              children: [],
             ),
           ),
           const SizedBox(
@@ -450,6 +677,7 @@ class _PumpScreenState extends State<PumpScreen> {
           Container(
             height: UIHeight + 24,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   width: UIWidth,
@@ -493,6 +721,7 @@ class _PumpScreenState extends State<PumpScreen> {
           Container(
             height: UIHeight + 24,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   width: UIWidth,
@@ -535,13 +764,14 @@ class _PumpScreenState extends State<PumpScreen> {
           Container(
             height: UIHeight + 24,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
                   width: UIWidth,
                   child: PDTextField(
                     height: UIHeight + 2,
-                    prefixIcon: Icons.psychology_outlined,
-                    // labelText: 'Target in mcg/mL',
+                    prefixIcon: Icons.psychology_alt_outlined,
                     labelText: '${Model.Eleveld.target.toString()}',
                     helperText: '',
                     interval: 0.5,
@@ -556,6 +786,25 @@ class _PumpScreenState extends State<PumpScreen> {
                   width: 8,
                   height: 0,
                 ),
+                Container(
+                    height: UIHeight,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              // strokeAlign: StrokeAlign.outside, //depreicated in flutter 3.7
+                              strokeAlign: BorderSide.strokeAlignOutside,
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(5))),
+                      ),
+                      onPressed: () async {
+                        await HapticFeedback.mediumImpact();
+                        reset(toDefault: true);
+                      },
+                      child: Icon(Icons.restart_alt_outlined),
+                    )),
                 // Container(
                 //   width: UIWidth,
                 //   child: PDTextField(

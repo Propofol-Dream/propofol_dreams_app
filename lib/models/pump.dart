@@ -19,7 +19,14 @@ class Pump {
       this.targetSequences});
 
   Pump copy() {
-    return Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate, pumpInfusionSequences: pumpInfusionSequences, targetSequences: targetSequences);
+    return Pump(
+      timeStep: timeStep,
+      density: density,
+      maxPumpRate: maxPumpRate,
+      // bolusSequence: bolusSequence != null ? Map.from(bolusSequence!) : null,
+      pumpInfusionSequences: pumpInfusionSequences != null ? SplayTreeMap.from(pumpInfusionSequences!) : null,
+      targetSequences: targetSequences != null ? SplayTreeMap.from(targetSequences!) : null,
+    );
   }
 
   void updatePumpInfusionSequence(
@@ -50,42 +57,12 @@ class Pump {
         milliseconds: timeStep.inMilliseconds * (infusionInTimeStep));
   }
 
-  // double bolusInfusionRate({required double bolus}) {
-  //   return bolus /
-  //       (bolusInfusionDuration(bolus: bolus).inMilliseconds / 1000 / 3600);
-  // }
-
   void infuseBolus({required Duration startsAt, required double bolus}) {
     Duration endAt = startsAt + bolusInfusionDuration(bolus: bolus) - timeStep;
     for (Duration i = startsAt; i <=endAt; i=i+timeStep) {
       updatePumpInfusionSequence(at: i, pumpInfusion: (maxPumpRate * density).toDouble());
     }
   }
-
-  // void updateBolusSequence_old({required double bolus}) {
-  //   bolusSequence ??= <Duration, double>{};
-  //   bolusSequence?.update(Duration.zero, (value) => bolus,
-  //       ifAbsent: () => bolus);
-  // }
-
-  // void updateBolusSequence({required double bolus}) {
-  //   pumpInfusionSequences ??= SplayTreeMap<Duration, double>();
-  //
-  //   double durationInDouble =
-  //       bolus / (kMaxHumanlyPossiblePushRate / 3600 * density);
-  //   double steps = durationInDouble / timeStep.inMilliseconds * 1000;
-  //
-  //   for (int i = 0; i < steps; i++) {
-  //     double bolus = steps - i >= 1
-  //         ? kMaxHumanlyPossiblePushRate.toDouble() * density
-  //         : kMaxHumanlyPossiblePushRate.toDouble() * density * (steps - i);
-  //
-  //     pumpInfusionSequences?.update(
-  //         Duration(milliseconds: timeStep.inMilliseconds * i),
-  //         (value) => bolus,
-  //         ifAbsent: () => bolus);
-  //   }
-  // }
 
   bool get isManual {
     return pumpInfusionSequences != null || targetSequences != null;

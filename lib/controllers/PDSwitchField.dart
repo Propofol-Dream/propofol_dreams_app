@@ -38,7 +38,7 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
   @override
   Widget build(BuildContext context) {
     TextEditingController textEditingController =
-    TextEditingController(text: widget.labelTexts[widget.controller.val]!);
+        TextEditingController(text: widget.labelTexts[widget.controller.val]!);
 
     return Stack(
       alignment: Alignment.topRight,
@@ -51,9 +51,33 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
               color: widget.enabled
                   ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).disabledColor),
+          // decoration: InputDecoration(
+          //   filled: widget.enabled ? true : false,
+          //   fillColor: Theme.of(context).colorScheme.onPrimary,
+          //   prefixIcon: Icon(
+          //     widget.prefixIcon,
+          //     color: widget.enabled
+          //         ? Theme.of(context).colorScheme.primary
+          //         : Theme.of(context).disabledColor,
+          //   ),
+          //   prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
+          //   helperText: widget.helperText,
+          //   border: const OutlineInputBorder(),
+          //   enabledBorder: OutlineInputBorder(
+          //     borderSide:
+          //         BorderSide(color: Theme.of(context).colorScheme.primary),
+          //   ),
+          //   errorBorder: OutlineInputBorder(
+          //     borderSide: BorderSide(
+          //         color: widget.enabled
+          //             ? Theme.of(context).colorScheme.error
+          //             : Theme.of(context).disabledColor),
+          //   ),
+          // ),
           decoration: InputDecoration(
             filled: widget.enabled ? true : false,
             fillColor: Theme.of(context).colorScheme.onPrimary,
+            errorStyle: TextStyle(color: Theme.of(context).colorScheme.error),
             prefixIcon: Icon(
               widget.prefixIcon,
               color: widget.enabled
@@ -62,10 +86,27 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
             ),
             prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
             helperText: widget.helperText,
+            helperStyle: TextStyle(
+              color: widget.enabled
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).disabledColor,
+            ),
+            labelStyle: TextStyle(
+              color: widget.enabled
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).disabledColor,
+            ),
             border: const OutlineInputBorder(),
+            disabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Theme.of(context).disabledColor),
+            ),
             enabledBorder: OutlineInputBorder(
               borderSide:
-              BorderSide(color: Theme.of(context).colorScheme.primary),
+                  BorderSide(color: Theme.of(context).colorScheme.primary),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderSide:
+                  BorderSide(color: Theme.of(context).colorScheme.error),
             ),
           ),
         ),
@@ -76,21 +117,21 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
                 ? Theme.of(context).colorScheme.primary
                 : Theme.of(context).disabledColor,
             activeTrackColor:
-            Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                Theme.of(context).colorScheme.primary.withOpacity(0.1),
             inactiveThumbColor: widget.enabled
                 ? Theme.of(context).colorScheme.primary
                 : Theme.of(context).disabledColor,
             inactiveTrackColor:
-            Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                Theme.of(context).colorScheme.primary.withOpacity(0.1),
             value: widget.controller.val,
             onChanged: widget.enabled
                 ? (val) async {
-              await HapticFeedback.mediumImpact();
-              setState(() {
-                widget.controller.val = val;
-              });
-              widget.onChanged();
-            }
+                    await HapticFeedback.mediumImpact();
+                    setState(() {
+                      widget.controller.val = val;
+                    });
+                    widget.onChanged();
+                  }
                 : null,
           ),
         ),

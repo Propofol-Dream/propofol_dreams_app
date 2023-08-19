@@ -62,7 +62,7 @@ class _PDTextFieldState extends State<PDTextField> {
     double suffixIconConstraintsWidth = 84;
     double suffixIconConstraintsHeight = widget.height ?? 56;
 
-    var val =     widget.fractionDigits > 0
+    var val = widget.fractionDigits > 0
         ? double.tryParse(widget.controller.text)
         : int.tryParse(widget.controller.text);
     // double.tryParse(widget.controller.text);
@@ -72,6 +72,11 @@ class _PDTextFieldState extends State<PDTextField> {
         val != null ? val >= widget.range[0] && val <= widget.range[1] : false;
     bool isNumeric = widget.controller.text.isEmpty ? false : val != null;
 
+    bool canBeDecreased =
+        val != null ? val - widget.interval >= widget.range[0] : false;
+
+    bool canBeIncreased =
+    val != null ? val + widget.interval <= widget.range[1] : false;
 
     return Stack(alignment: Alignment.topRight, children: [
       TextField(
@@ -87,9 +92,6 @@ class _PDTextFieldState extends State<PDTextField> {
         controller: widget.controller,
         keyboardType: TextInputType.numberWithOptions(
             signed: true, decimal: widget.fractionDigits > 0 ? true : false),
-        // keyboardType: TextInputType.numberWithOptions(
-        //     signed: widget.fractionDigits > 0 ? true : false,
-        //     decimal: widget.fractionDigits > 0 ? true : false),
         keyboardAppearance:
             settings.isDarkTheme ? Brightness.dark : Brightness.light,
 
@@ -118,7 +120,17 @@ class _PDTextFieldState extends State<PDTextField> {
           ),
           prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
           helperText: widget.helperText,
+          helperStyle: TextStyle(color: widget.enabled
+              ? (isWithinRange && isNumeric)
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.error
+              : Theme.of(context).disabledColor,),
           labelText: widget.labelText,
+          labelStyle: TextStyle(color: widget.enabled
+              ? (isWithinRange && isNumeric)
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.error
+              : Theme.of(context).disabledColor,),
           border: const OutlineInputBorder(),
           enabledBorder: OutlineInputBorder(
             borderSide:
@@ -194,7 +206,7 @@ class _PDTextFieldState extends State<PDTextField> {
                               Border.all(width: 0, style: BorderStyle.none)),
                       child: Icon(
                         Icons.remove,
-                        color: widget.enabled
+                        color: widget.enabled && canBeDecreased
                             ? Theme.of(context).colorScheme.primary
                             : Theme.of(context).disabledColor,
                       ),
@@ -254,7 +266,7 @@ class _PDTextFieldState extends State<PDTextField> {
                               Border.all(width: 0, style: BorderStyle.none)),
                       child: Icon(
                         Icons.add,
-                        color: widget.enabled
+                        color: widget.enabled && canBeIncreased
                             ? Theme.of(context).colorScheme.primary
                             : Theme.of(context).disabledColor,
                       ),

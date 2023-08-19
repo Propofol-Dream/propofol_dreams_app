@@ -50,16 +50,4 @@ class Patient with ChangeNotifier{
     return age * 52.143 + 40;
   }
 
-  double get weightGuess {
-    if (gender == Gender.Female) {
-      return (15.24 + 1.033 * weight - 0.001552 * weight * weight + 2.119e-6 * weight * weight * weight +
-          8.909e-5 * height * height - 4.423e-4 * weight * bmi - 0.1928 * age + 9.729e-4 * age * age -
-          0.003927 * age * weight + 1.779e-6 * age * weight * weight + 0.001165 * age * bmi - 0.08306 * bmi);
-    } else {
-      return(15.03 + 0.9526 * weight - 0.001513 * weight * weight + 1.991e-6 * weight * weight * weight +
-          1.144e-4 * height * height - 4.308e-4 * weight * bmi - 0.2029 * age + 1.047e-3 * age * age -
-          0.003866 * age * weight + 3.305e-6 * age * weight * weight + 0.001263 * age * bmi - 0.09866 * bmi);
-    }
-  }
-
 }

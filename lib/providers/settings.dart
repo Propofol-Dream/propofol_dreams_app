@@ -107,7 +107,7 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  int _max_pump_rate = 750;
+  int _max_pump_rate = 1200;
 
   int get max_pump_rate {
     return _max_pump_rate;

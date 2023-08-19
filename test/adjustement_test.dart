@@ -1,7 +1,8 @@
 import 'dart:math';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:propofol_dreams_app/models/adjustement.dart';
+import 'package:propofol_dreams_app/models/adjustment.dart';
 import 'package:propofol_dreams_app/models/operation.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
@@ -12,15 +13,15 @@ import 'package:propofol_dreams_app/models/gender.dart';
 
 void main() {
   test('Adjustment', () async {
-    int weight = 80;
-    int age = 40;
+    int weight = 70;
+    int age = 65;
     int height = 170;
-    Gender gender = Gender.Male;
+    Gender gender = Gender.Female;
     Duration timeStep = Duration(seconds: 1);
     int density = 10;
     int maxPumpRate = 1200;
     double target = 4;
-    Duration duration = Duration(minutes: 180);
+    Duration duration = Duration(minutes: 60);
 
     int weightBound = 0; // 0 = No brute force
     double bolusBound = 0.0; // 0.0 = No brute force
@@ -36,11 +37,23 @@ void main() {
     Adjustment adj = Adjustment(baselineSimulation: baselineSim, weightBound: weightBound, bolusBound: bolusBound);
 
     var result = adj.calculate();
-    print("weightBestGuess: ${result.weightBestGuess}");
-    print("bolusBestGuess: ${result.bolusBestGuess}");
-    print("initialCPTarget: ${result.initialCPTarget}");
-    print(baselinePatient.weightGuess);
+    // print("weightBestGuess: ${result.weightBestGuess}");
+    // print("bolusBestGuess: ${result.adjustmentBolus}");
+    // print("initialCPTarget: ${result.inductionCPTarget}");
+    // print(baselineSim.weightGuess);
 
+    // print(result.comparedSimulations.length);
+    Simulation resultBaselineSim = result.baselineSimulations.first;
+    Simulation resultcomparedSim = result.comparedSimulations.first;
+    Simulation resultFinalSim = result.finalSimulations.first;
+    // final filename1 = '/Users/eddy/Documents/resultBaselineSim.csv';
+    // await File(filename1).writeAsString(resultBaselineSim.toCsv(resultBaselineSim.estimate));
+    //
+    // final filename2 = '/Users/eddy/Documents/resultcomparedSim.csv';
+    // await File(filename2).writeAsString(resultcomparedSim.toCsv(resultcomparedSim.estimate));
+    //
+    // final filename3 = '/Users/eddy/Documents/resultFinalSim.csv';
+    // await File(filename3).writeAsString(resultFinalSim.toCsv(resultFinalSim.estimate));
 
   });
 }

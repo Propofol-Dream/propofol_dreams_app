@@ -42,8 +42,8 @@ void main() {
     Operation baselineOperation = Operation(target: target, duration: duration);
     Simulation baselineSim = Simulation(
         model: baselineModel, patient: baselinePatient, pump: baselinePump, operation: baselineOperation);
-    int minWeightGuess = (baselinePatient.weightGuess - weightBound).toInt();
-    int maxWeightGuess = (baselinePatient.weightGuess + weightBound).toInt();
+    int minWeightGuess = (baselineSim.weightGuess - weightBound).toInt();
+    int maxWeightGuess = (baselineSim.weightGuess + weightBound).toInt();
     int minBolusGuess = (baselineSim.bolusGuess * (1 - bolusBound)).toInt();
     int maxBolusGuess = (baselineSim.bolusGuess * (1 + bolusBound)).toInt();
 

@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/settings.dart';
 import 'volume_screen.dart';
 import 'duration_screen.dart';
-import 'pump_screen.dart';
+import 'adjustment_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,8 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
    int currenIndex = 1;
   final screens = [
     VolumeScreen(),
+    AdjustmentScreen(),
     DurationScreen(),
-    PumpScreen(),
     SettingsScreen()
   ];
 
@@ -78,11 +78,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon:  Icon(Icons.science_outlined),
                 label: 'Volume'),
             BottomNavigationBarItem(
+                icon: Icon(Icons.hub_outlined),
+                label: 'EleMarsh'),
+            BottomNavigationBarItem(
                 icon:  Icon(Icons.schedule),
                 label: 'Duration'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.tune),
-                label: 'TCI'),
             BottomNavigationBarItem(
                 icon:  Icon(Icons.settings),
                 label: 'Settings'),

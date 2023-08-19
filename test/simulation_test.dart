@@ -10,28 +10,37 @@ import 'dart:io';
 import 'package:propofol_dreams_app/constants.dart';
 
 void main() {
-  test('Bolus', () async {
-    int weight = 80;
-    int age = 40;
-    int height = 170;
-    Gender gender = Gender.Male;
-    Duration timeStep = Duration(seconds: 1);
-    int density = 10;
-    int maxPumpRate = 1200;
-    double target = 4;
-    Duration duration = Duration(minutes: 180);
+  int weight = 70;
+  int age = 65;
+  int height = 170;
+  Gender gender = Gender.Male;
+  Duration timeStep = Duration(seconds: 1);
+  int density = 10;
+  int maxPumpRate = 1200;
+  double target = 4;
+  Duration duration = Duration(minutes: 60);
 
-    // Set up for the model
-    Model baselineModel = Model.Eleveld;
-    Patient baselinePatient = Patient(weight: weight, age: age, height: height, gender: gender);
-    Pump baselinePump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
-    Operation baselineOperation = Operation(target: target, duration: duration);
-    Simulation baselineSim = Simulation(
-        model: baselineModel, patient: baselinePatient, pump: baselinePump, operation: baselineOperation);
+  // Set up for the model
 
-    print(baselineSim.estimateBolusInfused(targetIncreasedBy: target));
 
-    // final filename = '/Users/eddy/Documents/output.csv';
-    // var file = await File(filename).writeAsString(sim.toCsv(sim.estimate2));
+
+  test('Peak', () async {
+
+    Model model = Model.Marsh;
+    Patient patient = Patient(weight: 52, age: age, height: height, gender: gender);
+    Pump pump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
+    pump.infuseBolus(startsAt: Duration.zero, bolus: 146);
+
+    // print(pump.pumpInfusionSequences);
+
+    Operation operation = Operation(target: target, duration: duration);
+    Simulation sim = Simulation(
+        model: model, patient: patient, pump: pump, operation: operation);
+    final filename = '/Users/eddy/Documents/marsh.csv';
+    // sim.estimate;
+    // var file = await File(filename).writeAsString(sim.toCsv(sim.estimate));
+
+
   });
+
 }
