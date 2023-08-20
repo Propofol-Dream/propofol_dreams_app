@@ -115,9 +115,22 @@ class Settings with ChangeNotifier {
 
   set max_pump_rate(int i) {
     _max_pump_rate = i;
-    setInt('max_pump_rate', i);
+    setInt('max_pump_rate_20230820', i);
     notifyListeners();
   }
+
+  bool _showMaxPumpRate = false;
+
+  bool get showMaxPumpRate {
+    return _showMaxPumpRate;
+  }
+
+  set showMaxPumpRate(bool b) {
+    _showMaxPumpRate = b;
+    setBool('inAdultView', b);
+    notifyListeners();
+  }
+
 
   Model _adultModel = Model.None;
   Gender? _adultGender;
@@ -339,71 +352,71 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  Gender? _AMWCGender;
-  int? _AMWCAge;
-  int? _AMWCHeight;
-  int? _AMWCWeight;
-  double? _AMWCTarget;
-  int? _AMWCDuration;
+  Gender? _EMGender;
+  int? _EMAge;
+  int? _EMHeight;
+  int? _EMWeight;
+  double? _EMTarget;
+  int? _EMDuration;
 
-  Gender? get AMWCGender {
-    return _AMWCGender;
+  Gender? get EMGender {
+    return _EMGender;
   }
 
-  set AMWCGender(Gender? g) {
-    _AMWCGender = g;
-    setString('AMWCGender', g.toString());
+  set EMGender(Gender? g) {
+    _EMGender = g;
+    setString('EMGender', g.toString());
     notifyListeners();
   }
 
-  int? get AMWCAge {
-    return _AMWCAge;
+  int? get EMAge {
+    return _EMAge;
   }
 
-  set AMWCAge(int? i) {
-    _AMWCAge = i;
-    setInt('AMWCAge', i);
+  set EMAge(int? i) {
+    _EMAge = i;
+    setInt('EMAge', i);
     notifyListeners();
   }
 
-  int? get AMWCHeight {
-    return _AMWCHeight;
+  int? get EMHeight {
+    return _EMHeight;
   }
 
-  set AMWCHeight(int? i) {
-    _AMWCHeight = i;
-    setInt('AMWCHeight', i);
+  set EMHeight(int? i) {
+    _EMHeight = i;
+    setInt('EMHeight', i);
     notifyListeners();
   }
 
-  int? get AMWCWeight {
-    return _AMWCWeight;
+  int? get EMWeight {
+    return _EMWeight;
   }
 
-  set AMWCWeight(int? i) {
-    _AMWCWeight = i;
-    setInt('AMWCWeight', i);
+  set EMWeight(int? i) {
+    _EMWeight = i;
+    setInt('EMWeight', i);
     notifyListeners();
     // }
   }
 
-  double? get AMWCTarget {
-    return _AMWCTarget;
+  double? get EMTarget {
+    return _EMTarget;
   }
 
-  set AMWCTarget(double? d) {
-    _AMWCTarget = d;
-    setDouble('AMWCTarget', d);
+  set EMTarget(double? d) {
+    _EMTarget = d;
+    setDouble('EMTarget', d);
     notifyListeners();
   }
 
-  int? get AMWCDuration {
-    return _AMWCDuration;
+  int? get EMDuration {
+    return _EMDuration;
   }
 
-  set AMWCDuration(int? i) {
-    _AMWCDuration = i;
-    setInt('AMWCDuration', i);
+  set EMDuration(int? i) {
+    _EMDuration = i;
+    setInt('EMDuration', i);
     notifyListeners();
   }
 

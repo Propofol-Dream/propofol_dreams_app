@@ -9,15 +9,15 @@ import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
 import 'settings_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+class HomeScreen2 extends StatefulWidget {
+  const HomeScreen2({Key? key}) : super(key: key);
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen2> createState() => _HomeScreen2State();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-   int currenIndex = 1;
+class _HomeScreen2State extends State<HomeScreen2> {
+   int currenIndex = 3;
   final screens = [
     VolumeScreen(),
     EleMarshtScreen(),
@@ -38,13 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> load() async {
     final settings = context.read<Settings>();
-    var pref = await SharedPreferences.getInstance();
-    if (pref.containsKey('currentScreenIndex')) {
-      settings.currentScreenIndex = pref.getInt('currentScreenIndex')!;
-    }else{
-      settings.currentScreenIndex = 0;
-    }
-    currenIndex = settings.currentScreenIndex;
+    currenIndex = settings.currentScreenIndex =3;
   }
 
   @override

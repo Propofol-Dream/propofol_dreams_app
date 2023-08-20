@@ -736,7 +736,38 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
+                  children: [settings.showMaxPumpRate
+                      ? GestureDetector(
+                    onTap: () async {
+                      await HapticFeedback.mediumImpact();
+                      settings.showMaxPumpRate =
+                      !settings.showMaxPumpRate;
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (BuildContext context) => HomeScreen(),
+                      //   ),
+                      // );
+                    },
+                    child: Chip(
+                      avatar: Icon(
+                        Icons.speed_outlined,
+                        color:
+                        Theme.of(context).colorScheme.onPrimary,
+                      ),
+                      label: Text(
+                        '${settings.max_pump_rate.toString()}',
+                        style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimary),
+                      ),
+                      backgroundColor:
+                      Theme.of(context).colorScheme.primary,
+                    ),
+                  )
+                      : Container(),
+                    SizedBox(width: 8,),
                     GestureDetector(
                       onTap: () async {
                         await HapticFeedback.mediumImpact();
@@ -751,6 +782,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         }
                         settings.inAdultView = !settings.inAdultView;
                         reset();
+                      },
+                      onLongPress: () async {
+                        await HapticFeedback.mediumImpact();
+                        settings.showMaxPumpRate =
+                        !settings.showMaxPumpRate;
                       },
                       child: Chip(
                         avatar: settings.inAdultView
@@ -780,6 +816,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
                             ? settings.density = 20
                             : settings.density = 10;
                         run();
+                      },
+                      onLongPress: () async {
+                        await HapticFeedback.mediumImpact();
+                        settings.showMaxPumpRate =
+                        !settings.showMaxPumpRate;
                       },
                       child: Chip(
                         avatar: settings.density == 10

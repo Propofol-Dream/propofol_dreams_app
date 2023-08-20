@@ -49,8 +49,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     densityController.val = settings.density == 10 ? 0 : 1;
 
-    if (pref.containsKey('max_pump_rate')) {
-      settings.max_pump_rate = pref.getInt('max_pump_rate')!;
+    if (pref.containsKey('max_pump_rate_20230820')) {
+      settings.max_pump_rate = pref.getInt('max_pump_rate_20230820')!;
     } else {
       settings.max_pump_rate = 1200;
     }

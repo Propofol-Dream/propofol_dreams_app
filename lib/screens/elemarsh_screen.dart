@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:propofol_dreams_app/models/adjustment.dart';
 import 'package:propofol_dreams_app/screens/home_screen.dart';
+import 'package:propofol_dreams_app/screens/home_screen2.dart';
 import 'package:propofol_dreams_app/screens/settings_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -25,14 +26,14 @@ import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 
 import '../constants.dart';
 
-class AdjustmentScreen extends StatefulWidget {
-  AdjustmentScreen({Key? key}) : super(key: key);
+class EleMarshtScreen extends StatefulWidget {
+  EleMarshtScreen({Key? key}) : super(key: key);
 
   @override
-  State<AdjustmentScreen> createState() => _AdjustmentScreenState();
+  State<EleMarshtScreen> createState() => _EleMarshtScreenState();
 }
 
-class _AdjustmentScreenState extends State<AdjustmentScreen> {
+class _EleMarshtScreenState extends State<EleMarshtScreen> {
   PDSwitchController genderController = PDSwitchController();
   TextEditingController ageController = TextEditingController();
   TextEditingController heightController = TextEditingController();
@@ -52,12 +53,12 @@ class _AdjustmentScreenState extends State<AdjustmentScreen> {
   void initState() {
     final settings = context.read<Settings>();
 
-    genderController.val = settings.AMWCGender == Gender.Female ? true : false;
-    ageController.text = settings.AMWCAge.toString();
-    heightController.text = settings.AMWCHeight.toString();
-    weightController.text = settings.AMWCWeight.toString();
-    targetController.text = settings.AMWCTarget.toString();
-    // durationController.text = settings.AMWCDuration.toString();
+    genderController.val = settings.EMGender == Gender.Female ? true : false;
+    ageController.text = settings.EMAge.toString();
+    heightController.text = settings.EMHeight.toString();
+    weightController.text = settings.EMWeight.toString();
+    targetController.text = settings.EMTarget.toString();
+    // durationController.text = settings.EMDuration.toString();
 
     load();
 
@@ -79,49 +80,49 @@ class _AdjustmentScreenState extends State<AdjustmentScreen> {
       settings.density = 10;
     }
 
-    if (pref.containsKey('AMWCGender')) {
-      String gender = pref.getString('AMWCGender')!;
-      settings.AMWCGender = gender == 'Female' ? Gender.Female : Gender.Male;
+    if (pref.containsKey('EMGender')) {
+      String gender = pref.getString('EMGender')!;
+      settings.EMGender = gender == 'Female' ? Gender.Female : Gender.Male;
     } else {
-      settings.AMWCGender = Gender.Female;
+      settings.EMGender = Gender.Female;
     }
 
-    if (pref.containsKey('AMWCAge')) {
-      settings.AMWCAge = pref.getInt('AMWCAge');
+    if (pref.containsKey('EMAge')) {
+      settings.EMAge = pref.getInt('EMAge');
     } else {
-      settings.AMWCAge = 40;
+      settings.EMAge = 40;
     }
 
-    if (pref.containsKey('AMWCHeight')) {
-      settings.AMWCHeight = pref.getInt('AMWCHeight');
+    if (pref.containsKey('EMHeight')) {
+      settings.EMHeight = pref.getInt('EMHeight');
     } else {
-      settings.AMWCHeight = 170;
+      settings.EMHeight = 170;
     }
 
-    if (pref.containsKey('AMWCWeight')) {
-      settings.AMWCWeight = pref.getInt('AMWCWeight');
+    if (pref.containsKey('EMWeight')) {
+      settings.EMWeight = pref.getInt('EMWeight');
     } else {
-      settings.AMWCWeight = 70;
+      settings.EMWeight = 70;
     }
 
-    if (pref.containsKey('AMWCTarget')) {
-      settings.AMWCTarget = pref.getDouble('AMWCTarget');
+    if (pref.containsKey('EMTarget')) {
+      settings.EMTarget = pref.getDouble('EMTarget');
     } else {
-      settings.AMWCTarget = 3.0;
+      settings.EMTarget = 3.0;
     }
 
-    if (pref.containsKey('AMWCDuration')) {
-      settings.AMWCDuration = pref.getInt('AMWCDuration');
+    if (pref.containsKey('EMDuration')) {
+      settings.EMDuration = pref.getInt('EMDuration');
     } else {
-      settings.AMWCDuration = 60;
+      settings.EMDuration = 60;
     }
 
-    genderController.val = settings.AMWCGender == Gender.Female ? true : false;
-    ageController.text = settings.AMWCAge.toString();
-    heightController.text = settings.AMWCHeight.toString();
-    weightController.text = settings.AMWCWeight.toString();
-    targetController.text = settings.AMWCTarget.toString();
-    // durationController.text = settings.AMWCDuration.toString();
+    genderController.val = settings.EMGender == Gender.Female ? true : false;
+    ageController.text = settings.EMAge.toString();
+    heightController.text = settings.EMHeight.toString();
+    weightController.text = settings.EMWeight.toString();
+    targetController.text = settings.EMTarget.toString();
+    // durationController.text = settings.EMDuration.toString();
 
     run(initState: true);
   }
@@ -157,12 +158,12 @@ class _AdjustmentScreenState extends State<AdjustmentScreen> {
     Gender gender = genderController.val ? Gender.Female : Gender.Male;
 
     if (initState == false) {
-      settings.AMWCGender = gender;
-      settings.AMWCAge = age;
-      settings.AMWCHeight = height;
-      settings.AMWCWeight = weight;
-      settings.AMWCTarget = target;
-      // settings.AMWCDuration = duration;
+      settings.EMGender = gender;
+      settings.EMAge = age;
+      settings.EMHeight = height;
+      settings.EMWeight = weight;
+      settings.EMTarget = target;
+      // settings.EMDuration = duration;
     }
 
     if (age != null && height != null && weight != null && target != null) {
@@ -238,28 +239,28 @@ class _AdjustmentScreenState extends State<AdjustmentScreen> {
 
     genderController.val = toDefault
         ? true
-        : settings.AMWCGender == Gender.Female
+        : settings.EMGender == Gender.Female
             ? true
             : false;
     ageController.text = toDefault
         ? 40.toString()
-        : settings.AMWCAge != null
-            ? settings.AMWCAge.toString()
+        : settings.EMAge != null
+            ? settings.EMAge.toString()
             : '';
     heightController.text = toDefault
         ? 170.toString()
-        : settings.AMWCHeight != null
-            ? settings.AMWCHeight.toString()
+        : settings.EMHeight != null
+            ? settings.EMHeight.toString()
             : '';
     weightController.text = toDefault
         ? 70.toString()
-        : settings.AMWCWeight != null
-            ? settings.AMWCWeight.toString()
+        : settings.EMWeight != null
+            ? settings.EMWeight.toString()
             : '';
     targetController.text = toDefault
         ? 3.0.toString()
-        : settings.AMWCTarget != null
-            ? settings.AMWCTarget.toString()
+        : settings.EMTarget != null
+            ? settings.EMTarget.toString()
             : '';
 
     run();
@@ -365,16 +366,31 @@ Additional info for each of the calculated values:
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      height: 24, //fontSize + 12 padding
+                      height: 24 + (settings.showMaxPumpRate?24:0) + 12, //fontSize + 12 padding
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "EleMarsh Mode",
-                            style: TextStyle(fontSize: 24),
-                          ),
+                          settings.showMaxPumpRate
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "EleMarsh",
+                                      style: TextStyle(fontSize: 24),
+                                    ),
+                                    Text(
+                                      "Mode",
+                                      style: TextStyle(fontSize: 24),
+                                    ),
+                                  ],
+                                )
+                              : Text(
+                                  "EleMarsh Mode",
+                                  style: TextStyle(fontSize: 24),
+                                ),
                           const SizedBox(
                             width: 8,
                           ),
@@ -399,26 +415,40 @@ Additional info for each of the calculated values:
                     ),
                     Row(
                       children: [
-                        // GestureDetector(
-                        //   onTap: () async {
-                        //     await HapticFeedback.mediumImpact();
-                        //
-                        //     // run();
-                        //   },
-                        //   child: Chip(
-                        //     avatar: Icon(
-                        //       Icons.speed_outlined,
-                        //       color: Theme.of(context).colorScheme.onPrimary,
-                        //     ),
-                        //     label: Text(
-                        //       '${settings.max_pump_rate.toString()}',
-                        //       style: TextStyle(
-                        //           color: Theme.of(context).colorScheme.onPrimary),
-                        //     ),
-                        //     backgroundColor: Theme.of(context).colorScheme.primary,
-                        //   ),
-                        // ),
-                        // SizedBox(width: 8,),
+                        settings.showMaxPumpRate
+                            ? GestureDetector(
+                                onTap: () async {
+                                  await HapticFeedback.mediumImpact();
+                                  settings.showMaxPumpRate =
+                                      !settings.showMaxPumpRate;
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (BuildContext context) => HomeScreen(),
+                                  //   ),
+                                  // );
+                                },
+                                child: Chip(
+                                  avatar: Icon(
+                                    Icons.speed_outlined,
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                  ),
+                                  label: Text(
+                                    '${settings.max_pump_rate.toString()}',
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimary),
+                                  ),
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.primary,
+                                ),
+                              )
+                            : Container(),
+                        SizedBox(
+                          width: 8,
+                        ),
                         GestureDetector(
                           onTap: () async {
                             await HapticFeedback.mediumImpact();
@@ -426,6 +456,11 @@ Additional info for each of the calculated values:
                                 ? settings.density = 20
                                 : settings.density = 10;
                             run();
+                          },
+                          onLongPress: () async {
+                            await HapticFeedback.mediumImpact();
+                            settings.showMaxPumpRate =
+                                !settings.showMaxPumpRate;
                           },
                           child: Chip(
                             avatar: settings.density == 10
