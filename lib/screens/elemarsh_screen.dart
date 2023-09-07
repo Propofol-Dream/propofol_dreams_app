@@ -42,9 +42,12 @@ class _EleMarshtScreenState extends State<EleMarshtScreen> {
   String weightBestGuess = "--";
   String adjustmentBolus = "--";
   String inductionCPTarget = "--";
-  String MDPE = "--";
+
+  // String MDPE = "--";
   String MDAPE = "--";
-  String MaxAPE = "--";
+
+  // String MaxAPE = "--";
+  String predictedBIS = "--";
 
   @override
   void initState() {
@@ -136,11 +139,6 @@ class _EleMarshtScreenState extends State<EleMarshtScreen> {
 
   void updatePDTextEditingController() {
     final settings = Provider.of<Settings>(context, listen: false);
-    // int? age = int.tryParse(ageController.text);
-    // if (age != null) {
-    //   settings.inAdultView = age >= 17 ? true : false;
-    // }
-    // updateModelOptions(settings.inAdultView);
     run();
   }
 
@@ -151,7 +149,6 @@ class _EleMarshtScreenState extends State<EleMarshtScreen> {
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
     double? target = double.tryParse(targetController.text);
-    // int? duration = int.tryParse(durationController.text);
     Gender gender = genderController.val ? Gender.Female : Gender.Male;
 
     if (initState == false) {
@@ -160,7 +157,6 @@ class _EleMarshtScreenState extends State<EleMarshtScreen> {
       settings.EMHeight = height;
       settings.EMWeight = weight;
       settings.EMTarget = target;
-      // settings.EMDuration = duration;
     }
 
     if (age != null && height != null && weight != null && target != null) {
@@ -202,10 +198,10 @@ class _EleMarshtScreenState extends State<EleMarshtScreen> {
           adjustmentBolus = result.adjustmentBolus.round().toString();
           // ((result.adjustmentBolus / 10).round() * 10).toString();
           int guesIndex = result.guessIndex;
-
-          MDPE = (result.MDPEs[guesIndex] * 100).toStringAsFixed(1);
+          predictedBIS = result.predictedBIS.toStringAsFixed(0);
+          // MDPE = (result.MDPEs[guesIndex] * 100).toStringAsFixed(1);
           MDAPE = (result.MDAPEs[guesIndex] * 100).toStringAsFixed(1);
-          MaxAPE = (result.MaxAPEs[guesIndex] * 100).toStringAsFixed(1);
+          // MaxAPE = (result.MaxAPEs[guesIndex] * 100).toStringAsFixed(1);
 
           print({
             'weightBestGuess': weightBestGuess,
@@ -366,7 +362,8 @@ Additional info for each of the calculated values:
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      height: 24 + (settings.showMaxPumpRate?24:0) + 12, //fontSize + 12 padding
+                      height: 24 + (settings.showMaxPumpRate ? 24 : 0) + 12,
+                      //fontSize + 12 padding
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -514,14 +511,18 @@ Additional info for each of the calculated values:
                                     Text(
                                       "Adjusted Body Weight",
                                       style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                          fontSize: 14,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          fontWeight: FontWeight.bold),
                                     ),
-                                    Text(
-                                      "$weightBestGuess kg",
-                                      style: TextStyle(fontSize: 24),
-                                    ),
+                                    Text("$weightBestGuess kg",
+                                        style: TextStyle(
+                                            fontSize: 24,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary)),
                                   ],
                                 ),
                               ),
@@ -627,20 +628,41 @@ Additional info for each of the calculated values:
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "MDPE",
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                        SizedBox(
-                                          width: 8.0,
-                                        ),
-                                        Text(
-                                          "$MDPE %",
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ],
+                                    Container(
+
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            "Predicted BIS",
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary),
+                                          ),
+                                          SizedBox(
+                                            width: 8.0,
+                                          ),
+                                          Text(
+                                            "$predictedBIS",
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          Text(
+                                            "/100",
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                     Row(
                                       children: [
@@ -657,21 +679,21 @@ Additional info for each of the calculated values:
                                         ),
                                       ],
                                     ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "MaxAPE",
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                        SizedBox(
-                                          width: 8.0,
-                                        ),
-                                        Text(
-                                          "$MaxAPE %",
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ],
-                                    ),
+                                    // Row(
+                                    //   children: [
+                                    //     Text(
+                                    //       "MaxAPE",
+                                    //       style: TextStyle(fontSize: 14),
+                                    //     ),
+                                    //     SizedBox(
+                                    //       width: 8.0,
+                                    //     ),
+                                    //     Text(
+                                    //       "$MaxAPE %",
+                                    //       style: TextStyle(fontSize: 14),
+                                    //     ),
+                                    //   ],
+                                    // ),
                                   ],
                                 ),
                               ),

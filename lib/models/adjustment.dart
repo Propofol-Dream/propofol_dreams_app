@@ -16,7 +16,25 @@ class Adjustment {
       required this.weightBound,
       required this.bolusBound});
 
-  ({List<double> MDAPEs, List<double> MDPEs, List<double> MaxAPEs, List<double> SSEs, double adjustmentBolus, List<Simulation> baselineSimulations, int bolusBestGuess, List<int> bolusGuesses, List<Simulation> comparedSimulations, List<Simulation> finalSimulations, int guessIndex, double inductionCPTarget, double initialCPTarget, int length, int weightBestGuess, List<int> weightGuesses}) calculate() {
+  ({
+    List<double> MDAPEs,
+    List<double> MDPEs,
+    List<double> MaxAPEs,
+    List<double> SSEs,
+    double adjustmentBolus,
+    List<Simulation> baselineSimulations,
+    int bolusBestGuess,
+    List<int> bolusGuesses,
+    List<Simulation> comparedSimulations,
+    List<Simulation> finalSimulations,
+    int guessIndex,
+    double inductionCPTarget,
+    double initialCPTarget,
+    int length,
+    double predictedBIS,
+    int weightBestGuess,
+    List<int> weightGuesses
+  }) calculate() {
     // Set up results
     List<int> weightGuesses = [];
     List<int> bolusGuesses = [];
@@ -48,7 +66,6 @@ class Adjustment {
       for (int bolusGuess = minBolusGuess;
           bolusGuess <= maxBolusGuess;
           bolusGuess++) {
-
         // Set up for compared model
         Model comparedModel = Model.Marsh;
         Patient comparedPatient = baselineSimulation.patient.copy();
@@ -152,7 +169,12 @@ class Adjustment {
 
     double inductionCPTarget =
         initialCPTarget / 4 * baselineSimulation.operation.target;
-    double adjustmentBolus = bolusBestGuess / baselineSimulation.operation.target;
+    double adjustmentBolus =
+        bolusBestGuess / baselineSimulation.operation.target;
+
+    double predictedBIS = predictBIS(
+        age: baselineSimulation.patient.age,
+        target: baselineSimulation.operation.target);
 
     return (
       weightBestGuess: weightBestGuess,
@@ -170,7 +192,8 @@ class Adjustment {
       SSEs: SSEs,
       MDPEs: MDPEs,
       MDAPEs: MDAPEs,
-      MaxAPEs: MaxAPEs
+      MaxAPEs: MaxAPEs,
+      predictedBIS: predictedBIS
     );
   }
 
@@ -201,5 +224,17 @@ class Adjustment {
       }
     }
     return minIndices;
+  }
+
+  double predictBIS({required int age, required double target}) {
+    double ce50 = 3.08 * exp(-0.00635 * (age - 35));
+    double bis;
+
+    if (target > ce50) {
+      bis = 93 * (pow(ce50, 1.47) / (pow(ce50, 1.47) + pow(target, 1.47)));
+    } else {
+      bis = 93 * (pow(ce50, 1.89) / (pow(ce50, 1.89) + pow(target, 1.89)));
+    }
+    return bis;
   }
 }
