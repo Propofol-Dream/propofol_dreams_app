@@ -511,18 +511,28 @@ Additional info for each of the calculated values:
                                     Text(
                                       "Adjusted Body Weight",
                                       style: TextStyle(
-                                          fontSize: 14,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                          fontWeight: FontWeight.bold),
+                                          fontSize: 18,
+                                        color: Theme.of(context).colorScheme.primary
+                                          ),
                                     ),
-                                    Text("$weightBestGuess kg",
-                                        style: TextStyle(
-                                            fontSize: 24,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary)),
+                                    Row(
+                                      children: [
+                                        Text("$weightBestGuess",
+                                            style: TextStyle(
+                                                fontSize: 24,
+                                                fontWeight: FontWeight.w600,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary)),
+                                        Text(" kg",
+                                            style: TextStyle(
+                                                fontSize: 24,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary)),
+                                      ],
+                                    ),
+
                                   ],
                                 ),
                               ),
@@ -555,12 +565,20 @@ Additional info for each of the calculated values:
                                     Text(
                                       "Induction CpT",
                                       style: TextStyle(
-                                        fontSize: 14,
+                                        fontSize: 16,
                                       ),
                                     ),
-                                    Text(
-                                      "$inductionCPTarget mcg/mL",
-                                      style: TextStyle(fontSize: 20),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "$inductionCPTarget",
+                                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          " mcg/mL",
+                                          style: TextStyle(fontSize: 20),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -593,11 +611,19 @@ Additional info for each of the calculated values:
                                   children: [
                                     Text(
                                       "Adjustment Bolus",
-                                      style: TextStyle(fontSize: 14),
+                                      style: TextStyle(fontSize: 16),
                                     ),
-                                    Text(
-                                      "$adjustmentBolus mg",
-                                      style: TextStyle(fontSize: 20),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "$adjustmentBolus",
+                                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          " mg",
+                                          style: TextStyle(fontSize: 20),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -629,13 +655,12 @@ Additional info for each of the calculated values:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
-
                                       child: Row(
                                         children: [
                                           Text(
                                             "Predicted BIS",
                                             style: TextStyle(
-                                                fontSize: 14,
+                                                fontSize: 16,
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .primary),
@@ -646,21 +671,14 @@ Additional info for each of the calculated values:
                                           Text(
                                             "$predictedBIS",
                                             style: TextStyle(
-                                                fontSize: 14,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                                fontWeight: FontWeight.bold),
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                            ),
                                           ),
-                                          Text(
-                                            "/100",
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                                ),
-                                          ),
+
                                         ],
                                       ),
                                     ),
@@ -673,9 +691,17 @@ Additional info for each of the calculated values:
                                         SizedBox(
                                           width: 8.0,
                                         ),
-                                        Text(
-                                          "$MDAPE %",
-                                          style: TextStyle(fontSize: 14),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "$MDAPE",
+                                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                            ),
+                                            Text(
+                                              " %",
+                                              style: TextStyle(fontSize: 14),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
