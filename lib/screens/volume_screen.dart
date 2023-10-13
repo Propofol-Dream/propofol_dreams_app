@@ -1358,8 +1358,8 @@ class _PDAdvancedSegmentedControlState
       required int weight,
       required int height,
       required int age}) {
-    Model seletedModel = widget.segmentedController.selection as Model;
-    return !(seletedModel.checkConstraints(
+    Model selectedModel = widget.segmentedController.selection as Model;
+    return !(selectedModel.checkConstraints(
         gender: gender,
         weight: weight,
         height: height,
@@ -1371,8 +1371,8 @@ class _PDAdvancedSegmentedControlState
       required int weight,
       required int height,
       required int age}) {
-    Model seletedModel = widget.segmentedController.selection as Model;
-    return (seletedModel.checkConstraints(
+    Model selectedModel = widget.segmentedController.selection as Model;
+    return (selectedModel.checkConstraints(
         gender: gender,
         weight: weight,
         height: height,

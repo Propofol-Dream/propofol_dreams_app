@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'package:propofol_dreams_app/constants.dart';
 
 class Pump {
   Duration timeStep;

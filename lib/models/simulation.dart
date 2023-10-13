@@ -502,7 +502,7 @@ class Simulation {
       result = bolusInfusedBy * maxCe / pump.density;
     } else if (model.target == Target.Plasma) {
       result = (-15.693+sqrt(pow(15.693,2)+4*0.2197*bolusInfusedBy*70/patient.weight))/(0.4394);
-
+      result = result / 4 * operation.target;
       // Pump testPump = pump.copy();
       // testPump.infuseBolus(startsAt: Duration.zero, bolus: bolusInfusedBy);
       // Map<String, List> testResult = test(testPump: testPump);
@@ -801,7 +801,7 @@ class Simulation {
               0.077 * patient.bmi);
     }
 
-    guess = guess / 4 * operation.target;
+    // guess = guess / 4 * operation.target;
 
     return guess;
   }

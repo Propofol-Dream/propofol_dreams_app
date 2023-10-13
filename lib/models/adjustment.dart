@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:propofol_dreams_app/models/simulation.dart';
-import 'package:propofol_dreams_app/models/operation.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/model.dart';
@@ -29,7 +28,6 @@ class Adjustment {
     List<Simulation> finalSimulations,
     int guessIndex,
     double inductionCPTarget,
-    double initialCPTarget,
     int length,
     double predictedBIS,
     int weightBestGuess,
@@ -48,7 +46,7 @@ class Adjustment {
     List<double> MaxAPEs = [];
     int weightBestGuess = -1;
     int bolusBestGuess = -1;
-    double initialCPTarget = -1;
+    double inductionCPTarget = -1;
 
     // Set up for baseline model
     double weightGuess = baselineSimulation.weightGuess;
@@ -165,10 +163,10 @@ class Adjustment {
 
     weightBestGuess = weightGuesses[guessIndex];
     bolusBestGuess = bolusGuesses[guessIndex];
-    initialCPTarget = comparedSimulationTargetIncEstimates[guessIndex];
+    inductionCPTarget = comparedSimulationTargetIncEstimates[guessIndex];
 
-    double inductionCPTarget =
-        initialCPTarget / 4 * baselineSimulation.operation.target;
+    // double inductionCPTarget =
+        // initialCPTarget / 4 * baselineSimulation.operation.target;
     double adjustmentBolus =
         bolusBestGuess / baselineSimulation.operation.target;
 
@@ -180,7 +178,6 @@ class Adjustment {
       weightBestGuess: weightBestGuess,
       bolusBestGuess: bolusBestGuess,
       adjustmentBolus: adjustmentBolus,
-      initialCPTarget: initialCPTarget,
       inductionCPTarget: inductionCPTarget,
       length: SSEs.length,
       weightGuesses: weightGuesses,

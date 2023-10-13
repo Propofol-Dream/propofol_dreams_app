@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:io' show Platform;
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:propofol_dreams_app/models/adjustment.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
@@ -138,7 +136,7 @@ class _EleMarshtScreenState extends State<EleMarshtScreen> {
   }
 
   void updatePDTextEditingController() {
-    final settings = Provider.of<Settings>(context, listen: false);
+    // final settings = Provider.of<Settings>(context, listen: false);
     run();
   }
 
@@ -194,20 +192,16 @@ class _EleMarshtScreenState extends State<EleMarshtScreen> {
         setState(() {
           weightBestGuess = result.weightBestGuess.toString();
           inductionCPTarget = result.inductionCPTarget.toStringAsFixed(1);
-          // inductionCPTarget = result.inductionCPTarget.toStringAsFixed(2);
           adjustmentBolus = result.adjustmentBolus.round().toString();
-          // ((result.adjustmentBolus / 10).round() * 10).toString();
-          int guesIndex = result.guessIndex;
+          int guessIndex = result.guessIndex;
           predictedBIS = result.predictedBIS.toStringAsFixed(0);
-          // MDPE = (result.MDPEs[guesIndex] * 100).toStringAsFixed(1);
-          MDAPE = (result.MDAPEs[guesIndex] * 100).toStringAsFixed(1);
-          // MaxAPE = (result.MaxAPEs[guesIndex] * 100).toStringAsFixed(1);
+          MDAPE = (result.MDAPEs[guessIndex] * 100).toStringAsFixed(1);
 
           print({
             'weightBestGuess': weightBestGuess,
             'adjustmentBolus': adjustmentBolus,
             'inductionCPTarget': inductionCPTarget,
-            'calcuation time':
+            'calculation time':
                 '${calculationDuration.inMilliseconds.toString()} milliseconds'
           });
         });
