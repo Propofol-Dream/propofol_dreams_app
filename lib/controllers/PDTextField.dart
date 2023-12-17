@@ -11,7 +11,7 @@ class PDTextField extends StatefulWidget {
     Key? key,
     this.prefixIcon,
     required this.labelText,
-    required this.helperText,
+    // required this.helperText,
     required this.interval,
     required this.fractionDigits,
     required this.controller,
@@ -25,7 +25,8 @@ class PDTextField extends StatefulWidget {
 
   final String labelText;
   final IconData? prefixIcon;
-  final String helperText;
+
+  // final String helperText;
   final double interval;
   final int fractionDigits;
   final TextEditingController controller;
@@ -67,7 +68,6 @@ class _PDTextFieldState extends State<PDTextField> {
         : int.tryParse(widget.controller.text);
     // double.tryParse(widget.controller.text);
 
-
     bool isWithinRange =
         val != null ? val >= widget.range[0] && val <= widget.range[1] : false;
     bool isNumeric = widget.controller.text.isEmpty ? false : val != null;
@@ -76,76 +76,80 @@ class _PDTextFieldState extends State<PDTextField> {
         val != null ? val - widget.interval >= widget.range[0] : false;
 
     bool canBeIncreased =
-    val != null ? val + widget.interval <= widget.range[1] : false;
+        val != null ? val + widget.interval <= widget.range[1] : false;
 
-    return Stack(alignment: Alignment.topRight, children: [
+    return Stack(alignment: Alignment.centerRight, children: [
       TextField(
-        enabled: widget.enabled,
-        style: TextStyle(
-            color: widget.enabled
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).disabledColor),
-        scrollPadding: const EdgeInsets.all(48.0),
-        onSubmitted: (val) {
-          widget.onPressed();
-        },
-        controller: widget.controller,
-        keyboardType: TextInputType.numberWithOptions(
-            signed: true, decimal: widget.fractionDigits > 0 ? true : false),
-        keyboardAppearance:
-            settings.isDarkTheme ? Brightness.dark : Brightness.light,
-
-        decoration: InputDecoration(
-          filled: widget.enabled ? true : false,
-          fillColor: (isWithinRange && isNumeric)
-              ? Theme.of(context).colorScheme.onPrimary
-              : Theme.of(context).colorScheme.onError,
-          errorText: widget.enabled
-              ? widget.controller.text.isEmpty
-                  ? 'Please enter a value'
-                  : isNumeric
-                      ? isWithinRange
-                          ? null
-                          : 'min: ${widget.range[0]} and max: ${widget.range[1]}'
-                      : 'Please enter a value'
-              : '',
-          errorStyle: TextStyle(color: Theme.of(context).colorScheme.error),
-          prefixIcon: Icon(
-            widget.prefixIcon,
+          enabled: widget.enabled,
+          style: TextStyle(
             color: widget.enabled
                 ? (isWithinRange && isNumeric)
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.error
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.error
                 : Theme.of(context).disabledColor,
+            // fontSize: 18
           ),
-          prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
-          helperText: widget.helperText,
-          helperStyle: TextStyle(color: widget.enabled
-              ? (isWithinRange && isNumeric)
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.error
-              : Theme.of(context).disabledColor,),
-          labelText: widget.labelText,
-          labelStyle: TextStyle(color: widget.enabled
-              ? (isWithinRange && isNumeric)
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.error
-              : Theme.of(context).disabledColor,),
-          border: const OutlineInputBorder(),
-          enabledBorder: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: Theme.of(context).colorScheme.primary),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-                color: widget.enabled
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).disabledColor),
+          scrollPadding: const EdgeInsets.all(48.0),
+          onSubmitted: (val) {
+            widget.onPressed();
+          },
+          controller: widget.controller,
+          keyboardType: TextInputType.numberWithOptions(
+              signed: true, decimal: widget.fractionDigits > 0 ? true : false),
+          keyboardAppearance:
+              settings.isDarkTheme ? Brightness.dark : Brightness.light,
+          decoration: InputDecoration(
+            // contentPadding: EdgeInsets.only(bottom: 0),
+            filled: widget.enabled ? true : false,
+            fillColor: (isWithinRange && isNumeric)
+                ? Theme.of(context).colorScheme.onPrimary
+                : Theme.of(context).colorScheme.onError,
+            helperText: '',
+            helperStyle: TextStyle(color: Theme.of(context).colorScheme.error,fontSize: 10),
+            errorText: widget.enabled
+                ? widget.controller.text.isEmpty
+                    ? 'Please enter a value'
+                    : isNumeric
+                        ? isWithinRange
+                            ? null
+                            : 'min: ${widget.range[0]} and max: ${widget.range[1]}'
+                        : 'Please enter a value'
+                : '',
+            errorStyle: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 10),
+            prefixIcon: Icon(
+              widget.prefixIcon,
+              color: widget.enabled
+                  ? (isWithinRange && isNumeric)
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.error
+                  : Theme.of(context).disabledColor,
+            ),
+            // prefixIconConstraints: BoxConstraints.tight(const Size(40, 18)),
+            labelText: widget.labelText,
+            labelStyle: TextStyle(
+              color: widget.enabled
+                  ? (isWithinRange && isNumeric)
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.error
+                  : Theme.of(context).disabledColor,
+            ),
+            border: const OutlineInputBorder(),
+            enabledBorder: OutlineInputBorder(
+              borderSide:
+                  BorderSide(color: Theme.of(context).colorScheme.primary),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                  color: widget.enabled
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).disabledColor),
+            ),
           ),
         ),
-      ),
+
       widget.controller.text.isNotEmpty
           ? Container(
+              padding: EdgeInsets.only(bottom: 20),
               width: suffixIconConstraintsWidth,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,

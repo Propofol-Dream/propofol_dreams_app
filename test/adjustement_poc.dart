@@ -63,21 +63,21 @@ void main() {
         // Infuse the bolus via the pump
         comparedPump.infuseBolus(startsAt: Duration.zero, bolus: bolusGuess.toDouble());
 
-        Map<String, List> comparedEstimate = comparedSim.estimate;
-        List<Duration> times = comparedEstimate['times'] as List<Duration>;
-        List<double> pumpInfs = comparedEstimate['pump_infs'] as List<double>;
+        var comparedEstimate = comparedSim.estimate;
+        List<Duration> times = comparedEstimate.times;
+        List<double> pumpInfs = comparedEstimate.pumpInfs;
 
         // Set up for final model
         Pump finalPump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
         finalPump.copyPumpInfusionSequences(times: times, pumpInfs: pumpInfs);
         Simulation finalSim = Simulation(model: baselineModel, patient: baselinePatient, pump: finalPump, operation: baselineOperation);
 
-        Map<String, List> baselineEstimate = baselineSim.estimate;
-        Map<String, List> finalEstimate = finalSim.estimate;
+        var baselineEstimate = baselineSim.estimate;
+        var finalEstimate = finalSim.estimate;
 
         //Extract CEs and CPs from the three models
-        List<double> baselineCEs = baselineEstimate['concentrations_effect'] as List<double>;
-        List<double> finalCEs = finalEstimate['concentrations_effect'] as List<double>;
+        List<double> baselineCEs = baselineEstimate.concentrationsEffect;
+        List<double> finalCEs = finalEstimate.concentrationsEffect;
 
         List<double> CEPErrors = [];
         List<double> CEPercentageErrors = [];

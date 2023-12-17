@@ -187,7 +187,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       height: UIHeight + 2,
                       prefixIcon: null,
                       labelText: 'Pump Rate (mL/hr)',
-                      helperText: '',
+                      // helperText: '',
                       interval: 50,
                       fractionDigits: 0,
                       controller: pumpController,

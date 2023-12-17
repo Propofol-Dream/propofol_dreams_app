@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
    int currenIndex = 1;
   final screens = [
     VolumeScreen(),
-    EleMarshtScreen(),
+    EleMarshScreen(),
     DurationScreen(),
     SettingsScreen()
   ];

@@ -21,14 +21,14 @@ import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 
 import '../constants.dart';
 
-class EleMarshtScreen extends StatefulWidget {
-  EleMarshtScreen({Key? key}) : super(key: key);
+class EleMarshScreen extends StatefulWidget {
+  EleMarshScreen({Key? key}) : super(key: key);
 
   @override
-  State<EleMarshtScreen> createState() => _EleMarshtScreenState();
+  State<EleMarshScreen> createState() => _EleMarshScreenState();
 }
 
-class _EleMarshtScreenState extends State<EleMarshtScreen> {
+class _EleMarshScreenState extends State<EleMarshScreen> {
   PDSwitchController genderController = PDSwitchController();
   TextEditingController ageController = TextEditingController();
   TextEditingController heightController = TextEditingController();
@@ -356,7 +356,7 @@ Additional info for each of the calculated values:
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      height: 24 + (settings.showMaxPumpRate ? 24 : 0) + 12,
+                      height: 24 + (settings.showMaxPumpRate ? 32 : 0) + 12,
                       //fontSize + 12 padding
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -749,7 +749,7 @@ Additional info for each of the calculated values:
             height: 8,
           ),
           Container(
-            height: UIHeight + 24,
+            height: UIHeight + 28,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -762,7 +762,7 @@ Additional info for each of the calculated values:
                       true: Gender.Female.toString(),
                       false: Gender.Male.toString()
                     },
-                    helperText: '',
+                    // helperText: '',
                     onChanged: run,
                     height: UIHeight,
                   ),
@@ -777,7 +777,7 @@ Additional info for each of the calculated values:
                     height: UIHeight + 2,
                     prefixIcon: Icons.calendar_month,
                     labelText: 'Age',
-                    helperText: '',
+                    // helperText: '',
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: ageController,
@@ -793,7 +793,7 @@ Additional info for each of the calculated values:
             height: 8,
           ),
           Container(
-            height: UIHeight + 24,
+            height: UIHeight + 28,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -803,7 +803,7 @@ Additional info for each of the calculated values:
                     height: UIHeight + 2,
                     prefixIcon: Icons.straighten,
                     labelText: 'Height (cm)',
-                    helperText: '',
+                    // helperText: '',
                     interval: 1,
                     fractionDigits: 0,
                     controller: heightController,
@@ -821,7 +821,7 @@ Additional info for each of the calculated values:
                     height: UIHeight + 2,
                     prefixIcon: Icons.monitor_weight_outlined,
                     labelText: 'Weight (kg)',
-                    helperText: '',
+                    // helperText: '',
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: weightController,
@@ -836,7 +836,7 @@ Additional info for each of the calculated values:
             height: 8,
           ),
           Container(
-            height: UIHeight + 24,
+            height: UIHeight + 28,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -847,7 +847,7 @@ Additional info for each of the calculated values:
                     height: UIHeight + 2,
                     prefixIcon: Icons.psychology_alt_outlined,
                     labelText: '${Model.Eleveld.target.toString()}',
-                    helperText: '',
+                    // helperText: '',
                     interval: 0.5,
                     fractionDigits: 1,
                     controller: targetController,
@@ -861,7 +861,7 @@ Additional info for each of the calculated values:
                   height: 0,
                 ),
                 Container(
-                    height: UIHeight,
+                    height: UIHeight+4,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         elevation: 0,

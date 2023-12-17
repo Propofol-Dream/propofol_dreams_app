@@ -429,9 +429,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
               DateTime start = DateTime.now();
 
-              var results1;
-              var results2;
-              var results3;
+              // var results1;
+              // var results2;
+              // var results3;
 
               Patient patient = Patient(
                   weight: weight, age: age, height: height, gender: gender);
@@ -474,11 +474,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   pump: pump,
                   operation: operation3);
 
-              results1 = sim1.estimate;
+              var results1 = sim1.estimate;
 
-              results2 = sim2.estimate;
+              var results2 = sim2.estimate;
 
-              results3 = sim3.estimate;
+              var results3 = sim3.estimate;
 
               DateTime finish = DateTime.now();
 
@@ -495,10 +495,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
               setState(() {
                 updateRowsAndResult(cols: [
-                  results1['cumulative_infused_volumes'],
-                  results2['cumulative_infused_volumes'],
-                  results3['cumulative_infused_volumes']
-                ], times: results2['times']);
+                  results1.cumulativeInfusedVolumes,
+                  results2.cumulativeInfusedVolumes,
+                  results3.cumulativeInfusedVolumes
+                ], times: results2.times);
               });
             } else {
               // print('Model does not meet its constraint');
@@ -742,12 +742,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       await HapticFeedback.mediumImpact();
                       settings.showMaxPumpRate =
                       !settings.showMaxPumpRate;
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (BuildContext context) => HomeScreen(),
-                      //   ),
-                      // );
                     },
                     child: Chip(
                       avatar: Icon(
@@ -946,7 +940,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
             height: 8,
           ),
           Container(
-            height: UIHeight + 24,
+            height: UIHeight + 28,
             child: Row(
               children: [
                 Container(
@@ -958,7 +952,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       true: Gender.Female.toString(),
                       false: Gender.Male.toString()
                     },
-                    helperText: '',
+                    // helperText: '',
                     onChanged: run,
                     height: UIHeight,
                     enabled: genderSwitchControlEnabled,
@@ -974,7 +968,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     height: UIHeight + 2,
                     prefixIcon: Icons.calendar_month,
                     labelText: 'Age',
-                    helperText: '',
+                    // helperText: '',
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: ageController,
@@ -994,8 +988,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
             height: 8,
           ),
           Container(
-            height: UIHeight + 24,
+            height: UIHeight + 28,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   width: UIWidth,
@@ -1003,7 +998,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     height: UIHeight + 2,
                     prefixIcon: Icons.straighten,
                     labelText: 'Height (cm)',
-                    helperText: '',
+                    // helperText: '',
                     interval: 1,
                     fractionDigits: 0,
                     controller: heightController,
@@ -1022,7 +1017,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     height: UIHeight + 2,
                     prefixIcon: Icons.monitor_weight_outlined,
                     labelText: 'Weight (kg)',
-                    helperText: '',
+                    // helperText: '',
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: weightController,
@@ -1041,7 +1036,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
             height: 8,
           ),
           Container(
-            height: UIHeight + 24,
+            height: UIHeight + 28,
             child: Row(
               children: [
                 Container(
@@ -1051,7 +1046,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     prefixIcon: Icons.psychology_alt_outlined,
                     // labelText: 'Target in mcg/mL',
                     labelText: '${selectedModel.target.toString()}',
-                    helperText: '',
+                    // helperText: '',
                     interval: 0.5,
                     fractionDigits: 1,
                     controller: targetController,
@@ -1071,7 +1066,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     prefixIcon: Icons.schedule,
                     // labelText: 'Duration in minutes',
                     labelText: 'Duration (mins)',
-                    helperText: '',
+                    // helperText: '',
                     interval: double.tryParse(durationController.text) != null
                         ? double.parse(durationController.text) >= 60
                             ? 10
@@ -1407,10 +1402,11 @@ class _PDAdvancedSegmentedControlState
         child: TextField(
           enabled: false,
           decoration: InputDecoration(
+            // helperText: '',
             errorText: errorText,
             errorStyle: isError
-                ? TextStyle(color: Theme.of(context).colorScheme.error)
-                : TextStyle(color: Theme.of(context).colorScheme.primary),
+                ? TextStyle(color: Theme.of(context).colorScheme.error,fontSize: 10)
+                : TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 10),
             border: const OutlineInputBorder(
                 borderSide: BorderSide(width: 0, style: BorderStyle.none)),
           ),
@@ -1425,6 +1421,7 @@ class _PDAdvancedSegmentedControlState
           itemBuilder: (buildContext, buildIndex) {
             return SizedBox(
               child: ElevatedButton(
+
                 onPressed: widget.options[buildIndex].isEnable(
                         age: widget.assertValues['age'],
                         height: widget.assertValues['height'],
@@ -1437,6 +1434,7 @@ class _PDAdvancedSegmentedControlState
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
                   elevation: 0,
                   foregroundColor: widget.segmentedController.selection ==
                           widget.options[buildIndex]

@@ -8,7 +8,7 @@ class PDSwitchField extends StatefulWidget {
     Key? key,
     required this.prefixIcon,
     required this.labelTexts,
-    required this.helperText,
+    // required this.helperText,
     required this.controller,
     required this.onChanged,
     required this.height,
@@ -17,7 +17,8 @@ class PDSwitchField extends StatefulWidget {
 
   final Map<bool, String> labelTexts;
   final IconData prefixIcon;
-  final String helperText;
+
+  // final String helperText;
   final PDSwitchController controller;
   final Function onChanged;
   bool enabled;
@@ -41,7 +42,7 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
         TextEditingController(text: widget.labelTexts[widget.controller.val]!);
 
     return Stack(
-      alignment: Alignment.topRight,
+      alignment: Alignment.centerRight,
       children: [
         TextField(
           enabled: widget.enabled,
@@ -51,29 +52,6 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
               color: widget.enabled
                   ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).disabledColor),
-          // decoration: InputDecoration(
-          //   filled: widget.enabled ? true : false,
-          //   fillColor: Theme.of(context).colorScheme.onPrimary,
-          //   prefixIcon: Icon(
-          //     widget.prefixIcon,
-          //     color: widget.enabled
-          //         ? Theme.of(context).colorScheme.primary
-          //         : Theme.of(context).disabledColor,
-          //   ),
-          //   prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
-          //   helperText: widget.helperText,
-          //   border: const OutlineInputBorder(),
-          //   enabledBorder: OutlineInputBorder(
-          //     borderSide:
-          //         BorderSide(color: Theme.of(context).colorScheme.primary),
-          //   ),
-          //   errorBorder: OutlineInputBorder(
-          //     borderSide: BorderSide(
-          //         color: widget.enabled
-          //             ? Theme.of(context).colorScheme.error
-          //             : Theme.of(context).disabledColor),
-          //   ),
-          // ),
           decoration: InputDecoration(
             filled: widget.enabled ? true : false,
             fillColor: Theme.of(context).colorScheme.onPrimary,
@@ -84,13 +62,9 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
                   ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).disabledColor,
             ),
-            prefixIconConstraints: BoxConstraints.tight(const Size(36, 36)),
-            helperText: widget.helperText,
-            helperStyle: TextStyle(
-              color: widget.enabled
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).disabledColor,
-            ),
+            // prefixIconConstraints: BoxConstraints.tight(const Size(40, 18)),
+            helperText: '',
+            helperStyle: TextStyle(fontSize: 10),
             labelStyle: TextStyle(
               color: widget.enabled
                   ? Theme.of(context).colorScheme.primary
@@ -111,28 +85,36 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
           ),
         ),
         Container(
+          padding: EdgeInsets.only(right: 4, bottom: 20),
           height: widget.height,
-          child: Switch(
-            activeColor: widget.enabled
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).disabledColor,
-            activeTrackColor:
-                Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            inactiveThumbColor: widget.enabled
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).disabledColor,
-            inactiveTrackColor:
-                Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            value: widget.controller.val,
-            onChanged: widget.enabled
-                ? (val) async {
-                    await HapticFeedback.mediumImpact();
-                    setState(() {
-                      widget.controller.val = val;
-                    });
-                    widget.onChanged();
-                  }
-                : null,
+          child: SizedBox(
+            height: 24,
+            width: 48,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Switch(
+                activeColor: widget.enabled
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).disabledColor,
+                activeTrackColor:
+                    Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                inactiveThumbColor: widget.enabled
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).disabledColor,
+                inactiveTrackColor:
+                    Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                value: widget.controller.val,
+                onChanged: widget.enabled
+                    ? (val) async {
+                        await HapticFeedback.mediumImpact();
+                        setState(() {
+                          widget.controller.val = val;
+                        });
+                        widget.onChanged();
+                      }
+                    : null,
+              ),
+            ),
           ),
         ),
       ],

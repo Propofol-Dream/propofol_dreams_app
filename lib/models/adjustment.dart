@@ -80,9 +80,10 @@ class Adjustment {
         // print(comparedPump.pumpInfusionSequences);
 
         // Get the pump_infs sequence out from the compared model
-        Map<String, List> comparedEstimate = comparedSimulation.estimate;
-        List<Duration> times = comparedEstimate['times'] as List<Duration>;
-        List<double> pumpInfs = comparedEstimate['pump_infs'] as List<double>;
+        // Map<String, List> comparedEstimate = comparedSimulation.estimate;
+        var comparedEstimate = comparedSimulation.estimate;
+        List<Duration> times = comparedEstimate.times;
+        List<double> pumpInfs = comparedEstimate.pumpInfs;
 
         // Set up for final model
         Pump finalPump = baselineSimulation.pump.copy();
@@ -92,14 +93,14 @@ class Adjustment {
         // print(finalPump.pumpInfusionSequences);
 
         // Extract estimates from baseline & final simulations
-        Map<String, List> baselineEstimate = baselineSimulation.estimate;
-        Map<String, List> finalEstimate = finalSimulation.estimate;
+        var baselineEstimate = baselineSimulation.estimate;
+        var finalEstimate = finalSimulation.estimate;
 
         // Extract CEs and CPs from the estimates
         List<double> baselineCEs =
-            baselineEstimate['concentrations_effect'] as List<double>;
+            baselineEstimate.concentrationsEffect;
         List<double> finalCEs =
-            finalEstimate['concentrations_effect'] as List<double>;
+            finalEstimate.concentrationsEffect;
 
         List<double> CEPErrors = [];
         List<double> CEPercentageErrors = [];
@@ -117,8 +118,8 @@ class Adjustment {
 
         double SSE =
             CEPErrors.reduce((value, element) => value + element * element);
-        double MdPE = calculateMedian(CEPercentageErrors);
-        double MdAPE = calculateMedian(CEAbsolutePercentageErrors);
+        double MDPE = calculateMedian(CEPercentageErrors);
+        double MDAPE = calculateMedian(CEAbsolutePercentageErrors);
         double maxPE =
             CEAbsolutePercentageErrors.where((element) => !element.isNaN)
                 .reduce(max);
@@ -133,8 +134,8 @@ class Adjustment {
         comparedSimulationTargetIncEstimates
             .add(comparedSimulationTargetIncEstimate);
         SSEs.add(SSE);
-        MDPEs.add(MdPE);
-        MDAPEs.add(MdAPE);
+        MDPEs.add(MDPE);
+        MDAPEs.add(MDAPE);
         MaxAPEs.add(maxPE);
       }
     }
