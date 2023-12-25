@@ -24,7 +24,23 @@ class Simulation {
         model: model, patient: patient, pump: pump, operation: operation);
   }
 
-  ({double Cl1, double Cl2, double Cl3, double V1, double V2, double V3, double baselineBIS, double ce50, double delayBIS, double k10, double k12, double k13, double k21, double k31, double ke0}) get variables {
+  ({
+    double Cl1,
+    double Cl2,
+    double Cl3,
+    double V1,
+    double V2,
+    double V3,
+    double baselineBIS,
+    double ce50,
+    double delayBIS,
+    double k10,
+    double k12,
+    double k13,
+    double k21,
+    double k31,
+    double ke0
+  }) get variables {
     double k10 = 0,
         k12 = 0,
         k13 = 0,
@@ -179,7 +195,6 @@ class Simulation {
       delayBIS: delayBIS,
     );
   }
-
 
   Map<String, List> get calibrate {
     Pump testPump = pump.copy();
@@ -343,7 +358,22 @@ class Simulation {
     return result;
   }
 
-  ({List<double> A1Changes, List<double> A1s, List<double> A2s, List<double> A3s, List<double> concentrations, List<double> concentrationsEffect, List<double> cumulativeInfusedVolumes, List<double> infs, List<double> overshootTimes, List<double> pumpInfs, List<int> steps, List<double> target, List<Duration> times}) get estimate {
+  ({
+    List<double> A1Changes,
+    List<double> A1s,
+    List<double> A2s,
+    List<double> A3s,
+    List<double> concentrations,
+    List<double> concentrationsEffect,
+    List<double> cumulativeInfusedDosages,
+    List<double> cumulativeInfusedVolumes,
+    List<double> infs,
+    List<double> overshootTimes,
+    List<double> pumpInfs,
+    List<int> steps,
+    List<double> target,
+    List<Duration> times
+  }) get estimate {
     // int step = 0;
     Duration time = Duration.zero;
     double k21 = variables.k21;
@@ -369,6 +399,7 @@ class Simulation {
     List<double> overshootTimes = [];
     List<double> infs = []; //mg per hr
     List<double> A1Changes = [];
+    List<double> cumulativeInfusedDosages = [];
     List<double> cumulativeInfusedVolumes = []; // mL
 
     double maxCalibratedE = maxCalibratedEffect;
@@ -458,10 +489,12 @@ class Simulation {
 
       double concentration = A1 / V1;
 
-      double cumulativeInfusedVolume = step == 0
-          ? pumpInf * timeStep / 3600 / pump.density
-          : cumulativeInfusedVolumes.last +
-              pumpInf * timeStep / 3600 / pump.density;
+      double cumulativeInfusedDosage = step == 0
+    ? pumpInf * timeStep / 3600
+        : cumulativeInfusedDosages.last +
+    pumpInf * timeStep / 3600;
+
+      double cumulativeInfusedVolume = cumulativeInfusedDosage / pump.density;
 
       steps.add(step);
       times.add(time);
@@ -475,6 +508,7 @@ class Simulation {
       A3s.add(A3);
       concentrations.add(concentration);
       concentrationsEffect.add(concentrationEffect);
+      cumulativeInfusedDosages.add(cumulativeInfusedDosage);
       cumulativeInfusedVolumes.add(cumulativeInfusedVolume);
       time = time + pump.timeStep;
     }
@@ -493,6 +527,7 @@ class Simulation {
       A3s: A3s,
       concentrations: concentrations,
       concentrationsEffect: concentrationsEffect,
+      cumulativeInfusedDosages: cumulativeInfusedDosages,
       cumulativeInfusedVolumes: cumulativeInfusedVolumes
     );
   }
@@ -708,5 +743,60 @@ class Simulation {
       csv = '${csv.substring(0, csv.length - 2)}\n';
     }
     return csv;
+  }
+
+
+  String listToCsvString(List<List<dynamic>> data) {
+    return data.map((row) => row.join(',')).join('\n');
+  }
+
+  String createCsv({
+    required List<double> A1Changes,
+    required List<double> A1s,
+    required List<double> A2s,
+    required List<double> A3s,
+    required List<double> concentrations,
+    required List<double> concentrationsEffect,
+    required List<double> cumulativeInfusedDosages,
+    required List<double> cumulativeInfusedVolumes,
+    required List<double> infs,
+    required List<double> overshootTimes,
+    required List<double> pumpInfs,
+    required List<int> steps,
+    required List<double> target,
+    required List<Duration> times,
+  }) {
+    List<List<dynamic>> csvData = [['steps', 'times', 'target','overshootTimes','infs','pumpInfs','A1Changes', 'A1s','A2s','A3s','concentrations','concentrationsEffect','cumulativeInfusedDosages', 'cumulativeInfusedVolumes']];
+
+    // Assuming all lists are of the same length
+    for (int i = 0; i < steps.length; i++) {
+      List<dynamic> row = [
+        steps[i],
+        times[i].toString(), // Converting Duration to a plain number (e.g., seconds)
+        target[i],
+        overshootTimes[i],
+        infs[i],
+        pumpInfs[i],
+        A1Changes[i],
+        A1s[i],
+        A2s[i],
+        A3s[i],
+        concentrations[i],
+        concentrationsEffect[i],
+        cumulativeInfusedDosages[i],
+        cumulativeInfusedVolumes[i],
+      ];
+      csvData.add(row);
+    }
+
+    return listToCsvString(csvData);
+  }
+
+
+
+
+  @override
+  String toString() {
+    return '{model: $model, patient: $patient, operation: $operation, pump: $pump}';
   }
 }

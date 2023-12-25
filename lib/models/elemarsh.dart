@@ -5,12 +5,12 @@ import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 
-class Adjustment {
+class EleMarsh {
   Simulation baselineSimulation;
   int weightBound;
   double bolusBound;
 
-  Adjustment(
+  EleMarsh(
       {required this.baselineSimulation,
       required this.weightBound,
       required this.bolusBound});

@@ -3,7 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:propofol_dreams_app/models/adjustment.dart';
+import 'package:propofol_dreams_app/models/elemarsh.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -180,10 +180,10 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         PDSim.Simulation simulation = PDSim.Simulation(
             model: model, patient: patient, pump: pump, operation: operation);
 
-        Adjustment adjustment = Adjustment(
+        EleMarsh elemarsh = EleMarsh(
             baselineSimulation: simulation, weightBound: 0, bolusBound: 0.0);
 
-        var result = adjustment.calculate();
+        var result = elemarsh.calculate();
 
         DateTime finish = DateTime.now();
 

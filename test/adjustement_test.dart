@@ -1,7 +1,7 @@
 
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:propofol_dreams_app/models/adjustment.dart';
+import 'package:propofol_dreams_app/models/elemarsh.dart';
 import 'package:propofol_dreams_app/models/operation.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
@@ -33,7 +33,7 @@ void main() {
     Simulation baselineSim = Simulation(
         model: baselineModel, patient: baselinePatient, pump: baselinePump, operation: baselineOperation);
 
-    Adjustment adj = Adjustment(baselineSimulation: baselineSim, weightBound: weightBound, bolusBound: bolusBound);
+    EleMarsh adj = EleMarsh(baselineSimulation: baselineSim, weightBound: weightBound, bolusBound: bolusBound);
 
     var result = adj.calculate();
     // print("weightBestGuess: ${result.weightBestGuess}");

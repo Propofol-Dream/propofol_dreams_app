@@ -10,14 +10,14 @@ import 'dart:io';
 import 'package:propofol_dreams_app/constants.dart';
 
 void main() {
-  int weight = 70;
-  int age = 65;
+  int weight = 75;
+  int age = 20;
   int height = 170;
   Gender gender = Gender.Male;
-  Duration timeStep = Duration(seconds: 1);
+  Duration timeStep = Duration(seconds: 5);
   int density = 10;
-  int maxPumpRate = 1200;
-  double target = 4;
+  int maxPumpRate = 20000;
+  double target = 2.5;
   Duration duration = Duration(minutes: 60);
 
   // Set up for the model
@@ -26,19 +26,33 @@ void main() {
 
   test('Peak', () async {
 
-    Model model = Model.Marsh;
-    Patient patient = Patient(weight: 52, age: age, height: height, gender: gender);
+    Model model = Model.Eleveld;
+    Patient patient = Patient(weight: weight, age: age, height: height, gender: gender);
     Pump pump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
-    pump.infuseBolus(startsAt: Duration.zero, bolus: 146);
+    // pump.infuseBolus(startsAt: Duration.zero, bolus: 146);
 
     // print(pump.pumpInfusionSequences);
 
     Operation operation = Operation(target: target, duration: duration);
     Simulation sim = Simulation(
         model: model, patient: patient, pump: pump, operation: operation);
-    final filename = '/Users/eddy/Documents/marsh.csv';
-    // sim.estimate;
-    // var file = await File(filename).writeAsString(sim.toCsv(sim.estimate));
+    final filename = '/Users/eddy/Documents/sim.csv';
+    var estimate = sim.estimate;
+    String csvString = sim.createCsv(A1Changes: estimate.A1Changes,
+        A1s: estimate.A1s,
+        A2s: estimate.A2s,
+        A3s: estimate.A3s,
+        concentrations: estimate.concentrations,
+        concentrationsEffect: estimate.concentrationsEffect,
+        cumulativeInfusedDosages: estimate.cumulativeInfusedDosages,
+        cumulativeInfusedVolumes: estimate.cumulativeInfusedVolumes,
+        infs: estimate.infs,
+        overshootTimes: estimate.overshootTimes,
+        pumpInfs: estimate.pumpInfs,
+        steps: estimate.steps,
+        target: estimate.target,
+        times: estimate.times);
+    var file = await File(filename).writeAsString(csvString);
 
 
   });

@@ -5,7 +5,6 @@ class Pump {
   int density;
   int maxPumpRate;
 
-  // Map<Duration, double>? bolusSequence;
   SplayTreeMap<Duration, double>? pumpInfusionSequences;
   SplayTreeMap<Duration, double>? targetSequences;
 
@@ -13,7 +12,6 @@ class Pump {
       {required this.timeStep,
       required this.density,
       required this.maxPumpRate,
-      // this.bolusSequence,
       this.pumpInfusionSequences,
       this.targetSequences});
 
@@ -22,7 +20,6 @@ class Pump {
       timeStep: timeStep,
       density: density,
       maxPumpRate: maxPumpRate,
-      // bolusSequence: bolusSequence != null ? Map.from(bolusSequence!) : null,
       pumpInfusionSequences: pumpInfusionSequences != null ? SplayTreeMap.from(pumpInfusionSequences!) : null,
       targetSequences: targetSequences != null ? SplayTreeMap.from(targetSequences!) : null,
     );
@@ -73,10 +70,6 @@ class Pump {
         '{time step: ${timeStep.toString()}, density: $density, max pump rate: $maxPumpRate';
 
     //TODO add sequence in output
-    // if (bolusSequence != null) {
-    //   str += ', bolus_sequence: ${bolusSequence![Duration.zero]}';
-    // }
-
     if (pumpInfusionSequences != null) {
       str += ', pump_infusion_sequences: under development';
     }
