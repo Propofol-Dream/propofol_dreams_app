@@ -1,3 +1,6 @@
+
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:propofol_dreams_app/models/operation.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
@@ -23,7 +26,6 @@ void main() {
   // Set up for the model
 
 
-
   test('Peak', () async {
 
     Model model = Model.Eleveld;
@@ -37,22 +39,10 @@ void main() {
     Simulation sim = Simulation(
         model: model, patient: patient, pump: pump, operation: operation);
     final filename = '/Users/eddy/Documents/sim.csv';
-    var estimate = sim.estimate;
-    String csvString = sim.createCsv(A1Changes: estimate.A1Changes,
-        A1s: estimate.A1s,
-        A2s: estimate.A2s,
-        A3s: estimate.A3s,
-        concentrations: estimate.concentrations,
-        concentrationsEffect: estimate.concentrationsEffect,
-        cumulativeInfusedDosages: estimate.cumulativeInfusedDosages,
-        cumulativeInfusedVolumes: estimate.cumulativeInfusedVolumes,
-        infs: estimate.infs,
-        overshootTimes: estimate.overshootTimes,
-        pumpInfs: estimate.pumpInfs,
-        steps: estimate.steps,
-        target: estimate.target,
-        times: estimate.times);
-    var file = await File(filename).writeAsString(csvString);
+    var file = await File(filename).writeAsString(sim.toCsv());
+
+    // final filename = '/Users/eddy/Documents/sim.json';
+    // var file = await File(filename).writeAsString(jsonEncode(sim.toJson()));
 
 
   });

@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'dart:convert';
+
 import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
@@ -41,6 +43,7 @@ class Simulation {
     double k31,
     double ke0
   }) get variables {
+    // print('variables');
     double k10 = 0,
         k12 = 0,
         k13 = 0,
@@ -228,6 +231,7 @@ class Simulation {
         Operation(target: 0, duration: const Duration(seconds: 720));
 
     Duration time = Duration.zero;
+    var variables = this.variables;
     double k21 = variables.k21;
     double k31 = variables.k31;
     double k10 = variables.k10;
@@ -367,6 +371,7 @@ class Simulation {
     List<double> concentrationsEffect,
     List<double> cumulativeInfusedDosages,
     List<double> cumulativeInfusedVolumes,
+    List<double> eBISs,
     List<double> infs,
     List<double> overshootTimes,
     List<double> pumpInfs,
@@ -374,8 +379,9 @@ class Simulation {
     List<double> target,
     List<Duration> times
   }) get estimate {
-    // int step = 0;
+    // print('esstimate');
     Duration time = Duration.zero;
+    var variables = this.variables;
     double k21 = variables.k21;
     double k31 = variables.k31;
     double k10 = variables.k10;
@@ -413,7 +419,12 @@ class Simulation {
     double maxPumpInfusionRate =
         (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
 
-    // print(pump.pumpInfusionSequences);
+    // Calculate eBIS
+    double baselineBIS = 93;
+    double ce50 = 3.08 * exp(-0.00635 * (patient.age - 35));
+    List<double> eBISs = [];
+
+    // print(ce50);
 
     for (int step = 0; step <= totalStep; step += 1) {
       //find manual pump inf
@@ -490,11 +501,18 @@ class Simulation {
       double concentration = A1 / V1;
 
       double cumulativeInfusedDosage = step == 0
-    ? pumpInf * timeStep / 3600
-        : cumulativeInfusedDosages.last +
-    pumpInf * timeStep / 3600;
+          ? pumpInf * timeStep / 3600
+          : cumulativeInfusedDosages.last + pumpInf * timeStep / 3600;
 
       double cumulativeInfusedVolume = cumulativeInfusedDosage / pump.density;
+
+      double eBIS = concentrationEffect > ce50
+          ? baselineBIS *
+              (pow(ce50, 1.47)) /
+              (pow(ce50, 1.47) + pow(concentrationEffect, 1.47))
+          : baselineBIS *
+              (pow(ce50, 1.89)) /
+              (pow(ce50, 1.89) + pow(concentrationEffect, 1.89));
 
       steps.add(step);
       times.add(time);
@@ -510,6 +528,7 @@ class Simulation {
       concentrationsEffect.add(concentrationEffect);
       cumulativeInfusedDosages.add(cumulativeInfusedDosage);
       cumulativeInfusedVolumes.add(cumulativeInfusedVolume);
+      eBISs.add(eBIS);
       time = time + pump.timeStep;
     }
     // print(times.last);
@@ -528,7 +547,8 @@ class Simulation {
       concentrations: concentrations,
       concentrationsEffect: concentrationsEffect,
       cumulativeInfusedDosages: cumulativeInfusedDosages,
-      cumulativeInfusedVolumes: cumulativeInfusedVolumes
+      cumulativeInfusedVolumes: cumulativeInfusedVolumes,
+      eBISs: eBISs
     );
   }
 
@@ -698,23 +718,6 @@ class Simulation {
     return bolus / (pushBolusDuration.inMilliseconds / 1000 / 3600);
   }
 
-  Map<String, String> toJson(Map<String, dynamic> map) {
-    Map<String, String> json = {};
-
-    for (var key in map.keys) {
-      if (!json.containsKey(key)) {
-        String values = '[';
-        for (var val in map[key]) {
-          values = '$values\'$val\', ';
-        }
-        values = '${values.substring(0, values.length - 2)}]';
-        // print(values);
-        json['\'${key.toString()}\''] = values;
-      }
-    }
-    return (json);
-  }
-
   List<double> cumulativeSum(List<double> l) {
     double cumSum = 0;
     List<double> cumSums = [];
@@ -725,78 +728,125 @@ class Simulation {
     return cumSums;
   }
 
-  String toCsv(Map<String, dynamic> map) {
-    String csv = '';
-    int length = 0;
+  // TODO: depreciate toCsv, new version implemented
+  // String toCsv(Map<String, dynamic> map) {
+  //   String csv = '';
+  //   int length = 0;
+  //
+  //   for (var key in map.keys) {
+  //     csv = '$csv$key, ';
+  //     length = map[key].length;
+  //   }
+  //   csv = '${csv.substring(0, csv.length - 2)}\n';
+  //
+  //   for (int i = 0; i < length; i++) {
+  //     // print(i.toString() + ' : ' + (length-1).toString());
+  //     for (var key in map.keys) {
+  //       csv = '$csv${map[key][i]}, ';
+  //     }
+  //     csv = '${csv.substring(0, csv.length - 2)}\n';
+  //   }
+  //   return csv;
+  // }
 
-    for (var key in map.keys) {
-      csv = '$csv$key, ';
-      length = map[key].length;
-    }
-    csv = '${csv.substring(0, csv.length - 2)}\n';
+  // TODO: depreciate toJson, new version implemented
+  // Map<String, String> toJson(Map<String, dynamic> map) {
+  //   Map<String, String> json = {};
+  //
+  //   for (var key in map.keys) {
+  //     if (!json.containsKey(key)) {
+  //       String values = '[';
+  //       for (var val in map[key]) {
+  //         values = '$values\'$val\', ';
+  //       }
+  //       values = '${values.substring(0, values.length - 2)}]';
+  //       // print(values);
+  //       json['\'${key.toString()}\''] = values;
+  //     }
+  //   }
+  //   return (json);
+  // }
 
-    for (int i = 0; i < length; i++) {
-      // print(i.toString() + ' : ' + (length-1).toString());
-      for (var key in map.keys) {
-        csv = '$csv${map[key][i]}, ';
-      }
-      csv = '${csv.substring(0, csv.length - 2)}\n';
-    }
-    return csv;
-  }
+  String toCsv() {
+    var estimate = this.estimate;
 
-
-  String listToCsvString(List<List<dynamic>> data) {
-    return data.map((row) => row.join(',')).join('\n');
-  }
-
-  String createCsv({
-    required List<double> A1Changes,
-    required List<double> A1s,
-    required List<double> A2s,
-    required List<double> A3s,
-    required List<double> concentrations,
-    required List<double> concentrationsEffect,
-    required List<double> cumulativeInfusedDosages,
-    required List<double> cumulativeInfusedVolumes,
-    required List<double> infs,
-    required List<double> overshootTimes,
-    required List<double> pumpInfs,
-    required List<int> steps,
-    required List<double> target,
-    required List<Duration> times,
-  }) {
-    List<List<dynamic>> csvData = [['steps', 'times', 'target','overshootTimes','infs','pumpInfs','A1Changes', 'A1s','A2s','A3s','concentrations','concentrationsEffect','cumulativeInfusedDosages', 'cumulativeInfusedVolumes']];
+    List<List<dynamic>> data = [
+      [
+        'steps',
+        'times',
+        'target',
+        'overshootTimes',
+        'infs',
+        'pumpInfs',
+        'A1Changes',
+        'A1s',
+        'A2s',
+        'A3s',
+        'concentrations',
+        'concentrationsEffect',
+        'cumulativeInfusedDosages',
+        'cumulativeInfusedVolumes',
+        'eBISs'
+      ]
+    ];
 
     // Assuming all lists are of the same length
-    for (int i = 0; i < steps.length; i++) {
+    for (int i = 0; i < estimate.steps.length; i++) {
       List<dynamic> row = [
-        steps[i],
-        times[i].toString(), // Converting Duration to a plain number (e.g., seconds)
-        target[i],
-        overshootTimes[i],
-        infs[i],
-        pumpInfs[i],
-        A1Changes[i],
-        A1s[i],
-        A2s[i],
-        A3s[i],
-        concentrations[i],
-        concentrationsEffect[i],
-        cumulativeInfusedDosages[i],
-        cumulativeInfusedVolumes[i],
+        estimate.steps[i],
+        estimate.times[i].toString(), // List<Duration>
+        estimate.target[i],
+        estimate.overshootTimes[i],
+        estimate.infs[i],
+        estimate.pumpInfs[i],
+        estimate.A1Changes[i],
+        estimate.A1s[i],
+        estimate.A2s[i],
+        estimate.A3s[i],
+        estimate.concentrations[i],
+        estimate.concentrationsEffect[i],
+        estimate.cumulativeInfusedDosages[i],
+        estimate.cumulativeInfusedVolumes[i],
+        estimate.eBISs[i],
       ];
-      csvData.add(row);
+      data.add(row);
     }
-
-    return listToCsvString(csvData);
+    return data.map((row) => row.join(',')).join('\n');
   }
-
-
-
 
   @override
   String toString() {
     return '{model: $model, patient: $patient, operation: $operation, pump: $pump}';
+  }
+
+  Map<String, dynamic> toJson() {
+    var estimate = this.estimate;
+    return {
+      'steps': estimate.steps.map((item) => item.toString()).toList(),
+      'times': estimate.times.map((item) => item.toString()).toList(),
+      // Convert Duration to String
+      'target': estimate.target.map((item) => item.toString()).toList(),
+      'overshootTimes':
+          estimate.overshootTimes.map((item) => item.toString()).toList(),
+      'infs': estimate.infs.map((item) => item.toString()).toList(),
+      'pumpInfs': estimate.pumpInfs.map((item) => item.toString()).toList(),
+      'A1Changes': estimate.A1Changes.map((item) => item.toString()).toList(),
+      'A1s': estimate.A1s.map((item) => item.toString()).toList(),
+      'A2s': estimate.A2s.map((item) => item.toString()).toList(),
+      'A3s': estimate.A3s.map((item) => item.toString()).toList(),
+      'concentrations':
+          estimate.concentrations.map((item) => item.toString()).toList(),
+      'concentrationsEffect':
+          estimate.concentrationsEffect.map((item) => item.toString()).toList(),
+      'cumulativeInfusedDosages': estimate.cumulativeInfusedDosages
+          .map((item) => item.toString())
+          .toList(),
+      'cumulativeInfusedVolumes': estimate.cumulativeInfusedVolumes
+          .map((item) => item.toString())
+          .toList(),
+      'eBISs': estimate.eBISs
+          .map((item) => item.toString())
+          .toList(),
+    };
   }
 }

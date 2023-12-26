@@ -71,8 +71,7 @@ void main() {
         Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
     Operation operation = Operation(
         target: baseTarget,
-        duration: firstDuration *
-            2); //*2 this is for working out tRatio, if time takes longer for reaching the same volume;
+        duration: firstDuration*2); //*2 this is for working out tRatio, if time takes longer for reaching the same volume;
 
     Simulation baseSimulation = Simulation(
         model: model, patient: patient, pump: pump, operation: operation);
@@ -89,7 +88,8 @@ void main() {
     // print(baseEstimate.cumulativeInfusedDosages.length);
     var dRatio = firstCumulativeInfusedDosage! /
         baseEstimate.cumulativeInfusedDosages[dIndex];
-    var vCETarget = baseTarget * dRatio;
+    var dCETarget = baseTarget * dRatio;
+    // print('dCETarget: $dCETarget');
 
     // Calculate ratio based on time comparison:
     // Find the time with the same volume;
@@ -104,7 +104,7 @@ void main() {
     // print("tRatio: $tRatio");
     // print("tCETarget: $tCETarget");
 
-    var vCETargetRounded = (vCETarget * 100).roundToDouble() / 100;
+    var vCETargetRounded = (dCETarget * 100).roundToDouble() / 100;
     var tCETargetRounded = (tCETarget * 100).roundToDouble() / 100;
 
     List<Simulation> comparedSimulations = [];
@@ -129,10 +129,11 @@ void main() {
         list: comparedCumulativeInfusedDosages,
         val: firstCumulativeInfusedDosage);
     var bestSimulation = comparedSimulations[civIndex];
-    print(bestSimulation.estimate.times.last);
-    print(bestSimulation.estimate.concentrationsEffect.last);
-    print(bestSimulation.estimate.cumulativeInfusedDosages.last);
-    print(bestSimulation);
+
+    // print(bestSimulation.estimate.times.last);
+    // print(bestSimulation.estimate.concentrationsEffect.last);
+    // print(bestSimulation.estimate.cumulativeInfusedDosages.last);
+    // print(bestSimulation);
     // print(comparedCumulativeInfusedVolumes);
     // print(cumulativeInfusedVolumes[0]);
     var bestEstimate = bestSimulation.estimate;
@@ -148,7 +149,7 @@ void main() {
     cumulativeInfusedDosageSequence?.entries
         .take(cumulativeInfusedDosageSequence!.length - 1)
         .forEach((entry) {
-      print('Key: ${entry.key}, Value: ${entry.value}');
+      // print('Key: ${entry.key}, Value: ${entry.value}');
       iterator!.moveNext();
       var nextEntry = iterator.current;
       // print('Next Key: ${nextEntry?.key}, Next Value: ${nextEntry?.value}');
@@ -170,11 +171,15 @@ void main() {
     });
     Simulation finalSimulation = bestSimulation.copy();
     finalSimulation.pump = finalPump;
+    finalSimulation.operation.duration = cumulativeInfusedDosageSequence!.entries.last.key;
+
     var finalEstimate = finalSimulation.estimate;
-    print(finalEstimate.concentrationsEffect.last);
-    print(finalEstimate.times.last);
+    // print(finalEstimate.concentrationsEffect.last);
+    // print(finalEstimate.times.last);
     print(finalSimulation);
-    // finalSimulation.toCsv(map);
+
+    final filename = '/Users/eddy/Documents/final_sim.csv';
+    var file = await File(filename).writeAsString(finalSimulation.toCsv());
 
   });
 }
