@@ -18,7 +18,62 @@ void main() {
   int height = 183;
   Gender gender = Gender.Male;
 
-  SplayTreeMap<Duration, double>? cumulativeInfusedDosageSequence;
+  List<int> durationInSeconds = [
+    762,
+    1338,
+    1808,
+    3672,
+    4691,
+    8724,
+    9427,
+    11407,
+    11513,
+    11653,
+    11741,
+    11787,
+    11846,
+    11966
+  ];
+  List<Duration> durations =
+      durationInSeconds.map((sec) => Duration(seconds: sec)).toList();
+
+  List<double> cumulativeInfuseDosages = [
+    285,
+    380,
+    442,
+    664,
+    784,
+    1240,
+    1360,
+    1630,
+    1630,
+    1630,
+    1630,
+    1630,
+    1630,
+    1630
+  ];
+
+  List<double> eBISInputs = [
+    41,
+    45,
+    41,
+    45,
+    43,
+    59,
+    52,
+    53,
+    47,
+    54,
+    68,
+    66,
+    73,
+    97
+  ];
+
+  //TODO remove this SplayTreeMap
+  SplayTreeMap<Duration, double> cumulativeInfusedDosageSequence =
+      SplayTreeMap<Duration, double>();
 
   Duration timeStep = Duration(seconds: 1);
   int density = 10;
@@ -36,8 +91,7 @@ void main() {
 
   void updateCumulativeInfusedDosageSequence(
       {required Duration at, required double cumulativeInfusedDosage}) {
-    cumulativeInfusedDosageSequence ??= SplayTreeMap<Duration, double>();
-    cumulativeInfusedDosageSequence?.update(
+    cumulativeInfusedDosageSequence.update(
         at, (value) => cumulativeInfusedDosage,
         ifAbsent: () => cumulativeInfusedDosage);
   }
@@ -51,6 +105,12 @@ void main() {
   updateCumulativeInfusedDosageSequence(
       at: Duration(seconds: 11407), cumulativeInfusedDosage: 1630);
 
+  // cumulativeInfusedDosageSequence.update(Duration(seconds: 762), (value) => 285, ifAbsent: ()=>285);
+
+  // cumulativeInfusedDosageSequence.update(Duration(seconds: 1338), (value) => 380);
+  // cumulativeInfusedDosageSequence.update(Duration(seconds: 4691), (value) => 784);
+  // cumulativeInfusedDosageSequence.update(Duration(seconds: 11407), (value) => 1630);
+
   // updateCumulativeInfusedVolumeSequence(
   //     at: Duration(seconds: 10), cumulativeInfusedVolume: 100);
   // updateCumulativeInfusedVolumeSequence(
@@ -61,9 +121,11 @@ void main() {
   //     at: Duration(seconds: 40), cumulativeInfusedVolume: 800);
 
   test('WakeUpTimer', () async {
-    var firstDuration = cumulativeInfusedDosageSequence!.firstKey()!;
+    
+    //TODO check whether the entry has first key value
+    var firstDuration = cumulativeInfusedDosageSequence.firstKey()!;
     var firstCumulativeInfusedDosage =
-        cumulativeInfusedDosageSequence?[firstDuration]!;
+        cumulativeInfusedDosageSequence[firstDuration]!;
 
     Patient patient =
         Patient(weight: weight, height: height, age: age, gender: gender);
@@ -71,7 +133,8 @@ void main() {
         Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
     Operation operation = Operation(
         target: baseTarget,
-        duration: firstDuration*2); //*2 this is for working out tRatio, if time takes longer for reaching the same volume;
+        duration: firstDuration *
+            2); //*2 this is for working out tRatio, if time takes longer for reaching the same volume;
 
     Simulation baseSimulation = Simulation(
         model: model, patient: patient, pump: pump, operation: operation);
@@ -86,7 +149,7 @@ void main() {
     // print(firstDuration);
     // print(dIndex);
     // print(baseEstimate.cumulativeInfusedDosages.length);
-    var dRatio = firstCumulativeInfusedDosage! /
+    var dRatio = firstCumulativeInfusedDosage /
         baseEstimate.cumulativeInfusedDosages[dIndex];
     var dCETarget = baseTarget * dRatio;
     // print('dCETarget: $dCETarget');
@@ -98,8 +161,8 @@ void main() {
     int tIndex = findIndexOfNearValue(
         list: baseEstimate.cumulativeInfusedDosages,
         val: firstCumulativeInfusedDosage);
-    var tRatio =
-        baseEstimate.times[tIndex].inMilliseconds / firstDuration.inMilliseconds;
+    var tRatio = baseEstimate.times[tIndex].inMilliseconds /
+        firstDuration.inMilliseconds;
     var tCETarget = baseTarget * tRatio;
     // print("tRatio: $tRatio");
     // print("tCETarget: $tCETarget");
@@ -143,14 +206,14 @@ void main() {
         times: bestEstimate.times, pumpInfs: bestEstimate.pumpInfs);
     // print(bestEstimate.times.last);
 
-    var iterator = cumulativeInfusedDosageSequence?.entries.iterator;
-    iterator!.moveNext();
+    var iterator = cumulativeInfusedDosageSequence.entries.iterator;
+    iterator.moveNext();
 
-    cumulativeInfusedDosageSequence?.entries
-        .take(cumulativeInfusedDosageSequence!.length - 1)
+    cumulativeInfusedDosageSequence.entries
+        .take(cumulativeInfusedDosageSequence.length - 1)
         .forEach((entry) {
       // print('Key: ${entry.key}, Value: ${entry.value}');
-      iterator!.moveNext();
+      iterator.moveNext();
       var nextEntry = iterator.current;
       // print('Next Key: ${nextEntry?.key}, Next Value: ${nextEntry?.value}');
       var diffDuration = nextEntry.key - entry.key;
@@ -169,9 +232,11 @@ void main() {
             at: at, pumpInfusion: pumpInfusion);
       }
     });
+
     Simulation finalSimulation = bestSimulation.copy();
     finalSimulation.pump = finalPump;
-    finalSimulation.operation.duration = cumulativeInfusedDosageSequence!.entries.last.key;
+    finalSimulation.operation.duration =
+        cumulativeInfusedDosageSequence.entries.last.key;
 
     var finalEstimate = finalSimulation.estimate;
     // print(finalEstimate.concentrationsEffect.last);
@@ -180,6 +245,5 @@ void main() {
 
     final filename = '/Users/eddy/Documents/final_sim.csv';
     var file = await File(filename).writeAsString(finalSimulation.toCsv());
-
   });
 }

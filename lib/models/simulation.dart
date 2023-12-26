@@ -371,7 +371,7 @@ class Simulation {
     List<double> concentrationsEffect,
     List<double> cumulativeInfusedDosages,
     List<double> cumulativeInfusedVolumes,
-    List<double> eBISs,
+    List<double> eBISEstimates,
     List<double> infs,
     List<double> overshootTimes,
     List<double> pumpInfs,
@@ -422,7 +422,7 @@ class Simulation {
     // Calculate eBIS
     double baselineBIS = 93;
     double ce50 = 3.08 * exp(-0.00635 * (patient.age - 35));
-    List<double> eBISs = [];
+    List<double> eBISEstimates = [];
 
     // print(ce50);
 
@@ -506,7 +506,7 @@ class Simulation {
 
       double cumulativeInfusedVolume = cumulativeInfusedDosage / pump.density;
 
-      double eBIS = concentrationEffect > ce50
+      double eBISEstimate = concentrationEffect > ce50
           ? baselineBIS *
               (pow(ce50, 1.47)) /
               (pow(ce50, 1.47) + pow(concentrationEffect, 1.47))
@@ -528,7 +528,7 @@ class Simulation {
       concentrationsEffect.add(concentrationEffect);
       cumulativeInfusedDosages.add(cumulativeInfusedDosage);
       cumulativeInfusedVolumes.add(cumulativeInfusedVolume);
-      eBISs.add(eBIS);
+      eBISEstimates.add(eBISEstimate);
       time = time + pump.timeStep;
     }
     // print(times.last);
@@ -548,7 +548,7 @@ class Simulation {
       concentrationsEffect: concentrationsEffect,
       cumulativeInfusedDosages: cumulativeInfusedDosages,
       cumulativeInfusedVolumes: cumulativeInfusedVolumes,
-      eBISs: eBISs
+    eBISEstimates: eBISEstimates
     );
   }
 
@@ -786,7 +786,7 @@ class Simulation {
         'concentrationsEffect',
         'cumulativeInfusedDosages',
         'cumulativeInfusedVolumes',
-        'eBISs'
+        'eBISEstimates'
       ]
     ];
 
@@ -807,7 +807,7 @@ class Simulation {
         estimate.concentrationsEffect[i],
         estimate.cumulativeInfusedDosages[i],
         estimate.cumulativeInfusedVolumes[i],
-        estimate.eBISs[i],
+        estimate.eBISEstimates[i],
       ];
       data.add(row);
     }
@@ -844,7 +844,7 @@ class Simulation {
       'cumulativeInfusedVolumes': estimate.cumulativeInfusedVolumes
           .map((item) => item.toString())
           .toList(),
-      'eBISs': estimate.eBISs
+      'eBISEstimates': estimate.eBISEstimates
           .map((item) => item.toString())
           .toList(),
     };
