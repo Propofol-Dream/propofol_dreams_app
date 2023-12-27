@@ -4,7 +4,7 @@ import 'package:propofol_dreams_app/models/WUTInput.dart';
 import 'dart:collection';
 
 void main() {
-  
+
   List<int> durationInSeconds = [
     762,
     1338,

@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:convert';
 
 import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
@@ -199,11 +198,20 @@ class Simulation {
     );
   }
 
-  Map<String, List> get calibrate {
+  ({
+    List<double> A1s,
+    List<double> A2s,
+    List<double> A3s,
+    List<double> concentrations,
+    List<double> concentrationsEffect,
+    List<double> pumpInfs,
+    List<int> steps,
+    List<Duration> times
+  }) get calibrate {
     Pump testPump = pump.copy();
 
     for (Duration i = Duration.zero;
-        i < Duration(seconds: 100);
+        i < const Duration(seconds: 100);
         i = i + testPump.timeStep) {
       double maxInfusion = (testPump.density * testPump.maxPumpRate).toDouble();
       testPump.updatePumpInfusionSequence(at: i, pumpInfusion: maxInfusion);
@@ -213,20 +221,38 @@ class Simulation {
   }
 
   double get maxCalibratedEffect {
-    List<double> result = calibrate['concentrations_effect'] as List<double>;
+    List<double> result = calibrate.concentrationsEffect;
     return result.reduce(max);
   }
 
-  Map<String, List> get peak {
+  ({
+    List<double> A1s,
+    List<double> A2s,
+    List<double> A3s,
+    List<double> concentrations,
+    List<double> concentrationsEffect,
+    List<double> pumpInfs,
+    List<int> steps,
+    List<Duration> times
+  }) get peak {
     return test(initialA1: 10);
   }
 
   double get maxCe {
-    List<double> ce = peak['concentrations_effect'] as List<double>;
+    List<double> ce = peak.concentrationsEffect;
     return ce.reduce(max);
   }
 
-  Map<String, List> test({Pump? testPump, double? initialA1}) {
+  ({
+    List<double> A1s,
+    List<double> A2s,
+    List<double> A3s,
+    List<double> concentrations,
+    List<double> concentrationsEffect,
+    List<double> pumpInfs,
+    List<int> steps,
+    List<Duration> times
+  }) test({Pump? testPump, double? initialA1}) {
     Operation trialOperation =
         Operation(target: 0, duration: const Duration(seconds: 720));
 
@@ -296,16 +322,16 @@ class Simulation {
       time = time + pump.timeStep;
     }
 
-    return ({
-      'steps': steps,
-      'times': times,
-      'pump_infs': pumpInfs,
-      'A1s': A1s,
-      'A2s': A2s,
-      'A3s': A3s,
-      'concentrations': concentrations,
-      'concentrations_effect': concentrationsEffect,
-    });
+    return (
+      steps: steps,
+      times: times,
+      pumpInfs: pumpInfs,
+      A1s: A1s,
+      A2s: A2s,
+      A3s: A3s,
+      concentrations: concentrations,
+      concentrationsEffect: concentrationsEffect,
+    );
   }
 
   // TODO: depreciate maxCeReachesAt, as it is not in use
@@ -379,7 +405,7 @@ class Simulation {
     List<double> target,
     List<Duration> times
   }) get estimate {
-    // print('esstimate');
+    // print('estimate');
     Duration time = Duration.zero;
     var variables = this.variables;
     double k21 = variables.k21;
@@ -548,7 +574,7 @@ class Simulation {
       concentrationsEffect: concentrationsEffect,
       cumulativeInfusedDosages: cumulativeInfusedDosages,
       cumulativeInfusedVolumes: cumulativeInfusedVolumes,
-    eBISEstimates: eBISEstimates
+      eBISEstimates: eBISEstimates
     );
   }
 
@@ -695,7 +721,7 @@ class Simulation {
     if (model.target == Target.Effect_Site) {
       return operation.target / maxCe * pump.density;
     } else if (model.target == Target.Plasma) {
-      double V1 = variables.V1 as double;
+      double V1 = variables.V1;
       return operation.target * V1;
     } else {
       return -1;
@@ -844,9 +870,8 @@ class Simulation {
       'cumulativeInfusedVolumes': estimate.cumulativeInfusedVolumes
           .map((item) => item.toString())
           .toList(),
-      'eBISEstimates': estimate.eBISEstimates
-          .map((item) => item.toString())
-          .toList(),
+      'eBISEstimates':
+          estimate.eBISEstimates.map((item) => item.toString()).toList(),
     };
   }
 }
