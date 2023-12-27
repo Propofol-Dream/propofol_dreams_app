@@ -406,7 +406,7 @@ class Simulation {
     List<Duration> times
   }) get estimate {
     // print('estimate');
-    Duration time = Duration.zero;
+    // Duration time = Duration.zero;
     var variables = this.variables;
     double k21 = variables.k21;
     double k31 = variables.k31;
@@ -434,7 +434,7 @@ class Simulation {
     List<double> cumulativeInfusedDosages = [];
     List<double> cumulativeInfusedVolumes = []; // mL
 
-    double maxCalibratedE = maxCalibratedEffect;
+    double maxCalibratedEffect = this.maxCalibratedEffect;
 
     double timeStep = pump.timeStep.inMilliseconds /
         1000; // this is to allow time_step in milliseconds
@@ -453,6 +453,8 @@ class Simulation {
     // print(ce50);
 
     for (int step = 0; step <= totalStep; step += 1) {
+      Duration time = pump.timeStep * step;
+
       //find manual pump inf
       double? manualPumpInf = pump.pumpInfusionSequences?[time];
 
@@ -479,9 +481,9 @@ class Simulation {
           step == 0 ? operation.target : manualTarget ?? targets.last;
 
       double overshootTime = (step == 0
-          ? target / maxCalibratedE * 100 - 1
+          ? target / maxCalibratedEffect * 100 - 1
           : (target - targets.last > 0
-              ? (target - targets.last) / maxCalibratedE * 100 - 1
+              ? (target - targets.last) / maxCalibratedEffect * 100 - 1
               : overshootTimes.last - timeStep));
 
       double A1Change = step == 0
@@ -555,7 +557,7 @@ class Simulation {
       cumulativeInfusedDosages.add(cumulativeInfusedDosage);
       cumulativeInfusedVolumes.add(cumulativeInfusedVolume);
       eBISEstimates.add(eBISEstimate);
-      time = time + pump.timeStep;
+      // time = time + pump.timeStep;
     }
     // print(times.last);
 

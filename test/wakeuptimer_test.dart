@@ -207,7 +207,7 @@ void main() {
           d = d + pump.timeStep) {
         var at = inputs.elementAt(i).durationInput + d;
         var pumpInfusion = diffDosage / steps;
-        // print('Time at: $at, pumpInfusion = $pumpInfusion');
+        print('Time at: $at, pumpInfusion = $pumpInfusion');
         finalPump.updatePumpInfusionSequence(
             at: at, pumpInfusion: pumpInfusion);
       }
@@ -231,17 +231,21 @@ void main() {
       input.concentrationEffect = concentrationEffect;
     }
 
-    StringBuffer csvInputsBuffer = StringBuffer();
-    // Adding header
-    csvInputsBuffer.writeln('duration, dosage, eBIS, concentrationEffect');
+    // print(inputs.toList());
 
-    // Adding each record
-    for (WUTInput input in inputs) {
-      csvInputsBuffer.writeln(input.toCsv());
-    }
+    // StringBuffer csvInputsBuffer = StringBuffer();
+    // // Adding header
+    // csvInputsBuffer.writeln('duration, dosage, eBIS, concentrationEffect');
+    //
+    // // Adding each record
+    // for (WUTInput input in inputs) {
+    //   csvInputsBuffer.writeln(input.toCsv());
+    // }
+
+
 
     const inputsFileName = '/Users/eddy/Documents/inputs.csv';
-    await File(inputsFileName).writeAsString(csvInputsBuffer.toString());
+    // await File(inputsFileName).writeAsString(csvInputsBuffer.toString());
 
 
     //Build ce50 List

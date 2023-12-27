@@ -20,7 +20,7 @@ class WUTInput implements Comparable<WUTInput> {
 
   @override
   String toString() =>
-      'Record(duration: $durationInput, dosage: $dosageInput, eBIS: $eBISInput${concentrationEffect != null ? ', concentrationEffect: $concentrationEffect' : ''})';
+      'Input(duration: $durationInput, dosage: $dosageInput, eBIS: $eBISInput${concentrationEffect != null ? ', concentrationEffect: $concentrationEffect' : ''})';
 
   String toCsv() {
     return '$durationInput,$dosageInput,$eBISInput${concentrationEffect != null ? ',$concentrationEffect' : ''}';
