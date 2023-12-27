@@ -420,8 +420,8 @@ class Simulation {
         (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
 
     // Calculate eBIS
-    double baselineBIS = 93;
-    double ce50 = 3.08 * exp(-0.00635 * (patient.age - 35));
+    double baselineBIS = variables.baselineBIS;
+    double ce50 = variables.ce50;
     List<double> eBISEstimates = [];
 
     // print(ce50);
