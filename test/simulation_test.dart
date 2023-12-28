@@ -46,9 +46,11 @@ void main() {
     await File(filename).writeAsString(sim.toCsv());
 
 
-    pump.infuseBolus(startsAt: Duration.zero, bolus: 180);
+    // pump.infuseBolus(startsAt: Duration.zero, bolus: 180);
 
-    final anotherFileName = '/Users/eddy/Documents/bolus_sim.csv';
+    pump.wakeUPCe = 3;
+
+    final anotherFileName = '/Users/eddy/Documents/another_sim.csv';
     await File(anotherFileName).writeAsString(sim.toCsv());
     // final anotherFilename = '/Users/eddy/Documents/bolus_sim.json';
     // await File(anotherFilename).writeAsString(jsonEncode(sim.toJson()));

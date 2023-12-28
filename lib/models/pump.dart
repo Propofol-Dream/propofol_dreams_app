@@ -7,6 +7,8 @@ class Pump {
   double target;
   Duration duration;
 
+  double? wakeUPCe;
+
   SplayTreeMap<Duration, double>? pumpInfusionSequences;
   SplayTreeMap<Duration, double>? targetSequences;
 
@@ -15,6 +17,7 @@ class Pump {
     required this.maxPumpRate,
     required this.target,
     required this.duration,
+    this.wakeUPCe,
     this.pumpInfusionSequences,
     this.targetSequences});
 
@@ -25,10 +28,9 @@ class Pump {
       maxPumpRate: maxPumpRate,
       target: target,
       duration: duration,
-      pumpInfusionSequences: pumpInfusionSequences != null ? SplayTreeMap.from(
-          pumpInfusionSequences!) : null,
-      targetSequences: targetSequences != null ? SplayTreeMap.from(
-          targetSequences!) : null,
+      wakeUPCe: wakeUPCe,
+      pumpInfusionSequences: pumpInfusionSequences,
+      targetSequences: targetSequences
     );
   }
 

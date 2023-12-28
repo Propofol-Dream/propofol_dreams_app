@@ -13,14 +13,10 @@ class Simulation {
   Patient patient;
   Pump pump;
 
-  Simulation(
-      {required this.model,
-      required this.patient,
-      required this.pump});
+  Simulation({required this.model, required this.patient, required this.pump});
 
   Simulation copy() {
-    return Simulation(
-        model: model, patient: patient, pump: pump);
+    return Simulation(model: model, patient: patient, pump: pump);
   }
 
   ({
@@ -475,8 +471,7 @@ class Simulation {
                   timeStep /
                   60;
 
-      double target =
-          step == 0 ? pump.target : modifiedTarget ?? targets.last;
+      double target = step == 0 ? pump.target : modifiedTarget ?? targets.last;
 
       double overshootTime = (step == 0
           ? target / maxCalibratedEffect * 100 - 1
@@ -527,11 +522,18 @@ class Simulation {
       double concentration = A1 / V1;
 
       //Extend the loop, if there is a wakeUPCe
-      if(step == totalStep.toInt()){
-        // print(step);
-        // print(totalStep);
+      if (step == totalStep.toInt() && pump.wakeUPCe != null) {
+        if (pump.wakeUPCe! < concentrationEffect) {
+          totalStep = totalStep + 1;
+          if (target != 0) {
+            pump.updateTargetSequences(at: time+pump.timeStep, target: 0);
+            // print('target = 0');
+          }
+          // print(totalStep);
+          // print(pump.wakeUPCe);
+          // print(concentrationEffect);
+        }
       }
-
 
       double cumulativeInfusedDosage = step == 0
           ? pumpInf * timeStep / 3600
@@ -585,6 +587,7 @@ class Simulation {
     );
   }
 
+  // TODO confirm what if pump.density is not 10 nor 20
   double get weightGuess {
     double guess = 0.0;
 
@@ -645,7 +648,7 @@ class Simulation {
     return guess;
   }
 
-  //TODO confirm how to calculate bolusDosageGuess
+  // TODO confirm what if pump.density is not 10 nor 20
   double get bolusGuess {
     double guess = 0.0;
 
