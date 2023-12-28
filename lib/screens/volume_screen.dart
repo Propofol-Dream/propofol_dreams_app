@@ -439,40 +439,60 @@ class _VolumeScreenState extends State<VolumeScreen> {
               Pump pump = Pump(
                   timeStep: Duration(seconds: settings.time_step),
                   density: settings.density,
-                  maxPumpRate: settings.max_pump_rate);
+                  maxPumpRate: settings.max_pump_rate,
+                  target: target,
+                  duration: Duration(minutes: duration));
 
-              Operation operation = Operation(
-                  target: target, duration: Duration(minutes: duration));
-
-              Operation operation1 = Operation(
+              Pump pump1 = Pump(
+                  timeStep: Duration(seconds: settings.time_step),
+                  density: settings.density,
+                  maxPumpRate: settings.max_pump_rate,
                   target: target - targetInterval,
                   duration: Duration(minutes: duration + 2 * durationInterval));
 
-              Operation operation2 = Operation(
+              Pump pump2 = Pump(
+                  timeStep: Duration(seconds: settings.time_step),
+                  density: settings.density,
+                  maxPumpRate: settings.max_pump_rate,
                   target: target,
                   duration: Duration(minutes: duration + 2 * durationInterval));
 
-              Operation operation3 = Operation(
+              Pump pump3 = Pump(
+                  timeStep: Duration(seconds: settings.time_step),
+                  density: settings.density,
+                  maxPumpRate: settings.max_pump_rate,
                   target: target + targetInterval,
                   duration: Duration(minutes: duration + 2 * durationInterval));
+
+              // Operation operation = Operation(
+              //     target: target, duration: Duration(minutes: duration));
+
+              // Operation operation1 = Operation(
+              //     target: target - targetInterval,
+              //     duration: Duration(minutes: duration + 2 * durationInterval));
+
+              // Operation operation2 = Operation(
+              //     target: target,
+              //     duration: Duration(minutes: duration + 2 * durationInterval));
+
+              // Operation operation3 = Operation(
+              //     target: target + targetInterval,
+              //     duration: Duration(minutes: duration + 2 * durationInterval));
 
               PDSim.Simulation sim1 = PDSim.Simulation(
                   model: model,
                   patient: patient,
-                  pump: pump,
-                  operation: operation1);
+                  pump: pump1);
 
               PDSim.Simulation sim2 = PDSim.Simulation(
                   model: model,
                   patient: patient,
-                  pump: pump,
-                  operation: operation2);
+                  pump: pump2);
 
               PDSim.Simulation sim3 = PDSim.Simulation(
                   model: model,
                   patient: patient,
-                  pump: pump,
-                  operation: operation3);
+                  pump: pump3);
 
               var results1 = sim1.estimate;
 
@@ -487,7 +507,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
               print({
                 'model': model,
                 'patient': patient,
-                'operation': operation,
                 'pump': pump,
                 'calcuation time':
                     '${calculationDuration.inMilliseconds.toString()} milliseconds'
@@ -736,32 +755,34 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
-                  children: [settings.showMaxPumpRate
-                      ? GestureDetector(
-                    onTap: () async {
-                      await HapticFeedback.mediumImpact();
-                      settings.showMaxPumpRate =
-                      !settings.showMaxPumpRate;
-                    },
-                    child: Chip(
-                      avatar: Icon(
-                        Icons.speed_outlined,
-                        color:
-                        Theme.of(context).colorScheme.onPrimary,
-                      ),
-                      label: Text(
-                        '${settings.max_pump_rate.toString()}',
-                        style: TextStyle(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimary),
-                      ),
-                      backgroundColor:
-                      Theme.of(context).colorScheme.primary,
+                  children: [
+                    settings.showMaxPumpRate
+                        ? GestureDetector(
+                            onTap: () async {
+                              await HapticFeedback.mediumImpact();
+                              settings.showMaxPumpRate =
+                                  !settings.showMaxPumpRate;
+                            },
+                            child: Chip(
+                              avatar: Icon(
+                                Icons.speed_outlined,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                              label: Text(
+                                '${settings.max_pump_rate.toString()}',
+                                style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimary),
+                              ),
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                            ),
+                          )
+                        : Container(),
+                    SizedBox(
+                      width: 8,
                     ),
-                  )
-                      : Container(),
-                    SizedBox(width: 8,),
                     GestureDetector(
                       onTap: () async {
                         await HapticFeedback.mediumImpact();
@@ -779,8 +800,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       },
                       onLongPress: () async {
                         await HapticFeedback.mediumImpact();
-                        settings.showMaxPumpRate =
-                        !settings.showMaxPumpRate;
+                        settings.showMaxPumpRate = !settings.showMaxPumpRate;
                       },
                       child: Chip(
                         avatar: settings.inAdultView
@@ -813,8 +833,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       },
                       onLongPress: () async {
                         await HapticFeedback.mediumImpact();
-                        settings.showMaxPumpRate =
-                        !settings.showMaxPumpRate;
+                        settings.showMaxPumpRate = !settings.showMaxPumpRate;
                       },
                       child: Chip(
                         avatar: settings.density == 10
@@ -1405,8 +1424,10 @@ class _PDAdvancedSegmentedControlState
             // helperText: '',
             errorText: errorText,
             errorStyle: isError
-                ? TextStyle(color: Theme.of(context).colorScheme.error,fontSize: 10)
-                : TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 10),
+                ? TextStyle(
+                    color: Theme.of(context).colorScheme.error, fontSize: 10)
+                : TextStyle(
+                    color: Theme.of(context).colorScheme.primary, fontSize: 10),
             border: const OutlineInputBorder(
                 borderSide: BorderSide(width: 0, style: BorderStyle.none)),
           ),
@@ -1421,7 +1442,6 @@ class _PDAdvancedSegmentedControlState
           itemBuilder: (buildContext, buildIndex) {
             return SizedBox(
               child: ElevatedButton(
-
                 onPressed: widget.options[buildIndex].isEnable(
                         age: widget.assertValues['age'],
                         height: widget.assertValues['height'],

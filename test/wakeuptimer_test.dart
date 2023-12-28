@@ -125,14 +125,12 @@ void main() {
     Patient patient =
         Patient(weight: weight, height: height, age: age, gender: gender);
     Pump pump =
-        Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
-    Operation operation = Operation(
-        target: baseTarget,
-        duration: firstDuration *
-            2); //*2 this is for working out tRatio, if time takes longer for reaching the same volume;
+        Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate,target: baseTarget,
+            duration: firstDuration *
+                2); //firstDuration * 2 this is for working out tRatio, if time takes longer for reaching the same volume;
 
     Simulation baseSimulation = Simulation(
-        model: model, patient: patient, pump: pump, operation: operation);
+        model: model, patient: patient, pump: pump,);
     var baseEstimate = baseSimulation.estimate;
 
     // Calculate CE Target based on volume comparison:
@@ -165,12 +163,13 @@ void main() {
         i < max(dCETargetRounded, tCETargetRounded);
         i = i + 0.01) {
       // print(i);
-      Operation comparedOperation = operation.copy();
-      comparedOperation.target = i;
-      comparedOperation.duration = firstDuration;
+      // Operation comparedOperation = operation.copy();
+      Pump comparedPump = pump.copy();
+      comparedPump.target = i;
+      comparedPump.duration = firstDuration;
 
       Simulation comparedSimulation = baseSimulation.copy();
-      comparedSimulation.operation = comparedOperation;
+      comparedSimulation.pump = comparedPump;
 
       comparedSimulations.add(comparedSimulation);
       comparedCumulativeInfusedDosages
@@ -215,7 +214,7 @@ void main() {
 
     Simulation finalSimulation = bestSimulation.copy();
     finalSimulation.pump = finalPump;
-    finalSimulation.operation.duration = inputs.last.durationInput;
+    finalSimulation.pump.duration = inputs.last.durationInput;
 
     var finalEstimate = finalSimulation.estimate;
     // print(finalEstimate.concentrationsEffect.last);

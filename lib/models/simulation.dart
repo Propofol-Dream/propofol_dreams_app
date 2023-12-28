@@ -12,17 +12,15 @@ class Simulation {
   Model model;
   Patient patient;
   Pump pump;
-  Operation operation;
 
   Simulation(
       {required this.model,
       required this.patient,
-      required this.pump,
-      required this.operation});
+      required this.pump});
 
   Simulation copy() {
     return Simulation(
-        model: model, patient: patient, pump: pump, operation: operation);
+        model: model, patient: patient, pump: pump);
   }
 
   ({
@@ -375,7 +373,7 @@ class Simulation {
               sqrt(pow(15.693, 2) +
                   4 * 0.2197 * bolusInfusedBy * 70 / patient.weight)) /
           (0.4394);
-      result = result / 4 * operation.target;
+      result = result / 4 * pump.target;
       // Pump testPump = pump.copy();
       // testPump.infuseBolus(startsAt: Duration.zero, bolus: bolusInfusedBy);
       // Map<String, List> testResult = test(testPump: testPump);
@@ -438,7 +436,7 @@ class Simulation {
 
     double timeStep = pump.timeStep.inMilliseconds /
         1000; // this is to allow time_step in milliseconds
-    int operationDuration = operation.duration.inSeconds;
+    int operationDuration = pump.duration.inSeconds;
     double totalStep = operationDuration / timeStep;
 
     //find max Pump Infusion Rate
@@ -456,10 +454,10 @@ class Simulation {
       Duration time = pump.timeStep * step;
 
       //find manual pump inf
-      double? manualPumpInf = pump.pumpInfusionSequences?[time];
+      double? modifiedPumpInf = pump.pumpInfusionSequences?[time];
 
       //find manual target
-      double? manualTarget = pump.targetSequences?[time];
+      double? modifiedTarget = pump.targetSequences?[time];
 
       double A2 = step == 0
           ? 0
@@ -478,7 +476,7 @@ class Simulation {
                   60;
 
       double target =
-          step == 0 ? operation.target : manualTarget ?? targets.last;
+          step == 0 ? pump.target : modifiedTarget ?? targets.last;
 
       double overshootTime = (step == 0
           ? target / maxCalibratedEffect * 100 - 1
@@ -503,7 +501,7 @@ class Simulation {
 
         inf = 3600 * (target * V1 - A1Change - A1) / timeStep;
 
-        pumpInf = manualPumpInf ??
+        pumpInf = modifiedPumpInf ??
             ((concentrationEffect > target
                 ? 0.0
                 : (overshootTime > 0.0
@@ -514,7 +512,7 @@ class Simulation {
             ? 0
             : 3600 * (target * V1 - A1Change - A1s.last) / timeStep;
 
-        pumpInf = manualPumpInf ??
+        pumpInf = modifiedPumpInf ??
             (step == 0
                 ? inf
                 : (inf > maxPumpInfusionRate
@@ -530,8 +528,8 @@ class Simulation {
 
       //Extend the loop, if there is a wakeUPCe
       if(step == totalStep.toInt()){
-        print(step);
-        print(totalStep);
+        // print(step);
+        // print(totalStep);
       }
 
 
@@ -647,6 +645,7 @@ class Simulation {
     return guess;
   }
 
+  //TODO confirm how to calculate bolusDosageGuess
   double get bolusGuess {
     double guess = 0.0;
 
@@ -728,10 +727,10 @@ class Simulation {
   //This was designed for calculate hand push bolus, but may not be required any more
   double get bolus {
     if (model.target == Target.Effect_Site) {
-      return operation.target / maxCe * pump.density;
+      return pump.target / maxCe * pump.density;
     } else if (model.target == Target.Plasma) {
       double V1 = variables.V1;
-      return operation.target * V1;
+      return pump.target * V1;
     } else {
       return -1;
     }
@@ -851,7 +850,7 @@ class Simulation {
 
   @override
   String toString() {
-    return '{model: $model, patient: $patient, operation: $operation, pump: $pump}';
+    return '{model: $model, patient: $patient, pump: $pump}';
   }
 
   Map<String, dynamic> toJson() {

@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -22,30 +21,41 @@ void main() {
   int maxPumpRate = 20000;
   double target = 2.5;
   // Duration duration = Duration(minutes: 60);
-  Duration duration = Duration(seconds: 10);
+  Duration duration = Duration(minutes: 10);
 
   // Set up for the model
 
-
   test('Peak', () async {
-
     Model model = Model.Eleveld;
-    Patient patient = Patient(weight: weight, age: age, height: height, gender: gender);
-    Pump pump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
-    // pump.infuseBolus(startsAt: Duration.zero, bolus: 146);
+    Patient patient =
+        Patient(weight: weight, age: age, height: height, gender: gender);
+    Pump pump = Pump(
+        timeStep: timeStep,
+        density: density,
+        maxPumpRate: maxPumpRate,
+        target: target,
+        duration: duration);
+
 
     // print(pump.pumpInfusionSequences);
 
-    Operation operation = Operation(target: target, duration: duration);
+    // Operation operation = Operation(target: target, duration: duration);
     Simulation sim = Simulation(
-        model: model, patient: patient, pump: pump, operation: operation);
-    final filename = '/Users/eddy/Documents/sim.csv';
-    var file = await File(filename).writeAsString(sim.toCsv());
+        model: model, patient: patient, pump: pump);
+    final filename = '/Users/eddy/Documents/new_sim.csv';
+    await File(filename).writeAsString(sim.toCsv());
 
-    // final filename = '/Users/eddy/Documents/sim.json';
-    // var file = await File(filename).writeAsString(jsonEncode(sim.toJson()));
+
+    pump.infuseBolus(startsAt: Duration.zero, bolus: 180);
+
+    final anotherFileName = '/Users/eddy/Documents/bolus_sim.csv';
+    await File(anotherFileName).writeAsString(sim.toCsv());
+    // final anotherFilename = '/Users/eddy/Documents/bolus_sim.json';
+    // await File(anotherFilename).writeAsString(jsonEncode(sim.toJson()));
+
+
+
 
 
   });
-
 }

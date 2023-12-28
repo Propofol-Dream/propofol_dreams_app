@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+// import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:propofol_dreams_app/models/elemarsh.dart';
 import 'package:provider/provider.dart';
@@ -125,15 +125,15 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     run(initState: true);
   }
 
-  _launchURL() async {
-    // const url = 'https://propofoldreams.org/in_app_redirect/';
-    // final uri = Uri.parse(url);
-    // if (await canLaunchUrl(uri)) {
-    //   await launchUrl(uri);
-    // } else {
-    //   throw 'Could not launch $url';
-    // }
-  }
+  // _launchURL() async {
+  //   // const url = 'https://propofoldreams.org/in_app_redirect/';
+  //   // final uri = Uri.parse(url);
+  //   // if (await canLaunchUrl(uri)) {
+  //   //   await launchUrl(uri);
+  //   // } else {
+  //   //   throw 'Could not launch $url';
+  //   // }
+  // }
 
   void updatePDTextEditingController() {
     // final settings = Provider.of<Settings>(context, listen: false);
@@ -174,11 +174,13 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         Pump pump = Pump(
             timeStep: Duration(seconds: settings.time_step),
             density: settings.density,
-            maxPumpRate: settings.max_pump_rate);
-        Operation operation =
-            Operation(target: target, duration: Duration(hours: 3));
+            maxPumpRate: settings.max_pump_rate,
+        target: target,
+        duration: Duration(hours: 3));
+        // Operation operation =
+        //     Operation(target: target, duration: Duration(hours: 3));
         PDSim.Simulation simulation = PDSim.Simulation(
-            model: model, patient: patient, pump: pump, operation: operation);
+            model: model, patient: patient, pump: pump);
 
         EleMarsh elemarsh = EleMarsh(
             baselineSimulation: simulation, weightBound: 0, bolusBound: 0.0);

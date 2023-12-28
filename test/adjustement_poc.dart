@@ -38,10 +38,10 @@ void main() {
     // Set up for baseline model
     Model baselineModel = Model.Eleveld;
     Patient baselinePatient = Patient(weight: weight, age: age, height: height, gender: gender);
-    Pump baselinePump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
-    Operation baselineOperation = Operation(target: target, duration: duration);
+    Pump baselinePump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate, target: target, duration: duration);
+    // Operation baselineOperation = Operation(target: target, duration: duration);
     Simulation baselineSim = Simulation(
-        model: baselineModel, patient: baselinePatient, pump: baselinePump, operation: baselineOperation);
+        model: baselineModel, patient: baselinePatient, pump: baselinePump);
     int minWeightGuess = (baselineSim.weightGuess - weightBound).toInt();
     int maxWeightGuess = (baselineSim.weightGuess + weightBound).toInt();
     int minBolusGuess = (baselineSim.bolusGuess * (1 - bolusBound)).toInt();
@@ -55,22 +55,23 @@ void main() {
       for (int bolusGuess = minBolusGuess; bolusGuess <= maxBolusGuess; bolusGuess++){
         // Set up for compared model
         Model comparedModel = Model.Marsh;
-        Patient comparedPatient = Patient(weight: weightGuess, age: age, height: height, gender: gender);
-        Pump comparedPump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
-        Simulation comparedSim = Simulation(
-            model: comparedModel, patient: comparedPatient, pump: comparedPump, operation: baselineOperation);
-
+        Patient comparedPatient = baselinePatient.copy();
+        comparedPatient.weight = weightGuess;
+        // Patient comparedPatient = Patient(weight: weightGuess, age: age, height: height, gender: gender);
         // Infuse the bolus via the pump
+        Pump comparedPump = baselinePump.copy();
         comparedPump.infuseBolus(startsAt: Duration.zero, bolus: bolusGuess.toDouble());
+        Simulation comparedSim = Simulation(
+            model: comparedModel, patient: comparedPatient, pump: comparedPump);
 
         var comparedEstimate = comparedSim.estimate;
         List<Duration> times = comparedEstimate.times;
         List<double> pumpInfs = comparedEstimate.pumpInfs;
 
         // Set up for final model
-        Pump finalPump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate);
+        Pump finalPump = baselinePump.copy();
         finalPump.copyPumpInfusionSequences(times: times, pumpInfs: pumpInfs);
-        Simulation finalSim = Simulation(model: baselineModel, patient: baselinePatient, pump: finalPump, operation: baselineOperation);
+        Simulation finalSim = Simulation(model: baselineModel, patient: baselinePatient, pump: finalPump);
 
         var baselineEstimate = baselineSim.estimate;
         var finalEstimate = finalSim.estimate;

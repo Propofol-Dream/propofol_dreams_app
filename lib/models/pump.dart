@@ -4,36 +4,43 @@ class Pump {
   Duration timeStep;
   int density;
   int maxPumpRate;
+  double target;
+  Duration duration;
 
   SplayTreeMap<Duration, double>? pumpInfusionSequences;
   SplayTreeMap<Duration, double>? targetSequences;
 
-  Pump(
-      {required this.timeStep,
-      required this.density,
-      required this.maxPumpRate,
-      this.pumpInfusionSequences,
-      this.targetSequences});
+  Pump({required this.timeStep,
+    required this.density,
+    required this.maxPumpRate,
+    required this.target,
+    required this.duration,
+    this.pumpInfusionSequences,
+    this.targetSequences});
 
   Pump copy() {
     return Pump(
       timeStep: timeStep,
       density: density,
       maxPumpRate: maxPumpRate,
-      pumpInfusionSequences: pumpInfusionSequences != null ? SplayTreeMap.from(pumpInfusionSequences!) : null,
-      targetSequences: targetSequences != null ? SplayTreeMap.from(targetSequences!) : null,
+      target: target,
+      duration: duration,
+      pumpInfusionSequences: pumpInfusionSequences != null ? SplayTreeMap.from(
+          pumpInfusionSequences!) : null,
+      targetSequences: targetSequences != null ? SplayTreeMap.from(
+          targetSequences!) : null,
     );
   }
 
-  void updatePumpInfusionSequence(
-      {required Duration at,
-      required double pumpInfusion}) {
+  void updatePumpInfusionSequence({required Duration at,
+    required double pumpInfusion}) {
     pumpInfusionSequences ??= SplayTreeMap<Duration, double>();
     pumpInfusionSequences?.update(at, (value) => pumpInfusion,
         ifAbsent: () => pumpInfusion);
   }
 
-  void copyPumpInfusionSequences({required List<Duration> times, required List<double> pumpInfs}){
+  void copyPumpInfusionSequences(
+      {required List<Duration> times, required List<double> pumpInfs}) {
     for (int i = 0; i < times.length; i++) {
       updatePumpInfusionSequence(at: times[i], pumpInfusion: pumpInfs[i]);
     }
@@ -55,8 +62,9 @@ class Pump {
 
   void infuseBolus({required Duration startsAt, required double bolus}) {
     Duration endAt = startsAt + bolusInfusionDuration(bolus: bolus) - timeStep;
-    for (Duration i = startsAt; i <=endAt; i=i+timeStep) {
-      updatePumpInfusionSequence(at: i, pumpInfusion: (maxPumpRate * density).toDouble());
+    for (Duration i = startsAt; i <= endAt; i = i + timeStep) {
+      updatePumpInfusionSequence(
+          at: i, pumpInfusion: (maxPumpRate * density).toDouble());
     }
   }
 
@@ -68,7 +76,8 @@ class Pump {
   @override
   String toString() {
     String str =
-        '{time step: ${timeStep.toString()}, density: $density, max pump rate: $maxPumpRate';
+        '{time step: ${timeStep
+        .toString()}, density: $density, max pump rate: $maxPumpRate, target: $target, duration: $duration';
 
     //TODO add sequence in output
     if (pumpInfusionSequences != null) {

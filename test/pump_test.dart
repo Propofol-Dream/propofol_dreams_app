@@ -17,7 +17,7 @@ import 'dart:io';
 void main() {
 
   test('New Boluse Sequence', (){
-    Pump pump = Pump(timeStep: const Duration(seconds: 1), density: 10, maxPumpRate: 1200);
+    Pump pump = Pump(timeStep: const Duration(seconds: 1), density: 10, maxPumpRate: 1200,target: 4,duration: Duration(minutes: 60));
     pump.infuseBolus(startsAt: Duration.zero, bolus: 146);
     print(pump.pumpInfusionSequences);
 

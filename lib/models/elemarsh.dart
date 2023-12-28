@@ -58,6 +58,9 @@ class EleMarsh {
     int minBolusGuess = (boluesGuess * (1 - bolusBound)).round();
     int maxBolusGuess = (boluesGuess * (1 + bolusBound)).round();
 
+    var baselineEstimate = baselineSimulation.estimate;
+    List<double> baselineCEs = baselineEstimate.concentrationsEffect;
+
     for (int weightGuess = minWeightGuess;
         weightGuess <= maxWeightGuess;
         weightGuess++) {
@@ -73,10 +76,7 @@ class EleMarsh {
             startsAt: Duration.zero,
             bolus: bolusGuess.toDouble()); // Infuse the bolusGuess via the pump
         Simulation comparedSimulation = Simulation(
-            model: comparedModel,
-            patient: comparedPatient,
-            pump: comparedPump,
-            operation: baselineSimulation.operation);
+            model: comparedModel, patient: comparedPatient, pump: comparedPump);
         // print(comparedPump.pumpInfusionSequences);
 
         // Get the pump_infs sequence out from the compared model
@@ -92,15 +92,11 @@ class EleMarsh {
         finalSimulation.pump = finalPump;
         // print(finalPump.pumpInfusionSequences);
 
-        // Extract estimates from baseline & final simulations
-        var baselineEstimate = baselineSimulation.estimate;
         var finalEstimate = finalSimulation.estimate;
 
         // Extract CEs and CPs from the estimates
-        List<double> baselineCEs =
-            baselineEstimate.concentrationsEffect;
-        List<double> finalCEs =
-            finalEstimate.concentrationsEffect;
+
+        List<double> finalCEs = finalEstimate.concentrationsEffect;
 
         List<double> CEPErrors = [];
         List<double> CEPercentageErrors = [];
@@ -167,13 +163,12 @@ class EleMarsh {
     inductionCPTarget = comparedSimulationTargetIncEstimates[guessIndex];
 
     // double inductionCPTarget =
-        // initialCPTarget / 4 * baselineSimulation.operation.target;
-    double adjustmentBolus =
-        bolusBestGuess / baselineSimulation.operation.target;
+    // initialCPTarget / 4 * baselineSimulation.operation.target;
+    double adjustmentBolus = bolusBestGuess / baselineSimulation.pump.target;
 
     double predictedBIS = predictBIS(
         age: baselineSimulation.patient.age,
-        target: baselineSimulation.operation.target);
+        target: baselineSimulation.pump.target);
 
     return (
       weightBestGuess: weightBestGuess,
