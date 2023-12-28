@@ -60,9 +60,10 @@ class Pump {
     }
   }
 
-  bool get isManual {
-    return pumpInfusionSequences != null || targetSequences != null;
-  }
+  //TODO to be deprecated
+  // bool get isManual {
+  //   return pumpInfusionSequences != null || targetSequences != null;
+  // }
 
   @override
   String toString() {

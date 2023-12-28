@@ -21,7 +21,8 @@ void main() {
   int density = 10;
   int maxPumpRate = 20000;
   double target = 2.5;
-  Duration duration = Duration(minutes: 60);
+  // Duration duration = Duration(minutes: 60);
+  Duration duration = Duration(seconds: 10);
 
   // Set up for the model
 

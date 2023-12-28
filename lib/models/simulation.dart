@@ -528,6 +528,13 @@ class Simulation {
 
       double concentration = A1 / V1;
 
+      //Extend the loop, if there is a wakeUPCe
+      if(step == totalStep.toInt()){
+        print(step);
+        print(totalStep);
+      }
+
+
       double cumulativeInfusedDosage = step == 0
           ? pumpInf * timeStep / 3600
           : cumulativeInfusedDosages.last + pumpInf * timeStep / 3600;
