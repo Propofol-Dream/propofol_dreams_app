@@ -183,7 +183,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             model: model, patient: patient, pump: pump);
 
         EleMarsh elemarsh = EleMarsh(
-            baselineSimulation: simulation, weightBound: 0, bolusBound: 0.0);
+            baselineSimulation: simulation, weightBound: 0, bolusBound: 0);
 
         var result = elemarsh.calculate();
 

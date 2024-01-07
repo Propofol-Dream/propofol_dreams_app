@@ -19,64 +19,73 @@ void main() {
   int height = 183;
   Gender gender = Gender.Male;
 
-  List<int> durationInSeconds = [
-    762,
-    1338,
-    1808,
-    3672,
-    4691,
-    8724,
-    9427,
-    11407,
-    11513,
-    11653,
-    11741,
-    11787,
-    11846,
-    11966
-  ];
+  // List<int> durationInSeconds = [
+  //   762,
+  //   1338,
+  //   1808,
+  //   3672,
+  //   4691,
+  //   8724,
+  //   9427,
+  //   11407,
+  //   11513,
+  //   11653,
+  //   11741,
+  //   11787,
+  //   11846,
+  //   11966
+  // ];
+  List<int> durationInSeconds = [762, 1338, 4691, 11407];
+
   List<Duration> durationInputs =
       durationInSeconds.map((sec) => Duration(seconds: sec)).toList();
 
-  List<double> dosageInputs = [
-    285,
-    380,
-    442,
-    664,
-    784,
-    1240,
-    1360,
-    1630,
-    1630,
-    1630,
-    1630,
-    1630,
-    1630,
-    1630
-  ];
+  // List<double> dosageInputs = [
+  //   285,
+  //   380,
+  //   442,
+  //   664,
+  //   784,
+  //   1240,
+  //   1360,
+  //   1630,
+  //   1630,
+  //   1630,
+  //   1630,
+  //   1630,
+  //   1630,
+  //   1630
+  // ];
 
-  List<double> eBISInputs = [
-    41,
-    45,
-    41,
-    45,
-    43,
-    59,
-    52,
-    53,
-    47,
-    54,
-    68,
-    66,
-    73,
-    97
-  ];
+  List<double> dosageInputs = [285, 380, 784, 1630];
+
+  // List<double> eBISInputs = [
+  //   41,
+  //   45,
+  //   41,
+  //   45,
+  //   43,
+  //   59,
+  //   52,
+  //   53,
+  //   47,
+  //   54,
+  //   68,
+  //   66,
+  //   73,
+  //   97
+  // ];
+
+  List<double> eBISInputs = [41, 45, 43, 53];
 
   Duration timeStep = Duration(seconds: 1);
   int density = 10;
   int maxPumpRate = 12000;
 
   double baseTarget = 4;
+
+  double ce50Fit = 0;
+  double ce50ShiftFit = 0;
 
   int findIndexOfNearValue({required List list, required var val}) {
     var diff = list.map((i) => (i - val).abs()).toList();
@@ -89,20 +98,15 @@ void main() {
   // The records are automatically sorted by duration.
   SplayTreeSet<WUTInput> inputs = SplayTreeSet<WUTInput>();
 
-  double totalWeight = 0;
-
   for (int i = 0; i < durationInputs.length; i++) {
     inputs.add(WUTInput(
         durationInput: durationInputs[i],
         dosageInput: dosageInputs[i],
         eBISInput: eBISInputs[i]));
-    totalWeight += durationInputs[i].inSeconds;
   }
-
 
   String toCsv(
       {required List<String> headers, required List<List<dynamic>> contents}) {
-
     List<List<dynamic>> data = [headers];
 
     // Assuming all lists are of the same length
@@ -118,19 +122,25 @@ void main() {
 
   test('WakeUpTimer', () async {
     // print('total weight: $totalWeight');
-    //TODO check whether the entry has first key value
+
     var firstDuration = durationInputs.first;
     var firstCumulativeInfusedDosage = dosageInputs.first;
 
     Patient patient =
         Patient(weight: weight, height: height, age: age, gender: gender);
-    Pump pump =
-        Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate,target: baseTarget,
-            duration: firstDuration *
-                2); //firstDuration * 2 this is for working out tRatio, if time takes longer for reaching the same volume;
+    Pump pump = Pump(
+        timeStep: timeStep,
+        density: density,
+        maxPumpRate: maxPumpRate,
+        target: baseTarget,
+        duration: firstDuration *
+            2); //firstDuration * 2 this is for working out tRatio, if time takes longer for reaching the same volume;
 
     Simulation baseSimulation = Simulation(
-        model: model, patient: patient, pump: pump,);
+      model: model,
+      patient: patient,
+      pump: pump,
+    );
     var baseEstimate = baseSimulation.estimate;
 
     // Calculate CE Target based on volume comparison:
@@ -206,7 +216,7 @@ void main() {
           d = d + pump.timeStep) {
         var at = inputs.elementAt(i).durationInput + d;
         var pumpInfusion = diffDosage / steps;
-        print('Time at: $at, pumpInfusion = $pumpInfusion');
+        // print('Time at: $at, pumpInfusion = $pumpInfusion');
         finalPump.updatePumpInfusionSequence(
             at: at, pumpInfusion: pumpInfusion);
       }
@@ -221,17 +231,13 @@ void main() {
     // print(finalEstimate.times.last);
     // print(finalSimulation);
 
-    const finalSimFileName = '/Users/eddy/Documents/final_sim.csv';
+    const finalSimFileName = '/Users/eddy/Developer/final_sim.csv';
     await File(finalSimFileName).writeAsString(finalSimulation.toCsv());
 
     for (var input in inputs) {
       int index = finalEstimate.times.indexOf(input.durationInput);
-      var concentrationEffect = finalEstimate.concentrationsEffect[index];
-      input.concentrationEffect = concentrationEffect;
+      input.concentrationEffect = finalEstimate.concentrationsEffect[index];
     }
-
-    // print(inputs.toList());
-
     // StringBuffer csvInputsBuffer = StringBuffer();
     // // Adding header
     // csvInputsBuffer.writeln('duration, dosage, eBIS, concentrationEffect');
@@ -240,52 +246,148 @@ void main() {
     // for (WUTInput input in inputs) {
     //   csvInputsBuffer.writeln(input.toCsv());
     // }
-
-
-
-    const inputsFileName = '/Users/eddy/Documents/inputs.csv';
+    //
+    // const inputsFileName = '/Users/eddy/Documents/inputs.csv';
     // await File(inputsFileName).writeAsString(csvInputsBuffer.toString());
 
-
-    //Build ce50 List
-
+    //Step 2 calculate ce50Fit
     var variables = finalSimulation.variables;
     var baselineBIS = variables.baselineBIS;
-    var ce50 = variables.ce50;
+    var baselineCe50 = variables.ce50;
+    print('Eleveld Baseline Ce50: $baselineCe50');
 
-    List<double> ce50Tests = [];
-    for (double c = ce50 / 2; c <= ce50 * 2; c += 0.2) {
-      ce50Tests.add(c);
-    }
-    List<double> sumOfWeightedSquaredDiffs = [];
+    //Discard all the bis readings in the first 10 minutes (non-steady state)
+    inputs.removeWhere(
+        (input) => input.durationInput < const Duration(minutes: 10));
 
-    for (int n = 0; n < ce50Tests.length; n++) {
-      var ce50Test = ce50Tests[n];
-      List<double> weightedSquaredDiffs = [];
+    // Count how many times the dosageInput of the last element occurs in the set
+    int count = inputs
+        .where((input) => input.dosageInput == inputs.last.dosageInput)
+        .length;
 
-      for (int i = 0; i < inputs.length; i++) {
-        double exponent =
-            inputs.elementAt(i).concentrationEffect! > ce50Test ? 1.47 : 1.89;
+    Duration totalDurationWeight = inputs.fold(Duration.zero,
+        (Duration sum, WUTInput input) => sum + input.durationInput);
 
-        double adjustedBIS = baselineBIS *
-            pow(ce50Test, exponent) /
-            (pow(ce50Test, exponent) +
-                pow(inputs.elementAt(i).concentrationEffect!, exponent));
-
-        double weightedSquaredDiff =
-            pow((adjustedBIS - inputs.elementAt(i).eBISInput), 2) *
-                inputs.elementAt(i).durationInput.inSeconds /
-                totalWeight;
-        weightedSquaredDiffs.add(weightedSquaredDiff);
+    // Check if it occurs more than once
+    if (count > 1) {
+      // Remove elements from the end based on the count
+      for (int i = 0; i < count - 1; i++) {
+        inputs.remove(inputs.last);
       }
-      double sumOfWeightedSquaredDiff =
-          weightedSquaredDiffs.reduce((a, b) => a + b);
-      sumOfWeightedSquaredDiffs.add(sumOfWeightedSquaredDiff);
     }
 
-    final filename = '/Users/eddy/Documents/ce50Test.csv';
+    if (inputs.isEmpty) {
+      ce50Fit = baselineCe50;
+      ce50ShiftFit = baselineCe50 / 10;
+    } else {
+      List<double> ce50s = [];
+      List<double> ce50Shifts = [];
+      List<double> sumOfWeightedSquaredDiffs = [];
+
+      //Build ce50 List
+      List<double> ce50Tests = [];
+      for (double ce50 = (baselineCe50 / 2 * 100).round() / 100;
+          ce50 <= (baselineCe50 * 2 * 100).round() / 100;
+          ce50 += 0.05) {
+        ce50Tests.add(ce50);
+      }
+      // print('ce50Tests');
+      // print(ce50Tests);
+
+      for (int n = 0; n < ce50Tests.length; n++) {
+        var ce50Test = ce50Tests[n];
+
+        List<double> weightedSquaredDiffs = [];
+
+        List<double> ceShifts = [];
+        for (double ceShift = (ce50Test * 0.1 * 100).round() / 100;
+            ceShift <= (ce50Test * 100).round() / 100;
+            ceShift += 0.05) {
+          ceShifts.add(ceShift);
+        }
+
+        for (int m = 0; m < ceShifts.length; m++) {
+          var ce50Shift = ceShifts[m];
+
+          for (int i = 0; i < inputs.length; i++) {
+            // double weightedSquaredDiff = 0;
+
+            double adjustedBIS = 0;
+
+            if (inputs.elementAt(i).concentrationEffect! - ce50Shift < 0) {
+              adjustedBIS = baselineBIS;
+            } else if (inputs.elementAt(i).concentrationEffect! - ce50Shift >
+                ce50Test) {
+              adjustedBIS = baselineBIS *
+                  pow(ce50Test, 1.47) /
+                  (pow(ce50Test, 1.47) +
+                      pow(inputs.elementAt(i).concentrationEffect! - ce50Shift,
+                          1.47));
+            } else {
+              adjustedBIS = baselineBIS *
+                  pow(ce50Test, 1.89) /
+                  (pow(ce50Test, 1.89) +
+                      pow(inputs.elementAt(i).concentrationEffect! - ce50Shift,
+                          1.89));
+            }
+
+            double weightedSquaredDiff =
+                pow(adjustedBIS - inputs.elementAt(i).eBISInput, 2) *
+                    (inputs.elementAt(i).durationInput.inSeconds /
+                        totalDurationWeight.inSeconds);
+            weightedSquaredDiffs.add(weightedSquaredDiff);
+          }
+
+          ce50s.add(ce50Test);
+          ce50Shifts.add(ce50Shift);
+          double sumOfWeightedSquaredDiff =
+              weightedSquaredDiffs.reduce((a, b) => a + b);
+          sumOfWeightedSquaredDiffs.add(sumOfWeightedSquaredDiff);
+        }
+      }
+
+      double minDiff =
+          sumOfWeightedSquaredDiffs.reduce((a, b) => a < b ? a : b);
+      int indexOfMinDiff = sumOfWeightedSquaredDiffs.indexOf(minDiff);
+      ce50Fit = ce50s[indexOfMinDiff];
+      ce50ShiftFit = ce50Shifts[indexOfMinDiff];
+
+      final filename = '/Users/eddy/Developer/ce50Test.csv';
+      await File(filename).writeAsString(toCsv(
+          headers: ['ce50s', 'ce50Shifts', 'sumOfWeightedSquaredDiff'],
+          contents: [ce50s, ce50Shifts, sumOfWeightedSquaredDiffs]));
+    }
+    print('ce50Fit: $ce50Fit');
+    print('ce50ShiftFit: $ce50ShiftFit');
+
+    List<double> predeBIS = [];
+
+    for (int i = 0; i < inputs.length; i++) {
+      if (inputs.elementAt(i).concentrationEffect! - ce50ShiftFit < 0) {
+        predeBIS.add(baselineBIS);
+      } else if (inputs.elementAt(i).concentrationEffect! - ce50ShiftFit >
+          ce50Fit) {
+        predeBIS.add(baselineBIS *
+            pow(ce50Fit, 1.47) /
+            (pow(ce50Fit, 1.47) +
+                pow(inputs.elementAt(i).concentrationEffect! - ce50ShiftFit,
+                    1.47)));
+      } else {
+        predeBIS.add(baselineBIS *
+            pow(ce50Fit, 1.89) /
+            (pow(ce50Fit, 1.89) +
+                pow(inputs.elementAt(i).concentrationEffect! - ce50ShiftFit,
+                    1.89)));
+      }
+    }
+
+    List durations = inputs.map((input) => input.durationInput).toList();
+    List dosages = inputs.map((input) => input.dosageInput).toList();
+    List eBISs = inputs.map((input) => input.eBISInput).toList();
+
+    final filename = '/Users/eddy/Developer/predeBIS.csv';
     await File(filename).writeAsString(toCsv(
-        headers: ['ce50Tests', 'sumOfWeightedSquaredDiff'],
-        contents: [ce50Tests, sumOfWeightedSquaredDiffs]));
+        headers: ['duration', 'dosage', 'eBISInputs', 'predeBIS'],
+        contents: [durations, dosages, eBISs, predeBIS]));
   });
 }

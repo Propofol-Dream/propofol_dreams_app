@@ -526,7 +526,7 @@ class Simulation {
         if (pump.wakeUPCe! < concentrationEffect) {
           totalStep = totalStep + 1;
           if (target != 0) {
-            pump.updateTargetSequences(at: time+pump.timeStep, target: 0);
+            pump.updateTargetSequences(at: time + pump.timeStep, target: 0);
             // print('target = 0');
           }
           // print(totalStep);
@@ -588,142 +588,197 @@ class Simulation {
   }
 
   // TODO confirm what if pump.density is not 10 nor 20
-  double get weightGuess {
-    double guess = 0.0;
+  int get weightGuess {
+    // double guess = 0.0;
 
-    if (pump.density == 10) {
-      guess = patient.gender == Gender.Female
-          ? (15.24 +
-              1.033 * patient.weight -
-              0.001552 * patient.weight * patient.weight +
-              2.119e-6 * patient.weight * patient.weight * patient.weight +
-              8.909e-5 * patient.height * patient.height -
-              4.423e-4 * patient.weight * patient.bmi -
-              0.1928 * patient.age +
-              9.729e-4 * patient.age * patient.age -
-              0.003927 * patient.age * patient.weight +
-              1.779e-6 * patient.age * patient.weight * patient.weight +
-              0.001165 * patient.age * patient.bmi -
-              0.08306 * patient.bmi)
-          : (15.03 +
-              0.9526 * patient.weight -
-              0.001513 * patient.weight * patient.weight +
-              1.991e-6 * patient.weight * patient.weight * patient.weight +
-              1.144e-4 * patient.height * patient.height -
-              4.308e-4 * patient.weight * patient.bmi -
-              0.2029 * patient.age +
-              1.047e-3 * patient.age * patient.age -
-              0.003866 * patient.age * patient.weight +
-              3.305e-6 * patient.age * patient.weight * patient.weight +
-              0.001263 * patient.age * patient.bmi -
-              0.09866 * patient.bmi);
-    } else {
-      guess = patient.gender == Gender.Female
-          ? (17.92 +
-              0.9685 * patient.weight -
-              0.001057 * pow(patient.weight, 2) +
-              1.21e-6 * pow(patient.weight, 3) +
-              9.414e-5 * pow(patient.height, 2) -
-              4.366e-4 * patient.weight * patient.bmi -
-              0.2552 * patient.age +
-              1.281e-3 * pow(patient.age, 2) -
-              0.003136 * patient.age * patient.weight -
-              6.911e-7 * patient.age * pow(patient.weight, 2) +
-              0.001090 * patient.age * patient.bmi -
-              0.07710 * patient.bmi)
-          : (16.42 +
-              0.9375 * patient.weight -
-              0.001365 * pow(patient.weight, 2) +
-              1.838e-6 * pow(patient.weight, 3) +
-              1.256e-4 * pow(patient.height, 2) -
-              4.43e-4 * patient.weight * patient.bmi -
-              0.2637 * patient.age +
-              1.557e-3 * pow(patient.age, 2) -
-              0.003772 * patient.age * patient.weight +
-              3.321e-6 * patient.age * pow(patient.weight, 2) +
-              0.001355 * patient.age * patient.bmi -
-              0.09703 * patient.bmi);
-    }
+    // if (pump.density == 10) {
+    //   guess = patient.gender == Gender.Female
+    //       ? (15.24 +
+    //           1.033 * patient.weight -
+    //           0.001552 * patient.weight * patient.weight +
+    //           2.119e-6 * patient.weight * patient.weight * patient.weight +
+    //           8.909e-5 * patient.height * patient.height -
+    //           4.423e-4 * patient.weight * patient.bmi -
+    //           0.1928 * patient.age +
+    //           9.729e-4 * patient.age * patient.age -
+    //           0.003927 * patient.age * patient.weight +
+    //           1.779e-6 * patient.age * patient.weight * patient.weight +
+    //           0.001165 * patient.age * patient.bmi -
+    //           0.08306 * patient.bmi)
+    //       : (15.03 +
+    //           0.9526 * patient.weight -
+    //           0.001513 * patient.weight * patient.weight +
+    //           1.991e-6 * patient.weight * patient.weight * patient.weight +
+    //           1.144e-4 * patient.height * patient.height -
+    //           4.308e-4 * patient.weight * patient.bmi -
+    //           0.2029 * patient.age +
+    //           1.047e-3 * patient.age * patient.age -
+    //           0.003866 * patient.age * patient.weight +
+    //           3.305e-6 * patient.age * patient.weight * patient.weight +
+    //           0.001263 * patient.age * patient.bmi -
+    //           0.09866 * patient.bmi);
+    // } else {
+    //   guess = patient.gender == Gender.Female
+    //       ? (17.92 +
+    //           0.9685 * patient.weight -
+    //           0.001057 * pow(patient.weight, 2) +
+    //           1.21e-6 * pow(patient.weight, 3) +
+    //           9.414e-5 * pow(patient.height, 2) -
+    //           4.366e-4 * patient.weight * patient.bmi -
+    //           0.2552 * patient.age +
+    //           1.281e-3 * pow(patient.age, 2) -
+    //           0.003136 * patient.age * patient.weight -
+    //           6.911e-7 * patient.age * pow(patient.weight, 2) +
+    //           0.001090 * patient.age * patient.bmi -
+    //           0.07710 * patient.bmi)
+    //       : (16.42 +
+    //           0.9375 * patient.weight -
+    //           0.001365 * pow(patient.weight, 2) +
+    //           1.838e-6 * pow(patient.weight, 3) +
+    //           1.256e-4 * pow(patient.height, 2) -
+    //           4.43e-4 * patient.weight * patient.bmi -
+    //           0.2637 * patient.age +
+    //           1.557e-3 * pow(patient.age, 2) -
+    //           0.003772 * patient.age * patient.weight +
+    //           3.321e-6 * patient.age * pow(patient.weight, 2) +
+    //           0.001355 * patient.age * patient.bmi -
+    //           0.09703 * patient.bmi);
+    // }
 
-    return guess;
+    double guess = patient.gender == Gender.Female
+        ? (17.5 +
+            0.9912 * patient.weight -
+            0.001305 * pow(patient.weight, 2) +
+            1.528e-6 * pow(patient.weight, 3) +
+            1.006e-4 * pow(patient.height, 2) -
+            3.690e-4 * patient.weight * patient.bmi -
+            0.2682 * patient.age +
+            1.560e-3 * pow(patient.age, 2) -
+            0.003543 * patient.age * patient.weight +
+            2.322e-6 * patient.age * pow(patient.weight, 2) +
+            0.001080 * patient.age * patient.bmi -
+            0.07786 * patient.bmi)
+        : (16.07 +
+            0.9376 * patient.weight -
+            0.001383 * pow(patient.weight, 2) +
+            1.684e-6 * pow(patient.weight, 3) +
+            1.292e-4 * pow(patient.height, 2) -
+            3.801e-4 * patient.weight * patient.bmi -
+            0.2617 * patient.age +
+            1.614e-3 * pow(patient.age, 2) -
+            0.003841 * patient.age * patient.weight +
+            3.927e-6 * pow(patient.age, 2) * patient.weight +
+            0.001340 * patient.age * patient.bmi -
+            0.09995 * patient.bmi);
+
+    return guess.round();
   }
 
   // TODO confirm what if pump.density is not 10 nor 20
-  double get bolusGuess {
-    double guess = 0.0;
+  int get bolusGuess {
+    // double guess = 0.0;
+    //
+    // if (pump.density == 10) {
+    //   guess = patient.gender == Gender.Female
+    //       ? (41.31 +
+    //           3.063 * patient.weight -
+    //           2.312e-3 * patient.weight * patient.weight +
+    //           6.172e-6 * patient.weight * patient.weight * patient.weight -
+    //           0.1026 * patient.height +
+    //           4.375e-4 * patient.height * patient.height -
+    //           5.997e-4 * patient.weight * patient.bmi -
+    //           0.5831 * patient.age +
+    //           0.004267 * patient.age * patient.age -
+    //           0.01399 * patient.age * patient.weight -
+    //           3.716e-5 * patient.age * patient.weight * patient.weight +
+    //           3.345e-7 *
+    //               patient.age *
+    //               patient.age *
+    //               patient.weight *
+    //               patient.weight +
+    //           0.001912 * patient.age * patient.bmi -
+    //           0.1885 * patient.bmi)
+    //       : (47.92 +
+    //           2.983 * patient.weight -
+    //           2.339e-3 * patient.weight * patient.weight +
+    //           6.439e-6 * patient.weight * patient.weight * patient.weight -
+    //           0.1693 * patient.height +
+    //           6.393e-4 * patient.height * patient.height -
+    //           5.025e-4 * patient.weight * patient.bmi -
+    //           0.5454 * patient.age +
+    //           0.003780 * patient.age * patient.age -
+    //           0.01376 * patient.age * patient.weight -
+    //           4.149e-5 * patient.age * patient.weight * patient.weight +
+    //           3.661e-7 *
+    //               patient.age *
+    //               patient.age *
+    //               patient.weight *
+    //               patient.weight +
+    //           0.002259 * patient.age * patient.bmi -
+    //           0.2682 * patient.bmi);
+    // } else {
+    //   guess = patient.gender == Gender.Female
+    //       ? (58.18 +
+    //           3.358 * patient.weight -
+    //           3.991e-3 * pow(patient.weight, 2) +
+    //           8.628e-6 * pow(patient.weight, 3) -
+    //           0.3385 * patient.height +
+    //           1.058e-3 * pow(patient.height, 2) -
+    //           0.5662 * patient.age +
+    //           0.005773 * pow(patient.age, 2) -
+    //           0.01759 * patient.age * patient.weight -
+    //           2.245e-5 * patient.age * pow(patient.weight, 2) +
+    //           3.48e-7 * pow(patient.age, 2) * pow(patient.weight, 2) +
+    //           0.002268 * patient.age * patient.bmi -
+    //           0.3347 * patient.bmi)
+    //       : (36.37 +
+    //           3.024 * patient.weight -
+    //           2.734e-3 * pow(patient.weight, 2) +
+    //           6.121e-6 * pow(patient.weight, 3) +
+    //           3.25e-4 * pow(patient.height, 2) -
+    //           1.287e-3 * patient.weight * patient.bmi -
+    //           1.023 * patient.age +
+    //           0.01396 * pow(patient.age, 2) -
+    //           4.776e-5 * pow(patient.age, 3) -
+    //           0.01692 * patient.age * patient.weight -
+    //           1.859e-5 * patient.age * pow(patient.weight, 2) +
+    //           2.843e-7 * pow(patient.age, 2) * pow(patient.weight, 2) +
+    //           0.002622 * patient.age * patient.bmi -
+    //           0.077 * patient.bmi);
+    // }
 
-    if (pump.density == 10) {
-      guess = patient.gender == Gender.Female
-          ? (41.31 +
-              3.063 * patient.weight -
-              2.312e-3 * patient.weight * patient.weight +
-              6.172e-6 * patient.weight * patient.weight * patient.weight -
-              0.1026 * patient.height +
-              4.375e-4 * patient.height * patient.height -
-              5.997e-4 * patient.weight * patient.bmi -
-              0.5831 * patient.age +
-              0.004267 * patient.age * patient.age -
-              0.01399 * patient.age * patient.weight -
-              3.716e-5 * patient.age * patient.weight * patient.weight +
-              3.345e-7 *
-                  patient.age *
-                  patient.age *
-                  patient.weight *
-                  patient.weight +
-              0.001912 * patient.age * patient.bmi -
-              0.1885 * patient.bmi)
-          : (47.92 +
-              2.983 * patient.weight -
-              2.339e-3 * patient.weight * patient.weight +
-              6.439e-6 * patient.weight * patient.weight * patient.weight -
-              0.1693 * patient.height +
-              6.393e-4 * patient.height * patient.height -
-              5.025e-4 * patient.weight * patient.bmi -
-              0.5454 * patient.age +
-              0.003780 * patient.age * patient.age -
-              0.01376 * patient.age * patient.weight -
-              4.149e-5 * patient.age * patient.weight * patient.weight +
-              3.661e-7 *
-                  patient.age *
-                  patient.age *
-                  patient.weight *
-                  patient.weight +
-              0.002259 * patient.age * patient.bmi -
-              0.2682 * patient.bmi);
-    } else {
-      guess = patient.gender == Gender.Female
-          ? (58.18 +
-              3.358 * patient.weight -
-              3.991e-3 * pow(patient.weight, 2) +
-              8.628e-6 * pow(patient.weight, 3) -
-              0.3385 * patient.height +
-              1.058e-3 * pow(patient.height, 2) -
-              0.5662 * patient.age +
-              0.005773 * pow(patient.age, 2) -
-              0.01759 * patient.age * patient.weight -
-              2.245e-5 * patient.age * pow(patient.weight, 2) +
-              3.48e-7 * pow(patient.age, 2) * pow(patient.weight, 2) +
-              0.002268 * patient.age * patient.bmi -
-              0.3347 * patient.bmi)
-          : (36.37 +
-              3.024 * patient.weight -
-              2.734e-3 * pow(patient.weight, 2) +
-              6.121e-6 * pow(patient.weight, 3) +
-              3.25e-4 * pow(patient.height, 2) -
-              1.287e-3 * patient.weight * patient.bmi -
-              1.023 * patient.age +
-              0.01396 * pow(patient.age, 2) -
-              4.776e-5 * pow(patient.age, 3) -
-              0.01692 * patient.age * patient.weight -
-              1.859e-5 * patient.age * pow(patient.weight, 2) +
-              2.843e-7 * pow(patient.age, 2) * pow(patient.weight, 2) +
-              0.002622 * patient.age * patient.bmi -
-              0.077 * patient.bmi);
-    }
 
-    // guess = guess / 4 * operation.target;
+    double guess = patient.gender == Gender.Female
+        ? (38.01 +
+            3.096 * patient.weight -
+            2.187e-3 * pow(patient.weight, 2) +
+            4.676e-6 * pow(patient.weight, 3) -
+            0.09256 * patient.height +
+            4.097e-4 * pow(patient.height, 2) -
+            7.581e-4 * patient.weight * patient.bmi -
+            0.6293 * patient.age +
+            0.005249 * pow(patient.age, 2) -
+            0.01542 * patient.age * patient.weight -
+            2.887e-5 * pow(patient.age, 2) * patient.weight +
+            3.178e-7 * pow(patient.age, 2) * pow(patient.weight, 2) +
+            0.002109 * patient.age * patient.bmi -
+            0.1769 * patient.bmi)
+        : (42.34 +
+            2.947 * patient.weight -
+            1.996e-3 * pow(patient.weight, 2) +
+            4.323e-6 * pow(patient.weight, 3) -
+            0.09979 * patient.height +
+            4.667e-4 * pow(patient.height, 2) -
+            8.554e-4 * patient.weight * patient.bmi -
+            0.6839 * patient.age +
+            0.005336 * pow(patient.age, 2) -
+            0.01454 * patient.age * patient.weight -
+            2.864e-5 * pow(patient.age, 2) * patient.weight +
+            2.875e-7 * pow(patient.age, 2) * pow(patient.weight, 2) +
+            0.002405 * patient.age * patient.bmi -
+            0.2078 * patient.bmi);
 
-    return guess;
+    return guess.round();
   }
 
   //This is not initial bolus, Engbert's algo doesn't require bolus to be calculated

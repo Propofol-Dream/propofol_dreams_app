@@ -49,8 +49,8 @@ class EleMarsh {
     double inductionCPTarget = -1;
 
     // Set up for baseline model
-    double weightGuess = baselineSimulation.weightGuess;
-    double boluesGuess = baselineSimulation.bolusGuess;
+    int weightGuess = baselineSimulation.weightGuess;
+    int boluesGuess = baselineSimulation.bolusGuess;
 
     int minWeightGuess = (weightGuess - weightBound).round();
     int maxWeightGuess = (minWeightGuess + weightBound).round();
@@ -164,7 +164,7 @@ class EleMarsh {
 
     // double inductionCPTarget =
     // initialCPTarget / 4 * baselineSimulation.operation.target;
-    double adjustmentBolus = bolusBestGuess / baselineSimulation.pump.target;
+    double adjustmentBolus = bolusBestGuess / 4;
 
     double predictedBIS = predictBIS(
         age: baselineSimulation.patient.age,

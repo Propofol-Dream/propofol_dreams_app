@@ -17,7 +17,7 @@ class Patient with ChangeNotifier{
 
   @override
   String toString(){
-    return '{gender: $gender, age: $age, height: $height, weight: $weight}';
+    return '{gender: $gender, age: $age, height: $height, weight: $weight, bmi: $bmi}';
   }
 
   double get lbm {

@@ -12,7 +12,7 @@ import 'dart:io';
 import 'package:propofol_dreams_app/constants.dart';
 
 void main() {
-  int weight = 75;
+  int weight = 80;
   int age = 20;
   int height = 170;
   Gender gender = Gender.Male;
@@ -23,12 +23,10 @@ void main() {
   // Duration duration = Duration(minutes: 60);
   Duration duration = Duration(minutes: 10);
 
-  // Set up for the model
-
   test('Peak', () async {
     Model model = Model.Eleveld;
     Patient patient =
-        Patient(weight: weight, age: age, height: height, gender: gender);
+    Patient(weight: weight, age: age, height: height, gender: gender);
     Pump pump = Pump(
         timeStep: timeStep,
         density: density,
@@ -36,28 +34,50 @@ void main() {
         target: target,
         duration: duration);
 
+    Simulation sim = Simulation(
+            model: model, patient: patient, pump: pump);
+
+
+    print(sim);
+    print("abw guess: ${sim.weightGuess}");
+    print("bolus guess: ${sim.bolusGuess}");
 
     // print(pump.pumpInfusionSequences);
 
-    // Operation operation = Operation(target: target, duration: duration);
-    Simulation sim = Simulation(
-        model: model, patient: patient, pump: pump);
-    final filename = '/Users/eddy/Documents/new_sim.csv';
-    await File(filename).writeAsString(sim.toCsv());
-
-
-    // pump.infuseBolus(startsAt: Duration.zero, bolus: 180);
-
-    pump.wakeUPCe = 3;
-
-    final anotherFileName = '/Users/eddy/Documents/another_sim.csv';
-    await File(anotherFileName).writeAsString(sim.toCsv());
-    // final anotherFilename = '/Users/eddy/Documents/bolus_sim.json';
-    // await File(anotherFilename).writeAsString(jsonEncode(sim.toJson()));
-
-
-
-
-
   });
+
+
+  // Set up for the model
+
+  // test('Peak', () async {
+  //   Model model = Model.Eleveld;
+  //   Patient patient =
+  //       Patient(weight: weight, age: age, height: height, gender: gender);
+  //   Pump pump = Pump(
+  //       timeStep: timeStep,
+  //       density: density,
+  //       maxPumpRate: maxPumpRate,
+  //       target: target,
+  //       duration: duration);
+  //
+  //
+  //   // print(pump.pumpInfusionSequences);
+  //
+  //   // Operation operation = Operation(target: target, duration: duration);
+  //   Simulation sim = Simulation(
+  //       model: model, patient: patient, pump: pump);
+  //   final filename = '/Users/eddy/Documents/new_sim.csv';
+  //   await File(filename).writeAsString(sim.toCsv());
+  //
+  //
+  //   // pump.infuseBolus(startsAt: Duration.zero, bolus: 180);
+  //
+  //   pump.wakeUPCe = 2.4;
+  //
+  //   final anotherFileName = '/Users/eddy/Documents/another_sim.csv';
+  //   await File(anotherFileName).writeAsString(sim.toCsv());
+  //   // final anotherFilename = '/Users/eddy/Documents/bolus_sim.json';
+  //   // await File(anotherFilename).writeAsString(jsonEncode(sim.toJson()));
+  //
+  // });
 }
