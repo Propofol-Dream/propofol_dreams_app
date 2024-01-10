@@ -23,28 +23,33 @@ class Pump {
 
   Pump copy() {
     return Pump(
-      timeStep: timeStep,
-      density: density,
-      maxPumpRate: maxPumpRate,
-      target: target,
-      duration: duration,
-      wakeUPCe: wakeUPCe,
-      pumpInfusionSequences: pumpInfusionSequences,
-      targetSequences: targetSequences
-    );
+        timeStep: timeStep,
+        density: density,
+        maxPumpRate: maxPumpRate,
+        target: target,
+        duration: duration,
+        wakeUPCe: wakeUPCe,
+        pumpInfusionSequences: SplayTreeMap<Duration, double>.from(
+            pumpInfusionSequences ?? {}),
+        targetSequences: SplayTreeMap<Duration, double>.from(
+            targetSequences ?? {}));
   }
+
 
   void updatePumpInfusionSequence({required Duration at,
     required double pumpInfusion}) {
     pumpInfusionSequences ??= SplayTreeMap<Duration, double>();
     pumpInfusionSequences?.update(at, (value) => pumpInfusion,
         ifAbsent: () => pumpInfusion);
+    // print('time: ${at}, pumpInfs: ${pumpInfusion}');
+    // print('updated');
   }
 
   void copyPumpInfusionSequences(
       {required List<Duration> times, required List<double> pumpInfs}) {
     for (int i = 0; i < times.length; i++) {
       updatePumpInfusionSequence(at: times[i], pumpInfusion: pumpInfs[i]);
+      // print('copycopycopycopycopy');
     }
   }
 

@@ -210,7 +210,8 @@ class Simulation {
       double maxInfusion = (testPump.density * testPump.maxPumpRate).toDouble();
       testPump.updatePumpInfusionSequence(at: i, pumpInfusion: maxInfusion);
     }
-
+    // print('calibrate');
+    // print(pump.pumpInfusionSequences);
     return test(testPump: testPump);
   }
 

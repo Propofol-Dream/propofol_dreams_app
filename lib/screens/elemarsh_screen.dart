@@ -162,7 +162,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           age <= 105 &&
           height >= 100 &&
           height <= 220 &&
-          weight >= 40 &&
+          weight >= 35 &&
           weight <= 350 &&
           target >= 0.5 &&
           target <= 8.0) {
@@ -827,7 +827,7 @@ Additional info for each of the calculated values:
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: weightController,
-                    range: [40, 350],
+                    range: [35, 350],
                     onPressed: updatePDTextEditingController,
                   ),
                 ),

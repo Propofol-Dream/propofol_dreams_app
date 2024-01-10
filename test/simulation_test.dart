@@ -18,7 +18,7 @@ void main() {
   Gender gender = Gender.Male;
   Duration timeStep = Duration(seconds: 1);
   int density = 10;
-  int maxPumpRate = 20000;
+  int maxPumpRate = 2000;
   double target = 2.5;
   // Duration duration = Duration(minutes: 60);
   Duration duration = Duration(minutes: 10);

@@ -80,7 +80,7 @@ void main() {
 
   Duration timeStep = Duration(seconds: 1);
   int density = 10;
-  int maxPumpRate = 12000;
+  int maxPumpRate = 1200; //mg/hr
 
   double baseTarget = 4;
 
@@ -143,7 +143,10 @@ void main() {
     );
     var baseEstimate = baseSimulation.estimate;
 
-    // Calculate CE Target based on volume comparison:
+    const baseSimFileName = '/Users/eddy/Developer/base_sim.csv';
+    await File(baseSimFileName).writeAsString(baseSimulation.toCsv());
+
+    // Calculate CE Target based on dosage comparison:
     // Find the volume at the same timestamp;
     // Find the ratio between base volume and the user entered volume
     // Use the ratio to estimate user CE Target
@@ -152,6 +155,7 @@ void main() {
         baseEstimate.cumulativeInfusedDosages[dIndex];
     var dCETarget = baseTarget * dRatio;
 
+    // print(dCETarget);
     // Calculate ratio based on time comparison:
     // Find the time with the same volume;
     // Find the ratio between base duration and user entered duration
@@ -162,7 +166,7 @@ void main() {
     var tRatio = baseEstimate.times[tIndex].inMilliseconds /
         firstDuration.inMilliseconds;
     var tCETarget = baseTarget * tRatio;
-
+    // print(tCETarget);
     var dCETargetRounded = (dCETarget * 100).roundToDouble() / 100;
     var tCETargetRounded = (tCETarget * 100).roundToDouble() / 100;
 
@@ -199,10 +203,23 @@ void main() {
     // print(cumulativeInfusedVolumes[0]);
     var bestEstimate = bestSimulation.estimate;
 
+    const bestSimFileName = '/Users/eddy/Developer/best_sim.csv';
+    await File(bestSimFileName).writeAsString(bestSimulation.toCsv());
+    // print(bestSimulation);
+
     Pump finalPump = pump.copy();
+
     finalPump.copyPumpInfusionSequences(
         times: bestEstimate.times, pumpInfs: bestEstimate.pumpInfs);
-    // print(bestEstimate.times.last);
+
+    // print(finalPump.pumpInfusionSequences);
+
+    Simulation testSimulation = bestSimulation.copy();
+    testSimulation.pump = finalPump.copy();
+    const testSimFileName = '/Users/eddy/Developer/test_sim.csv';
+    await File(testSimFileName).writeAsString(testSimulation.toCsv());
+
+    // print(testSimulation.pump.pumpInfusionSequences);
 
     for (int i = 0; i < inputs.length - 1; i++) {
       var diffDuration = inputs.elementAt(i + 1).durationInput -
@@ -212,14 +229,24 @@ void main() {
 
       var steps = diffDuration.inMilliseconds / pump.timeStep.inMilliseconds;
       for (Duration d = pump.timeStep;
-          d <= diffDuration;
-          d = d + pump.timeStep) {
+      d <= diffDuration;
+      d = d + pump.timeStep) {
         var at = inputs.elementAt(i).durationInput + d;
-        var pumpInfusion = diffDosage / steps;
+        var pumpInfusion = diffDosage / steps * 3600;
         // print('Time at: $at, pumpInfusion = $pumpInfusion');
         finalPump.updatePumpInfusionSequence(
             at: at, pumpInfusion: pumpInfusion);
+        // print('at: ${at}, pumpInfusion: ${pumpInfusion}');
       }
+      // if(i==0) {
+      //   print(i);
+      //   print(diffDuration.inSeconds);
+      //   print(diffDosage);
+      //   var pumpinf = diffDosage/steps;
+      //   print(steps);
+      //   print(pumpinf);
+      //   print(pump.timeStep);
+      // }
     }
 
     Simulation finalSimulation = bestSimulation.copy();
@@ -227,12 +254,15 @@ void main() {
     finalSimulation.pump.duration = inputs.last.durationInput;
 
     var finalEstimate = finalSimulation.estimate;
-    // print(finalEstimate.concentrationsEffect.last);
-    // print(finalEstimate.times.last);
-    // print(finalSimulation);
-
+    // // print(finalEstimate.concentrationsEffect.last);
+    // // print(finalEstimate.times.last);
+    // // print(finalSimulation);
+    //
     const finalSimFileName = '/Users/eddy/Developer/final_sim.csv';
     await File(finalSimFileName).writeAsString(finalSimulation.toCsv());
+
+    const bestSimFileName2 = '/Users/eddy/Developer/best2_sim.csv';
+    await File(bestSimFileName2).writeAsString(bestSimulation.toCsv());
 
     for (var input in inputs) {
       int index = finalEstimate.times.indexOf(input.durationInput);
@@ -333,9 +363,19 @@ void main() {
 
             double weightedSquaredDiff =
                 pow(adjustedBIS - inputs.elementAt(i).eBISInput, 2) *
-                    (inputs.elementAt(i).durationInput.inSeconds /
-                        totalDurationWeight.inSeconds);
+                    (inputs.elementAt(i).durationInput.inMilliseconds /
+                        totalDurationWeight.inMilliseconds);
             weightedSquaredDiffs.add(weightedSquaredDiff);
+
+            // if (n == 0 && m == 0 && i == 0) {
+            //   print(ce50Test);
+            //   print(ce50Shift);
+            //   print(adjustedBIS);
+            //   print(inputs.elementAt(i).concentrationEffect);
+            //   print(weightedSquaredDiff);
+            //   print(inputs.elementAt(i).durationInput.inMilliseconds);
+            //   print(totalDurationWeight.inMilliseconds);
+            // }
           }
 
           ce50s.add(ce50Test);
@@ -389,5 +429,7 @@ void main() {
     await File(filename).writeAsString(toCsv(
         headers: ['duration', 'dosage', 'eBISInputs', 'predeBIS'],
         contents: [durations, dosages, eBISs, predeBIS]));
+    
+
   });
 }
