@@ -78,6 +78,7 @@ void main() {
 
   List<double> eBISInputs = [41, 45, 43, 53];
 
+  //TODO: Test & fix Duration(second: 5) or more
   Duration timeStep = Duration(seconds: 1);
   int density = 10;
   int maxPumpRate = 1200; //mg/hr
