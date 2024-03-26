@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+
 // import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:propofol_dreams_app/models/elemarsh.dart';
@@ -41,8 +42,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   String adjustmentBolus = "--";
   String inductionCPTarget = "--";
 
-  // String MDPE = "--";
-  String MDAPE = "--";
+  String BMI = "--";
 
   // String MaxAPE = "--";
   String predictedBIS = "--";
@@ -175,15 +175,15 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             timeStep: Duration(seconds: settings.time_step),
             density: settings.density,
             maxPumpRate: settings.max_pump_rate,
-        target: target,
-        duration: Duration(hours: 3));
+            target: target,
+            duration: Duration(hours: 3));
         // Operation operation =
         //     Operation(target: target, duration: Duration(hours: 3));
-        PDSim.Simulation simulation = PDSim.Simulation(
-            model: model, patient: patient, pump: pump);
+        PDSim.Simulation simulation =
+            PDSim.Simulation(model: model, patient: patient, pump: pump);
 
-        EleMarsh elemarsh = EleMarsh(
-            baselineSimulation: simulation, weightBound: 0, bolusBound: 0);
+        EleMarsh elemarsh =
+            EleMarsh(goldSimulation: simulation, weightBound: 0, bolusBound: 0);
 
         var result = elemarsh.calculate();
 
@@ -195,9 +195,10 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           weightBestGuess = result.weightBestGuess.toString();
           inductionCPTarget = result.inductionCPTarget.toStringAsFixed(1);
           adjustmentBolus = result.adjustmentBolus.round().toString();
-          int guessIndex = result.guessIndex;
+          // int guessIndex = result.guessIndex;
           predictedBIS = result.predictedBIS.toStringAsFixed(0);
-          MDAPE = (result.MDAPEs[guessIndex] * 100).toStringAsFixed(1);
+          // MDAPE = (result.MDAPEs[guessIndex] * 100).toStringAsFixed(1);
+          BMI = patient.bmi.toStringAsFixed(1);
 
           print({
             'weightBestGuess': weightBestGuess,
@@ -286,46 +287,71 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         title: Text('Info'),
         content: SingleChildScrollView(
           child: Text.rich(
-            TextSpan(text: """
-The purpose of EleMarsh Mode is to make the Marsh model mimic the Eleveld model.
+            TextSpan(
+                text:
+                    """The purpose of EleMarsh Mode is to make the Marsh model mimic the Eleveld model.""",
+                children: [
+                  TextSpan(text: "\n\n"),
+                  TextSpan(
+                      text: "Step by step guide to using the EleMarsh mode:",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(text: """
+              
+              
+(1) Enter patient details and desired Ce target
 
-It achieves this via:
-  (1) adjusting the Marsh input weight
-  (2) supplemental bolus so that Cp targeting mimics Ce targeting.
-              """, children: [
-              TextSpan(text: "\n\n"),
-              TextSpan(
-                  text: "How to use this EleMarsh:",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: """
+(2) EleMarsh generates the """),
+                  TextSpan(
+                    text: """Adjusted Body Weight """,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(text: """and """),
+                  TextSpan(
+                    text: """Induction CpT""",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(text: """
 
 
-  1. Enter patient details and your desired Ce target.
+(3) Use the """),
+                  TextSpan(
+                    text: """Adjusted Body Weight """,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                      text: """as the Marsh input weight on your TCI pump"""),
+                  TextSpan(text: """
 
-  2. EleMarsh will generate 3 values - Adjusted Body Weight, Induction CpT, and Adjustment Bolus.
 
-  3. Use the Adjusted Body Weight as the Marsh input weight on your TCI pump.
+(4) Use the """),
+                  TextSpan(
+                    text: """Induction CpT """,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                      text:
+                          """as your initial CpT setting. As soon as the bolus is given, drop the CpT down to your desired CeT. The Marsh model on your pump will now mimic the behaviour of the Eleveld model."""),
+                  TextSpan(
+                    text: """
+                    
+                    
+Reference""",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(text: """
 
-  4. Use the Induction CpT as the initial CpT setting. As soon as the pump gives the bolus, drop the CpT down to your desired CeT. Your Marsh model will now closely mimic the behaviour of the Eleveld Model.
 
-  5. If you need to increase Ce target, simply increase the Cp target on your TCI pump to give the calculated Adjustment Bolus then drop Cp back to your new desired Ce.
-\n\n
-"""),
-              TextSpan(
-                text: """
-Additional info for each of the calculated values:
-                """,
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              TextSpan(text: """
+Zhong G., Xu, X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. """),
+                  TextSpan(
+                    text: """2024""",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                    text: """.""",
+                  ),
 
-  Adjusted Body Weight - input this weight into the Marsh Model to convert its behaviour to the Eleveld Model.
 
-  Induction CpT - the starting CpT to set on your TCI pump to quickly get to the desired CeT. Once the bolus has been given, drop CpT back down to CeT. The purpose of this value is to convert plasma targeting (Marsh) to effect site targeting (Eleveld).
-
-  Adjustment Bolus - for every 1 mcg/mL increase in CeT you want to achieve, increase the CpT on the TCI pump such that it delivers this bolus before dropping CpT down to your new desired CeT. The purpose of this value is to convert plasma targeting (Marsh) to effect site targeting (Eleveld).
-                """),
-            ]),
+                ]),
           ),
         ),
         actions: [
@@ -485,7 +511,7 @@ Additional info for each of the calculated values:
                   borderRadius: BorderRadius.all(Radius.circular(10.0)),
                   // Add your desired radius here
                   child: Container(
-                    height: rowHeight * 4,
+                    height: rowHeight * 3,
                     child: Column(
                       children: [
                         Container(
@@ -508,8 +534,9 @@ Additional info for each of the calculated values:
                                       "Adjusted Body Weight",
                                       style: TextStyle(
                                           fontSize: 18,
-                                        color: Theme.of(context).colorScheme.primary
-                                          ),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary),
                                     ),
                                     Row(
                                       children: [
@@ -528,7 +555,6 @@ Additional info for each of the calculated values:
                                                     .primary)),
                                       ],
                                     ),
-
                                   ],
                                 ),
                               ),
@@ -568,10 +594,12 @@ Additional info for each of the calculated values:
                                       children: [
                                         Text(
                                           "$inductionCPTarget",
-                                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
                                         ),
                                         Text(
-                                          " mcg/mL",
+                                          " μg/mL",
                                           style: TextStyle(fontSize: 20),
                                         ),
                                       ],
@@ -589,51 +617,51 @@ Additional info for each of the calculated values:
                             ],
                           ),
                         ),
-                        Container(
-                          height: rowHeight,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Divider(
-                                height: 0.0,
-                                color: Colors.transparent,
-                              ),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Adjustment Bolus",
-                                      style: TextStyle(fontSize: 16),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "$adjustmentBolus",
-                                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                        ),
-                                        Text(
-                                          " mg",
-                                          style: TextStyle(fontSize: 20),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.only(left: 16.0),
-                                child: Divider(
-                                  height: 1.0,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
+                        // Container(
+                        //   height: rowHeight,
+                        //   color: Theme.of(context).colorScheme.onPrimary,
+                        //   child: Column(
+                        //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        //     children: [
+                        //       Divider(
+                        //         height: 0.0,
+                        //         color: Colors.transparent,
+                        //       ),
+                        //       Container(
+                        //         padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        //         child: Row(
+                        //           mainAxisAlignment:
+                        //               MainAxisAlignment.spaceBetween,
+                        //           children: [
+                        //             Text(
+                        //               "Adjustment Bolus",
+                        //               style: TextStyle(fontSize: 16),
+                        //             ),
+                        //             Row(
+                        //               children: [
+                        //                 Text(
+                        //                   "$adjustmentBolus",
+                        //                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        //                 ),
+                        //                 Text(
+                        //                   " mg",
+                        //                   style: TextStyle(fontSize: 20),
+                        //                 ),
+                        //               ],
+                        //             ),
+                        //           ],
+                        //         ),
+                        //       ),
+                        //       Container(
+                        //         padding: EdgeInsets.only(left: 16.0),
+                        //         child: Divider(
+                        //           height: 1.0,
+                        //           color: Theme.of(context).colorScheme.primary,
+                        //         ),
+                        //       )
+                        //     ],
+                        //   ),
+                        // ),
                         Container(
                           height: rowHeight,
                           color: Theme.of(context).colorScheme.onPrimary,
@@ -674,14 +702,13 @@ Additional info for each of the calculated values:
                                                   .primary,
                                             ),
                                           ),
-
                                         ],
                                       ),
                                     ),
                                     Row(
                                       children: [
                                         Text(
-                                          "MDAPE",
+                                          "BMI",
                                           style: TextStyle(fontSize: 14),
                                         ),
                                         SizedBox(
@@ -690,12 +717,10 @@ Additional info for each of the calculated values:
                                         Row(
                                           children: [
                                             Text(
-                                              "$MDAPE",
-                                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                                            ),
-                                            Text(
-                                              " %",
-                                              style: TextStyle(fontSize: 14),
+                                              "$BMI",
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold),
                                             ),
                                           ],
                                         ),
@@ -863,7 +888,7 @@ Additional info for each of the calculated values:
                   height: 0,
                 ),
                 Container(
-                    height: UIHeight+4,
+                    height: UIHeight + 4,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         elevation: 0,

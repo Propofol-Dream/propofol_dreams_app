@@ -12,10 +12,10 @@ import 'dart:io';
 import 'package:propofol_dreams_app/constants.dart';
 
 void main() {
-  int weight = 80;
-  int age = 20;
-  int height = 170;
-  Gender gender = Gender.Male;
+  int weight = 128;
+  int age = 40;
+  int height = 160;
+  Gender gender = Gender.Female;
   Duration timeStep = Duration(seconds: 1);
   int density = 10;
   int maxPumpRate = 2000;
@@ -37,12 +37,10 @@ void main() {
     Simulation sim = Simulation(
             model: model, patient: patient, pump: pump);
 
-
     print(sim);
     print("abw guess: ${sim.weightGuess}");
     print("bolus guess: ${sim.bolusGuess}");
 
-    // print(pump.pumpInfusionSequences);
 
   });
 

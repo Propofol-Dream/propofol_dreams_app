@@ -6,12 +6,12 @@ import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 
 class EleMarsh {
-  Simulation baselineSimulation;
-  int weightBound;
+  Simulation goldSimulation;
+  double weightBound;
   double bolusBound;
 
   EleMarsh(
-      {required this.baselineSimulation,
+      {required this.goldSimulation,
       required this.weightBound,
       required this.bolusBound});
 
@@ -36,10 +36,10 @@ class EleMarsh {
     // Set up results
     List<int> weightGuesses = [];
     List<int> bolusGuesses = [];
-    List<Simulation> baselineSimulations = [];
-    List<Simulation> comparedSimulations = [];
-    List<Simulation> finalSimulations = [];
-    List<double> comparedSimulationTargetIncEstimates = [];
+    List<Simulation> goldSimulations = [];
+    List<Simulation> marshSimulations = [];
+    List<Simulation> guessSimulations = [];
+    List<double> marshSimTargetIncEstimates = [];
     List<double> SSEs = [];
     List<double> MDPEs = [];
     List<double> MDAPEs = [];
@@ -49,67 +49,64 @@ class EleMarsh {
     double inductionCPTarget = -1;
 
     // Set up for baseline model
-    int weightGuess = baselineSimulation.weightGuess;
-    int boluesGuess = baselineSimulation.bolusGuess;
+    int weightGuess = goldSimulation.weightGuess;
+    int boluesGuess = goldSimulation.bolusGuess;
 
-    int minWeightGuess = (weightGuess - weightBound).round();
-    int maxWeightGuess = (minWeightGuess + weightBound).round();
+    int minWeightGuess = (weightGuess * (1 - weightBound)).round();
+    int maxWeightGuess = (minWeightGuess * (1 + weightBound)).round();
 
     int minBolusGuess = (boluesGuess * (1 - bolusBound)).round();
     int maxBolusGuess = (boluesGuess * (1 + bolusBound)).round();
 
-    var baselineEstimate = baselineSimulation.estimate;
-    List<double> baselineCEs = baselineEstimate.concentrationsEffect;
+    var goldSimEstimate = goldSimulation.estimate;
+    List<double> baselineSimCEs = goldSimEstimate.concentrationsEffect;
 
     for (int weightGuess = minWeightGuess;
         weightGuess <= maxWeightGuess;
         weightGuess++) {
       for (int bolusGuess = minBolusGuess;
           bolusGuess <= maxBolusGuess;
-          bolusGuess++) {
-        // Set up for compared model
-        Model comparedModel = Model.Marsh;
-        Patient comparedPatient = baselineSimulation.patient.copy();
-        comparedPatient.weight = weightGuess;
-        Pump comparedPump = baselineSimulation.pump.copy();
-        comparedPump.infuseBolus(
+          bolusGuess=bolusGuess+2) {
+
+        // Set up for the Marsh model
+        Model marshModel = Model.Marsh;
+        Patient marshPatient = goldSimulation.patient.copy();
+        marshPatient.weight = weightGuess;
+        Pump marshPump = goldSimulation.pump.copy();
+        marshPump.infuseBolus(
             startsAt: Duration.zero,
             bolus: bolusGuess.toDouble()); // Infuse the bolusGuess via the pump
-        Simulation comparedSimulation = Simulation(
-            model: comparedModel, patient: comparedPatient, pump: comparedPump);
+        Simulation  marshSimulation = Simulation(
+            model: marshModel, patient: marshPatient, pump: marshPump);
         // print(comparedPump.pumpInfusionSequences);
 
         // Get the pump_infs sequence out from the compared model
-        // Map<String, List> comparedEstimate = comparedSimulation.estimate;
-        var comparedEstimate = comparedSimulation.estimate;
-        List<Duration> times = comparedEstimate.times;
-        List<double> pumpInfs = comparedEstimate.pumpInfs;
+        var marshSimEstimate = marshSimulation.estimate;
+        List<Duration> times = marshSimEstimate.times;
+        List<double> pumpInfs = marshSimEstimate.pumpInfs;
 
-        // Set up for final model
-        Pump finalPump = baselineSimulation.pump.copy();
-        finalPump.copyPumpInfusionSequences(times: times, pumpInfs: pumpInfs);
-        Simulation finalSimulation = baselineSimulation.copy();
-        finalSimulation.pump = finalPump;
+        // Set up for guess model
+        Pump guessPump = goldSimulation.pump.copy();
+        guessPump.copyPumpInfusionSequences(times: times, pumpInfs: pumpInfs);
+        Simulation guessSimulation = goldSimulation.copy();
+        guessSimulation.pump = guessPump;
         // print(finalPump.pumpInfusionSequences);
 
-        var finalEstimate = finalSimulation.estimate;
-
         // Extract CEs and CPs from the estimates
-
-        List<double> finalCEs = finalEstimate.concentrationsEffect;
-
+        var guessSimEstimate = guessSimulation.estimate;
+        List<double> guessSimCEs = guessSimEstimate.concentrationsEffect;
         List<double> CEPErrors = [];
         List<double> CEPercentageErrors = [];
         List<double> CEAbsolutePercentageErrors = [];
 
-        for (int i = 0; i < finalCEs.length; i++) {
-          double error = finalCEs[i] - baselineCEs[i];
+        for (int i = 0; i < guessSimCEs.length; i++) {
+          double error = guessSimCEs[i] - baselineSimCEs[i];
           CEPErrors.add(error);
-          CEPercentageErrors.add(error / baselineCEs[i]);
-          CEAbsolutePercentageErrors.add(error.abs() / baselineCEs[i]);
+          CEPercentageErrors.add(error / baselineSimCEs[i]);
+          CEAbsolutePercentageErrors.add(error.abs() / baselineSimCEs[i]);
         }
 
-        double comparedSimulationTargetIncEstimate = comparedSimulation
+        double marshSimTargetIncEstimate = marshSimulation
             .estimateTargetIncreased(bolusInfusedBy: bolusGuess.toDouble());
 
         double SSE =
@@ -123,12 +120,12 @@ class EleMarsh {
         weightGuesses.add(weightGuess);
         bolusGuesses.add(bolusGuess);
 
-        baselineSimulations.add(baselineSimulation);
-        comparedSimulations.add(comparedSimulation);
-        finalSimulations.add(finalSimulation);
+        goldSimulations.add(goldSimulation);
+        marshSimulations.add(marshSimulation);
+        guessSimulations.add(guessSimulation);
 
-        comparedSimulationTargetIncEstimates
-            .add(comparedSimulationTargetIncEstimate);
+        marshSimTargetIncEstimates
+            .add(marshSimTargetIncEstimate);
         SSEs.add(SSE);
         MDPEs.add(MDPE);
         MDAPEs.add(MDAPE);
@@ -150,25 +147,25 @@ class EleMarsh {
       // weightBestGuess = weightGuesses[minIndices[filteredMinIndex]];
       // bolusBestGuess = bolusGuesses[minIndices[filteredMinIndex]];
       // initialCPTarget =
-      //     comparedSimulationTargetIncEstimates[minIndices[filteredMinIndex]];
+      //     marshSimTargetIncEstimates[minIndices[filteredMinIndex]];
     } else {
       guessIndex = minIndices.first;
       // weightBestGuess = weightGuesses[minIndices.first];
       // bolusBestGuess = bolusGuesses[minIndices.first];
-      // initialCPTarget = comparedSimulationTargetIncEstimates[minIndices.first];
+      // initialCPTarget = marshSimTargetIncEstimates[minIndices.first];
     }
 
     weightBestGuess = weightGuesses[guessIndex];
     bolusBestGuess = bolusGuesses[guessIndex];
-    inductionCPTarget = comparedSimulationTargetIncEstimates[guessIndex];
+    inductionCPTarget = marshSimTargetIncEstimates[guessIndex];
 
     // double inductionCPTarget =
     // initialCPTarget / 4 * baselineSimulation.operation.target;
     double adjustmentBolus = bolusBestGuess / 4;
 
     double predictedBIS = predictBIS(
-        age: baselineSimulation.patient.age,
-        target: baselineSimulation.pump.target);
+        age: goldSimulation.patient.age,
+        target: goldSimulation.pump.target);
 
     return (
       weightBestGuess: weightBestGuess,
@@ -179,9 +176,9 @@ class EleMarsh {
       weightGuesses: weightGuesses,
       bolusGuesses: bolusGuesses,
       guessIndex: guessIndex,
-      baselineSimulations: baselineSimulations,
-      comparedSimulations: comparedSimulations,
-      finalSimulations: finalSimulations,
+      baselineSimulations: goldSimulations,
+      comparedSimulations: marshSimulations,
+      finalSimulations: guessSimulations,
       SSEs: SSEs,
       MDPEs: MDPEs,
       MDAPEs: MDAPEs,

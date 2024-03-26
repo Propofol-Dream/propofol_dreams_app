@@ -2,7 +2,6 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:propofol_dreams_app/models/elemarsh.dart';
-import 'package:propofol_dreams_app/models/operation.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/simulation.dart';
@@ -24,8 +23,8 @@ void main() {
     double target = 3;
     Duration duration = Duration(minutes: 60);
 
-    int weightBound = 0; // 0 = No brute force
-    double bolusBound = 0.0; // 0.0 = No brute force
+    double weightBound = 0.1; // 0 = No brute force
+    double bolusBound = 0.25; // 0.0 = No brute force
 
     // Set up for the model
     Model baselineModel = Model.Eleveld;
@@ -35,7 +34,7 @@ void main() {
     Simulation baselineSim = Simulation(
         model: baselineModel, patient: baselinePatient, pump: baselinePump);
 
-    EleMarsh adj = EleMarsh(baselineSimulation: baselineSim, weightBound: weightBound, bolusBound: bolusBound);
+    EleMarsh adj = EleMarsh(goldSimulation: baselineSim, weightBound: weightBound, bolusBound: bolusBound);
 
     var result = adj.calculate();
     print("weightBestGuess: ${result.weightBestGuess}");
