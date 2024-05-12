@@ -10,7 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 import 'package:propofol_dreams_app/providers/settings.dart';
-import 'package:propofol_dreams_app/models/operation.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/model.dart';
@@ -183,9 +182,9 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             PDSim.Simulation(model: model, patient: patient, pump: pump);
 
         EleMarsh elemarsh =
-            EleMarsh(goldSimulation: simulation, weightBound: 0, bolusBound: 0);
+            EleMarsh(goldSimulation: simulation);
 
-        var result = elemarsh.calculate();
+        var result = elemarsh.estimate(weightBound: 0, bolusBound: 0);
 
         DateTime finish = DateTime.now();
 

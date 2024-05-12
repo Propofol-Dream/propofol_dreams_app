@@ -7,32 +7,28 @@ import 'package:propofol_dreams_app/models/model.dart';
 
 class EleMarsh {
   Simulation goldSimulation;
-  double weightBound;
-  double bolusBound;
 
   EleMarsh(
-      {required this.goldSimulation,
-      required this.weightBound,
-      required this.bolusBound});
+      {required this.goldSimulation});
 
   ({
-    List<double> MDAPEs,
-    List<double> MDPEs,
-    List<double> MaxAPEs,
-    List<double> SSEs,
+    // List<double> SSEs,
+    // List<double> MDAPEs,
+    // List<double> MDPEs,
+    // List<double> MaxAPEs,
     double adjustmentBolus,
-    List<Simulation> baselineSimulations,
-    int bolusBestGuess,
-    List<int> bolusGuesses,
-    List<Simulation> comparedSimulations,
-    List<Simulation> finalSimulations,
-    int guessIndex,
+    // List<Simulation> baselineSimulations,
+    // int bolusBestGuess,
+    // List<int> bolusGuesses,
+    // List<Simulation> comparedSimulations,
+    // List<Simulation> finalSimulations,
+    // int guessIndex,
     double inductionCPTarget,
-    int length,
+    // int length,
     double predictedBIS,
     int weightBestGuess,
-    List<int> weightGuesses
-  }) calculate() {
+    // List<int> weightGuesses
+  }) estimate({required double weightBound, required double bolusBound}) {
     // Set up results
     List<int> weightGuesses = [];
     List<int> bolusGuesses = [];
@@ -40,9 +36,9 @@ class EleMarsh {
     List<Simulation> marshSimulations = [];
     List<Simulation> guessSimulations = [];
     List<double> marshSimTargetIncEstimates = [];
-    List<double> SSEs = [];
-    List<double> MDPEs = [];
-    List<double> MDAPEs = [];
+    // List<double> SSEs = [];
+    // List<double> MDPEs = [];
+    // List<double> MDAPEs = [];
     List<double> MaxAPEs = [];
     int weightBestGuess = -1;
     int bolusBestGuess = -1;
@@ -53,7 +49,7 @@ class EleMarsh {
     int boluesGuess = goldSimulation.bolusGuess;
 
     int minWeightGuess = (weightGuess * (1 - weightBound)).round();
-    int maxWeightGuess = (minWeightGuess * (1 + weightBound)).round();
+    int maxWeightGuess = (weightGuess * (1 + weightBound)).round();
 
     int minBolusGuess = (boluesGuess * (1 - bolusBound)).round();
     int maxBolusGuess = (boluesGuess * (1 + bolusBound)).round();
@@ -95,24 +91,24 @@ class EleMarsh {
         // Extract CEs and CPs from the estimates
         var guessSimEstimate = guessSimulation.estimate;
         List<double> guessSimCEs = guessSimEstimate.concentrationsEffect;
-        List<double> CEPErrors = [];
-        List<double> CEPercentageErrors = [];
+        // List<double> CEPErrors = [];
+        // List<double> CEPercentageErrors = [];
         List<double> CEAbsolutePercentageErrors = [];
 
         for (int i = 0; i < guessSimCEs.length; i++) {
           double error = guessSimCEs[i] - baselineSimCEs[i];
-          CEPErrors.add(error);
-          CEPercentageErrors.add(error / baselineSimCEs[i]);
+          // CEPErrors.add(error);
+          // CEPercentageErrors.add(error / baselineSimCEs[i]);
           CEAbsolutePercentageErrors.add(error.abs() / baselineSimCEs[i]);
         }
 
         double marshSimTargetIncEstimate = marshSimulation
             .estimateTargetIncreased(bolusInfusedBy: bolusGuess.toDouble());
 
-        double SSE =
-            CEPErrors.reduce((value, element) => value + element * element);
-        double MDPE = calculateMedian(CEPercentageErrors);
-        double MDAPE = calculateMedian(CEAbsolutePercentageErrors);
+        // double SSE =
+        //     CEPErrors.reduce((value, element) => value + element * element);
+        // double MDPE = calculateMedian(CEPercentageErrors);
+        // double MDAPE = calculateMedian(CEAbsolutePercentageErrors);
         double maxPE =
             CEAbsolutePercentageErrors.where((element) => !element.isNaN)
                 .reduce(max);
@@ -126,14 +122,14 @@ class EleMarsh {
 
         marshSimTargetIncEstimates
             .add(marshSimTargetIncEstimate);
-        SSEs.add(SSE);
-        MDPEs.add(MDPE);
-        MDAPEs.add(MDAPE);
+        // SSEs.add(SSE);
+        // MDPEs.add(MDPE);
+        // MDAPEs.add(MDAPE);
         MaxAPEs.add(maxPE);
       }
     }
 
-    List<int> minIndices = findMinIndices(SSEs);
+    List<int> minIndices = findMinValueIndex(MaxAPEs);
     int guessIndex = 0;
 
     if (minIndices.length > 1) {
@@ -141,18 +137,11 @@ class EleMarsh {
       for (int i = 0; i < minIndices.length; i++) {
         filteredMaxPEs.add(MaxAPEs[minIndices[i]]);
       }
-      int filteredMinIndex = findMinIndices(filteredMaxPEs).first;
+      int filteredMinIndex = findMinValueIndex(filteredMaxPEs).first;
       guessIndex = minIndices[filteredMinIndex];
 
-      // weightBestGuess = weightGuesses[minIndices[filteredMinIndex]];
-      // bolusBestGuess = bolusGuesses[minIndices[filteredMinIndex]];
-      // initialCPTarget =
-      //     marshSimTargetIncEstimates[minIndices[filteredMinIndex]];
     } else {
       guessIndex = minIndices.first;
-      // weightBestGuess = weightGuesses[minIndices.first];
-      // bolusBestGuess = bolusGuesses[minIndices.first];
-      // initialCPTarget = marshSimTargetIncEstimates[minIndices.first];
     }
 
     weightBestGuess = weightGuesses[guessIndex];
@@ -167,22 +156,25 @@ class EleMarsh {
         age: goldSimulation.patient.age,
         target: goldSimulation.pump.target);
 
+
+
+
     return (
       weightBestGuess: weightBestGuess,
-      bolusBestGuess: bolusBestGuess,
+      // bolusBestGuess: bolusBestGuess,
       adjustmentBolus: adjustmentBolus,
       inductionCPTarget: inductionCPTarget,
-      length: SSEs.length,
-      weightGuesses: weightGuesses,
-      bolusGuesses: bolusGuesses,
-      guessIndex: guessIndex,
-      baselineSimulations: goldSimulations,
-      comparedSimulations: marshSimulations,
-      finalSimulations: guessSimulations,
-      SSEs: SSEs,
-      MDPEs: MDPEs,
-      MDAPEs: MDAPEs,
-      MaxAPEs: MaxAPEs,
+      // length: MaxAPEs.length,
+      // weightGuesses: weightGuesses,
+      // bolusGuesses: bolusGuesses,
+      // guessIndex: guessIndex,
+      // baselineSimulations: goldSimulations,
+      // comparedSimulations: marshSimulations,
+      // finalSimulations: guessSimulations,
+      // SSEs: SSEs,
+      // MDPEs: MDPEs,
+      // MDAPEs: MDAPEs,
+      // MaxAPEs: MaxAPEs,
       predictedBIS: predictedBIS
     );
   }
@@ -205,7 +197,7 @@ class EleMarsh {
     }
   }
 
-  List<int> findMinIndices(List<double> numbers) {
+  List<int> findMinValueIndex(List<double> numbers) {
     List<int> minIndices = [];
     double minValue = numbers.where((element) => !element.isNaN).reduce(min);
     for (int i = 0; i < numbers.length; i++) {
@@ -227,4 +219,38 @@ class EleMarsh {
     }
     return bis;
   }
+
+  ({double ce50, double ce50Shift}) ce50Calc({required double ce, required double bis, double shiftRatio = 0.3}){
+    double baseBIS = 93;
+
+    //This is the analytical solution to the Sigmoid Emax equation
+    double ce50 = ce / (pow((baseBIS/bis-1),(1/1.47)) + shiftRatio);
+    double ce50Shift = ce50 * shiftRatio;
+
+    return (ce50:ce50,ce50Shift:ce50Shift);
+  }
+
+  ({List<double> ceList, List<double> bisList}) ce50Plot({required double ce50, required double ce50Shift}){
+    List<double> ceList = [];
+    List<double> bisList = [];
+    double baseBIS = 93;
+
+    for (double ce = 1; ce <6; ce= ce+0.01){
+      double bis = 0;
+      if (ce - ce50Shift <=0){
+        bis = baseBIS;
+      }
+      else if (ce - ce50Shift > ce50){
+        bis = baseBIS*(pow(ce50,1.47))/(pow(ce50,1.47)+pow((ce-ce50Shift),1.47));
+      }
+      else{
+        bis = baseBIS*(pow(ce50,1.89))/(pow(ce50,1.89)+pow((ce-ce50Shift),1.89));
+      }
+      ceList.add(ce);
+      bisList.add(bis);
+    }
+    return(ceList: ceList, bisList: bisList);
+
+  }
+
 }

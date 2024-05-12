@@ -429,10 +429,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
               DateTime start = DateTime.now();
 
-              // var results1;
-              // var results2;
-              // var results3;
-
               Patient patient = Patient(
                   weight: weight, age: age, height: height, gender: gender);
 
@@ -463,21 +459,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   maxPumpRate: settings.max_pump_rate,
                   target: target + targetInterval,
                   duration: Duration(minutes: duration + 2 * durationInterval));
-
-              // Operation operation = Operation(
-              //     target: target, duration: Duration(minutes: duration));
-
-              // Operation operation1 = Operation(
-              //     target: target - targetInterval,
-              //     duration: Duration(minutes: duration + 2 * durationInterval));
-
-              // Operation operation2 = Operation(
-              //     target: target,
-              //     duration: Duration(minutes: duration + 2 * durationInterval));
-
-              // Operation operation3 = Operation(
-              //     target: target + targetInterval,
-              //     duration: Duration(minutes: duration + 2 * durationInterval));
 
               PDSim.Simulation sim1 = PDSim.Simulation(
                   model: model,

@@ -371,14 +371,7 @@ class Simulation {
                   4 * 0.2197 * bolusInfusedBy * 70 / patient.weight)) /
           (0.4394);
       result = result / 4 * pump.target;
-      // Pump testPump = pump.copy();
-      // testPump.infuseBolus(startsAt: Duration.zero, bolus: bolusInfusedBy);
-      // Map<String, List> testResult = test(testPump: testPump);
-      // List<double> CP = testResult['concentrations'] as List<double>;
-      // result = CP.reduce(max);
 
-      // double V1 = variables['V1'] as double;
-      // result = bolusInfusedBy / V1;
     }
     return result;
   }
@@ -392,7 +385,7 @@ class Simulation {
     List<double> concentrationsEffect,
     List<double> cumulativeInfusedDosages,
     List<double> cumulativeInfusedVolumes,
-    List<double> eBISEstimates,
+    List<double> BISEstimates,
     List<double> infs,
     List<double> overshootTimes,
     List<double> pumpInfs,
@@ -443,7 +436,7 @@ class Simulation {
     // Calculate eBIS
     double baselineBIS = variables.baselineBIS;
     double ce50 = variables.ce50;
-    List<double> eBISEstimates = [];
+    List<double> BISEstimates = [];
 
     // print(ce50);
 
@@ -542,7 +535,7 @@ class Simulation {
 
       double cumulativeInfusedVolume = cumulativeInfusedDosage / pump.density;
 
-      double eBISEstimate = concentrationEffect > ce50
+      double BISEstimate = concentrationEffect > ce50
           ? baselineBIS *
               (pow(ce50, 1.47)) /
               (pow(ce50, 1.47) + pow(concentrationEffect, 1.47))
@@ -564,7 +557,7 @@ class Simulation {
       concentrationsEffect.add(concentrationEffect);
       cumulativeInfusedDosages.add(cumulativeInfusedDosage);
       cumulativeInfusedVolumes.add(cumulativeInfusedVolume);
-      eBISEstimates.add(eBISEstimate);
+      BISEstimates.add(BISEstimate);
       // time = time + pump.timeStep;
     }
     // print(times.last);
@@ -584,7 +577,7 @@ class Simulation {
       concentrationsEffect: concentrationsEffect,
       cumulativeInfusedDosages: cumulativeInfusedDosages,
       cumulativeInfusedVolumes: cumulativeInfusedVolumes,
-      eBISEstimates: eBISEstimates
+      BISEstimates: BISEstimates
     );
   }
 
@@ -774,7 +767,7 @@ class Simulation {
         estimate.concentrationsEffect[i],
         estimate.cumulativeInfusedDosages[i],
         estimate.cumulativeInfusedVolumes[i],
-        estimate.eBISEstimates[i],
+        estimate.BISEstimates[i],
       ];
       data.add(row);
     }
@@ -812,7 +805,7 @@ class Simulation {
           .map((item) => item.toString())
           .toList(),
       'eBISEstimates':
-          estimate.eBISEstimates.map((item) => item.toString()).toList(),
+          estimate.BISEstimates.map((item) => item.toString()).toList(),
     };
   }
 }
