@@ -1,4 +1,4 @@
-
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:propofol_dreams_app/models/elemarsh.dart';
@@ -9,21 +9,27 @@ import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/gender.dart';
 
 typedef guessRow = ({
-int weightGuess,
-int bolusGuess,
-double inductionCPTarget,
-double SSRE,
-double maxPE});
+  int weightGuess,
+  int bolusGuess,
+  double inductionCPTarget,
+  double SSRE,
+  double maxPE});
 
-typedef VwakeRow = ({
-int step,
-Duration time,
-double dV1,
-double A1,
-double A2,
-double A3,
-double CP,
-double CE,
+typedef vWakeRow = ({
+  int step,
+  Duration time,
+  double A1,
+  double A2,
+  double A3,
+  double CP,
+  double CE,
+});
+
+typedef wakeUpRow = ({
+  int wakeUpBIS,
+  double CEBISEleveld,
+  Duration ETABIS,
+  double CEBISEleMarsh
 });
 
 void main() {
@@ -59,11 +65,11 @@ void main() {
     return bis;
   }
 
-  ({double fit, double shiftFit}) ce50Calc({required double ce, required double bis, double shiftRatio = 0.3}){
+  ({double fit, double shiftFit}) ce50Calc({required double CE, required int BIS, double shiftRatio = 0.3}){
     double baseBIS = 93;
 
     //This is the analytical solution to the Sigmoid Emax equation
-    double ce50Fit = ce / (pow((baseBIS/bis-1),(1/1.47)) + shiftRatio);
+    double ce50Fit = CE / (pow((baseBIS/BIS-1),(1/1.47)) + shiftRatio);
     double ce50ShiftFit = ce50Fit * shiftRatio;
 
     return (fit:ce50Fit,shiftFit:ce50ShiftFit);
@@ -98,10 +104,11 @@ void main() {
     int height = 135;
     Gender gender = Gender.Male;
     Duration timeStepSim = Duration(seconds: 1);
+    // Duration timeStepSim = Duration(milliseconds: 100);
     int density = 10;
     int maxPumpRate = 1200;
     double target = 3;
-    Duration duration = Duration(minutes: 60);
+    Duration duration = Duration(hours: 3);
 
     // Set up for the model
     Model goldModel = Model.Eleveld;
@@ -113,14 +120,16 @@ void main() {
 
 
     // estimate's parameters
-    double weightBoundary = 0.1;
-    double bolusBoundary = 0.1;
+    double weightBoundary = 0;
+    double bolusBoundary = 0;
 
     double dosageRate = 100; // mg/hr
-    double CP = 3;
-    double CE = 3;
-    double BIS = 40;
-    List<double> wakeUpBIS = [60,70];
+    double CPCurrent = 3;
+    double CECurrent = 3;
+    int BISCurrent = 40;
+    List<int> wakeUpBISs = [60,70];
+    bool verbose = true;
+    verbose? print("parameters: {weightBoundary: $weightBoundary, bolusBoundary: $bolusBoundary, dosageRate: $dosageRate mg/hr, CPCurrent: $CPCurrent, CECurrent:$CECurrent, BISCurrent: $BISCurrent, wakupBISs: $wakeUpBISs}"):();
 
 
 
@@ -201,58 +210,55 @@ void main() {
 
         guessRow row = (weightGuess: weightGuess, bolusGuess: bolusGuess, SSRE: SSRE, maxPE: maxPE, inductionCPTarget: inductionCPTarget);
         guessMatrix.add(row);
-        // print("{weighGuess: $weightGuess, bolusGuess: $bolusGuess, SSRE: $SSRE, maxPE: $maxPE}");
 
-
-        // weightGuesses.add(weightGuess);
-        // bolusGuesses.add(bolusGuess);
-        //
-        // goldSimulations.add(goldSimulation);
-        // marshSimulations.add(marshSimulation);
-        // guessSimulations.add(guessSimulation);
-        //
-        // marshSimTargetIncEstimates
-        //     .add(marshSimTargetIncEstimate);
-        // SSEs.add(SSE);
-        // MDPEs.add(MDPE);
-        // MDAPEs.add(MDAPE);
-        // MaxAPEs.add(maxPE);
       }
     }
 
-    // Step 1: Find the min SSE
+    // Find the min SSE
     double minSSRE = guessMatrix.map((row) => row.SSRE).reduce((a, b) => a < b ? a : b);
 
-    // Step 2: Find the max maxPE wiht matching mas SSE
+    // Find the max maxPE wiht matching mas SSE
     double minMaxPE = guessMatrix.where((row) => row.SSRE == minSSRE)
         .map((row) => row.maxPE)
         .reduce((a, b) => a < b ? a : b);
 
-    // Step 3: Find first row which meets both criteria
+    // Find first row which meets both criteria
     guessRow row = guessMatrix.firstWhere((row) => row.SSRE == minSSRE && row.maxPE == minMaxPE);
-
-
 
     int weightBestGuess = row.weightGuess;
     int bolusBestGuess = row.bolusGuess;
     double inductionCPTarget = row.inductionCPTarget;
 
-    print(goldPatient);
-    print("{weightBestGuess: $weightBestGuess, bolusBestGuess: $bolusBestGuess, SSRE: ${row.SSRE}, maxPE: ${row.maxPE}, weightBoundary: $minWeightGuess to $maxWeightGuess, bolusBoundary:$minBolusGuess to $maxBolusGuess}");
-
-
-    // double inductionCPTarget =
-    // initialCPTarget / 4 * baselineSimulation.operation.target;
     double adjustmentBolus = bolusBestGuess / 4;
 
     double predictedBIS = predictBIS(
         age: goldSimulation.patient.age,
         target: goldSimulation.pump.target);
 
+    verbose? print(goldPatient) : ();
+    verbose? print("{weightBestGuess: $weightBestGuess, bolusBestGuess: $bolusBestGuess, inductionCPTarget: $inductionCPTarget, adjustmentBolus: $adjustmentBolus, predictedBIS: $predictedBIS, SSRE: ${row.SSRE}, maxPE: ${row.maxPE}, weightBoundary: $minWeightGuess to $maxWeightGuess, bolusBoundary:$minBolusGuess to $maxBolusGuess}"):();
+
+
 
     //TODO: implement wakeup timer
-    // Simulation marshABW = marshSimulations[guessIndex];
+    List<wakeUpRow> wakeUpMatrix = [];
+
+    wakeUpBISs.forEach((wakeUpBIS) {
+      var ce50 = ce50Calc(CE: CECurrent, BIS: BISCurrent);
+      double CEBISEleveld = pow((93/wakeUpBIS-1), (1/1.47)) * ce50.fit + ce50.shiftFit;
+      double CEBISEleMarsh = -1;
+      Duration ETABIS = Duration.zero;
+
+      wakeUpMatrix.add((wakeUpBIS: wakeUpBIS, CEBISEleveld: CEBISEleveld, ETABIS: ETABIS, CEBISEleMarsh: CEBISEleMarsh));
+    });
+    // verbose? wakeUpMatrix.forEach((element) {
+    //   print(element);
+    // }):();
+
     // Pharmacokinetics
+    double timeStep = goldSimulation.pump.timeStep.inMilliseconds /
+        1000; // this is to allow time_step in milliseconds
+    dosageRate = dosageRate / 60; // mg per min
 
     var variables = goldSimulation.variables;
     double k21 = variables.k21;
@@ -263,47 +269,152 @@ void main() {
     double V1 = variables.V1;
     double ke0 = variables.ke0;
 
-    //List for calibrated_effect only
-    List<double> A1s = [];
-    List<double> A2s = [];
-    List<double> A3s = [];
-    List<Duration> times = [];
-    List<int> steps = [];
-    List<double> concentrations = [];
-    List<double> concentrationsEffect = [];
-
-    double timeStep = goldSimulation.pump.timeStep.inMilliseconds /
-        1000; // this is to allow time_step in milliseconds
-
-    dosageRate = dosageRate / 60; // mg per min
-
-    double A1 = CP*V1; // drug amount in V1 compartment
-    double A2 = (A1*(k10+k12+k13) - dosageRate)/(k21+k31) * timeStep; //drug amount in V2 compartment
+    double A1 = CPCurrent*V1; // drug amount in V1 compartment
+    double A2 = (A1 * ( k10 + k12 + k13) - dosageRate) / ( k21 + k31 ) * timeStep / 60; //drug amount in V2 compartment
     double A3 = A2;
-    double CPCurrent = CP;
-    double CECurrent = CE;
 
     int step = 0;
     Duration time = Duration.zero;
 
-    // Record type annotation in a variable declaration:
+    double minCEBISEleveld = wakeUpMatrix.map((v) => v.CEBISEleveld).reduce((a, b) => a < b ? a : b);
+    verbose? print("minCEBISEleveld: $minCEBISEleveld"):();
 
-    List<VwakeRow> Vwake = [];
-    VwakeRow row1 = (time: Duration.zero, A1:A1, A2:A2, A3: A3, CP:CPCurrent, CE:CECurrent, dV1:0.0, step: step);
-    VwakeRow row2 = (time: Duration.zero, A1:A1, A2:A2, A3: A3, CP:CPCurrent, CE:CECurrent, dV1:0.0, step: 1);
+    List<vWakeRow> vWakeEleveld = [];
 
-    Vwake.add(row1);
-    Vwake.add(row2);
+    vWakeEleveld.add((time: time, A1:A1, A2:A2, A3: A3, CP:CPCurrent, CE:CECurrent, step: step));
+    // verbose? print("vWakeEleveld.last.CE:  ${vWakeEleveld.last.CE}"):();
 
-    // VwakeRow row = Vwake.reduce((currentMax, row) => row.step > currentMax.step ? row : currentMax);
+    while(vWakeEleveld.last.CE > minCEBISEleveld){
+      step = step + 1;
+      time = goldSimulation.pump.timeStep * step;
+      A1 =  vWakeEleveld.last.A1
+            + ( k21 * vWakeEleveld.last.A2
+                + k31 * vWakeEleveld.last.A3
+                - (k10 + k12 + k13) * vWakeEleveld.last.A1
+              ) * timeStep / 60;
+      A2 =  vWakeEleveld.last.A2
+            + ( k12 * vWakeEleveld.last.A1
+                - k21 * vWakeEleveld.last.A2
+              ) * timeStep / 60;
+      A3 =  vWakeEleveld.last.A3
+            + ( k13 * vWakeEleveld.last.A1
+                - k31 * vWakeEleveld.last.A3
+              ) * timeStep / 60;
+      double CP = A1 / V1;
+      double CE =  vWakeEleveld.last.CE
+            + ( vWakeEleveld.last.CP
+                - vWakeEleveld.last.CE
+              ) * ke0 * timeStep / 60;
+      vWakeEleveld.add((time: time, A1:A1, A2:A2, A3: A3, CP:CP, CE:CE, step: step));
+      for (var row in wakeUpMatrix) {
+        if(row.ETABIS == Duration.zero){
+          if(CE < row.CEBISEleveld){
+            wakeUpMatrix.add((wakeUpBIS: row.wakeUpBIS, CEBISEleveld: row.CEBISEleveld, ETABIS: time, CEBISEleMarsh: row.CEBISEleMarsh));
+            wakeUpMatrix.remove(row);
+          }
+        }
+      }
+    }
+
+    String vWakeEleveldCSV = 'step,time,A1,A2,A3,CP,CE\n';
+    verbose? vWakeEleveld.forEach((row) {
+      vWakeEleveldCSV += '${row.step},${row.time.toString()},${row.A1},${row.A2},${row.A3},${row.CP},${row.CE}\n';
+    }):();
+
+    final vWakeEleveldFileName = '/Users/eddy/Developer/Dart/Propofol Dreams/propofol_dreams_app/test/vWakeEleveld.csv';
+    verbose? await File(vWakeEleveldFileName).writeAsString(vWakeEleveldCSV) : ();
+
+    // verbose? wakeUpMatrix.forEach((row) {
+    //   print(row);
+    // }):();
+
+
+    //Convert Eleveld Ce to EleMarsh Cp
+
+    // Now that we worked out ETA BIS60 and ETA BIS70, we can work backwards and
+    // deduce the corresponding "wake up" EleMarsh Cp
+    // This is based on the assumption that at equilibrium:
+    // (1) EleMarsh infnrate = Eleveld infnrate
+    // (2) EleMarsh Cp = Eleveld Ce
+
+    Simulation EleMarsh = goldSimulation.copy();
+    EleMarsh.model = Model.Marsh;
+    EleMarsh.patient.weight = weightBestGuess;
+    // verbose? print(EleMarsh) : ();
+
+    variables = EleMarsh.variables;
+    k21 = variables.k21;
+    k31 = variables.k31;
+    k10 = variables.k10;
+    k12 = variables.k12;
+    k13 = variables.k13;
+    V1 = variables.V1;
+    ke0 = variables.ke0;
+
+    A1 = CPCurrent * V1; // drug amount in V1 compartment
+    A2 = (A1 * ( k10 + k12 + k13) - dosageRate) / ( k21 + k31 ) * timeStep / 60; //drug amount in V2 compartment
+    A3 = A2;
+
+    step = 0;
+    time = Duration.zero;
+
+    List<vWakeRow> vWakeEleMarsh = [];
+
+    vWakeEleMarsh.add((time: time, A1:A1, A2:A2, A3: A3, CP:CPCurrent, CE:-1, step: step));
+
+    Duration maxETA = wakeUpMatrix.map((v) => v.ETABIS).reduce((a, b) => a > b ? a : b);
+    verbose ? print("maxETA: $maxETA") : ();
+
+    while (time < maxETA){
+      step = step + 1;
+      time = EleMarsh.pump.timeStep * step;
+
+      A1 =  vWakeEleMarsh.last.A1
+          + ( k21 * vWakeEleMarsh.last.A2
+              + k31 * vWakeEleMarsh.last.A3
+              - (k10 + k12 + k13) * vWakeEleMarsh.last.A1
+          ) * timeStep / 60;
+      A2 =  vWakeEleMarsh.last.A2
+          + ( k12 * vWakeEleMarsh.last.A1
+              - k21 * vWakeEleMarsh.last.A2
+          ) * timeStep / 60;
+      A3 =  vWakeEleMarsh.last.A3
+          + ( k13 * vWakeEleMarsh.last.A1
+              - k31 * vWakeEleMarsh.last.A3
+          ) * timeStep / 60;
+      double CP = A1 / V1;
+      vWakeEleMarsh.add((time: time, A1:A1, A2:A2, A3: A3, CP:CP, CE:-1, step: step));
+      for (var row in wakeUpMatrix) {
+        if(row.CEBISEleMarsh == -1){
+          if(time == row.ETABIS){
+            wakeUpMatrix.add((wakeUpBIS: row.wakeUpBIS, CEBISEleveld: row.CEBISEleveld, ETABIS: row.ETABIS, CEBISEleMarsh: CP));
+            wakeUpMatrix.remove(row);
+          }
+        }
+      }
+    }
+
+    String vWakeEleMarshCSV = 'step,time,A1,A2,A3,CP,CE\n';
+    verbose? vWakeEleMarsh.forEach((row) {
+      vWakeEleMarshCSV += '${row.step},${row.time.toString()},${row.A1},${row.A2},${row.A3},${row.CP},${row.CE}\n';
+    }):();
+
+    final vWakeEleMarshFileName = '/Users/eddy/Developer/Dart/Propofol Dreams/propofol_dreams_app/test/vWakeEleMarsh.csv';
+    verbose? await File(vWakeEleMarshFileName).writeAsString(vWakeEleMarshCSV) : ();
+
+
+    verbose? wakeUpMatrix.forEach((row) {
+      print(row);
+    }):();
+
+
+
+
+    // VwakeRow row = vWakeEleveld.reduce((currentMax, row) => row.step > currentMax.step ? row : currentMax);
     // print('Maximum Step: $row');
 
-    // Vwake.add((time: Duration.zero, A1:A1, A2:A2, A3: A3, CP:CPCurrent, CE:CECurrent, dV1:0.0, step: step));
-    //
-    // print(Vwake.first.A1);
-    //
     // // Finding the maximum step using reduce
-    // int maxStep = Vwake.map((v) => v.step).reduce((a, b) => a > b ? a : b);
+    // int maxStep = vWakeEleveld.map((v) => v.step).reduce((a, b) => a > b ? a : b);
     // print('Maximum Age: $maxStep');
 
 

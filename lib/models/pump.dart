@@ -1,7 +1,7 @@
 import 'dart:collection';
 
 class Pump {
-  Duration timeStep;
+  Duration timeStep; //aka refresh rate
   int density;
   int maxPumpRate;
   double target;
