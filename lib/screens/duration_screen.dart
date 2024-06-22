@@ -349,7 +349,7 @@ class _DurationScreenState extends State<DurationScreen> {
           DataTable(
               // dataRowHeight
               headingTextStyle: Theme.of(context).textTheme.titleLarge,
-              dataTextStyle: Theme.of(context).textTheme.subtitle1,
+              dataTextStyle: Theme.of(context).textTheme.titleMedium,
               columns: durationColumns,
               rows: isRunnable(
                       weight: weight,
@@ -363,7 +363,6 @@ class _DurationScreenState extends State<DurationScreen> {
           Container(
             height: UIHeight + 24,
             child: PDTextField(
-              height: UIHeight + 2,
               labelText: 'Weight (kg)',
               controller: weightController,
               fractionDigits: 0,
@@ -380,7 +379,6 @@ class _DurationScreenState extends State<DurationScreen> {
           Container(
             height: UIHeight + 24,
             child: PDTextField(
-              height: UIHeight + 2,
               labelText: 'Infusion Rate (${[
                 InfusionUnit.mg_kg_hr.toString(),
                 InfusionUnit.mcg_kg_min.toString(),

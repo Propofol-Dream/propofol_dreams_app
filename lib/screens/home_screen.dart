@@ -8,6 +8,7 @@ import 'volume_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
 import 'settings_screen.dart';
+import 'test_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -22,7 +23,8 @@ class _HomeScreenState extends State<HomeScreen> {
     VolumeScreen(),
     EleMarshScreen(),
     DurationScreen(),
-    SettingsScreen()
+    SettingsScreen(),
+    TestScren()
   ];
 
   @override
@@ -86,6 +88,9 @@ class _HomeScreenState extends State<HomeScreen> {
             BottomNavigationBarItem(
                 icon:  Icon(Icons.settings),
                 label: 'Settings'),
+            BottomNavigationBarItem(
+                icon:  Icon(Icons.science),
+                label: 'Test'),
           ]),
     );
   }

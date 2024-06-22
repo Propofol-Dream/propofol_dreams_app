@@ -940,7 +940,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
             height: 8,
           ),
           Container(
-            height: UIHeight + 28,
+            height: UIHeight + 24,
             child: Row(
               children: [
                 Container(
@@ -988,7 +988,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
             height: 8,
           ),
           Container(
-            height: UIHeight + 28,
+            height: UIHeight + 24,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1036,7 +1036,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
             height: 8,
           ),
           Container(
-            height: UIHeight + 28,
+            height: UIHeight + 24,
             child: Row(
               children: [
                 Container(

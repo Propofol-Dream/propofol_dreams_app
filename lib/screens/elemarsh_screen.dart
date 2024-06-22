@@ -775,7 +775,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
             height: 8,
           ),
           Container(
-            height: UIHeight + 28,
+            height: UIHeight + 24,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -819,7 +819,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
             height: 8,
           ),
           Container(
-            height: UIHeight + 28,
+            height: UIHeight + 24,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -862,7 +862,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
             height: 8,
           ),
           Container(
-            height: UIHeight + 28,
+            height: UIHeight + 24,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
