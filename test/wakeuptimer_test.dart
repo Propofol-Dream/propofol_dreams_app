@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:propofol_dreams_app/models/operation.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/simulation.dart';
@@ -9,7 +8,6 @@ import 'package:propofol_dreams_app/models/WUTInput.dart.bk';
 
 import 'dart:io';
 import 'dart:math';
-import 'package:propofol_dreams_app/constants.dart';
 import 'dart:collection';
 
 void main() {
@@ -79,7 +77,7 @@ void main() {
   List<double> eBISInputs = [41, 45, 43, 53];
 
   //TODO: Test & fix Duration(second: 5) or more
-  Duration timeStep = Duration(seconds: 1);
+  Duration timeStep = const Duration(seconds: 1);
   int density = 10;
   int maxPumpRate = 1200; //mg/hr
 
@@ -393,7 +391,7 @@ void main() {
       ce50Fit = ce50s[indexOfMinDiff];
       ce50ShiftFit = ce50Shifts[indexOfMinDiff];
 
-      final filename = '/Users/eddy/Developer/ce50Test.csv';
+      const filename = '/Users/eddy/Developer/ce50Test.csv';
       await File(filename).writeAsString(toCsv(
           headers: ['ce50s', 'ce50Shifts', 'sumOfWeightedSquaredDiff'],
           contents: [ce50s, ce50Shifts, sumOfWeightedSquaredDiffs]));
@@ -426,7 +424,7 @@ void main() {
     List dosages = inputs.map((input) => input.dosageInput).toList();
     List eBISs = inputs.map((input) => input.eBISInput).toList();
 
-    final filename = '/Users/eddy/Developer/predeBIS.csv';
+    const filename = '/Users/eddy/Developer/predeBIS.csv';
     await File(filename).writeAsString(toCsv(
         headers: ['duration', 'dosage', 'eBISInputs', 'predeBIS'],
         contents: [durations, dosages, eBISs, predeBIS]));

@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:propofol_dreams_app/models/operation.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/simulation.dart';
@@ -16,11 +15,11 @@ void main() {
     int age = 40;
     int height = 170;
     Gender gender = Gender.Male;
-    Duration timeStep = Duration(seconds: 1);
+    Duration timeStep = const Duration(seconds: 1);
     int density = 10;
     int maxPumpRate = 1200;
     double target = 4;
-    Duration duration = Duration(minutes: 180);
+    Duration duration = const Duration(minutes: 180);
 
     int weightBound = 0; // 0 = No brute force
     double bolusBound = 0.0; // 0.0 = No brute force

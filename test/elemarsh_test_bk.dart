@@ -1,7 +1,6 @@
 
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:propofol_dreams_app/models/elemarsh.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/simulation.dart';
@@ -111,11 +110,11 @@ void main() {
     int age = 40;
     int height = 170;
     Gender gender = Gender.Female;
-    Duration timeStepSim = Duration(seconds: 1);
+    Duration timeStepSim = const Duration(seconds: 1);
     int density = 10;
     int maxPumpRate = 1200;
     double target = 3;
-    Duration duration = Duration(minutes: 60);
+    Duration duration = const Duration(minutes: 60);
 
     // Set up for the model
     Model goldModel = Model.Eleveld;

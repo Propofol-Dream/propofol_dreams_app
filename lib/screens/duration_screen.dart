@@ -361,6 +361,7 @@ class _DurationScreenState extends State<DurationScreen> {
             height: 16,
           ),
           Container(
+            alignment: Alignment.topCenter,
             height: UIHeight + 24,
             child: PDTextField(
               labelText: 'Weight (kg)',
@@ -377,6 +378,7 @@ class _DurationScreenState extends State<DurationScreen> {
             height: 8,
           ),
           Container(
+            alignment: Alignment.topCenter,
             height: UIHeight + 24,
             child: PDTextField(
               labelText: 'Infusion Rate (${[

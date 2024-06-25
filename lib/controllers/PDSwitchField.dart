@@ -7,7 +7,8 @@ class PDSwitchField extends StatefulWidget {
   PDSwitchField({
     Key? key,
     required this.prefixIcon,
-    required this.labelTexts,
+    required this.labelText,
+    required this.switchTexts,
     // required this.helperText,
     required this.controller,
     required this.onChanged,
@@ -15,7 +16,8 @@ class PDSwitchField extends StatefulWidget {
     this.enabled = true,
   }) : super(key: key);
 
-  final Map<bool, String> labelTexts;
+  final String labelText;
+  final Map<bool, String> switchTexts;
   final IconData prefixIcon;
 
   // final String helperText;
@@ -39,7 +41,7 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
   @override
   Widget build(BuildContext context) {
     TextEditingController textEditingController =
-        TextEditingController(text: widget.labelTexts[widget.controller.val]!);
+        TextEditingController(text: widget.switchTexts[widget.controller.val]!);
 
     return Stack(
       alignment: Alignment.centerRight,
@@ -56,15 +58,19 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
             filled: widget.enabled ? true : false,
             fillColor: Theme.of(context).colorScheme.onPrimary,
             errorStyle: TextStyle(color: Theme.of(context).colorScheme.error),
-            prefixIcon: Icon(
-              widget.prefixIcon,
-              color: widget.enabled
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).disabledColor,
+            prefixIcon: Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Icon(
+                widget.prefixIcon,
+                color: widget.enabled
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).disabledColor,
+              ),
             ),
             // prefixIconConstraints: BoxConstraints.tight(const Size(40, 18)),
             helperText: '',
             helperStyle: TextStyle(fontSize: 10),
+            labelText: widget.labelText,
             labelStyle: TextStyle(
               color: widget.enabled
                   ? Theme.of(context).colorScheme.primary
@@ -85,7 +91,7 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
           ),
         ),
         Container(
-          padding: EdgeInsets.only(right: 4, bottom: 20),
+          padding: EdgeInsets.only(right: 4, bottom: 16),
           height: widget.height,
           child: SizedBox(
             height: 24,

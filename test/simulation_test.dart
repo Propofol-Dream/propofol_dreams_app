@@ -1,27 +1,23 @@
-import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:propofol_dreams_app/models/operation.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/simulation.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/gender.dart';
 
-import 'dart:io';
-import 'package:propofol_dreams_app/constants.dart';
 
 void main() {
   int weight = 128;
   int age = 40;
   int height = 160;
   Gender gender = Gender.Female;
-  Duration timeStep = Duration(seconds: 1);
+  Duration timeStep = const Duration(seconds: 1);
   int density = 10;
   int maxPumpRate = 2000;
   double target = 2.5;
   // Duration duration = Duration(minutes: 60);
-  Duration duration = Duration(minutes: 10);
+  Duration duration = const Duration(minutes: 10);
 
   test('Peak', () async {
     Model model = Model.Eleveld;

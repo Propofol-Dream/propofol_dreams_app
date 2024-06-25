@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io' show Platform;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 
-// import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:propofol_dreams_app/models/elemarsh.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +20,12 @@ import 'package:propofol_dreams_app/models/gender.dart';
 import 'package:propofol_dreams_app/controllers/PDSwitchController.dart';
 import 'package:propofol_dreams_app/controllers/PDSwitchField.dart';
 import 'package:propofol_dreams_app/controllers/PDTextField.dart';
+import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedController.dart';
+import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedControl.dart';
+
+
+import 'package:propofol_dreams_app/widgets/PDLabel.dart';
+import 'package:propofol_dreams_app/widgets/PDStyledLabel.dart';
 
 import '../constants.dart';
 
@@ -34,6 +42,9 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   TextEditingController heightController = TextEditingController();
   TextEditingController weightController = TextEditingController();
   TextEditingController targetController = TextEditingController();
+  Set<String> selectedFlow = {'induction'};
+  final PDAdvancedSegmentedController flowController =
+  PDAdvancedSegmentedController();
 
   // TextEditingController durationController = TextEditingController();
 
@@ -169,7 +180,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
         Model model = Model.Eleveld;
         Patient patient =
-            Patient(weight: weight, height: height, age: age, gender: gender);
+        Patient(weight: weight, height: height, age: age, gender: gender);
         Pump pump = Pump(
             timeStep: Duration(seconds: settings.time_step),
             density: settings.density,
@@ -179,10 +190,9 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         // Operation operation =
         //     Operation(target: target, duration: Duration(hours: 3));
         PDSim.Simulation simulation =
-            PDSim.Simulation(model: model, patient: patient, pump: pump);
+        PDSim.Simulation(model: model, patient: patient, pump: pump);
 
-        EleMarsh elemarsh =
-            EleMarsh(goldSimulation: simulation);
+        EleMarsh elemarsh = EleMarsh(goldSimulation: simulation);
 
         var result = elemarsh.estimate(weightBound: 0, bolusBound: 0);
 
@@ -204,7 +214,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             'adjustmentBolus': adjustmentBolus,
             'inductionCPTarget': inductionCPTarget,
             'calculation time':
-                '${calculationDuration.inMilliseconds.toString()} milliseconds'
+            '${calculationDuration.inMilliseconds.toString()} milliseconds'
           });
         });
       } else {
@@ -229,28 +239,28 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     genderController.val = toDefault
         ? true
         : settings.EMGender == Gender.Female
-            ? true
-            : false;
+        ? true
+        : false;
     ageController.text = toDefault
         ? 40.toString()
         : settings.EMAge != null
-            ? settings.EMAge.toString()
-            : '';
+        ? settings.EMAge.toString()
+        : '';
     heightController.text = toDefault
         ? 170.toString()
         : settings.EMHeight != null
-            ? settings.EMHeight.toString()
-            : '';
+        ? settings.EMHeight.toString()
+        : '';
     weightController.text = toDefault
         ? 70.toString()
         : settings.EMWeight != null
-            ? settings.EMWeight.toString()
-            : '';
+        ? settings.EMWeight.toString()
+        : '';
     targetController.text = toDefault
         ? 3.0.toString()
         : settings.EMTarget != null
-            ? settings.EMTarget.toString()
-            : '';
+        ? settings.EMTarget.toString()
+        : '';
 
     run();
   }
@@ -263,8 +273,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     final double UIHeight = mediaQuery.size.aspectRatio >= 0.455
         ? mediaQuery.size.height >= screenBreakPoint1
-            ? 56
-            : 48
+        ? 56
+        : 48
         : 48;
     final double UIWidth =
         (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
@@ -275,8 +285,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         (Platform.isAndroid
             ? 48
             : mediaQuery.size.height >= screenBreakPoint1
-                ? 88
-                : 56);
+            ? 88
+            : 56);
 
     final settings = context.watch<Settings>();
     int density = settings.density;
@@ -288,7 +298,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           child: Text.rich(
             TextSpan(
                 text:
-                    """The purpose of EleMarsh Mode is to make the Marsh model mimic the Eleveld model.""",
+                """The purpose of EleMarsh Mode is to make the Marsh model mimic the Eleveld model.""",
                 children: [
                   TextSpan(text: "\n\n"),
                   TextSpan(
@@ -329,7 +339,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                   ),
                   TextSpan(
                       text:
-                          """as your initial CpT setting. As soon as the bolus is given, drop the CpT down to your desired CeT. The Marsh model on your pump will now mimic the behaviour of the Eleveld model."""),
+                      """as your initial CpT setting. As soon as the bolus is given, drop the CpT down to your desired CeT. The Marsh model on your pump will now mimic the behaviour of the Eleveld model."""),
                   TextSpan(
                     text: """
                     
@@ -348,8 +358,6 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                   TextSpan(
                     text: """.""",
                   ),
-
-
                 ]),
           ),
         ),
@@ -365,6 +373,13 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
       );
     }
 
+    void updateSelectedFlow(Set<String> newSelection) {
+      setState(() {
+        selectedFlow = newSelection;
+        print(selectedFlow.first);
+      });
+    }
+
     return Container(
       height: screenHeight,
       margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
@@ -372,407 +387,490 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Container(),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Container(
-                      height: 24 + (settings.showMaxPumpRate ? 32 : 0) + 12,
-                      //fontSize + 12 padding
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          settings.showMaxPumpRate
-                              ? Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "EleMarsh",
-                                      style: TextStyle(fontSize: 24),
-                                    ),
-                                    Text(
-                                      "Mode",
-                                      style: TextStyle(fontSize: 24),
-                                    ),
-                                  ],
-                                )
-                              : Text(
-                                  "EleMarsh Mode",
-                                  style: TextStyle(fontSize: 24),
-                                ),
-                          const SizedBox(
-                            width: 8,
-                          ),
-                          GestureDetector(
-                            onTap: () async {
-                              await HapticFeedback.mediumImpact();
-                              // Show the modal
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return displayInfoDialog();
-                                },
-                              );
-                            },
-                            child: Icon(
-                              Icons.info_outline,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        settings.showMaxPumpRate
-                            ? GestureDetector(
-                                onTap: () async {
-                                  await HapticFeedback.mediumImpact();
-                                  settings.showMaxPumpRate =
-                                      !settings.showMaxPumpRate;
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(
-                                  //     builder: (BuildContext context) => HomeScreen(),
-                                  //   ),
-                                  // );
-                                },
-                                child: Chip(
-                                  avatar: Icon(
-                                    Icons.speed_outlined,
-                                    color:
-                                        Theme.of(context).colorScheme.onPrimary,
-                                  ),
-                                  label: Text(
-                                    '${settings.max_pump_rate.toString()}',
-                                    style: TextStyle(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onPrimary),
-                                  ),
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.primary,
-                                ),
-                              )
-                            : Container(),
-                        SizedBox(
-                          width: 8,
-                        ),
-                        GestureDetector(
-                          onTap: () async {
-                            await HapticFeedback.mediumImpact();
-                            settings.density == 10
-                                ? settings.density = 20
-                                : settings.density = 10;
-                            run();
-                          },
-                          onLongPress: () async {
-                            await HapticFeedback.mediumImpact();
-                            settings.showMaxPumpRate =
-                                !settings.showMaxPumpRate;
-                          },
-                          child: Chip(
-                            avatar: settings.density == 10
-                                ? Icon(
-                                    Icons.water_drop_outlined,
-                                    color:
-                                        Theme.of(context).colorScheme.onPrimary,
-                                  )
-                                : Icon(
-                                    Icons.water_drop,
-                                    color:
-                                        Theme.of(context).colorScheme.onPrimary,
-                                  ),
-                            label: Text(
-                              '${(density / 10).toInt()} %',
-                              style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary),
-                            ),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                ClipRRect(
-                  borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                  // Add your desired radius here
-                  child: Container(
-                    height: rowHeight * 3,
+          Expanded(child: Container()),
+          ClipRRect(
+            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+            // Add your desired radius here
+            child: Container(
+              height: rowHeight * 3,
+              child: Column(
+                children: [
+                  Container(
+                    height: rowHeight,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Divider(
+                          height: 0.0,
+                          color: Colors.transparent,
+                        ),
                         Container(
-                          height: rowHeight,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          child: Column(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Divider(
-                                height: 0.0,
-                                color: Colors.transparent,
+                              Text(
+                                "Adjusted Body Weight",
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    color:
+                                    Theme.of(context).colorScheme.primary),
                               ),
+                              Row(
+                                children: [
+                                  Text("$weightBestGuess",
+                                      style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w600,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary)),
+                                  Text(" kg",
+                                      style: TextStyle(
+                                          fontSize: 24,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.only(left: 16.0),
+                          child: Divider(
+                            height: 1.0,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  Container(
+                    height: rowHeight,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Divider(
+                          height: 0.0,
+                          color: Colors.transparent,
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Induction CpT",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    "$inductionCPTarget",
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    " μg/mL",
+                                    style: TextStyle(fontSize: 20),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.only(left: 16.0),
+                          child: Divider(
+                            height: 1.0,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  // Container(
+                  //   height: rowHeight,
+                  //   color: Theme.of(context).colorScheme.onPrimary,
+                  //   child: Column(
+                  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //     children: [
+                  //       Divider(
+                  //         height: 0.0,
+                  //         color: Colors.transparent,
+                  //       ),
+                  //       Container(
+                  //         padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  //         child: Row(
+                  //           mainAxisAlignment:
+                  //               MainAxisAlignment.spaceBetween,
+                  //           children: [
+                  //             Text(
+                  //               "Adjustment Bolus",
+                  //               style: TextStyle(fontSize: 16),
+                  //             ),
+                  //             Row(
+                  //               children: [
+                  //                 Text(
+                  //                   "$adjustmentBolus",
+                  //                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  //                 ),
+                  //                 Text(
+                  //                   " mg",
+                  //                   style: TextStyle(fontSize: 20),
+                  //                 ),
+                  //               ],
+                  //             ),
+                  //           ],
+                  //         ),
+                  //       ),
+                  //       Container(
+                  //         padding: EdgeInsets.only(left: 16.0),
+                  //         child: Divider(
+                  //           height: 1.0,
+                  //           color: Theme.of(context).colorScheme.primary,
+                  //         ),
+                  //       )
+                  //     ],
+                  //   ),
+                  // ),
+                  Container(
+                    height: rowHeight,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Divider(
+                          height: 0.0,
+                          color: Colors.transparent,
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
                               Container(
-                                padding: EdgeInsets.symmetric(horizontal: 16.0),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "Adjusted Body Weight",
+                                      "Predicted BIS",
                                       style: TextStyle(
-                                          fontSize: 18,
+                                          fontSize: 16,
                                           color: Theme.of(context)
                                               .colorScheme
                                               .primary),
                                     ),
-                                    Row(
-                                      children: [
-                                        Text("$weightBestGuess",
-                                            style: TextStyle(
-                                                fontSize: 24,
-                                                fontWeight: FontWeight.w600,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary)),
-                                        Text(" kg",
-                                            style: TextStyle(
-                                                fontSize: 24,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary)),
-                                      ],
+                                    SizedBox(
+                                      width: 8.0,
                                     ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.only(left: 16.0),
-                                child: Divider(
-                                  height: 1.0,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        Container(
-                          height: rowHeight,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Divider(
-                                height: 0.0,
-                                color: Colors.transparent,
-                              ),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
                                     Text(
-                                      "Induction CpT",
+                                      "$predictedBIS",
                                       style: TextStyle(
                                         fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                       ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "$inductionCPTarget",
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        Text(
-                                          " μg/mL",
-                                          style: TextStyle(fontSize: 20),
-                                        ),
-                                      ],
                                     ),
                                   ],
                                 ),
                               ),
-                              Container(
-                                padding: EdgeInsets.only(left: 16.0),
-                                child: Divider(
-                                  height: 1.0,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
+                              Row(
+                                children: [
+                                  Text(
+                                    "BMI",
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                  SizedBox(
+                                    width: 8.0,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "$BMI",
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              // Row(
+                              //   children: [
+                              //     Text(
+                              //       "MaxAPE",
+                              //       style: TextStyle(fontSize: 14),
+                              //     ),
+                              //     SizedBox(
+                              //       width: 8.0,
+                              //     ),
+                              //     Text(
+                              //       "$MaxAPE %",
+                              //       style: TextStyle(fontSize: 14),
+                              //     ),
+                              //   ],
+                              // ),
                             ],
                           ),
                         ),
-                        // Container(
-                        //   height: rowHeight,
-                        //   color: Theme.of(context).colorScheme.onPrimary,
-                        //   child: Column(
-                        //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        //     children: [
-                        //       Divider(
-                        //         height: 0.0,
-                        //         color: Colors.transparent,
-                        //       ),
-                        //       Container(
-                        //         padding: EdgeInsets.symmetric(horizontal: 16.0),
-                        //         child: Row(
-                        //           mainAxisAlignment:
-                        //               MainAxisAlignment.spaceBetween,
-                        //           children: [
-                        //             Text(
-                        //               "Adjustment Bolus",
-                        //               style: TextStyle(fontSize: 16),
-                        //             ),
-                        //             Row(
-                        //               children: [
-                        //                 Text(
-                        //                   "$adjustmentBolus",
-                        //                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        //                 ),
-                        //                 Text(
-                        //                   " mg",
-                        //                   style: TextStyle(fontSize: 20),
-                        //                 ),
-                        //               ],
-                        //             ),
-                        //           ],
-                        //         ),
-                        //       ),
-                        //       Container(
-                        //         padding: EdgeInsets.only(left: 16.0),
-                        //         child: Divider(
-                        //           height: 1.0,
-                        //           color: Theme.of(context).colorScheme.primary,
-                        //         ),
-                        //       )
-                        //     ],
-                        //   ),
-                        // ),
                         Container(
-                          height: rowHeight,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Divider(
-                                height: 0.0,
-                                color: Colors.transparent,
-                              ),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            "Predicted BIS",
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary),
-                                          ),
-                                          SizedBox(
-                                            width: 8.0,
-                                          ),
-                                          Text(
-                                            "$predictedBIS",
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "BMI",
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                        SizedBox(
-                                          width: 8.0,
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "$BMI",
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    // Row(
-                                    //   children: [
-                                    //     Text(
-                                    //       "MaxAPE",
-                                    //       style: TextStyle(fontSize: 14),
-                                    //     ),
-                                    //     SizedBox(
-                                    //       width: 8.0,
-                                    //     ),
-                                    //     Text(
-                                    //       "$MaxAPE %",
-                                    //       style: TextStyle(fontSize: 14),
-                                    //     ),
-                                    //   ],
-                                    // ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.only(left: 16.0),
-                                child: Divider(
-                                  height: 1.0,
-                                  color: Colors.transparent,
-                                ),
-                              )
-                            ],
+                          padding: EdgeInsets.only(left: 16.0),
+                          child: Divider(
+                            height: 1.0,
+                            color: Colors.transparent,
                           ),
-                        ),
+                        )
                       ],
                     ),
                   ),
+                ],
+              ),
+            ),
+          ),
+          // Container(
+          //   alignment: Alignment.centerRight,
+          //   child: SingleChildScrollView(
+          //     scrollDirection: Axis.horizontal,
+          //     child: Row(
+          //       mainAxisAlignment: MainAxisAlignment.start,
+          //       crossAxisAlignment: CrossAxisAlignment.start,
+          //       children: [
+          //         PDStyledLabel(
+          //             title: "Adj. Body Weight",
+          //             leadingText: weightBestGuess,
+          //             supportingText: 'kg',
+          //             backgroundColor: Theme.of(context).colorScheme.primary,
+          //             textColor: Theme.of(context).colorScheme.onPrimary),
+          //         SizedBox(
+          //           width: 8.0,
+          //         ),
+          //         PDStyledLabel(
+          //             title: "Induction CpT",
+          //             leadingText: inductionCPTarget,
+          //             supportingText: "μg/mL",
+          //             backgroundColor: Theme.of(context).colorScheme.primary,
+          //             textColor: Theme.of(context).colorScheme.onPrimary),
+          //       ],
+          //     ),
+          //   ),
+          // ),
+          // const SizedBox(
+          //   height: 8,
+          // ),
+          // Container(
+          //   alignment: Alignment.centerRight,
+          //   child: SingleChildScrollView(
+          //     scrollDirection: Axis.horizontal,
+          //     child: Row(
+          //       mainAxisAlignment: MainAxisAlignment.start,
+          //       crossAxisAlignment: CrossAxisAlignment.start,
+          //       children: [
+          //         PDLabel(
+          //             leadingText: 'Pred. BIS',
+          //             supportingText: predictedBIS,
+          //             backgroundColor: Theme.of(context).colorScheme.primary,
+          //             textColor: Theme.of(context).colorScheme.onPrimary),
+          //         SizedBox(
+          //           width: 8.0,
+          //         ),
+          //         PDLabel(
+          //             leadingText: 'BMI',
+          //             supportingText: BMI,
+          //             backgroundColor: Theme.of(context).colorScheme.primary,
+          //             textColor: Theme.of(context).colorScheme.onPrimary),
+          //       ],
+          //     ),
+          //   ),
+          // ),
+          const SizedBox(
+            height: 24,
+          ),
+          Container(
+            width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  alignment: Alignment.centerRight,
+                  child:  SizedBox(
+                    height: UIHeight+10,
+                    child: SegmentedButton(
+                      segments: <ButtonSegment<String>>[
+                        ButtonSegment<String>(
+                          value: 'induction',
+                          label:
+                          // Padding(
+                          //   padding:
+                          //       const EdgeInsets.symmetric(vertical: 12.0),
+                          //   // this is due to ButtonSegement bug
+                          //   child:
+                          Text('Induction'),
+                          // )
+                        ),
+                        ButtonSegment<String>(
+                          value: 'wakeUp',
+                          label: Text('Wake Up'),
+                        )
+                      ],
+                      selected: selectedFlow,
+                      onSelectionChanged: updateSelectedFlow,
+                      showSelectedIcon: false,
+                      style: ButtonStyle(
+                        backgroundColor:
+                        MaterialStateProperty.resolveWith<Color>((states) {
+                          if (states.contains(MaterialState.selected)) {
+                            return selectedFlow.first == 'induction'
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.secondary;
+                          }
+                          return Theme.of(context).colorScheme.onPrimary;
+                        }),
+                        foregroundColor:
+                        MaterialStateProperty.resolveWith<Color>((states) {
+                          return (states.contains(MaterialState.selected))
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(context).colorScheme.primary;
+                        }),
+                        shape:
+                        MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.horizontal(
+                                left: Radius.circular(8),
+                                right: Radius.circular(8)),
+                          ),
+                        ),
+                        side: MaterialStateProperty.resolveWith<BorderSide>(
+                                (states) {
+                              return BorderSide(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 1.0,
+                              );
+                            }),
+                        visualDensity: VisualDensity(vertical: 4),
+                      ),
+                    ),
+                  ),
+
+                ),
+                Row(
+                  children: [
+                    Container(
+                        height: UIHeight,
+                        width: UIHeight,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  strokeAlign: BorderSide.strokeAlignOutside,
+                                ),
+                                borderRadius:
+                                BorderRadius.all(Radius.circular(5))),
+                          ),
+                          onPressed: () async {},
+                          child: Icon(Icons.info_outline_rounded),
+                        )),
+                    SizedBox(width: 8,),
+                    Container(
+                        height: UIHeight,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  strokeAlign: BorderSide.strokeAlignOutside,
+                                ),
+                                borderRadius:
+                                BorderRadius.all(Radius.circular(5))),
+                          ),
+                          onPressed: () async {
+                            await HapticFeedback.mediumImpact();
+                            reset(toDefault: true);
+                          },
+                          child: Icon(Icons.restart_alt_outlined),
+                        )),
+                  ],
                 ),
               ],
             ),
           ),
           const SizedBox(
-            height: 32,
+            height: 24,
           ),
           Container(
             width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [],
+              children: [
+                Container(
+                  height: UIHeight + 20,
+                  child: PDAdvancedSegmentedControl(
+                    height: UIHeight,
+                    options: ["Induction", "Wake Up"],
+                    segmentedController: flowController,
+                    onPressed: (){},
+                    assertValues: {
+                    },
+                  ),
+                ),
+                Row(
+                  children: [
+                    Container(
+                        height: UIHeight,
+                        width: UIHeight,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  strokeAlign: BorderSide.strokeAlignOutside,
+                                ),
+                                borderRadius:
+                                BorderRadius.all(Radius.circular(5))),
+                          ),
+                          onPressed: () async {},
+                          child: Icon(Icons.info_outline_rounded),
+                        )),
+                    SizedBox(width: 8,),
+                    Container(
+                        height: UIHeight,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  strokeAlign: BorderSide.strokeAlignOutside,
+                                ),
+                                borderRadius:
+                                BorderRadius.all(Radius.circular(5))),
+                          ),
+                          onPressed: () async {
+                            await HapticFeedback.mediumImpact();
+                            reset(toDefault: true);
+                          },
+                          child: Icon(Icons.restart_alt_outlined),
+                        )),
+                  ],
+                ),
+              ],
             ),
           ),
           const SizedBox(
-            height: 8,
+            height: 24,
           ),
           Container(
             height: UIHeight + 24,
@@ -782,9 +880,10 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                 Container(
                   width: UIWidth,
                   child: PDSwitchField(
+                    labelText: 'Sex',
                     prefixIcon: Icons.wc,
                     controller: genderController,
-                    labelTexts: {
+                    switchTexts: {
                       true: Gender.Female.toString(),
                       false: Gender.Male.toString()
                     },
@@ -800,7 +899,6 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                 Container(
                   width: UIWidth,
                   child: PDTextField(
-                    height: UIHeight + 2,
                     prefixIcon: Icons.calendar_month,
                     labelText: 'Age',
                     // helperText: '',
@@ -826,7 +924,6 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                 Container(
                   width: UIWidth,
                   child: PDTextField(
-                    height: UIHeight + 2,
                     prefixIcon: Icons.straighten,
                     labelText: 'Height (cm)',
                     // helperText: '',
@@ -844,7 +941,6 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                 Container(
                   width: UIWidth,
                   child: PDTextField(
-                    height: UIHeight + 2,
                     prefixIcon: Icons.monitor_weight_outlined,
                     labelText: 'Weight (kg)',
                     // helperText: '',
@@ -868,61 +964,18 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  width: UIWidth,
+                  width: UIWidth * 2 + 8,
                   child: PDTextField(
-                    height: UIHeight + 2,
                     prefixIcon: Icons.psychology_alt_outlined,
-                    labelText: '${Model.Eleveld.target.toString()}',
-                    // helperText: '',
+                    labelText:
+                    '${Model.Eleveld.target.toString()} Target (mcg/mL)',
                     interval: 0.5,
                     fractionDigits: 1,
                     controller: targetController,
                     range: [0.5, 8],
                     onPressed: updatePDTextEditingController,
-                    // onChanged: restart,
                   ),
                 ),
-                SizedBox(
-                  width: 8,
-                  height: 0,
-                ),
-                Container(
-                    height: UIHeight + 4,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                              // strokeAlign: StrokeAlign.outside, //depreicated in flutter 3.7
-                              strokeAlign: BorderSide.strokeAlignOutside,
-                            ),
-                            borderRadius: BorderRadius.all(Radius.circular(5))),
-                      ),
-                      onPressed: () async {
-                        await HapticFeedback.mediumImpact();
-                        reset(toDefault: true);
-                      },
-                      child: Icon(Icons.restart_alt_outlined),
-                    )),
-                // Container(
-                //   width: UIWidth,
-                //   child: PDTextField(
-                //     height: UIHeight + 2,
-                //     prefixIcon: Icons.schedule,
-                //     labelText: 'Duration (mins)',
-                //     helperText: '',
-                //     interval: double.tryParse(durationController.text) != null
-                //         ? double.parse(durationController.text) >= 60
-                //             ? 10
-                //             : 5
-                //         : 1,
-                //     fractionDigits: 0,
-                //     controller: durationController,
-                //     range: [kMinDuration, kMaxDuration],
-                //     onPressed: updatePDTextEditingController,
-                //   ),
-                // ),
               ],
             ),
           ),

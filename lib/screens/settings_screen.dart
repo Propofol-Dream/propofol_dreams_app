@@ -5,8 +5,8 @@ import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
 
 import 'package:propofol_dreams_app/controllers/PDTextField.dart';
-import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
-import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart';
+import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart.bk';
+import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart.bk';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {

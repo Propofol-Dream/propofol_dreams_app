@@ -118,15 +118,18 @@ class _PDTextFieldState extends State<PDTextField> {
               : '',
           errorStyle: TextStyle(
               color: Theme.of(context).colorScheme.error, fontSize: 10),
-          prefixIcon: Icon(
-            widget.prefixIcon,
-            color: widget.enabled
-                ? (isWithinRange && isNumeric)
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.error
-                : Theme.of(context).disabledColor,
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(top: 4), // Top 4.0 is to compensate the label text
+            child: Icon(
+              widget.prefixIcon,
+              color: widget.enabled
+                  ? (isWithinRange && isNumeric)
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.error
+                  : Theme.of(context).disabledColor,
+            ),
           ),
-          prefixIconConstraints: BoxConstraints.tight(const Size(44, 20)),
+          // prefixIconConstraints: BoxConstraints.tight(const Size(44, 20)),
           labelText: widget.labelText,
           labelStyle: TextStyle(
             color: widget.enabled

@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:propofol_dreams_app/models/elemarsh.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/simulation.dart';
@@ -103,12 +102,12 @@ void main() {
     int age = 75;
     int height = 135;
     Gender gender = Gender.Male;
-    Duration timeStepSim = Duration(seconds: 1);
+    Duration timeStepSim = const Duration(seconds: 1);
     // Duration timeStepSim = Duration(milliseconds: 100);
     int density = 10;
     int maxPumpRate = 1200;
     double target = 3;
-    Duration duration = Duration(hours: 3);
+    Duration duration = const Duration(hours: 3);
 
     // Set up for the model
     Model goldModel = Model.Eleveld;
@@ -243,14 +242,14 @@ void main() {
     //TODO: implement wakeup timer
     List<wakeUpRow> wakeUpMatrix = [];
 
-    wakeUpBISs.forEach((wakeUpBIS) {
+    for (var wakeUpBIS in wakeUpBISs) {
       var ce50 = ce50Calc(CE: CECurrent, BIS: BISCurrent);
       double CEBISEleveld = pow((93/wakeUpBIS-1), (1/1.47)) * ce50.fit + ce50.shiftFit;
       double CEBISEleMarsh = -1;
       Duration ETABIS = Duration.zero;
 
       wakeUpMatrix.add((wakeUpBIS: wakeUpBIS, CEBISEleveld: CEBISEleveld, ETABIS: ETABIS, CEBISEleMarsh: CEBISEleMarsh));
-    });
+    }
     // verbose? wakeUpMatrix.forEach((element) {
     //   print(element);
     // }):();
@@ -321,7 +320,7 @@ void main() {
       vWakeEleveldCSV += '${row.step},${row.time.toString()},${row.A1},${row.A2},${row.A3},${row.CP},${row.CE}\n';
     }):();
 
-    final vWakeEleveldFileName = '/Users/eddy/Developer/Dart/Propofol Dreams/propofol_dreams_app/test/vWakeEleveld.csv';
+    const vWakeEleveldFileName = '/Users/eddy/Developer/Dart/Propofol Dreams/propofol_dreams_app/test/vWakeEleveld.csv';
     verbose? await File(vWakeEleveldFileName).writeAsString(vWakeEleveldCSV) : ();
 
     // verbose? wakeUpMatrix.forEach((row) {
@@ -399,7 +398,7 @@ void main() {
       vWakeEleMarshCSV += '${row.step},${row.time.toString()},${row.A1},${row.A2},${row.A3},${row.CP},${row.CE}\n';
     }):();
 
-    final vWakeEleMarshFileName = '/Users/eddy/Developer/Dart/Propofol Dreams/propofol_dreams_app/test/vWakeEleMarsh.csv';
+    const vWakeEleMarshFileName = '/Users/eddy/Developer/Dart/Propofol Dreams/propofol_dreams_app/test/vWakeEleMarsh.csv';
     verbose? await File(vWakeEleMarshFileName).writeAsString(vWakeEleMarshCSV) : ();
 
 

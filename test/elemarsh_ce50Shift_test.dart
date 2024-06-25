@@ -16,11 +16,11 @@ void main() {
     int age = 40;
     int height = 170;
     Gender gender = Gender.Female;
-    Duration timeStep = Duration(seconds: 1);
+    Duration timeStep = const Duration(seconds: 1);
     int density = 10;
     int maxPumpRate = 1200;
     double target = 3;
-    Duration duration = Duration(minutes: 60);
+    Duration duration = const Duration(minutes: 60);
 
     // Set up for the model
     Model goldModel = Model.Eleveld;
