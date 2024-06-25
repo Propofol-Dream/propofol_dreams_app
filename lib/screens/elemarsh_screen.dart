@@ -768,6 +768,8 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                         width: UIHeight,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.all(0),
+                            backgroundColor: Theme.of(context).colorScheme.onPrimary,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                                 side: BorderSide(
@@ -778,77 +780,16 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                                 BorderRadius.all(Radius.circular(5))),
                           ),
                           onPressed: () async {},
-                          child: Icon(Icons.info_outline_rounded),
+                          child: Center(child: Icon(Icons.info_outline_rounded)),
                         )),
                     SizedBox(width: 8,),
-                    Container(
-                        height: UIHeight,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  strokeAlign: BorderSide.strokeAlignOutside,
-                                ),
-                                borderRadius:
-                                BorderRadius.all(Radius.circular(5))),
-                          ),
-                          onPressed: () async {
-                            await HapticFeedback.mediumImpact();
-                            reset(toDefault: true);
-                          },
-                          child: Icon(Icons.restart_alt_outlined),
-                        )),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 24,
-          ),
-          Container(
-            width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: UIHeight + 20,
-                  child: PDAdvancedSegmentedControl(
-                    height: UIHeight,
-                    options: ["Induction", "Wake Up"],
-                    segmentedController: flowController,
-                    onPressed: (){},
-                    assertValues: {
-                    },
-                  ),
-                ),
-                Row(
-                  children: [
                     Container(
                         height: UIHeight,
                         width: UIHeight,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  strokeAlign: BorderSide.strokeAlignOutside,
-                                ),
-                                borderRadius:
-                                BorderRadius.all(Radius.circular(5))),
-                          ),
-                          onPressed: () async {},
-                          child: Icon(Icons.info_outline_rounded),
-                        )),
-                    SizedBox(width: 8,),
-                    Container(
-                        height: UIHeight,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.all(0),
+                            backgroundColor: Theme.of(context).colorScheme.onPrimary,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                                 side: BorderSide(
@@ -870,8 +811,9 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
             ),
           ),
           const SizedBox(
-            height: 24,
+            height: 23,
           ),
+
           Container(
             height: UIHeight + 24,
             child: Row(

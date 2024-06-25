@@ -911,8 +911,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 ),
                 Container(
                     height: UIHeight,
+                    width: UIHeight,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.all(0),
+                        backgroundColor: Theme.of(context).colorScheme.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                             side: BorderSide(
