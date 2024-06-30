@@ -411,7 +411,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Adjusted Body Weight",
+                                "EleMarsh ABW",
                                 style: TextStyle(
                                     fontSize: 18,
                                     color:
@@ -811,7 +811,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
             ),
           ),
           const SizedBox(
-            height: 23,
+            height: 23, //this has been manually adjusted from 24, don't know the root cause yet.
           ),
 
           Container(
