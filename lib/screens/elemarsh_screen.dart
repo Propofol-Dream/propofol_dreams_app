@@ -20,9 +20,9 @@ import 'package:propofol_dreams_app/models/gender.dart';
 import 'package:propofol_dreams_app/controllers/PDSwitchController.dart';
 import 'package:propofol_dreams_app/controllers/PDSwitchField.dart';
 import 'package:propofol_dreams_app/controllers/PDTextField.dart';
-import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedController.dart';
-import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedControl.dart';
 
+import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
+import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart';
 
 import 'package:propofol_dreams_app/widgets/PDLabel.dart';
 import 'package:propofol_dreams_app/widgets/PDStyledLabel.dart';
@@ -42,11 +42,9 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   TextEditingController heightController = TextEditingController();
   TextEditingController weightController = TextEditingController();
   TextEditingController targetController = TextEditingController();
-  Set<String> selectedFlow = {'induction'};
-  final PDAdvancedSegmentedController flowController =
-  PDAdvancedSegmentedController();
+  TextEditingController wakeUpController = TextEditingController();
 
-  // TextEditingController durationController = TextEditingController();
+  final PDSegmentedController flowController = PDSegmentedController();
 
   String weightBestGuess = "--";
   String adjustmentBolus = "--";
@@ -54,7 +52,6 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
   String BMI = "--";
 
-  // String MaxAPE = "--";
   String predictedBIS = "--";
 
   @override
@@ -67,6 +64,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     weightController.text = settings.EMWeight.toString();
     targetController.text = settings.EMTarget.toString();
     // durationController.text = settings.EMDuration.toString();
+    flowController.val = settings.EMFlow == 'wakeUp' ? 1:0;
 
     load();
 
@@ -125,12 +123,19 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       settings.EMDuration = 60;
     }
 
+    if (pref.containsKey('EMFlow')) {
+      settings.EMFlow = pref.getString('EMFlow')!;
+    } else {
+      settings.EMFlow = 'induction';
+    }
+
     genderController.val = settings.EMGender == Gender.Female ? true : false;
     ageController.text = settings.EMAge.toString();
     heightController.text = settings.EMHeight.toString();
     weightController.text = settings.EMWeight.toString();
     targetController.text = settings.EMTarget.toString();
     // durationController.text = settings.EMDuration.toString();
+    flowController.val = settings.EMFlow == 'wakeUp' ? 1 : 0;
 
     run(initState: true);
   }
@@ -180,7 +185,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
         Model model = Model.Eleveld;
         Patient patient =
-        Patient(weight: weight, height: height, age: age, gender: gender);
+            Patient(weight: weight, height: height, age: age, gender: gender);
         Pump pump = Pump(
             timeStep: Duration(seconds: settings.time_step),
             density: settings.density,
@@ -190,7 +195,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         // Operation operation =
         //     Operation(target: target, duration: Duration(hours: 3));
         PDSim.Simulation simulation =
-        PDSim.Simulation(model: model, patient: patient, pump: pump);
+            PDSim.Simulation(model: model, patient: patient, pump: pump);
 
         EleMarsh elemarsh = EleMarsh(goldSimulation: simulation);
 
@@ -214,7 +219,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             'adjustmentBolus': adjustmentBolus,
             'inductionCPTarget': inductionCPTarget,
             'calculation time':
-            '${calculationDuration.inMilliseconds.toString()} milliseconds'
+                '${calculationDuration.inMilliseconds.toString()} milliseconds'
           });
         });
       } else {
@@ -239,28 +244,28 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     genderController.val = toDefault
         ? true
         : settings.EMGender == Gender.Female
-        ? true
-        : false;
+            ? true
+            : false;
     ageController.text = toDefault
         ? 40.toString()
         : settings.EMAge != null
-        ? settings.EMAge.toString()
-        : '';
+            ? settings.EMAge.toString()
+            : '';
     heightController.text = toDefault
         ? 170.toString()
         : settings.EMHeight != null
-        ? settings.EMHeight.toString()
-        : '';
+            ? settings.EMHeight.toString()
+            : '';
     weightController.text = toDefault
         ? 70.toString()
         : settings.EMWeight != null
-        ? settings.EMWeight.toString()
-        : '';
+            ? settings.EMWeight.toString()
+            : '';
     targetController.text = toDefault
         ? 3.0.toString()
         : settings.EMTarget != null
-        ? settings.EMTarget.toString()
-        : '';
+            ? settings.EMTarget.toString()
+            : '';
 
     run();
   }
@@ -273,8 +278,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     final double UIHeight = mediaQuery.size.aspectRatio >= 0.455
         ? mediaQuery.size.height >= screenBreakPoint1
-        ? 56
-        : 48
+            ? 56
+            : 48
         : 48;
     final double UIWidth =
         (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
@@ -285,8 +290,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         (Platform.isAndroid
             ? 48
             : mediaQuery.size.height >= screenBreakPoint1
-            ? 88
-            : 56);
+                ? 88
+                : 56);
 
     final settings = context.watch<Settings>();
     int density = settings.density;
@@ -298,7 +303,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           child: Text.rich(
             TextSpan(
                 text:
-                """The purpose of EleMarsh Mode is to make the Marsh model mimic the Eleveld model.""",
+                    """The purpose of EleMarsh Mode is to make the Marsh model mimic the Eleveld model.""",
                 children: [
                   TextSpan(text: "\n\n"),
                   TextSpan(
@@ -339,7 +344,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                   ),
                   TextSpan(
                       text:
-                      """as your initial CpT setting. As soon as the bolus is given, drop the CpT down to your desired CeT. The Marsh model on your pump will now mimic the behaviour of the Eleveld model."""),
+                          """as your initial CpT setting. As soon as the bolus is given, drop the CpT down to your desired CeT. The Marsh model on your pump will now mimic the behaviour of the Eleveld model."""),
                   TextSpan(
                     text: """
                     
@@ -371,13 +376,6 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
           ),
         ],
       );
-    }
-
-    void updateSelectedFlow(Set<String> newSelection) {
-      setState(() {
-        selectedFlow = newSelection;
-        print(selectedFlow.first);
-      });
     }
 
     return Container(
@@ -415,7 +413,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                                 style: TextStyle(
                                     fontSize: 18,
                                     color:
-                                    Theme.of(context).colorScheme.primary),
+                                        Theme.of(context).colorScheme.primary),
                               ),
                               Row(
                                 children: [
@@ -635,61 +633,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
               ),
             ),
           ),
-          // Container(
-          //   alignment: Alignment.centerRight,
-          //   child: SingleChildScrollView(
-          //     scrollDirection: Axis.horizontal,
-          //     child: Row(
-          //       mainAxisAlignment: MainAxisAlignment.start,
-          //       crossAxisAlignment: CrossAxisAlignment.start,
-          //       children: [
-          //         PDStyledLabel(
-          //             title: "Adj. Body Weight",
-          //             leadingText: weightBestGuess,
-          //             supportingText: 'kg',
-          //             backgroundColor: Theme.of(context).colorScheme.primary,
-          //             textColor: Theme.of(context).colorScheme.onPrimary),
-          //         SizedBox(
-          //           width: 8.0,
-          //         ),
-          //         PDStyledLabel(
-          //             title: "Induction CpT",
-          //             leadingText: inductionCPTarget,
-          //             supportingText: "μg/mL",
-          //             backgroundColor: Theme.of(context).colorScheme.primary,
-          //             textColor: Theme.of(context).colorScheme.onPrimary),
-          //       ],
-          //     ),
-          //   ),
-          // ),
-          // const SizedBox(
-          //   height: 8,
-          // ),
-          // Container(
-          //   alignment: Alignment.centerRight,
-          //   child: SingleChildScrollView(
-          //     scrollDirection: Axis.horizontal,
-          //     child: Row(
-          //       mainAxisAlignment: MainAxisAlignment.start,
-          //       crossAxisAlignment: CrossAxisAlignment.start,
-          //       children: [
-          //         PDLabel(
-          //             leadingText: 'Pred. BIS',
-          //             supportingText: predictedBIS,
-          //             backgroundColor: Theme.of(context).colorScheme.primary,
-          //             textColor: Theme.of(context).colorScheme.onPrimary),
-          //         SizedBox(
-          //           width: 8.0,
-          //         ),
-          //         PDLabel(
-          //             leadingText: 'BMI',
-          //             supportingText: BMI,
-          //             backgroundColor: Theme.of(context).colorScheme.primary,
-          //             textColor: Theme.of(context).colorScheme.onPrimary),
-          //       ],
-          //     ),
-          //   ),
-          // ),
+
           const SizedBox(
             height: 24,
           ),
@@ -701,66 +645,26 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
               children: [
                 Container(
                   alignment: Alignment.centerRight,
-                  child:  SizedBox(
-                    height: UIHeight+10,
-                    child: SegmentedButton(
-                      segments: <ButtonSegment<String>>[
-                        ButtonSegment<String>(
-                          value: 'induction',
-                          label:
-                          // Padding(
-                          //   padding:
-                          //       const EdgeInsets.symmetric(vertical: 12.0),
-                          //   // this is due to ButtonSegement bug
-                          //   child:
-                          Text('Induction'),
-                          // )
-                        ),
-                        ButtonSegment<String>(
-                          value: 'wakeUp',
-                          label: Text('Wake Up'),
-                        )
-                      ],
-                      selected: selectedFlow,
-                      onSelectionChanged: updateSelectedFlow,
-                      showSelectedIcon: false,
-                      style: ButtonStyle(
-                        backgroundColor:
-                        MaterialStateProperty.resolveWith<Color>((states) {
-                          if (states.contains(MaterialState.selected)) {
-                            return selectedFlow.first == 'induction'
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.secondary;
+                  child: SizedBox(
+                    height: UIHeight,
+                    child: PDSegmentedControl(
+                        fitHeight: true,
+                        fontSize: 14,
+                        defaultColor: Theme.of(context).colorScheme.primary,
+                        defaultOnColor: Theme.of(context).colorScheme.onPrimary,
+                        labels: ["Induction", "Wake Up"],
+                        segmentedController: flowController,
+                        onPressed: [
+                          () {
+                            settings.EMFlow = 'induction';
+                          },
+                          () {
+                            settings.EMFlow = 'wakeUp';
                           }
-                          return Theme.of(context).colorScheme.onPrimary;
-                        }),
-                        foregroundColor:
-                        MaterialStateProperty.resolveWith<Color>((states) {
-                          return (states.contains(MaterialState.selected))
-                              ? Theme.of(context).colorScheme.onPrimary
-                              : Theme.of(context).colorScheme.primary;
-                        }),
-                        shape:
-                        MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.horizontal(
-                                left: Radius.circular(8),
-                                right: Radius.circular(8)),
-                          ),
-                        ),
-                        side: MaterialStateProperty.resolveWith<BorderSide>(
-                                (states) {
-                              return BorderSide(
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 1.0,
-                              );
-                            }),
-                        visualDensity: VisualDensity(vertical: 4),
-                      ),
-                    ),
+                        ]),
                   ),
-
                 ),
+
                 Row(
                   children: [
                     Container(
@@ -769,7 +673,8 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.all(0),
-                            backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.onPrimary,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                                 side: BorderSide(
@@ -777,19 +682,23 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                                   strokeAlign: BorderSide.strokeAlignOutside,
                                 ),
                                 borderRadius:
-                                BorderRadius.all(Radius.circular(5))),
+                                    BorderRadius.all(Radius.circular(5))),
                           ),
                           onPressed: () async {},
-                          child: Center(child: Icon(Icons.info_outline_rounded)),
+                          child:
+                              Center(child: Icon(Icons.info_outline_rounded)),
                         )),
-                    SizedBox(width: 8,),
+                    SizedBox(
+                      width: 8,
+                    ),
                     Container(
                         height: UIHeight,
                         width: UIHeight,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.all(0),
-                            backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.onPrimary,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                                 side: BorderSide(
@@ -797,7 +706,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                                   strokeAlign: BorderSide.strokeAlignOutside,
                                 ),
                                 borderRadius:
-                                BorderRadius.all(Radius.circular(5))),
+                                    BorderRadius.all(Radius.circular(5))),
                           ),
                           onPressed: () async {
                             await HapticFeedback.mediumImpact();
@@ -811,48 +720,75 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
             ),
           ),
           const SizedBox(
-            height: 23, //this has been manually adjusted from 24, don't know the root cause yet.
+            height:
+                28, //this has been manually adjusted from 24, don't know the root cause yet.
           ),
 
-          Container(
-            height: UIHeight + 24,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: UIWidth,
-                  child: PDSwitchField(
-                    labelText: 'Sex',
-                    prefixIcon: Icons.wc,
-                    controller: genderController,
-                    switchTexts: {
-                      true: Gender.Female.toString(),
-                      false: Gender.Male.toString()
-                    },
-                    // helperText: '',
-                    onChanged: run,
-                    height: UIHeight,
+          Opacity(
+            opacity: flowController.val == 0 ? 1:0,
+            child: Container(
+              height: flowController.val == 0 ? UIHeight + 24:0,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: UIWidth,
+                    child: PDSwitchField(
+                      labelText: 'Sex',
+                      prefixIcon: Icons.wc,
+                      controller: genderController,
+                      switchTexts: {
+                        true: Gender.Female.toString(),
+                        false: Gender.Male.toString()
+                      },
+                      onChanged: run,
+                      height: UIHeight,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: 8,
-                  height: 0,
-                ),
-                Container(
-                  width: UIWidth,
-                  child: PDTextField(
-                    prefixIcon: Icons.calendar_month,
-                    labelText: 'Age',
-                    // helperText: '',
-                    interval: 1.0,
-                    fractionDigits: 0,
-                    controller: ageController,
-                    range: [14, 105],
-                    onPressed: updatePDTextEditingController,
-                    // onChanged: restart,
+                  SizedBox(
+                    width: 8,
+                    height: 0,
                   ),
-                ),
-              ],
+                   Container(
+                    width: UIWidth,
+                    child: PDTextField(
+                      prefixIcon: Icons.calendar_month,
+                      labelText: 'Age',
+                      // helperText: '',
+                      interval: 1.0,
+                      fractionDigits: 0,
+                      controller: ageController,
+                      range: [14, 105],
+                      onPressed: updatePDTextEditingController,
+                      // onChanged: restart,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Opacity(
+            opacity: flowController.val == 1 ? 1:0,
+            child: Container(
+              height: flowController.val == 1 ? UIHeight + 24:0,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                    child: PDTextField(
+                      prefixIcon: Icons.psychology_alt_outlined,
+                      labelText:
+                      '${Model.Eleveld.target.toString()} Wake Up (mcg/mL)',
+                      interval: 0.5,
+                      fractionDigits: 1,
+                      controller: wakeUpController,
+                      range: [0.5, 8],
+                      onPressed: updatePDTextEditingController,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(
@@ -910,7 +846,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                   child: PDTextField(
                     prefixIcon: Icons.psychology_alt_outlined,
                     labelText:
-                    '${Model.Eleveld.target.toString()} Target (mcg/mL)',
+                        '${Model.Eleveld.target.toString()} Target (mcg/mL)',
                     interval: 0.5,
                     fractionDigits: 1,
                     controller: targetController,

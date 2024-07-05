@@ -60,29 +60,6 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  // Future<void> load() async {
-  //   print('Setting load');
-  //   var pref = await SharedPreferences.getInstance();
-  //   // print('pref: ${pref.getBool("isDarkTheme")}');
-  //   // _isDarkTheme = pref.getBool("isDarkTheme") ?? false;
-  //   // print('settings.isDarkTheme: ${pref.getBool("isDarkTheme")}');
-  //   print('pref: ${pref.getInt('adultWeight')}');
-  //   print('settings.adultWeight: ${adultWeight}');
-  //   // adultWeight = pref.getInt('adultWeight') ?? 70;
-  //   print('settings.adultWeight: ${adultWeight}');
-  //   // notifyListeners();
-  // }
-
-  // Future<void> save() async {
-  //   print('Setting save');
-  //   var pref = await SharedPreferences.getInstance();
-  //   // print('settings.isDarkTheme: ${pref.getBool("isDarkTheme")}');
-  //   // pref.setBool('isDarkTheme', _isDarkTheme);
-  //   // print('pref: ${pref.getBool("isDarkTheme")}');
-  //   pref.setInt('adultWeight', _adultWeight!);
-  //
-  // }
-
   int _density = 10;
 
   int get density {
@@ -358,6 +335,7 @@ class Settings with ChangeNotifier {
   int? _EMWeight;
   double? _EMTarget;
   int? _EMDuration;
+  String? _EMFlow;
 
   Gender? get EMGender {
     return _EMGender;
@@ -419,6 +397,21 @@ class Settings with ChangeNotifier {
     setInt('EMDuration', i);
     notifyListeners();
   }
+
+  String? get EMFlow {
+    return _EMFlow;
+  }
+
+  set EMFlow(String? s) {
+    _EMFlow = s;
+    setString('EMFlow', s.toString());
+    notifyListeners();
+  }
+
+
+
+
+
 
   int _currentScreenIndex = 0;
 

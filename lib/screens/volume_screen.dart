@@ -43,7 +43,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   double targetInterval = 0.5;
   int durationInterval = 10; //in mins
 
-  String result = '-- mL';
+  String result = '   mL';
   String emptyResult = '-- mL';
   List PDTableRows = [];
   List EmptyTableRows = [
@@ -71,7 +71,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   void initState() {
     var settings = context.read<Settings>();
 
-    tableController.val = false;
+    tableController.val = settings.isVolumeTableExpanded;
 
     if (settings.inAdultView) {
       adultModelController.selection = settings.adultModel;

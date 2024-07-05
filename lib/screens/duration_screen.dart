@@ -397,16 +397,23 @@ class _DurationScreenState extends State<DurationScreen> {
           SizedBox(
             height: 8,
           ),
-          PDSegmentedControl(
+          Container(
             height: UIHeight,
-            fontSize: 14,
-            labels: [...infusionUnits.map((e) => e.toString())],
-            segmentedController: infusionUnitController,
-            onPressed: [
-              updateInfusionUnit,
-              updateInfusionUnit,
-              updateInfusionUnit
-            ],
+            width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+            child: PDSegmentedControl(
+              fitWidth: true,
+              fitHeight: true,
+              fontSize: 14,
+              defaultColor: Theme.of(context).colorScheme.primary,
+              defaultOnColor: Theme.of(context).colorScheme.onPrimary,
+              labels: [...infusionUnits.map((e) => e.toString())],
+              segmentedController: infusionUnitController,
+              onPressed: [
+                updateInfusionUnit,
+                updateInfusionUnit,
+                updateInfusionUnit
+              ],
+            ),
           ),
           SizedBox(
             height: 32,

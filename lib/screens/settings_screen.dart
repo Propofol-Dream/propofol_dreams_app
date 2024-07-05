@@ -142,19 +142,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SizedBox(
                   height: 16,
                 ),
-                PDSegmentedControl(
+                Container(
                   height: UIHeight,
-                  fontSize: 16,
-                  labels: ['1 % = 10 mg/mL', '2 % = 20 mg/mL'],
-                  segmentedController: densityController,
-                  onPressed: [
-                    () {
-                      settings.density = 10;
-                    },
-                    () {
-                      settings.density = 20;
-                    }
-                  ],
+                  width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                  child: PDSegmentedControl(
+                    fitWidth: true,
+                    fitHeight: true,
+                    fontSize: 16,
+                    defaultColor: Theme.of(context).colorScheme.primary,
+                    defaultOnColor: Theme.of(context).colorScheme.onPrimary,
+                    labels: ['1 % = 10 mg/mL', '2 % = 20 mg/mL'],
+                    segmentedController: densityController,
+                    onPressed: [
+                      () {
+                        settings.density = 10;
+                      },
+                      () {
+                        settings.density = 20;
+                      }
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -227,22 +234,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SizedBox(
                   height: 16,
                 ),
-                PDSegmentedControl(
+                Container(
                   height: UIHeight,
-                  fontSize: 16,
-                  labels: ['Light', 'Dark', 'Auto'],
-                  segmentedController: themeController,
-                  onPressed: [
-                    () {
-                      settings.themeModeSelection = ThemeMode.light;
-                    },
-                    () {
-                      settings.themeModeSelection = ThemeMode.dark;
-                    },
-                    () {
-                      settings.themeModeSelection = ThemeMode.system;
-                    }
-                  ],
+                  width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                  child: PDSegmentedControl(
+                    fitWidth: true,
+                    fitHeight: true,
+                    fontSize: 16,
+                    defaultColor: Theme.of(context).colorScheme.primary,
+                    defaultOnColor: Theme.of(context).colorScheme.onPrimary,
+                    labels: ['Light', 'Dark', 'Auto'],
+                    segmentedController: themeController,
+                    onPressed: [
+                      () {
+                        settings.themeModeSelection = ThemeMode.light;
+                      },
+                      () {
+                        settings.themeModeSelection = ThemeMode.dark;
+                      },
+                      () {
+                        settings.themeModeSelection = ThemeMode.system;
+                      }
+                    ],
+                  ),
                 ),
                 // ElevatedButton(
                 //     onPressed: () async {

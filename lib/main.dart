@@ -6,9 +6,10 @@ import 'constants.dart';
 import 'screens/home_screen.dart';
 import 'providers/settings.dart';
 
+import 'theme.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await Provider.of<Settings>(context, listen: false).load();
 
   runApp(MultiProvider(
     providers: [
@@ -17,23 +18,6 @@ void main() async {
     child: const MyApp(),
   ));
 }
-
-// SharedPreferences prefs;
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   prefs = await SharedPreferences.getInstance();
-//
-//   // Rest of your code...
-// }
-
-// void main() {
-//   runApp(MultiProvider(
-//     providers: [
-//       ChangeNotifierProvider(create: (context) => Settings()),
-//     ],
-//     child: const MyApp(),
-//   ));
-// }
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -47,44 +31,26 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        // print("app in resumed");
+        print("app resumed");
         // Provider.of<Settings>(context, listen: false).load();
         break;
       case AppLifecycleState.inactive:
-        // print("app in inactive");
+        print("app inactive");
         break;
       case AppLifecycleState.paused:
-        // print("app in paused");
+        print("app paused");
         // Provider.of<Settings>(context, listen: false).save();
         break;
       case AppLifecycleState.detached:
-        // print("app in detached");
+        print("app detached");
         break;
       case AppLifecycleState.hidden:
-      // print("app in hidden");
+        print("app in hidden");
     }
   }
 
   @override
   void initState() {
-    // Provider.of<Settings>(context, listen: false).load();
-    // Provider.of<Settings>(context, listen: false).load().then(
-    //         (value) {
-    //           setState(() {
-    //             _name = prefValue.getString('name')?? "";
-    //             _controller = new TextEditingController(text: _name);
-    //           })
-    //         });
-
-    // final settings = context.read<Settings>();
-    // Provider.of<Settings>(context, listen: false).load();
-
-    // Provider.of<Settings>(context, listen: false).load().then((value) {
-    //   setState(() {
-    //     print('main setState');
-    //     settings.adultWeight = settings.adultWeight;
-    //   });
-    // });
 
     super.initState();
     WidgetsBinding.instance.addObserver(this);
@@ -93,10 +59,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       });
     });
 
-    // var settings = context.read<Settings>();
-    // print('settings: ${settings.isDarkTheme}');
-
-    // loadSharedPref();
   }
 
   @override
@@ -145,45 +107,33 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final settings = context.watch<Settings>();
 
-    // return FutureBuilder(
-    //   future: Provider.of<Settings>(context).load(),
-    //   builder: (context, snapshot) {
-    //     if (snapshot.connectionState == ConnectionState.done) {
-    //       return MaterialApp(
-    //         debugShowCheckedModeBanner: false,
-    //         title: 'Propofol Dreams',
-    //         home: ,
-    //       )
-    //     } else {
-    //       return CircularProgressIndicator();
-    //     }
-    //   },
-    // );
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Propofol Dreams',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSwatch().copyWith(
-          primary: PDLightGreen,
-          background: Colors.white,
-        ),
-      ),
-      darkTheme: ThemeData.dark().copyWith(
-        chipTheme:
-        const ChipThemeData(labelStyle: TextStyle(color: Color(0xffE0E3DF))),
-        colorScheme: ColorScheme.fromSwatch().copyWith(
-          primary: const Color(0xff66DBB2),
-          onPrimary: const Color(0xff003828),
-          primaryContainer: const Color(0xff00513B),
-          onPrimaryContainer: const Color(0xff83F8CD),
-          background: const Color(0xff191C1B),
-          onBackground: const Color(0xffE0E3DF),
-          error: const Color(0xffFFB4A9),
-          onError: const Color(0xff680003),
-          surface: const Color(0xff191C1B),
-        ),
-      ),
+      // theme: ThemeData(
+      //   colorScheme: ColorScheme.fromSwatch().copyWith(
+      //     primary: PDLightGreen,
+      //     secondary: PDLightNavy,
+      //     background: Colors.white,
+      //   ),
+      // ),
+      theme: ThemeData(colorScheme: MaterialTheme.lightScheme().toColorScheme()),
+      // darkTheme: ThemeData.dark().copyWith(
+      //   chipTheme:
+      //   const ChipThemeData(labelStyle: TextStyle(color: Color(0xffE0E3DF))),
+      //   colorScheme: ColorScheme.fromSwatch().copyWith(
+      //     primary: const Color(0xff66DBB2),
+      //     onPrimary: const Color(0xff003828),
+      //     primaryContainer: const Color(0xff00513B),
+      //     onPrimaryContainer: const Color(0xff83F8CD),
+      //     background: const Color(0xff191C1B),
+      //     onBackground: const Color(0xffE0E3DF),
+      //     error: const Color(0xffFFB4A9),
+      //     onError: const Color(0xff680003),
+      //     surface: const Color(0xff191C1B),
+      //   ),
+      // ),
+      darkTheme: ThemeData(colorScheme: MaterialTheme.darkScheme().toColorScheme()),
       themeMode: settings.themeModeSelection,
       home: const HomeScreen(),
     );
