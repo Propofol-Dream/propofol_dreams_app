@@ -367,7 +367,6 @@ class _DurationScreenState extends State<DurationScreen> {
               labelText: 'Weight (kg)',
               controller: weightController,
               fractionDigits: 0,
-              // helperText: '',
               interval: 1,
               onPressed: updateWeight,
               enabled: weightTextFieldEnabled,

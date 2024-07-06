@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'PDSegmentedController.dart';
 
 class PDSegmentedControl extends StatefulWidget {
-   PDSegmentedControl({
+  PDSegmentedControl({
     Key? key,
     required this.labels,
     required this.segmentedController,
@@ -17,12 +17,12 @@ class PDSegmentedControl extends StatefulWidget {
 
   final List<String> labels;
   final PDSegmentedController segmentedController;
-  final List<Function> onPressed;
+  final List<VoidCallback?> onPressed;
   final double? fontSize;
   final bool fitWidth; // Property to control width behavior
   final bool fitHeight; // Property to control height behavior
-   Color defaultColor;
-   Color defaultOnColor;
+  Color defaultColor;
+  Color defaultOnColor;
 
   @override
   State<PDSegmentedControl> createState() => _PDSegmentedControlState();
@@ -36,10 +36,9 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
       children: List.generate(widget.labels.length, (buildIndex) {
         Widget button = widget.fitWidth
             ? Expanded(
-          child: buildButton(context, buildIndex),
-        )
+                child: buildButton(context, buildIndex),
+              )
             : buildButton(context, buildIndex);
-
         return button;
       }),
     );
@@ -47,27 +46,36 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
 
   Widget buildButton(BuildContext context, int buildIndex) {
     return Container(
-      height: widget.fitHeight ? double.infinity : null, // Set height based on fitHeight
+      height: widget.fitHeight ? double.infinity : null,
+      // Set height based on fitHeight
       child: ElevatedButton(
-        onPressed: () async {
-          await HapticFeedback.mediumImpact();
-          setState(() {
-            widget.segmentedController.val = buildIndex;
-          });
-          widget.onPressed[buildIndex]();
-        },
+        onPressed: widget.onPressed[buildIndex] == null
+            ? null
+            : () async {
+                await HapticFeedback.mediumImpact();
+                setState(() {
+                  widget.segmentedController.val = buildIndex;
+                });
+                widget.onPressed[buildIndex]!();
+              },
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          foregroundColor: widget.segmentedController.val == buildIndex
-              ? widget.defaultColor
-              : widget.defaultOnColor,
-          backgroundColor: widget.segmentedController.val == buildIndex
-              ? widget.defaultColor
-              : widget.defaultOnColor,
+          foregroundColor: widget.onPressed[buildIndex] == null
+              ? Theme.of(context).disabledColor
+              : widget.segmentedController.val == buildIndex
+                  ? widget.defaultColor
+                  : widget.defaultOnColor,
+          backgroundColor: widget.onPressed[buildIndex] == null
+              ? Theme.of(context).disabledColor
+              : widget.segmentedController.val == buildIndex
+                  ? widget.defaultColor
+                  : widget.defaultOnColor,
           shape: RoundedRectangleBorder(
             side: BorderSide(
               strokeAlign: BorderSide.strokeAlignOutside,
-              color: widget.defaultColor,
+              color: widget.onPressed[buildIndex] == null
+                  ? Theme.of(context).disabledColor
+                  : widget.defaultColor,
             ),
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
@@ -82,9 +90,11 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
         child: Text(
           widget.labels[buildIndex],
           style: TextStyle(
-            color: widget.segmentedController.val == buildIndex
-                ? widget.defaultOnColor
-                : widget.defaultColor,
+            color: widget.onPressed[buildIndex] == null
+                ? Theme.of(context).disabledColor
+                : widget.segmentedController.val == buildIndex
+                    ? widget.defaultOnColor
+                    : widget.defaultColor,
             fontSize: widget.fontSize ?? 14,
           ),
         ),

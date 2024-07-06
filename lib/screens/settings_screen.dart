@@ -151,7 +151,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     fontSize: 16,
                     defaultColor: Theme.of(context).colorScheme.primary,
                     defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-                    labels: ['1 % = 10 mg/mL', '2 % = 20 mg/mL'],
+                    labels: ['10 mg/mL', '20 mg/mL'],
                     segmentedController: densityController,
                     onPressed: [
                       () {
@@ -166,7 +166,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
             SizedBox(
-              height: 16,
+              height: 24,
             ),
             Divider(
               color: Theme.of(context).colorScheme.primary,
@@ -184,17 +184,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SizedBox(
                   height: 4,
                 ),
-
                 SizedBox(
                   height: 16,
                 ),
                 Container(
                   height: UIHeight + 24,
                   child: PDTextField(
-                      height: UIHeight + 2,
                       prefixIcon: null,
                       labelText: 'Pump Rate (mL/hr)',
-                      // helperText: '',
                       interval: 50,
                       fractionDigits: 0,
                       controller: pumpController,
@@ -208,9 +205,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 )
               ],
             ),
-            SizedBox(
-              height: 4,
-            ),
+
             Divider(
               color: Theme.of(context).colorScheme.primary,
             ),
