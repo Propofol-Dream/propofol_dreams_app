@@ -65,6 +65,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     targetController.text = settings.EMTarget.toString();
     // durationController.text = settings.EMDuration.toString();
     flowController.val = settings.EMFlow == 'wakeUp' ? 1 : 0;
+    wakeUpController.text = settings.EMWakeUp.toString();
 
     load();
 
@@ -129,6 +130,12 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       settings.EMFlow = 'induction';
     }
 
+    if (pref.containsKey('EMWakeUp')) {
+      settings.EMWakeUp = pref.getDouble('EMWakeUp');
+    } else {
+      settings.EMWakeUp = 3.0;
+    }
+
     genderController.val = settings.EMGender == Gender.Female ? true : false;
     ageController.text = settings.EMAge.toString();
     heightController.text = settings.EMHeight.toString();
@@ -136,7 +143,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     targetController.text = settings.EMTarget.toString();
     // durationController.text = settings.EMDuration.toString();
     flowController.val = settings.EMFlow == 'wakeUp' ? 1 : 0;
-
+    wakeUpController.text = settings.EMWakeUp.toString();
     run(initState: true);
   }
 
@@ -164,12 +171,17 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     double? target = double.tryParse(targetController.text);
     Gender gender = genderController.val ? Gender.Female : Gender.Male;
 
+    String flow = flowController.val == 1 ? 'wakeUp' : 'induction';
+    double? wakeUp = double.tryParse(wakeUpController.text);
+
     if (initState == false) {
       settings.EMGender = gender;
       settings.EMAge = age;
       settings.EMHeight = height;
       settings.EMWeight = weight;
       settings.EMTarget = target;
+      settings.EMFlow = flow;
+      settings.EMWakeUp = wakeUp;
     }
 
     if (age != null && height != null && weight != null && target != null) {
@@ -266,6 +278,12 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         : settings.EMTarget != null
             ? settings.EMTarget.toString()
             : '';
+
+    wakeUpController.text = toDefault
+        ? 3.0.toString()
+        : settings.EMWakeUp != null
+        ? settings.EMWakeUp.toString()
+        : '';
 
     run();
   }
@@ -665,7 +683,9 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                           () {
                             settings.EMFlow = 'induction';
                           },
-                          null
+                              () {
+                            settings.EMFlow = 'wakeUp';
+                          }
                         ]),
                   ),
                 ),

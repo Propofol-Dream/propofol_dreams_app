@@ -206,7 +206,7 @@ class _PDTextFieldState extends State<PDTextField> {
                       }
                     },
                     child: Container(
-                      padding: EdgeInsets.only(top: 4),
+                      padding: EdgeInsets.only(top: 2),
                       alignment: Alignment.center,
                       width: suffixIconConstraintsWidth / 2,
                       height: suffixIconConstraintsHeight,
@@ -267,7 +267,7 @@ class _PDTextFieldState extends State<PDTextField> {
                       }
                     },
                     child: Container(
-                      padding: EdgeInsets.only(top: 4),
+                      padding: EdgeInsets.only(top: 2),
                       alignment: Alignment.center,
                       width: suffixIconConstraintsWidth / 2,
                       height: suffixIconConstraintsHeight,

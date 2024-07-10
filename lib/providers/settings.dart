@@ -336,6 +336,7 @@ class Settings with ChangeNotifier {
   double? _EMTarget;
   int? _EMDuration;
   String? _EMFlow;
+  double? _EMWakeUp;
 
   Gender? get EMGender {
     return _EMGender;
@@ -407,6 +408,18 @@ class Settings with ChangeNotifier {
     setString('EMFlow', s.toString());
     notifyListeners();
   }
+
+  double? get EMWakeUp {
+    return _EMWakeUp;
+  }
+
+  set EMWakeUp(double? d) {
+    _EMWakeUp = d;
+    setDouble('EMWakeUp', d);
+    notifyListeners();
+  }
+
+
 
 
 
