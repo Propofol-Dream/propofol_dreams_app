@@ -336,7 +336,8 @@ class Settings with ChangeNotifier {
   double? _EMTarget;
   int? _EMDuration;
   String? _EMFlow;
-  double? _EMWakeUp;
+  double? _EMWakeUpTarget;
+  int? _EMWakeUpBIS;
 
   Gender? get EMGender {
     return _EMGender;
@@ -409,16 +410,25 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  double? get EMWakeUp {
-    return _EMWakeUp;
+  double? get EMWakeUpTarget {
+    return _EMWakeUpTarget;
   }
 
-  set EMWakeUp(double? d) {
-    _EMWakeUp = d;
-    setDouble('EMWakeUp', d);
+  set EMWakeUpTarget(double? d) {
+    _EMWakeUpTarget = d;
+    setDouble('EMWakeUpTarget', d);
     notifyListeners();
   }
 
+  int? get EMWakeUpBIS {
+    return _EMWakeUpBIS;
+  }
+
+  set EMWakeUpBIS(int? i) {
+    _EMWakeUpBIS = i;
+    setInt('EMWakeUpBIS', i);
+    notifyListeners();
+  }
 
 
 

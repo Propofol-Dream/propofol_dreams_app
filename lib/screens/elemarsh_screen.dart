@@ -42,10 +42,12 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   TextEditingController heightController = TextEditingController();
   TextEditingController weightController = TextEditingController();
   TextEditingController targetController = TextEditingController();
-  TextEditingController wakeUpController = TextEditingController();
+  TextEditingController wakeUpTargetController = TextEditingController();
+  TextEditingController wakeUpBISController = TextEditingController();
 
   final PDSegmentedController flowController = PDSegmentedController();
 
+  //Displays
   String weightBestGuess = "--";
   String adjustmentBolus = "--";
   String inductionCPTarget = "--";
@@ -65,7 +67,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     targetController.text = settings.EMTarget.toString();
     // durationController.text = settings.EMDuration.toString();
     flowController.val = settings.EMFlow == 'wakeUp' ? 1 : 0;
-    wakeUpController.text = settings.EMWakeUp.toString();
+    wakeUpTargetController.text = settings.EMWakeUpTarget.toString();
+    wakeUpBISController.text = settings.EMWakeUpBIS.toString();
 
     load();
 
@@ -130,10 +133,16 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       settings.EMFlow = 'induction';
     }
 
-    if (pref.containsKey('EMWakeUp')) {
-      settings.EMWakeUp = pref.getDouble('EMWakeUp');
+    if (pref.containsKey('EMWakeUpTarget')) {
+      settings.EMWakeUpTarget = pref.getDouble('EMWakeUpTarget');
     } else {
-      settings.EMWakeUp = 3.0;
+      settings.EMWakeUpTarget = 3.0;
+    }
+
+    if (pref.containsKey('EMWakeUpBIS')) {
+      settings.EMWakeUpBIS = pref.getInt('EMWakeUpBIS');
+    } else {
+      settings.EMWakeUpBIS = 50;
     }
 
     genderController.val = settings.EMGender == Gender.Female ? true : false;
@@ -143,7 +152,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     targetController.text = settings.EMTarget.toString();
     // durationController.text = settings.EMDuration.toString();
     flowController.val = settings.EMFlow == 'wakeUp' ? 1 : 0;
-    wakeUpController.text = settings.EMWakeUp.toString();
+    wakeUpTargetController.text = settings.EMWakeUpTarget.toString();
+    wakeUpBISController.text = settings.EMWakeUpBIS.toString();
     run(initState: true);
   }
 
@@ -172,8 +182,10 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     Gender gender = genderController.val ? Gender.Female : Gender.Male;
 
     String flow = flowController.val == 1 ? 'wakeUp' : 'induction';
-    double? wakeUp = double.tryParse(wakeUpController.text);
+    double? wakeUpTarget = double.tryParse(wakeUpTargetController.text);
+    int? wakeUpBIS = int.tryParse(wakeUpBISController.text);
 
+    //Save all the settings
     if (initState == false) {
       settings.EMGender = gender;
       settings.EMAge = age;
@@ -181,7 +193,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       settings.EMWeight = weight;
       settings.EMTarget = target;
       settings.EMFlow = flow;
-      settings.EMWakeUp = wakeUp;
+      settings.EMWakeUpTarget = wakeUpTarget;
+      settings.EMWakeUpBIS = wakeUpBIS;
     }
 
     if (age != null && height != null && weight != null && target != null) {
@@ -279,10 +292,16 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             ? settings.EMTarget.toString()
             : '';
 
-    wakeUpController.text = toDefault
+    wakeUpTargetController.text = toDefault
         ? 3.0.toString()
-        : settings.EMWakeUp != null
-        ? settings.EMWakeUp.toString()
+        : settings.EMWakeUpTarget != null
+        ? settings.EMWakeUpTarget.toString()
+        : '';
+
+    wakeUpBISController.text = toDefault
+        ? 50.toString()
+        : settings.EMWakeUpBIS != null
+        ? settings.EMWakeUpBIS.toString()
         : '';
 
     run();
@@ -808,7 +827,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                           '${Model.Eleveld.target.toString()} Wake Up (mcg/mL)',
                       interval: 0.5,
                       fractionDigits: 1,
-                      controller: wakeUpController,
+                      controller: wakeUpTargetController,
                       range: [0.5, 8],
                       onPressed: updatePDTextEditingController,
                     ),
@@ -820,42 +839,70 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
           const SizedBox(
             height: 8,
           ),
-          Container(
-            height: UIHeight + 24,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: UIWidth,
-                  child: PDTextField(
-                    prefixIcon: Icons.straighten,
-                    labelText: 'Height (cm)',
-                    // helperText: '',
-                    interval: 1,
-                    fractionDigits: 0,
-                    controller: heightController,
-                    range: [100, 220],
-                    onPressed: updatePDTextEditingController,
+          Opacity(
+            opacity: flowController.val == 0 ? 1 : 0,
+            child: Container(
+              height: flowController.val == 0 ? UIHeight + 24 : 0,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: UIWidth,
+                    child: PDTextField(
+                      prefixIcon: Icons.straighten,
+                      labelText: 'Height (cm)',
+                      // helperText: '',
+                      interval: 1,
+                      fractionDigits: 0,
+                      controller: heightController,
+                      range: [100, 220],
+                      onPressed: updatePDTextEditingController,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: 8,
-                  height: 0,
-                ),
-                Container(
-                  width: UIWidth,
-                  child: PDTextField(
-                    prefixIcon: Icons.monitor_weight_outlined,
-                    labelText: 'Weight (kg)',
-                    // helperText: '',
-                    interval: 1.0,
-                    fractionDigits: 0,
-                    controller: weightController,
-                    range: [35, 350],
-                    onPressed: updatePDTextEditingController,
+                  SizedBox(
+                    width: 8,
+                    height: 0,
                   ),
-                ),
-              ],
+                  Container(
+                    width: UIWidth,
+                    child: PDTextField(
+                      prefixIcon: Icons.monitor_weight_outlined,
+                      labelText: 'Weight (kg)',
+                      // helperText: '',
+                      interval: 1.0,
+                      fractionDigits: 0,
+                      controller: weightController,
+                      range: [35, 350],
+                      onPressed: updatePDTextEditingController,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Opacity(
+            opacity: flowController.val == 1 ? 1 : 0,
+            child: Container(
+              height: flowController.val == 1 ? UIHeight + 24 : 0,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width:
+                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                    child: PDTextField(
+                      prefixIcon: Icons.psychology_alt_outlined,
+                      labelText:
+                      'BIS Reading',
+                      interval: 1,
+                      fractionDigits: 0,
+                      controller: wakeUpBISController,
+                      range: [0,100],
+                      onPressed: updatePDTextEditingController,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(
