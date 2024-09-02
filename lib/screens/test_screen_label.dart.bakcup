@@ -210,7 +210,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
         Model model = Model.Eleveld;
         Patient patient =
-            Patient(weight: weight, height: height, age: age, gender: gender);
+        Patient(weight: weight, height: height, age: age, gender: gender);
         Pump pump = Pump(
             timeStep: Duration(seconds: settings.time_step),
             density: settings.density,
@@ -220,7 +220,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         // Operation operation =
         //     Operation(target: target, duration: Duration(hours: 3));
         PDSim.Simulation simulation =
-            PDSim.Simulation(model: model, patient: patient, pump: pump);
+        PDSim.Simulation(model: model, patient: patient, pump: pump);
 
         EleMarsh elemarsh = EleMarsh(goldSimulation: simulation);
 
@@ -244,7 +244,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             'adjustmentBolus': adjustmentBolus,
             'inductionCPTarget': inductionCPTarget,
             'calculation time':
-                '${calculationDuration.inMilliseconds.toString()} milliseconds'
+            '${calculationDuration.inMilliseconds.toString()} milliseconds'
           });
         });
       } else {
@@ -269,40 +269,40 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     genderController.val = toDefault
         ? true
         : settings.EMGender == Gender.Female
-            ? true
-            : false;
+        ? true
+        : false;
     ageController.text = toDefault
         ? 40.toString()
         : settings.EMAge != null
-            ? settings.EMAge.toString()
-            : '';
+        ? settings.EMAge.toString()
+        : '';
     heightController.text = toDefault
         ? 170.toString()
         : settings.EMHeight != null
-            ? settings.EMHeight.toString()
-            : '';
+        ? settings.EMHeight.toString()
+        : '';
     weightController.text = toDefault
         ? 70.toString()
         : settings.EMWeight != null
-            ? settings.EMWeight.toString()
-            : '';
+        ? settings.EMWeight.toString()
+        : '';
     targetController.text = toDefault
         ? 3.0.toString()
         : settings.EMTarget != null
-            ? settings.EMTarget.toString()
-            : '';
+        ? settings.EMTarget.toString()
+        : '';
 
     wakeUpTargetController.text = toDefault
         ? 3.0.toString()
         : settings.EMWakeUpTarget != null
-            ? settings.EMWakeUpTarget.toString()
-            : '';
+        ? settings.EMWakeUpTarget.toString()
+        : '';
 
     wakeUpBISController.text = toDefault
         ? 50.toString()
         : settings.EMWakeUpBIS != null
-            ? settings.EMWakeUpBIS.toString()
-            : '';
+        ? settings.EMWakeUpBIS.toString()
+        : '';
 
     run();
   }
@@ -315,8 +315,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     final double UIHeight = mediaQuery.size.aspectRatio >= 0.455
         ? mediaQuery.size.height >= screenBreakPoint1
-            ? 56
-            : 48
+        ? 56
+        : 48
         : 48;
     final double UIWidth =
         (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
@@ -327,8 +327,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         (Platform.isAndroid
             ? 48
             : mediaQuery.size.height >= screenBreakPoint1
-                ? 88
-                : 56);
+            ? 88
+            : 56);
 
     final settings = context.watch<Settings>();
     int density = settings.density;
@@ -343,16 +343,16 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                 child: Text.rich(
                   TextSpan(
                       text:
-                          """The purpose of EleMarsh Mode is to make the Marsh model mimic the Eleveld model.""",
+                      """The purpose of EleMarsh Mode is to make the Marsh model mimic the Eleveld model.""",
                       children: [
                         TextSpan(text: "\n\n"),
                         TextSpan(
                             text:
-                                "Step by step guide to using the EleMarsh mode:",
+                            "Step by step guide to using the EleMarsh mode:",
                             style: TextStyle(fontWeight: FontWeight.bold)),
                         TextSpan(text: """
-              
-              
+
+
 (1) Enter patient details and desired Ce target
 
 (2) EleMarsh generates the """),
@@ -375,7 +375,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                         ),
                         TextSpan(
                             text:
-                                """as the Marsh input weight on your TCI pump"""),
+                            """as the Marsh input weight on your TCI pump"""),
                         TextSpan(text: """
 
 
@@ -386,11 +386,11 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                         ),
                         TextSpan(
                             text:
-                                """as your initial CpT setting. As soon as the bolus is given, drop the CpT down to your desired CeT. The Marsh model on your pump will now mimic the behaviour of the Eleveld model."""),
+                            """as your initial CpT setting. As soon as the bolus is given, drop the CpT down to your desired CeT. The Marsh model on your pump will now mimic the behaviour of the Eleveld model."""),
                         TextSpan(
                           text: """
-                    
-                    
+
+
 Reference""",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
@@ -458,7 +458,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                                 style: TextStyle(
                                     fontSize: 18,
                                     color:
-                                        Theme.of(context).colorScheme.primary),
+                                    Theme.of(context).colorScheme.primary),
                               ),
                               Row(
                                 children: [
@@ -538,6 +538,51 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                       ],
                     ),
                   ),
+                  // Container(
+                  //   height: rowHeight,
+                  //   color: Theme.of(context).colorScheme.onPrimary,
+                  //   child: Column(
+                  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //     children: [
+                  //       Divider(
+                  //         height: 0.0,
+                  //         color: Colors.transparent,
+                  //       ),
+                  //       Container(
+                  //         padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  //         child: Row(
+                  //           mainAxisAlignment:
+                  //               MainAxisAlignment.spaceBetween,
+                  //           children: [
+                  //             Text(
+                  //               "Adjustment Bolus",
+                  //               style: TextStyle(fontSize: 16),
+                  //             ),
+                  //             Row(
+                  //               children: [
+                  //                 Text(
+                  //                   "$adjustmentBolus",
+                  //                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  //                 ),
+                  //                 Text(
+                  //                   " mg",
+                  //                   style: TextStyle(fontSize: 20),
+                  //                 ),
+                  //               ],
+                  //             ),
+                  //           ],
+                  //         ),
+                  //       ),
+                  //       Container(
+                  //         padding: EdgeInsets.only(left: 16.0),
+                  //         child: Divider(
+                  //           height: 1.0,
+                  //           color: Theme.of(context).colorScheme.primary,
+                  //         ),
+                  //       )
+                  //     ],
+                  //   ),
+                  // ),
                   Container(
                     height: rowHeight,
                     color: Theme.of(context).colorScheme.onPrimary,
@@ -654,10 +699,10 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                         labels: ["Induction", "Wake Up"],
                         segmentedController: flowController,
                         onPressed: [
-                          () {
+                              () {
                             settings.EMFlow = 'induction';
                           },
-                          () {
+                              () {
                             settings.EMFlow = 'wakeUp';
                           }
                         ]),
@@ -672,7 +717,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.all(0),
                             backgroundColor:
-                                Theme.of(context).colorScheme.onPrimary,
+                            Theme.of(context).colorScheme.onPrimary,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                                 side: BorderSide(
@@ -680,13 +725,13 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                                   strokeAlign: BorderSide.strokeAlignOutside,
                                 ),
                                 borderRadius:
-                                    BorderRadius.all(Radius.circular(5))),
+                                BorderRadius.all(Radius.circular(5))),
                           ),
                           onPressed: () {
                             showAlertDialog(context);
                           },
                           child:
-                              Center(child: Icon(Icons.info_outline_rounded)),
+                          Center(child: Icon(Icons.info_outline_rounded)),
                         )),
                     SizedBox(
                       width: 8,
@@ -698,7 +743,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.all(0),
                             backgroundColor:
-                                Theme.of(context).colorScheme.onPrimary,
+                            Theme.of(context).colorScheme.onPrimary,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                                 side: BorderSide(
@@ -706,7 +751,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                                   strokeAlign: BorderSide.strokeAlignOutside,
                                 ),
                                 borderRadius:
-                                    BorderRadius.all(Radius.circular(5))),
+                                BorderRadius.all(Radius.circular(5))),
                           ),
                           onPressed: () async {
                             await HapticFeedback.mediumImpact();
@@ -721,7 +766,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
           ),
           const SizedBox(
             height:
-                28, //this has been manually adjusted from 24, don't know the root cause yet.
+            28, //this has been manually adjusted from 24, don't know the root cause yet.
           ),
           Opacity(
             opacity: flowController.val == 0 ? 1 : 0,
@@ -775,11 +820,11 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                 children: [
                   Container(
                     width:
-                        mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                     child: PDTextField(
                       prefixIcon: Icons.psychology_alt_outlined,
                       labelText:
-                          '${Model.Eleveld.target.toString()} Wake Up (mcg/mL)',
+                      '${Model.Eleveld.target.toString()} Wake Up (mcg/mL)',
                       interval: 0.5,
                       fractionDigits: 1,
                       controller: wakeUpTargetController,
@@ -844,14 +889,15 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                 children: [
                   Container(
                     width:
-                        mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                     child: PDTextField(
                       prefixIcon: Icons.psychology_alt_outlined,
-                      labelText: 'BIS Reading',
+                      labelText:
+                      'BIS Reading',
                       interval: 1,
                       fractionDigits: 0,
                       controller: wakeUpBISController,
-                      range: [0, 100],
+                      range: [0,100],
                       onPressed: updatePDTextEditingController,
                     ),
                   ),
@@ -873,7 +919,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                   child: PDTextField(
                     prefixIcon: Icons.psychology_alt_outlined,
                     labelText:
-                        '${Model.Eleveld.target.toString()} Target (mcg/mL)',
+                    '${Model.Eleveld.target.toString()} Target (mcg/mL)',
                     interval: 0.5,
                     fractionDigits: 1,
                     controller: targetController,

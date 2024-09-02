@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
     EleMarshScreen(),
     DurationScreen(),
     SettingsScreen(),
-    TestScren()
+    TestScreen()
   ];
 
   @override

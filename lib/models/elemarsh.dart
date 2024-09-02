@@ -7,7 +7,6 @@ import 'package:propofol_dreams_app/models/model.dart';
 
 class EleMarsh {
   Simulation goldSimulation;
-
   EleMarsh(
       {required this.goldSimulation});
 
@@ -160,10 +159,10 @@ class EleMarsh {
 
 
     return (
-      weightBestGuess: weightBestGuess,
+    weightBestGuess: weightBestGuess,
       // bolusBestGuess: bolusBestGuess,
       adjustmentBolus: adjustmentBolus,
-      inductionCPTarget: inductionCPTarget,
+    inductionCPTarget: inductionCPTarget,
       // length: MaxAPEs.length,
       // weightGuesses: weightGuesses,
       // bolusGuesses: bolusGuesses,

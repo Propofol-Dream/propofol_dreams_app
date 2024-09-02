@@ -8,8 +8,6 @@ import 'package:propofol_dreams_app/models/simulation.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/gender.dart';
 
-
-
 void main() {
   test('EleMarsh ce50Shift', () async {
     int weight = 70;

@@ -430,6 +430,29 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
+  double? _calculatorWakeUpCE;
+  double? _calculatorWakeUpSE;
+
+  double? get calculatorWakeUpCE {
+    return _calculatorWakeUpCE;
+  }
+
+  set calculatorWakeUpCE(double? d){
+    _calculatorWakeUpCE = d;
+    setDouble('calculatorWakeUpCE', d);
+    notifyListeners();
+  }
+
+  double? get calculatorWakeUpSE {
+    return _calculatorWakeUpSE;
+  }
+
+  set calculatorWakeUpSE(double? d){
+    _calculatorWakeUpSE = d;
+    setDouble('calculatorWakeUpSE', d);
+    notifyListeners();
+  }
+
 
 
 
