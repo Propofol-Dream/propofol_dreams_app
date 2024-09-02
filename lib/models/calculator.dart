@@ -1,7 +1,7 @@
 import 'dart:math';
 
 class Calculator {
-  calcWakeUpCE({required double ce, required double se}){
+  ({double wakeCeLow, double wakeCeHigh})calcWakeUpCE({required double ce, required int se}){
     double basese = 100.0;
     double gammawake = 6.63495422005024;
     double gammaeeg = 6.7480404291049673;
@@ -22,6 +22,6 @@ class Calculator {
     double eegce = ce50eeg * eeglinearcoeff + eeglinearoffset;
 
     // Output results
-    return(wakece as double, eegce as double);
+    return(wakeCeLow: wakece, wakeCeHigh: eegce );
   }
 }

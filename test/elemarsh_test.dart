@@ -207,7 +207,7 @@ void main() {
         CEAbsolutePercentageErrors.where((element) => !element.isNaN)
             .reduce(max);
 
-        guessRow row = (weightGuess: weightGuess, bolusGuess: bolusGuess, SSRE: SSRE, maxPE: maxPE, eegce: inductionCPTarget);
+        guessRow row = (weightGuess: weightGuess, bolusGuess: bolusGuess, SSRE: SSRE, maxPE: maxPE, wakeCeHigh: inductionCPTarget);
         guessMatrix.add(row);
 
       }
@@ -226,7 +226,7 @@ void main() {
 
     int weightBestGuess = row.weightGuess;
     int bolusBestGuess = row.bolusGuess;
-    double inductionCPTarget = row.eegce;
+    double inductionCPTarget = row.wakeCeHigh;
 
     double adjustmentBolus = bolusBestGuess / 4;
 

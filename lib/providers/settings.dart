@@ -335,9 +335,12 @@ class Settings with ChangeNotifier {
   int? _EMWeight;
   double? _EMTarget;
   int? _EMDuration;
+
   String? _EMFlow;
-  double? _EMWakeUpTarget;
-  int? _EMWakeUpBIS;
+
+  double? _EMMaintenanceCe;
+  int? _EMMaintenanceSE;
+  double? _EMInfusionRate;
 
   Gender? get EMGender {
     return _EMGender;
@@ -410,28 +413,42 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  double? get EMWakeUpTarget {
-    return _EMWakeUpTarget;
+  double? get EMMaintenanceCe {
+    return _EMMaintenanceCe;
   }
 
-  set EMWakeUpTarget(double? d) {
-    _EMWakeUpTarget = d;
-    setDouble('EMWakeUpTarget', d);
+  set EMMaintenanceCe(double? d) {
+    _EMMaintenanceCe = d;
+    setDouble('EMMaintenanceCe', d);
     notifyListeners();
   }
 
-  int? get EMWakeUpBIS {
-    return _EMWakeUpBIS;
+  int? get EMMaintenanceSE {
+    return _EMMaintenanceSE;
   }
 
-  set EMWakeUpBIS(int? i) {
-    _EMWakeUpBIS = i;
-    setInt('EMWakeUpBIS', i);
+  set EMMaintenanceSE(int? i) {
+    _EMMaintenanceSE = i;
+    setInt('EMMaintenanceSE', i);
     notifyListeners();
   }
+
+  double? get EMInfusionRate {
+    return _EMInfusionRate;
+  }
+
+  set EMInfusionRate(double? d) {
+    _EMInfusionRate = d;
+    setDouble('_EMInfusionRate', d);
+    notifyListeners();
+  }
+
+
+
+
 
   double? _calculatorWakeUpCE;
-  double? _calculatorWakeUpSE;
+  int? _calculatorWakeUpSE;
 
   double? get calculatorWakeUpCE {
     return _calculatorWakeUpCE;
@@ -443,17 +460,16 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  double? get calculatorWakeUpSE {
+
+  int? get calculatorWakeUpSE {
     return _calculatorWakeUpSE;
   }
 
-  set calculatorWakeUpSE(double? d){
-    _calculatorWakeUpSE = d;
-    setDouble('calculatorWakeUpSE', d);
+  set calculatorWakeUpSE(int? i) {
+    _calculatorWakeUpSE = i;
+    setInt('EMObservedSE', i);
     notifyListeners();
   }
-
-
 
 
 

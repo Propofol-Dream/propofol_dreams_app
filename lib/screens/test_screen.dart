@@ -51,8 +51,8 @@ class _TestScreenState extends State<TestScreen> {
   void initState() {
     final settings = context.read<Settings>();
 
-    calculatorWakeUpCEController.text = settings.EMWakeUpTarget.toString();
-    calculatorWakeUpSEController.text = settings.EMWakeUpBIS.toString();
+    calculatorWakeUpCEController.text = settings.calculatorWakeUpCE.toString();
+    calculatorWakeUpSEController.text = settings.calculatorWakeUpSE.toString();
 
     load();
 
@@ -75,7 +75,7 @@ class _TestScreenState extends State<TestScreen> {
     }
 
     if (pref.containsKey('calculatorWakeUpSE')) {
-      settings.calculatorWakeUpSE = pref.getDouble('calculatorWakeUpSE')!;
+      settings.calculatorWakeUpSE = pref.getInt('calculatorWakeUpSE')!;
     } else {
       settings.calculatorWakeUpSE = 3;
     }
@@ -95,8 +95,8 @@ class _TestScreenState extends State<TestScreen> {
 
     double? calculatorWakeUpCE =
         double.tryParse(calculatorWakeUpCEController.text);
-    double? calculatorWakeUpSE =
-        double.tryParse(calculatorWakeUpSEController.text);
+    int? calculatorWakeUpSE =
+        int.tryParse(calculatorWakeUpSEController.text);
 
     //Save all the settings
     if (initState == false) {
@@ -109,7 +109,7 @@ class _TestScreenState extends State<TestScreen> {
 
       Calculator c = Calculator();
 
-      var (wakece_result, eegce_result) = c.calcWakeUpCE(ce: calculatorWakeUpCE, se: calculatorWakeUpSE);
+      var result = c.calcWakeUpCE(ce: calculatorWakeUpCE, se: calculatorWakeUpSE);
       // print(result);
 
       DateTime finish = DateTime.now();
@@ -117,8 +117,8 @@ class _TestScreenState extends State<TestScreen> {
       Duration calculationDuration = finish.difference(start);
 
       setState(() {
-        wakece = wakece_result.toStringAsFixed(6);
-        eegce = eegce_result.toStringAsFixed(6);
+        wakece = result.wakeCeLow.toStringAsFixed(6);
+        eegce = result.wakeCeHigh.toStringAsFixed(6);
 
         print({
           'wakece': wakece,
@@ -140,14 +140,14 @@ class _TestScreenState extends State<TestScreen> {
 
     calculatorWakeUpCEController.text = toDefault
         ? 3.0.toString()
-        : settings.EMWakeUpTarget != null
-            ? settings.EMWakeUpTarget.toString()
+        : settings.calculatorWakeUpCE != null
+            ? settings.calculatorWakeUpCE.toString()
             : '';
 
     calculatorWakeUpSEController.text = toDefault
         ? 25.toString()
-        : settings.EMWakeUpBIS != null
-            ? settings.EMWakeUpBIS.toString()
+        : settings.calculatorWakeUpSE != null
+            ? settings.calculatorWakeUpSE.toString()
             : '';
     run();
   }
@@ -470,7 +470,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                   child: PDTextField(
                     prefixIcon: Icons.psychology_alt_outlined,
                     labelText:
-                        'Ce',
+                        'Maintenance Ce',
                     interval: 0.1,
                     fractionDigits: 1,
                     controller: calculatorWakeUpCEController,
@@ -495,11 +495,11 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                       mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                   child: PDTextField(
                     prefixIcon: Icons.psychology_alt_outlined,
-                    labelText: 'Observed SE',
+                    labelText: 'Observed State Entropy',
                     interval: 1,
-                    fractionDigits: 0,
+                    fractionDigits: 1,
                     controller: calculatorWakeUpSEController,
-                    range: [0, 100],
+                    range: [1, 99],
                     onPressed: updatePDTextEditingController,
                   ),
                 ),

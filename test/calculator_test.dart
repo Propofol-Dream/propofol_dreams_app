@@ -5,9 +5,9 @@ void main() {
   test('Calculator WakeUpCE', () async {
 
     Calculator c = Calculator();
-    var (wakece, eegce) = c.calcWakeUpCE(ce: 2.6, se: 45);
-    print(wakece);
-    print(eegce);
+    var result = c.calcWakeUpCE(ce: 2.6, se: 45);
+    print(result.wakeCeLow);
+    print(result.wakeCeHigh);
   });
 }
 

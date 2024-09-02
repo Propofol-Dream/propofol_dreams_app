@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
     EleMarshScreen(),
     DurationScreen(),
     SettingsScreen(),
-    TestScreen()
+    // TestScreen()
   ];
 
   @override
@@ -88,9 +88,9 @@ class _HomeScreenState extends State<HomeScreen> {
             BottomNavigationBarItem(
                 icon:  Icon(Icons.settings),
                 label: 'Settings'),
-            BottomNavigationBarItem(
-                icon:  Icon(Icons.science),
-                label: 'Test'),
+            // BottomNavigationBarItem(
+            //     icon:  Icon(Icons.science),
+            //     label: 'Test'),
           ]),
     );
   }
