@@ -11,7 +11,7 @@ class PDAdvancedSegmentedController extends ChangeNotifier {
         : _selection!;
   }
 
-  void set selection(s) {
+  set selection(s) {
     _selection = s;
     notifyListeners();
   }

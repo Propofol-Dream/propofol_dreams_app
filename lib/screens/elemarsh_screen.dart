@@ -42,8 +42,9 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   TextEditingController targetController = TextEditingController();
 
   final PDSegmentedController flowController = PDSegmentedController();
+  PDSwitchController modelController = PDSwitchController();
   TextEditingController maintenanceCeController = TextEditingController();
-  TextEditingController MaintenanceSEController = TextEditingController();
+  TextEditingController maintenanceSEController = TextEditingController();
   TextEditingController infusionRateController = TextEditingController();
 
   //Displays
@@ -52,9 +53,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   String inductionCPTarget = "--";
   String BMI = "--";
   String predictedBIS = "--";
-
-  String wakeCeLow = "--";
-  String wakeCeHigh = "--";
+  String range = "--";
 
   @override
   void initState() {
@@ -66,10 +65,12 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     weightController.text = settings.EMWeight.toString();
     targetController.text = settings.EMTarget.toString();
 
-    flowController.val = settings.EMFlow == 'wakeUp' ? 1 : 0;
+    flowController.val = settings.EMFlow == 'induce' ? 0 : 1;
 
+    modelController.val =
+        settings.EMWakeUpModel == Model.Eleveld ? true : false;
     maintenanceCeController.text = settings.EMMaintenanceCe.toString();
-    MaintenanceSEController.text = settings.EMMaintenanceSE.toString();
+    maintenanceSEController.text = settings.EMMaintenanceSE.toString();
     infusionRateController.text = settings.EMInfusionRate.toString();
 
     load();
@@ -135,6 +136,14 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       settings.EMFlow = 'induce';
     }
 
+    if (pref.containsKey('EMWakeUpModel')) {
+      String model = pref.getString('EMWakeUpModel')!;
+      settings.EMWakeUpModel =
+          model == 'Eleveld' ? Model.Eleveld : Model.EleMarsh;
+    } else {
+      settings.EMWakeUpModel = Model.Eleveld;
+    }
+
     if (pref.containsKey('EMMaintenanceCe')) {
       settings.EMMaintenanceCe = pref.getDouble('EMMaintenanceCe');
     } else {
@@ -159,9 +168,11 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     weightController.text = settings.EMWeight.toString();
     targetController.text = settings.EMTarget.toString();
 
-    flowController.val = settings.EMFlow == 'wakeUp' ? 1 : 0;
+    flowController.val = settings.EMFlow == 'induce' ? 0 : 1;
+    modelController.val =
+        settings.EMWakeUpModel == Model.Eleveld ? true : false;
     maintenanceCeController.text = settings.EMMaintenanceCe.toString();
-    MaintenanceSEController.text = settings.EMMaintenanceSE.toString();
+    maintenanceSEController.text = settings.EMMaintenanceSE.toString();
     infusionRateController.text = settings.EMInfusionRate.toString();
     run(initState: true);
   }
@@ -180,9 +191,10 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     double? target = double.tryParse(targetController.text);
     Gender gender = genderController.val ? Gender.Female : Gender.Male;
 
-    String flow = flowController.val == 1 ? 'wake' : 'induce';
+    String flow = flowController.val == 0 ? 'induce' : 'wake';
+    Model m = modelController.val ? Model.Eleveld : Model.EleMarsh;
     double? maintenanceCe = double.tryParse(maintenanceCeController.text);
-    int? maintenanceSE = int.tryParse(MaintenanceSEController.text);
+    int? maintenanceSE = int.tryParse(maintenanceSEController.text);
 
     //Save all the settings
     if (initState == false) {
@@ -192,6 +204,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       settings.EMWeight = weight;
       settings.EMTarget = target;
       settings.EMFlow = flow;
+      settings.EMWakeUpModel = m;
       settings.EMMaintenanceCe = maintenanceCe;
       settings.EMMaintenanceSE = maintenanceSE;
     }
@@ -200,6 +213,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         height != null &&
         weight != null &&
         target != null &&
+        m != null &&
         maintenanceCe != null &&
         maintenanceSE != null) {
       if (age >= 14 &&
@@ -236,7 +250,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
         Calculator calculator = Calculator();
         var resultWakeUp =
-            calculator.calcWakeUpCE(ce: maintenanceCe, se: maintenanceSE);
+            calculator.calcWakeUpCE(ce: maintenanceCe, se: maintenanceSE, m: m);
 
         DateTime finish = DateTime.now();
 
@@ -252,15 +266,17 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           // MDAPE = (result.MDAPEs[guessIndex] * 100).toStringAsFixed(1);
           BMI = patient.bmi.toStringAsFixed(1);
 
-          wakeCeLow = resultWakeUp.wakeCeLow.toStringAsFixed(2);
-          wakeCeHigh = resultWakeUp.wakeCeHigh.toStringAsFixed(2);
+          String lower = resultWakeUp.lower.toStringAsFixed(2);
+          String upper = resultWakeUp.upper.toStringAsFixed(2);
+
+          range = lower + ' - ' + upper;
 
           print({
             'weightBestGuess': weightBestGuess,
             'adjustmentBolus': adjustmentBolus,
             'inductionCPTarget': inductionCPTarget,
-            'wakeCeLow': wakeCeLow,
-            'wakeCeHigh': wakeCeHigh,
+            'flow': flow,
+            'range': range,
             'calculation time':
                 '${calculationDuration.inMilliseconds.toString()} milliseconds'
           });
@@ -270,8 +286,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           weightBestGuess = "--";
           adjustmentBolus = "--";
           inductionCPTarget = "--";
-          wakeCeLow = "--";
-          wakeCeHigh = "--";
+          range = "--";
         });
       }
     } else {
@@ -279,8 +294,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         weightBestGuess = "--";
         adjustmentBolus = "--";
         inductionCPTarget = "--";
-        wakeCeLow = "--";
-        wakeCeHigh = "--";
+        range = "--";
       });
     }
   }
@@ -288,44 +302,51 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   void reset({bool toDefault = false}) {
     final settings = Provider.of<Settings>(context, listen: false);
 
-    genderController.val = toDefault
-        ? true
-        : settings.EMGender == Gender.Female
-            ? true
-            : false;
-    ageController.text = toDefault
-        ? 40.toString()
-        : settings.EMAge != null
-            ? settings.EMAge.toString()
-            : '';
-    heightController.text = toDefault
-        ? 170.toString()
-        : settings.EMHeight != null
-            ? settings.EMHeight.toString()
-            : '';
-    weightController.text = toDefault
-        ? 70.toString()
-        : settings.EMWeight != null
-            ? settings.EMWeight.toString()
-            : '';
-    targetController.text = toDefault
-        ? 3.0.toString()
-        : settings.EMTarget != null
-            ? settings.EMTarget.toString()
-            : '';
+    if (flowController.val == 0) {
+      genderController.val = toDefault
+          ? true
+          : settings.EMGender == Gender.Female
+              ? true
+              : false;
+      ageController.text = toDefault
+          ? 40.toString()
+          : settings.EMAge != null
+              ? settings.EMAge.toString()
+              : '';
+      heightController.text = toDefault
+          ? 170.toString()
+          : settings.EMHeight != null
+              ? settings.EMHeight.toString()
+              : '';
+      weightController.text = toDefault
+          ? 70.toString()
+          : settings.EMWeight != null
+              ? settings.EMWeight.toString()
+              : '';
+      targetController.text = toDefault
+          ? 3.0.toString()
+          : settings.EMTarget != null
+              ? settings.EMTarget.toString()
+              : '';
+    } else {
+      modelController.val = toDefault
+          ? true
+          : settings.EMWakeUpModel == Model.Eleveld
+              ? true
+              : false;
 
-    maintenanceCeController.text = toDefault
-        ? 3.0.toString()
-        : settings.EMMaintenanceCe != null
-            ? settings.EMMaintenanceCe.toString()
-            : '';
+      maintenanceCeController.text = toDefault
+          ? 3.0.toString()
+          : settings.EMMaintenanceCe != null
+              ? settings.EMMaintenanceCe.toString()
+              : '';
 
-    MaintenanceSEController.text = toDefault
-        ? 50.toString()
-        : settings.EMMaintenanceSE != null
-            ? settings.EMMaintenanceSE.toString()
-            : '';
-
+      maintenanceSEController.text = toDefault
+          ? 50.toString()
+          : settings.EMMaintenanceSE != null
+              ? settings.EMMaintenanceSE.toString()
+              : '';
+    }
     run();
   }
 
@@ -353,6 +374,12 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                 : 56);
 
     final settings = context.watch<Settings>();
+
+    bool isMaintenanceSEOutOfRange = ((settings.EMMaintenanceSE ?? 50) >= 21 &&
+            (settings.EMMaintenanceSE ?? 50) <= 60)
+        ? false
+        : true;
+
     int density = settings.density;
 
     void showInduceAlertDialog(BuildContext context) {
@@ -360,74 +387,61 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Induce'),
+              title: Text('EleMarsh Algorithm'),
               content: SingleChildScrollView(
                 child: Text.rich(
-                  TextSpan(
-                      text:
-                          """The purpose of EleMarsh Mode is to make the Marsh model mimic the Eleveld model.""",
-                      children: [
-                        TextSpan(text: "\n\n"),
-                        TextSpan(
-                            text:
-                                "Step by step guide to using the EleMarsh mode:",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: """
-              
-              
-(1) Enter patient details and desired Ce target
+                  TextSpan(children: [
+                    TextSpan(
+                        text: "Aim:",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(text: "\n"),
+                    TextSpan(
+                        text:
+                            "Make the Marsh model accurately mimic the infusion behaviour of the Eleveld model."),
+                    TextSpan(text: "\n\n"),
+                    TextSpan(
+                        text: "Usage:",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(text: "\n"),
+                    TextSpan(
+                        text:
+                            """(1) Enter patient details and desired Eleveld Ce target
 
-(2) EleMarsh generates the """),
-                        TextSpan(
-                          text: """Adjusted Body Weight """,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(text: """and """),
-                        TextSpan(
-                          text: """Induction CpT""",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(text: """
+(2) EleMarsh calculates the """),
+                    TextSpan(
+                        text: """Adjusted Body Weight""",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(text: """and """),
+                    TextSpan(
+                        text: """Induction CpT""",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(text: """
 
 
 (3) Use the """),
-                        TextSpan(
-                          text: """Adjusted Body Weight """,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(
-                            text:
-                                """as the Marsh input weight on your TCI pump"""),
-                        TextSpan(text: """
-
+                    TextSpan(
+                        text: """Adjusted Body Weight""",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(
+                        text:
+                            """ as the input weight for Marsh model on TCI pump
 
 (4) Use the """),
-                        TextSpan(
-                          text: """Induction CpT """,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(
-                            text:
-                                """as your initial CpT setting. As soon as the bolus is given, drop the CpT down to your desired CeT. The Marsh model on your pump will now mimic the behaviour of the Eleveld model."""),
-                        TextSpan(
-                          text: """
-                    
-                    
-Reference""",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(text: """
-
-
-Zhong G., Xu, X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. """),
-                        TextSpan(
-                          text: """2024""",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(
-                          text: """.""",
-                        ),
-                      ]),
+                    TextSpan(
+                        text: """Induction CpT""",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(
+                      text:
+                          """ as the initial CpT setting. As soon as the bolus is finished, drop CpT down to the desired CeT for maintenance. The Marsh model on your pump will now accurately mimic the Eleveld model.""",
+                    ),
+                    TextSpan(text: "\n\n"),
+                    TextSpan(
+                        text: "References:",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(text: "\n"),
+                    TextSpan(text: """
+Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275-278."""),
+                  ]),
                 ),
               ),
               actions: [
@@ -442,79 +456,47 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
             );
           });
     }
+
     void showWakeAlertDialog(BuildContext context) {
       showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Wake'),
+              title: Text('Wake Up Estimation'),
               content: SingleChildScrollView(
                 child: Text.rich(
-                  TextSpan(
-                      text:
-                      """The purpose of EleMarsh Mode is to make the Marsh model mimic the Eleveld model.""",
-                      children: [
-                        TextSpan(text: "\n\n"),
-                        TextSpan(
-                            text:
-                            "Step by step guide to using the EleMarsh mode:",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: """
-              
-              
-(1) Enter patient details and desired Ce target
+                  TextSpan(children: [
+                    TextSpan(
+                        text: "Aim:",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(text: "\n"),
+                    TextSpan(
+                        text:
+                            "Estimate the propofol Ce at which the patient emerges from general anaesthesia (i.e. eye open to voice)."),
+                    TextSpan(text: "\n\n"),
+                    TextSpan(
+                        text: "Usage:",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(text: "\n"),
+                    TextSpan(text: """
+(1) Enter the Eleveld Ce during maintenance phase. (N.B. if EleMarsh Cp is used instead, please ensure steady state has been achieved)
 
-(2) EleMarsh generates the """),
-                        TextSpan(
-                          text: """Adjusted Body Weight """,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(text: """and """),
-                        TextSpan(
-                          text: """Induction CpT""",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(text: """
+(2) Enter the corresponding state entropy (SE) observed.
 
+(3) The algorithm will derive the Ce range for anaesthesia emergence based on the individual’s propofol sensitivity."""),
+                    TextSpan(text: "\n\n"),
+                    TextSpan(
+                        text: "Caveats:",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(text: "\n"),
+                    TextSpan(
+                        text:
+                            """(a) Algorithm based on Eleveld model. EleMarsh may demonstrate hysteresis.
 
-(3) Use the """),
-                        TextSpan(
-                          text: """Adjusted Body Weight """,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(
-                            text:
-                            """as the Marsh input weight on your TCI pump"""),
-                        TextSpan(text: """
+(b) Wake up Ce estimate assumes minimal stimulus. Actual wake up Ce will depend on stimulus, analgesia, paralysis and adjuvants.
 
-
-(4) Use the """),
-                        TextSpan(
-                          text: """Induction CpT """,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(
-                            text:
-                            """as your initial CpT setting. As soon as the bolus is given, drop the CpT down to your desired CeT. The Marsh model on your pump will now mimic the behaviour of the Eleveld model."""),
-                        TextSpan(
-                          text: """
-                    
-                    
-Reference""",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(text: """
-
-
-Zhong G., Xu, X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. """),
-                        TextSpan(
-                          text: """2024""",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(
-                          text: """.""",
-                        ),
-                      ]),
+(c) Clinical validation study is in progress."""),
+                  ]),
                 ),
               ),
               actions: [
@@ -760,7 +742,11 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                     child: Column(
                       children: [
                         Container(
-                          color: Theme.of(context).colorScheme.onPrimary,
+                          color: isMaintenanceSEOutOfRange
+                              ? Theme.of(context)
+                              .colorScheme
+                              .onTertiary
+                              : Theme.of(context).colorScheme.onPrimary,
                           padding: EdgeInsets.symmetric(horizontal: 16.0),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.end,
@@ -770,22 +756,35 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                                 height: 16,
                               ),
                               Text(
-                                " Wake Up Ce Range",
+                                  (settings.EMWakeUpModel == Model.Eleveld )
+                                    ? isMaintenanceSEOutOfRange
+                                      ? '*Wake Up Ce Range'
+                                      : 'Wake Up Ce Range'
+                                    : isMaintenanceSEOutOfRange
+                                      ? '*Wake Up Cp Range'
+                                      : 'Wake Up Cp Range',
                                 style: TextStyle(
                                     fontSize: 18,
-                                    color:
-                                        Theme.of(context).colorScheme.primary),
+                                    color: isMaintenanceSEOutOfRange
+                                        ? Theme.of(context).colorScheme.tertiary
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .primary),
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   Text(
-                                    "$wakeCeLow to $wakeCeHigh",
+                                    range,
                                     style: TextStyle(
                                         fontSize: 54,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary),
+                                        color: isMaintenanceSEOutOfRange
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .tertiary
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .primary),
                                   ),
                                 ],
                               ),
@@ -849,8 +848,9 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                                     BorderRadius.all(Radius.circular(5))),
                           ),
                           onPressed: () {
-                            flowController.val==0 ?
-                            showInduceAlertDialog(context):showWakeAlertDialog(context);
+                            flowController.val == 0
+                                ? showInduceAlertDialog(context)
+                                : showWakeAlertDialog(context);
                           },
                           child:
                               Center(child: Icon(Icons.info_outline_rounded)),
@@ -895,13 +895,15 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
             child: Container(
               height: flowController.val == 0 ? UIHeight + 24 : 0,
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
                     width: UIWidth,
                     child: PDSwitchField(
                       labelText: 'Sex',
-                      prefixIcon: Icons.wc,
+                      prefixIcon: genderController.val == true
+                          ? Icons.woman
+                          : Icons.man,
                       controller: genderController,
                       switchTexts: {
                         true: Gender.Female.toString(),
@@ -938,14 +940,35 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
             child: Container(
               height: flowController.val == 1 ? UIHeight + 24 : 0,
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    width:
-                        mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                    width: UIWidth,
+                    child: PDSwitchField(
+                      labelText: 'Model',
+                      prefixIcon: modelController.val == true
+                          ? Icons.science_outlined
+                          : Icons.hub_outlined,
+                      controller: modelController,
+                      switchTexts: {
+                        true: Model.Eleveld.toString(),
+                        false: Model.EleMarsh.toString()
+                      },
+                      onChanged: run,
+                      height: UIHeight,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 8,
+                    height: 0,
+                  ),
+                  Container(
+                    width: UIWidth,
                     child: PDTextField(
-                      prefixIcon: Icons.settings_input_component_outlined,
-                      labelText: 'Maintenance Ce',
+                      prefixIcon: Icons.psychology_outlined,
+                      labelText: settings.EMWakeUpModel == Model.Eleveld
+                          ? 'Maintenance Ce'
+                          : 'Maintenance Cp',
                       interval: 0.5,
                       fractionDigits: 1,
                       controller: maintenanceCeController,
@@ -1012,12 +1035,15 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                     width:
                         mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                     child: PDTextField(
-                      prefixIcon: Icons.filter_vintage_outlined,
+                      prefixIcon: Icons.monitor_heart_outlined,
                       labelText: 'Maintenance State Entropy',
+                      helperText: isMaintenanceSEOutOfRange
+                          ? '*Accuracy reduced, min: 21 and max: 60'
+                          : '',
                       interval: 1,
                       fractionDigits: 0,
-                      controller: MaintenanceSEController,
-                      range: [0, 100],
+                      controller: maintenanceSEController,
+                      range: [1, 99],
                       onPressed: updatePDTextEditingController,
                     ),
                   ),
@@ -1041,7 +1067,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                     child: PDTextField(
                       prefixIcon: Icons.psychology_alt_outlined,
                       labelText:
-                      '${Model.Eleveld.target.toString()} Target (mcg/mL)',
+                          '${Model.Eleveld.target.toString()} Target (μg/mL)',
                       interval: 0.5,
                       fractionDigits: 1,
                       controller: targetController,

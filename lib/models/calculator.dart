@@ -1,27 +1,44 @@
 import 'dart:math';
+import 'model.dart';
 
 class Calculator {
-  ({double wakeCeLow, double wakeCeHigh})calcWakeUpCE({required double ce, required int se}){
+  ({double lower, double upper})calcWakeUpCE({required double ce, required int se, required Model m}){
     double basese = 100.0;
-    double gammawake = 6.63495422005024;
-    double gammaeeg = 6.7480404291049673;
-    double shiftratio = 0.0;
+    double gammaLower = 0.0, gammerUpper = 0.0;
+    double coeffLower = 0.0, coeffUpper = 0.0;
+    double offsetLower = 0.0, offsetUpper = 0.0;
 
-    double wakelinearcoeff = 0.671640268042454;
-    double wakelinearoffset = -0.135905829113675;
-    double eeglinearcoeff = 0.710061382722482;
-    double eeglinearoffset = 0.133079534579095;
+    if( m == Model.Eleveld){
 
-    // Calculate wake up CE
-    double ce50wake = ce / (pow((basese / se - 1), (1 / gammawake)) + shiftratio);
-    double ce50shift = ce50wake * shiftratio;
-    double wakece = ce50wake * wakelinearcoeff + wakelinearoffset;
+      gammaLower = 4.55410613557215;
+      coeffLower = 0.465936758202314;
+      offsetLower = 0.477223367024224;
 
-    // Calculate EEG speed up CE
-    double ce50eeg = ce / (pow((basese / se - 1), (1 / gammaeeg)) + shiftratio);
-    double eegce = ce50eeg * eeglinearcoeff + eeglinearoffset;
+      gammerUpper = 6.74804291049673;
+      coeffUpper = 0.710061382722482;
+      offsetUpper = 0.133079534579095;
 
-    // Output results
-    return(wakeCeLow: wakece, wakeCeHigh: eegce );
+    }else if ( m == Model.EleMarsh){
+
+      gammaLower = 6.88986185235045;
+      coeffLower = 0.404591957791188;
+      offsetLower = 0.25102120174394;
+
+      gammerUpper = 5.98370830613453;
+      coeffUpper = 0.540328579876593;
+      offsetUpper = 0.107298105871768;
+
+    }
+
+    double lower = ce / (pow((basese / se - 1), (1 / gammaLower))) * coeffLower + offsetLower;
+    double upper = ce / (pow((basese / se - 1), (1 / gammerUpper))) * coeffUpper + offsetUpper;
+
+    if (lower >= upper) {
+      double temp = lower;
+      lower = upper;
+      upper = temp;
+    }
+
+    return(lower: lower, upper: upper );
   }
 }

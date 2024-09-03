@@ -1,39 +1,24 @@
 import 'dart:async';
 import 'dart:io' show Platform;
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:propofol_dreams_app/models/calculator.dart';
-import 'package:propofol_dreams_app/models/elemarsh.dart';
+import 'package:propofol_dreams_app/models/model.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 import 'package:propofol_dreams_app/providers/settings.dart';
-import 'package:propofol_dreams_app/models/patient.dart';
-import 'package:propofol_dreams_app/models/pump.dart';
-import 'package:propofol_dreams_app/models/model.dart';
-import 'package:propofol_dreams_app/models/gender.dart';
 
-import 'package:propofol_dreams_app/controllers/PDSwitchController.dart';
-import 'package:propofol_dreams_app/controllers/PDSwitchField.dart';
 import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 
-import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
-import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart';
 
-import 'package:propofol_dreams_app/widgets/PDLabel.dart';
-import 'package:propofol_dreams_app/widgets/PDStyledLabel.dart';
 
-import 'package:propofol_dreams_app/models/calculator.dart';
 
 import '../constants.dart';
 
 class TestScreen extends StatefulWidget {
-  TestScreen({Key? key}) : super(key: key);
+  const TestScreen({super.key});
 
   @override
   State<TestScreen> createState() => _TestScreenState();
@@ -44,8 +29,8 @@ class _TestScreenState extends State<TestScreen> {
   TextEditingController calculatorWakeUpSEController = TextEditingController();
 
   //Displays
-  String wakece = "--";
-  String eegce = "--";
+  String lower = "--";
+  String upper = "--";
 
   @override
   void initState() {
@@ -109,7 +94,7 @@ class _TestScreenState extends State<TestScreen> {
 
       Calculator c = Calculator();
 
-      var result = c.calcWakeUpCE(ce: calculatorWakeUpCE, se: calculatorWakeUpSE);
+      var result = c.calcWakeUpCE(ce: calculatorWakeUpCE, se: calculatorWakeUpSE, m: Model.Eleveld);
       // print(result);
 
       DateTime finish = DateTime.now();
@@ -117,20 +102,20 @@ class _TestScreenState extends State<TestScreen> {
       Duration calculationDuration = finish.difference(start);
 
       setState(() {
-        wakece = result.wakeCeLow.toStringAsFixed(6);
-        eegce = result.wakeCeHigh.toStringAsFixed(6);
+        lower = result.lower.toStringAsFixed(6);
+        upper = result.upper.toStringAsFixed(6);
 
         print({
-          'wakece': wakece,
-          'eegce': eegce,
+          'lower': lower,
+          'upper': upper,
           'calculation time':
               '${calculationDuration.inMilliseconds.toString()} milliseconds'
         });
       });
     } else {
       setState(() {
-        wakece = "--";
-        eegce = "--";
+        lower = "--";
+        upper = "--";
       });
     }
   }
@@ -166,7 +151,7 @@ class _TestScreenState extends State<TestScreen> {
     final double UIWidth =
         (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
 
-    final double rowHeight = 20 + 34 + 2 + 4;
+    const double rowHeight = 20 + 34 + 2 + 4;
 
     final double screenHeight = mediaQuery.size.height -
         (Platform.isAndroid
@@ -183,8 +168,8 @@ class _TestScreenState extends State<TestScreen> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Info'),
-              content: SingleChildScrollView(
+              title: const Text('Info'),
+              content: const SingleChildScrollView(
                 child: Text.rich(
                   TextSpan(
                       text:
@@ -259,27 +244,26 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                     // Close the modal
                     Navigator.of(context).pop();
                   },
-                  child: Text('Close'),
+                  child: const Text('Close'),
                 ),
               ],
             );
           });
     }
 
-    ;
 
     return Container(
       height: screenHeight,
-      margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+      margin: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
           Expanded(child: Container()),
           ClipRRect(
-            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
             // Add your desired radius here
-            child: Container(
+            child: SizedBox(
               height: rowHeight * 2,
               child: Column(
                 children: [
@@ -289,12 +273,12 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Divider(
+                        const Divider(
                           height: 0.0,
                           color: Colors.transparent,
                         ),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -307,7 +291,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                               ),
                               Row(
                                 children: [
-                                  Text("$wakece",
+                                  Text(lower,
                                       style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.w600,
@@ -326,7 +310,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                           ),
                         ),
                         Container(
-                          padding: EdgeInsets.only(left: 16.0),
+                          padding: const EdgeInsets.only(left: 16.0),
                           child: Divider(
                             height: 1.0,
                             color: Theme.of(context).colorScheme.primary,
@@ -341,12 +325,12 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Divider(
+                        const Divider(
                           height: 0.0,
                           color: Colors.transparent,
                         ),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -360,7 +344,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                               Row(
                                 children: [
                                   Text(
-                                    "$eegce",
+                                    upper,
                                       style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.w600,
@@ -377,8 +361,8 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                           ),
                         ),
                         Container(
-                          padding: EdgeInsets.only(left: 16.0),
-                          child: Divider(
+                          padding: const EdgeInsets.only(left: 16.0),
+                          child: const Divider(
                             height: 0.0,
                             color: Colors.transparent,
                           ),
@@ -393,7 +377,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
           const SizedBox(
             height: 24,
           ),
-          Container(
+          SizedBox(
             width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -401,12 +385,12 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
               children: [
                 Row(
                   children: [
-                    Container(
+                    SizedBox(
                         height: UIHeight,
                         width: UIHeight,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.all(0),
+                            padding: const EdgeInsets.all(0),
                             backgroundColor:
                                 Theme.of(context).colorScheme.onPrimary,
                             elevation: 0,
@@ -416,23 +400,23 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                                   strokeAlign: BorderSide.strokeAlignOutside,
                                 ),
                                 borderRadius:
-                                    BorderRadius.all(Radius.circular(5))),
+                                    const BorderRadius.all(Radius.circular(5))),
                           ),
                           onPressed: () {
                             showAlertDialog(context);
                           },
                           child:
-                              Center(child: Icon(Icons.info_outline_rounded)),
+                              const Center(child: Icon(Icons.info_outline_rounded)),
                         )),
-                    SizedBox(
+                    const SizedBox(
                       width: 8,
                     ),
-                    Container(
+                    SizedBox(
                         height: UIHeight,
                         width: UIHeight,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.all(0),
+                            padding: const EdgeInsets.all(0),
                             backgroundColor:
                                 Theme.of(context).colorScheme.onPrimary,
                             elevation: 0,
@@ -442,13 +426,13 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                                   strokeAlign: BorderSide.strokeAlignOutside,
                                 ),
                                 borderRadius:
-                                    BorderRadius.all(Radius.circular(5))),
+                                    const BorderRadius.all(Radius.circular(5))),
                           ),
                           onPressed: () async {
                             await HapticFeedback.mediumImpact();
                             reset(toDefault: true);
                           },
-                          child: Icon(Icons.restart_alt_outlined),
+                          child: const Icon(Icons.restart_alt_outlined),
                         )),
                   ],
                 ),
@@ -459,12 +443,12 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
             height:
                 28, //this has been manually adjusted from 24, don't know the root cause yet.
           ),
-          Container(
+          SizedBox(
             height:  UIHeight + 24 ,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
+                SizedBox(
                   width:
                       mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                   child: PDTextField(
@@ -474,7 +458,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                     interval: 0.1,
                     fractionDigits: 1,
                     controller: calculatorWakeUpCEController,
-                    range: [0.5, 10],
+                    range: const [0.5, 10],
                     onPressed: updatePDTextEditingController,
                   ),
                 ),
@@ -485,12 +469,12 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
             height: 8,
           ),
 
-          Container(
+          SizedBox(
             height: UIHeight + 24,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
+                SizedBox(
                   width:
                       mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                   child: PDTextField(
@@ -499,7 +483,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                     interval: 1,
                     fractionDigits: 1,
                     controller: calculatorWakeUpSEController,
-                    range: [1, 99],
+                    range: const [1, 99],
                     onPressed: updatePDTextEditingController,
                   ),
                 ),

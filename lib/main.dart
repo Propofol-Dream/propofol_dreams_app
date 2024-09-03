@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'constants.dart';
 import 'screens/home_screen.dart';
 import 'providers/settings.dart';
 
@@ -117,7 +116,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       //     background: Colors.white,
       //   ),
       // ),
-      theme: ThemeData(colorScheme: MaterialTheme.lightScheme().toColorScheme()),
+      theme: ThemeData(colorScheme: MaterialTheme.lightScheme()),
       // darkTheme: ThemeData.dark().copyWith(
       //   chipTheme:
       //   const ChipThemeData(labelStyle: TextStyle(color: Color(0xffE0E3DF))),
@@ -133,7 +132,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       //     surface: const Color(0xff191C1B),
       //   ),
       // ),
-      darkTheme: ThemeData(colorScheme: MaterialTheme.darkScheme().toColorScheme()),
+      darkTheme: ThemeData(colorScheme: MaterialTheme.darkScheme()),
       themeMode: settings.themeModeSelection,
       home: const HomeScreen(),
     );

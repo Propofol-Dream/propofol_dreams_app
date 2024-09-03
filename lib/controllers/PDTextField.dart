@@ -8,10 +8,10 @@ import '../providers/settings.dart';
 
 class PDTextField extends StatefulWidget {
   PDTextField({
-    Key? key,
+    super.key,
     this.prefixIcon,
     required this.labelText,
-    // required this.helperText,
+    this.helperText = '',
     required this.interval,
     required this.fractionDigits,
     required this.controller,
@@ -21,12 +21,12 @@ class PDTextField extends StatefulWidget {
     this.timer,
     this.enabled = true,
     this.height = 56,
-  }) : super(key: key);
+  });
 
   final String labelText;
+  final String helperText;
   final IconData? prefixIcon;
 
-  // final String helperText;
   final double interval;
   final int fractionDigits;
   final TextEditingController controller;
@@ -70,7 +70,12 @@ class _PDTextFieldState extends State<PDTextField> {
 
     bool isWithinRange =
         val != null ? val >= widget.range[0] && val <= widget.range[1] : false;
+
     bool isNumeric = widget.controller.text.isEmpty ? false : val != null;
+
+    bool isError = !(isNumeric && isWithinRange);
+
+    bool isWarning = widget.helperText.isNotEmpty;
 
     bool canBeDecreased =
         val != null ? val - widget.interval >= widget.range[0] : false;
@@ -83,9 +88,11 @@ class _PDTextFieldState extends State<PDTextField> {
         enabled: widget.enabled,
         style: TextStyle(
           color: widget.enabled
-              ? (isWithinRange && isNumeric)
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.error
+              ? isError
+                  ? Theme.of(context).colorScheme.error
+                  : isWarning
+                      ? Theme.of(context).colorScheme.tertiary
+                      : Theme.of(context).colorScheme.primary
               : Theme.of(context).disabledColor,
           // fontSize: 18
         ),
@@ -101,12 +108,14 @@ class _PDTextFieldState extends State<PDTextField> {
         decoration: InputDecoration(
           // contentPadding: EdgeInsets.only(bottom: 0),
           filled: widget.enabled ? true : false,
-          fillColor: (isWithinRange && isNumeric)
-              ? Theme.of(context).colorScheme.onPrimary
-              : Theme.of(context).colorScheme.onError,
-          helperText: '',
+          fillColor: isError
+              ? Theme.of(context).colorScheme.onError
+              : isWarning
+                  ? Theme.of(context).colorScheme.onTertiary
+                  : Theme.of(context).colorScheme.onPrimary,
+          helperText: widget.helperText,
           helperStyle: TextStyle(
-              color: Theme.of(context).colorScheme.error, fontSize: 10),
+              color: Theme.of(context).colorScheme.tertiary, fontSize: 10),
           errorText: widget.enabled
               ? widget.controller.text.isEmpty
                   ? 'Please enter a value'
@@ -118,30 +127,33 @@ class _PDTextFieldState extends State<PDTextField> {
               : '',
           errorStyle: TextStyle(
               color: Theme.of(context).colorScheme.error, fontSize: 10),
-          prefixIcon: Padding(
-            padding: const EdgeInsets.only(top: 4), // Top 4.0 is to compensate the label text
-            child: Icon(
-              widget.prefixIcon,
-              color: widget.enabled
-                  ? (isWithinRange && isNumeric)
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.error
-                  : Theme.of(context).disabledColor,
-            ),
+          prefixIcon: Icon(
+            widget.prefixIcon,
+            color: widget.enabled
+                ? isError
+                    ? Theme.of(context).colorScheme.error
+                    : isWarning
+                        ? Theme.of(context).colorScheme.tertiary
+                        : Theme.of(context).colorScheme.primary
+                : Theme.of(context).disabledColor,
           ),
           // prefixIconConstraints: BoxConstraints.tight(const Size(44, 20)),
           labelText: widget.labelText,
           labelStyle: TextStyle(
             color: widget.enabled
-                ? (isWithinRange && isNumeric)
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.error
+                ? isError
+                    ? Theme.of(context).colorScheme.error
+                    : isWarning
+                        ? Theme.of(context).colorScheme.tertiary
+                        : Theme.of(context).colorScheme.primary
                 : Theme.of(context).disabledColor,
           ),
           border: const OutlineInputBorder(),
           enabledBorder: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: Theme.of(context).colorScheme.primary),
+            borderSide: BorderSide(
+                color: isWarning
+                    ? Theme.of(context).colorScheme.tertiary
+                    : Theme.of(context).colorScheme.primary),
           ),
           errorBorder: OutlineInputBorder(
             borderSide: BorderSide(
@@ -153,7 +165,7 @@ class _PDTextFieldState extends State<PDTextField> {
       ),
       widget.controller.text.isNotEmpty
           ? Container(
-              padding: EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.only(bottom: 20),
               width: suffixIconConstraintsWidth,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -206,7 +218,7 @@ class _PDTextFieldState extends State<PDTextField> {
                       }
                     },
                     child: Container(
-                      padding: EdgeInsets.only(top: 2),
+                      padding: const EdgeInsets.only(top: 2),
                       alignment: Alignment.center,
                       width: suffixIconConstraintsWidth / 2,
                       height: suffixIconConstraintsHeight,
@@ -267,7 +279,7 @@ class _PDTextFieldState extends State<PDTextField> {
                       }
                     },
                     child: Container(
-                      padding: EdgeInsets.only(top: 2),
+                      padding: const EdgeInsets.only(top: 2),
                       alignment: Alignment.center,
                       width: suffixIconConstraintsWidth / 2,
                       height: suffixIconConstraintsHeight,
@@ -285,7 +297,7 @@ class _PDTextFieldState extends State<PDTextField> {
                 ],
               ),
             )
-          : Container(
+          : const SizedBox(
               width: 0,
               height: 0,
             ),

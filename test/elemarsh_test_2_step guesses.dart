@@ -195,7 +195,7 @@ void main() {
         CEAbsolutePercentageErrors.where((element) => !element.isNaN)
             .reduce(max);
 
-        guessRow row = (weightGuess: weightGuess, bolusGuess: initBoluesGuess, SSRE: SSRE, maxPE: maxPE, wakeCeHigh: inductionCPTarget);
+        guessRow row = (weightGuess: weightGuess, bolusGuess: initBoluesGuess, SSRE: SSRE, maxPE: maxPE, upper: inductionCPTarget);
         guessMatrix1.add(row);
         print("{weighGuess: $weightGuess, initBoluesGuess: $initBoluesGuess, SSRE: $SSRE, maxPE: $maxPE}");
     }
@@ -267,7 +267,7 @@ void main() {
       CEAbsolutePercentageErrors.where((element) => !element.isNaN)
           .reduce(max);
 
-      guessRow row = (weightGuess: weightBestGuess, bolusGuess: bolusGuess, SSRE: SSRE, maxPE: maxPE, wakeCeHigh: inductionCPTarget);
+      guessRow row = (weightGuess: weightBestGuess, bolusGuess: bolusGuess, SSRE: SSRE, maxPE: maxPE, upper: inductionCPTarget);
       guessMatrix2.add(row);
       // print("{weighGuess: $weightGuess, bolusGuess: $bolusGuess, SSRE: $SSRE, maxPE: $maxPE}");
     }
@@ -285,7 +285,7 @@ void main() {
 
 
     int bolusBestGuess = bestGuessRow.bolusGuess;
-    double inductionCPTarget = bestGuessRow.wakeCeHigh;
+    double inductionCPTarget = bestGuessRow.upper;
 
     print(goldPatient);
     print("{weightBestGuess: $weightBestGuess, bolusBestGuess: $bolusBestGuess, SSRE: ${bestGuessRow.SSRE}, maxPE: ${bestGuessRow.maxPE}, weightBoundary: $minWeightGuess to $maxWeightGuess, bolusBoundary:$minBolusGuess to $maxBolusGuess}");

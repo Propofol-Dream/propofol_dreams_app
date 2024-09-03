@@ -10,13 +10,13 @@ import '../constants.dart';
 
 class PDAdvancedSegmentedControl extends StatefulWidget {
   const PDAdvancedSegmentedControl({
-    Key? key,
+    super.key,
     required this.options,
     required this.segmentedController,
     required this.onPressed,
     required this.assertValues,
     required this.height,
-  }) : super(key: key);
+  });
 
   final List options;
   final PDAdvancedSegmentedController segmentedController;
@@ -83,7 +83,7 @@ class _PDAdvancedSegmentedControlState
         age: widget.assertValues['age'] as int);
 
     return Stack(children: [
-      Container(
+      SizedBox(
         width: MediaQuery.of(context).size.width -
             horizontalSidesPaddingPixel * 2 -
             widget.height -
@@ -103,7 +103,7 @@ class _PDAdvancedSegmentedControlState
           ),
         ),
       ),
-      Container(
+      SizedBox(
         height: widget.height,
         child: ListView.builder(
           shrinkWrap: true,
@@ -124,7 +124,7 @@ class _PDAdvancedSegmentedControlState
                 }
                     : null,
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   elevation: 0,
                   foregroundColor: widget.segmentedController.selection ==
                       widget.options[buildIndex]

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -338,6 +337,7 @@ class Settings with ChangeNotifier {
 
   String? _EMFlow;
 
+  Model _EMWakeUpModel = Model.None;
   double? _EMMaintenanceCe;
   int? _EMMaintenanceSE;
   double? _EMInfusionRate;
@@ -410,6 +410,16 @@ class Settings with ChangeNotifier {
   set EMFlow(String? s) {
     _EMFlow = s;
     setString('EMFlow', s.toString());
+    notifyListeners();
+  }
+
+  Model get EMWakeUpModel {
+    return _EMWakeUpModel;
+  }
+
+  set EMWakeUpModel(Model m) {
+    _EMWakeUpModel = m;
+    setString('EMWakeUpModel', m.toString());
     notifyListeners();
   }
 

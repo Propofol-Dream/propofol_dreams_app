@@ -5,7 +5,11 @@ enum InfusionUnit {
 
   @override
   String toString() {
-    return name.replaceAll('_', '/');
+    var result = name.replaceAll('_', '/');
+    if (result == 'mcg/kg/min'){
+      result = 'μg/kg/min';
+    }
+    return result;
   }
 
   const InfusionUnit();

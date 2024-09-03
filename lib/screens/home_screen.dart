@@ -8,10 +8,9 @@ import 'volume_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
 import 'settings_screen.dart';
-import 'test_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -20,10 +19,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
    int currenIndex = 1;
   final screens = [
-    VolumeScreen(),
-    EleMarshScreen(),
-    DurationScreen(),
-    SettingsScreen(),
+    const VolumeScreen(),
+     EleMarshScreen(),
+    const DurationScreen(),
+    const SettingsScreen(),
     // TestScreen()
   ];
 
@@ -63,8 +62,8 @@ class _HomeScreenState extends State<HomeScreen> {
               .of(context)
               .viewInsets
               .bottom <= 0
-              ? NeverScrollableScrollPhysics()
-              : BouncingScrollPhysics(),
+              ? const NeverScrollableScrollPhysics()
+              : const BouncingScrollPhysics(),
           child: screens[currenIndex]),
       bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
@@ -75,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
               currenIndex = settings.currentScreenIndex = index;
             });
           },
-          items:[
+          items:const [
             BottomNavigationBarItem(
                 icon:  Icon(Icons.science_outlined),
                 label: 'Volume'),

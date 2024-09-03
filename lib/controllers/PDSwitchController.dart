@@ -9,7 +9,7 @@ class PDSwitchController extends ChangeNotifier {
     return _val;
   }
 
-  void set val(bool v) {
+  set val(bool v) {
     _val = v;
     notifyListeners();
   }

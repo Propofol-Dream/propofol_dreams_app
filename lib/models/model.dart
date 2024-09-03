@@ -43,14 +43,14 @@ enum Model {
       minWeight: 15,
       maxWeight: 61,
       target: Target.Plasma),
-  Zhong(
+  EleMarsh(
       minAge: 0,
       maxAge: 999,
       minHeight: 0,
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 999,
-      target: Target.Effect_Site),
+      target: Target.Plasma),
   None(
       minAge: 0,
       maxAge: 999,

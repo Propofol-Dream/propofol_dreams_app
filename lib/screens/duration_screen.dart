@@ -16,7 +16,7 @@ import '../providers/settings.dart';
 
 
 class DurationScreen extends StatefulWidget {
-  DurationScreen({Key? key}) : super(key: key);
+  const DurationScreen({super.key});
 
   @override
   State<DurationScreen> createState() => _DurationScreenState();
@@ -30,7 +30,7 @@ class _DurationScreenState extends State<DurationScreen> {
   // final PDTableController tableController = PDTableController();
 
   List<DataColumn> durationColumns = [
-    DataColumn(
+    const DataColumn(
       label: Row(
         children: [
           Icon(Icons.science_outlined),
@@ -41,7 +41,7 @@ class _DurationScreenState extends State<DurationScreen> {
         ],
       ),
     ),
-    DataColumn(
+    const DataColumn(
         label: Row(
       children: [
         Icon(Icons.watch_later_outlined),
@@ -53,12 +53,12 @@ class _DurationScreenState extends State<DurationScreen> {
     ))
   ];
   final List<DataRow> emptyRows = [
-    DataRow(cells: [DataCell(Text('60 mL')), DataCell(Text('-- mins'))]),
-    DataRow(cells: [DataCell(Text('50 mL')), DataCell(Text('-- mins'))]),
-    DataRow(cells: [DataCell(Text('40 mL')), DataCell(Text('-- mins'))]),
-    DataRow(cells: [DataCell(Text('30 mL')), DataCell(Text('-- mins'))]),
-    DataRow(cells: [DataCell(Text('20 mL')), DataCell(Text('-- mins'))]),
-    DataRow(cells: [DataCell(Text('10 mL')), DataCell(Text('-- mins'))]),
+    const DataRow(cells: [DataCell(Text('60 mL')), DataCell(Text('-- mins'))]),
+    const DataRow(cells: [DataCell(Text('50 mL')), DataCell(Text('-- mins'))]),
+    const DataRow(cells: [DataCell(Text('40 mL')), DataCell(Text('-- mins'))]),
+    const DataRow(cells: [DataCell(Text('30 mL')), DataCell(Text('-- mins'))]),
+    const DataRow(cells: [DataCell(Text('20 mL')), DataCell(Text('-- mins'))]),
+    const DataRow(cells: [DataCell(Text('10 mL')), DataCell(Text('-- mins'))]),
   ];
 
   List<DataRow> durationRows = [];
@@ -279,11 +279,11 @@ class _DurationScreenState extends State<DurationScreen> {
                 DataCell(
                   Text(
                     '${volumes[i]} mL',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
                 DataCell(Text('${duration.toStringAsFixed(0)} mins',
-                    style: TextStyle(fontWeight: FontWeight.bold)))
+                    style: const TextStyle(fontWeight: FontWeight.bold)))
               ],
             ),
           );
@@ -338,7 +338,7 @@ class _DurationScreenState extends State<DurationScreen> {
 
     return Container(
       height: screenHeight,
-      padding: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+      padding: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
       // decoration: BoxDecoration(
       //   borderRadius: BorderRadius.circular(5),
       //   border: Border.all(color: Theme.of(context).colorScheme.primary),
@@ -357,29 +357,31 @@ class _DurationScreenState extends State<DurationScreen> {
                       infusionUnit: infusionUnit)
                   ? durationRows
                   : emptyRows),
-          SizedBox(
+          const SizedBox(
             height: 16,
           ),
           Container(
             alignment: Alignment.topCenter,
             height: UIHeight + 24,
             child: PDTextField(
+              prefixIcon: Icons.monitor_weight_outlined,
               labelText: 'Weight (kg)',
               controller: weightController,
               fractionDigits: 0,
               interval: 1,
               onPressed: updateWeight,
               enabled: weightTextFieldEnabled,
-              range: [0, 250],
+              range: const [0, 250],
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 8,
           ),
           Container(
             alignment: Alignment.topCenter,
             height: UIHeight + 24,
             child: PDTextField(
+              prefixIcon: Icons.water_drop_outlined,
               labelText: 'Infusion Rate (${[
                 InfusionUnit.mg_kg_hr.toString(),
                 InfusionUnit.mcg_kg_min.toString(),
@@ -390,13 +392,13 @@ class _DurationScreenState extends State<DurationScreen> {
               // helperText: '',
               interval: infusionUnits[infusionUnitController.val] == InfusionUnit.mg_kg_hr ? 0.5 :infusionUnits[infusionUnitController.val] == InfusionUnit.mcg_kg_min ?10:1,
               onPressed: updateInfusionRate,
-              range: [1, 9999],
+              range: const [1, 9999],
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 8,
           ),
-          Container(
+          SizedBox(
             height: UIHeight,
             width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
             child: PDSegmentedControl(
@@ -414,7 +416,7 @@ class _DurationScreenState extends State<DurationScreen> {
               ],
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 32,
           )
         ],

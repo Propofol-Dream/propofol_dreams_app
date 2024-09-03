@@ -718,7 +718,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     return Container(
       height: screenHeight,
-      margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+      margin: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
@@ -745,7 +745,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                                 color: Theme.of(context).colorScheme.onPrimary,
                               ),
                               label: Text(
-                                '${settings.max_pump_rate.toString()}',
+                                settings.max_pump_rate.toString(),
                                 style: TextStyle(
                                     color: Theme.of(context)
                                         .colorScheme
@@ -756,7 +756,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                             ),
                           )
                         : Container(),
-                    SizedBox(
+                    const SizedBox(
                       width: 8,
                     ),
                     GestureDetector(
@@ -796,7 +796,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         backgroundColor: Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 8,
                     ),
                     GestureDetector(
@@ -822,7 +822,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                                 color: Theme.of(context).colorScheme.onPrimary,
                               ),
                         label: Text(
-                          '${(density / 10).toInt()} %',
+                          '${density ~/ 10} %',
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.onPrimary),
                         ),
@@ -841,8 +841,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
                               updatePDTableController(tableController);
                             },
                             icon: tableController.val
-                                ? Icon(Icons.expand_more)
-                                : Icon(Icons.expand_less))
+                                ? const Icon(Icons.expand_more)
+                                : const Icon(Icons.expand_less))
                         : Container(),
                     Text(
                       modelIsRunnable ? result : emptyResult,
@@ -862,7 +862,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     showRowNumbers: mediaQuery.size.height >= screenBreakPoint2
                         ? min(PDTableRows.length, 5)
                         : 3,
-                    colHeaderIcon: Icon(Icons.psychology_alt_outlined),
+                    colHeaderIcon: const Icon(Icons.psychology_alt_outlined),
                     colHeaderLabels: modelIsRunnable
                         ? [
                             (target! - targetInterval) >= 0
@@ -872,7 +872,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                             (target + targetInterval).toStringAsFixed(1)
                           ]
                         : ['--', '--', '--'],
-                    rowHeaderIcon: Icon(Icons.schedule),
+                    rowHeaderIcon: const Icon(Icons.schedule),
                     rowLabels: modelIsRunnable ? PDTableRows : EmptyTableRows,
                     tableController: tableController,
                     // scrollController: scrollController,
@@ -880,19 +880,19 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     highlightLabel: result,
                   ),
                 )
-              : SizedBox(
+              : const SizedBox(
                   height: 0,
                 ),
           const SizedBox(
             height: 32,
           ),
-          Container(
+          SizedBox(
             width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
+                SizedBox(
                   height: UIHeight + 20,
                   child: PDAdvancedSegmentedControl(
                     height: UIHeight,
@@ -909,12 +909,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     },
                   ),
                 ),
-                Container(
+                SizedBox(
                     height: UIHeight,
                     width: UIHeight,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.all(0),
+                        padding: const EdgeInsets.all(0),
                         backgroundColor: Theme.of(context).colorScheme.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -923,13 +923,13 @@ class _VolumeScreenState extends State<VolumeScreen> {
                               // strokeAlign: StrokeAlign.outside, //depreicated in flutter 3.7
                               strokeAlign: BorderSide.strokeAlignOutside,
                             ),
-                            borderRadius: BorderRadius.all(Radius.circular(5))),
+                            borderRadius: const BorderRadius.all(Radius.circular(5))),
                       ),
                       onPressed: () async {
                         await HapticFeedback.mediumImpact();
                         reset(toDefault: true);
                       },
-                      child: Icon(Icons.restart_alt_outlined),
+                      child: const Icon(Icons.restart_alt_outlined),
                     )),
               ],
             ),
@@ -937,16 +937,18 @@ class _VolumeScreenState extends State<VolumeScreen> {
           const SizedBox(
             height: 8,
           ),
-          Container(
+          SizedBox(
             height: UIHeight + 24,
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
+                SizedBox(
                   width: UIWidth,
                   child: PDSwitchField(
                     labelText: 'Sex',
-                    prefixIcon: Icons.wc,
+                    prefixIcon: genderController.val == true ?
+                    settings.inAdultView ? Icons.woman : Icons.girl :
+                    settings.inAdultView ? Icons.man : Icons.boy,
                     controller: genderController,
                     switchTexts: {
                       true: Gender.Female.toString(),
@@ -958,11 +960,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     enabled: genderSwitchControlEnabled,
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 8,
                   height: 0,
                 ),
-                Container(
+                SizedBox(
                   width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.calendar_month,
@@ -986,12 +988,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
           const SizedBox(
             height: 8,
           ),
-          Container(
+          SizedBox(
             height: UIHeight + 24,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
+                SizedBox(
                   width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.straighten,
@@ -1005,11 +1007,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     enabled: heightTextFieldEnabled,
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 8,
                   height: 0,
                 ),
-                Container(
+                SizedBox(
                   width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.monitor_weight_outlined,
@@ -1032,36 +1034,36 @@ class _VolumeScreenState extends State<VolumeScreen> {
           const SizedBox(
             height: 8,
           ),
-          Container(
+          SizedBox(
             height: UIHeight + 24,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
+                SizedBox(
                   width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.psychology_alt_outlined,
                     // labelText: 'Target in mcg/mL',
-                    labelText: '${selectedModel.target.toString()}',
+                    labelText: selectedModel.target.toString(),
                     // helperText: '',
                     interval: 0.5,
                     fractionDigits: 1,
                     controller: targetController,
-                    range: [kMinTarget, kMaxTarget],
+                    range: const [kMinTarget, kMaxTarget],
                     onPressed: updatePDTextEditingController,
                     // onChanged: restart,
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 8,
                   height: 0,
                 ),
-                Container(
+                SizedBox(
                   width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.schedule,
                     // labelText: 'Duration in minutes',
-                    labelText: 'Duration (mins)',
+                    labelText: 'Duration (min)',
                     // helperText: '',
                     interval: double.tryParse(durationController.text) != null
                         ? double.parse(durationController.text) >= 60
@@ -1070,7 +1072,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         : 1,
                     fractionDigits: 0,
                     controller: durationController,
-                    range: [kMinDuration, kMaxDuration],
+                    range: const [kMinDuration, kMaxDuration],
                     onPressed: updatePDTextEditingController,
                     // onChanged: restart,
                   ),
@@ -1088,7 +1090,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
 }
 
 class VolumeScreen extends StatefulWidget {
-  const VolumeScreen({Key? key}) : super(key: key);
+  const VolumeScreen({super.key});
 
   @override
   State<VolumeScreen> createState() => _VolumeScreenState();
@@ -1103,7 +1105,7 @@ class PDTableController extends ChangeNotifier {
     return _val;
   }
 
-  void set val(bool v) {
+  set val(bool v) {
     _val = v;
     notifyListeners();
   }
@@ -1111,7 +1113,7 @@ class PDTableController extends ChangeNotifier {
 
 class PDTable extends StatefulWidget {
   PDTable(
-      {Key? key,
+      {super.key,
       required this.tableController,
       // this.scrollController,
       required this.tableLabel,
@@ -1120,8 +1122,7 @@ class PDTable extends StatefulWidget {
       required this.rowHeaderIcon,
       required this.rowLabels,
       this.highlightLabel,
-      this.showRowNumbers})
-      : super(key: key);
+      this.showRowNumbers});
 
   final PDTableController tableController;
 
@@ -1157,7 +1158,7 @@ class _PDTableState extends State<PDTable> {
         19;
 
     return AnimatedContainer(
-      duration: Duration(milliseconds: 1),
+      duration: const Duration(milliseconds: 1),
       // height: widget.controller.val ? (20 + PDTableRowHeight) * 4 - 19 :0,
       constraints: BoxConstraints(
         maxHeight: widget.tableController.val ? tableHeight : 0,
@@ -1168,18 +1169,18 @@ class _PDTableState extends State<PDTable> {
           mainAxisSize: MainAxisSize.min,
           children: [
             //This is the header row
-            Container(
+            SizedBox(
               height: PDTableRowHeight,
               width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
               child: Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: headerColWidth,
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
                         widget.tableLabel,
-                        style: TextStyle(fontSize: 10),
+                        style: const TextStyle(fontSize: 10),
                       ),
                     ),
                   ),
@@ -1190,7 +1191,7 @@ class _PDTableState extends State<PDTable> {
                       scrollDirection: Axis.horizontal,
                       itemCount: widget.colHeaderLabels.length,
                       itemBuilder: (buildContext, buildIndex) {
-                        return Container(
+                        return SizedBox(
                           width: headerColWidth,
                           child: Align(
                             child: PDIcon(
@@ -1208,7 +1209,7 @@ class _PDTableState extends State<PDTable> {
             Divider(
               color: Theme.of(context).colorScheme.primary,
             ),
-            Container(
+            SizedBox(
               height: rowsHeight,
               child: ListView.builder(
                   padding: EdgeInsets.zero,
@@ -1218,7 +1219,7 @@ class _PDTableState extends State<PDTable> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        Container(
+                        SizedBox(
                           height: PDTableRowHeight,
                           child: ListView.builder(
                               scrollDirection: Axis.horizontal,
@@ -1243,7 +1244,7 @@ class _PDTableState extends State<PDTable> {
                                                       [buildIndexInner]) &&
                                               (buildIndexInner == 2)
                                           ? Container(
-                                              padding: EdgeInsets.symmetric(
+                                              padding: const EdgeInsets.symmetric(
                                                   vertical: 4, horizontal: 8),
                                               decoration: BoxDecoration(
                                                 borderRadius:
@@ -1284,10 +1285,10 @@ class _PDTableState extends State<PDTable> {
 
 class PDIcon extends StatelessWidget {
   const PDIcon({
-    Key? key,
+    super.key,
     this.icon,
     this.text,
-  }) : super(key: key);
+  });
 
   final Icon? icon;
   final Text? text;
@@ -1296,7 +1297,7 @@ class PDIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       icon ?? Container(),
-      SizedBox(
+      const SizedBox(
         height: 0,
         width: 4,
       ),

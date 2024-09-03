@@ -5,7 +5,7 @@ import 'PDSwitchController.dart';
 
 class PDSwitchField extends StatefulWidget {
   PDSwitchField({
-    Key? key,
+    super.key,
     required this.prefixIcon,
     required this.labelText,
     required this.switchTexts,
@@ -14,7 +14,7 @@ class PDSwitchField extends StatefulWidget {
     required this.onChanged,
     required this.height,
     this.enabled = true,
-  }) : super(key: key);
+  });
 
   final String labelText;
   final Map<bool, String> switchTexts;
@@ -69,7 +69,7 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
             ),
             // prefixIconConstraints: BoxConstraints.tight(const Size(40, 18)),
             helperText: '',
-            helperStyle: TextStyle(fontSize: 10),
+            helperStyle: const TextStyle(fontSize: 10),
             labelText: widget.labelText,
             labelStyle: TextStyle(
               color: widget.enabled
@@ -91,7 +91,7 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
           ),
         ),
         Container(
-          padding: EdgeInsets.only(right: 4, bottom: 16),
+          padding: const EdgeInsets.only(right: 4, bottom: 16),
           height: widget.height,
           child: SizedBox(
             height: 24,

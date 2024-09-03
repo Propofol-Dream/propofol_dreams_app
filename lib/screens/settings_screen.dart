@@ -10,7 +10,7 @@ import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -112,37 +112,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Column(children: [
       AppBar(
-        title: Text(
+        title: const Text(
           'Settings',
         ),
       ),
-      SizedBox(
+      const SizedBox(
         height: 16,
       ),
       Container(
         height: MediaQuery.of(context).size.height - 90 - 96 - 16,
-        padding: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+        padding: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
         // decoration: BoxDecoration(
         //   border: Border.all(color: Theme.of(context).colorScheme.primary),
         // ),
         child: ListView(
           padding: EdgeInsets.zero,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Propofol Formulation',
                   style: TextStyle(fontSize: 16),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 4,
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 16,
                 ),
-                Container(
+                SizedBox(
                   height: UIHeight,
                   width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                   child: PDSegmentedControl(
@@ -151,7 +151,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     fontSize: 16,
                     defaultColor: Theme.of(context).colorScheme.primary,
                     defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-                    labels: ['10 mg/mL', '20 mg/mL'],
+                    labels: const ['10 mg/mL', '20 mg/mL'],
                     segmentedController: densityController,
                     onPressed: [
                       () {
@@ -165,32 +165,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-            SizedBox(
+            const SizedBox(
               height: 24,
             ),
             Divider(
               color: Theme.of(context).colorScheme.primary,
             ),
-            SizedBox(
+            const SizedBox(
               height: 16,
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Maximum Pump Rate',
                   style: TextStyle(fontSize: 16),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 4,
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 16,
                 ),
-                Container(
+                SizedBox(
                   height: UIHeight + 24,
                   child: PDTextField(
-                      prefixIcon: null,
+                      prefixIcon: Icons.settings_input_component_outlined,
                       labelText: 'Pump Rate (mL/hr)',
                       interval: 50,
                       fractionDigits: 0,
@@ -201,7 +201,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           settings.max_pump_rate = pumpRate;
                         }
                       },
-                      range: [0, 1500]),
+                      range: const [0, 1500]),
                 )
               ],
             ),
@@ -209,27 +209,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Divider(
               color: Theme.of(context).colorScheme.primary,
             ),
-            SizedBox(
+            const SizedBox(
               height: 16,
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Dark Mode',
                   style: TextStyle(fontSize: 16),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 4,
                 ),
                 // Text(
                 //   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus finibus lorem vitae augue tincidunt, at aliquet mauris condimentum. Donec pellentesque tempus dapibus',
                 //   style: TextStyle(fontSize: 14),
                 // ),
-                SizedBox(
+                const SizedBox(
                   height: 16,
                 ),
-                Container(
+                SizedBox(
                   height: UIHeight,
                   width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                   child: PDSegmentedControl(
@@ -238,7 +238,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     fontSize: 16,
                     defaultColor: Theme.of(context).colorScheme.primary,
                     defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-                    labels: ['Light', 'Dark', 'Auto'],
+                    labels: const ['Light', 'Dark', 'Auto'],
                     segmentedController: themeController,
                     onPressed: [
                       () {

@@ -4,7 +4,7 @@ import 'PDSegmentedController.dart';
 
 class PDSegmentedControl extends StatefulWidget {
   PDSegmentedControl({
-    Key? key,
+    super.key,
     required this.labels,
     required this.segmentedController,
     required this.onPressed,
@@ -13,7 +13,7 @@ class PDSegmentedControl extends StatefulWidget {
     this.fitHeight = false,
     required this.defaultColor,
     required this.defaultOnColor,
-  }) : super(key: key);
+  });
 
   final List<String> labels;
   final PDSegmentedController segmentedController;
@@ -45,7 +45,7 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
   }
 
   Widget buildButton(BuildContext context, int buildIndex) {
-    return Container(
+    return SizedBox(
       height: widget.fitHeight ? double.infinity : null,
       // Set height based on fitHeight
       child: ElevatedButton(
