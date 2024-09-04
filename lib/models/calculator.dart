@@ -3,6 +3,7 @@ import 'model.dart';
 
 class Calculator {
   ({double lower, double upper})calcWakeUpCE({required double ce, required int se, required Model m}){
+
     double basese = 100.0;
     double gammaLower = 0.0, gammerUpper = 0.0;
     double coeffLower = 0.0, coeffUpper = 0.0;
@@ -33,10 +34,25 @@ class Calculator {
     double lower = ce / (pow((basese / se - 1), (1 / gammaLower))) * coeffLower + offsetLower;
     double upper = ce / (pow((basese / se - 1), (1 / gammerUpper))) * coeffUpper + offsetUpper;
 
+    //Swap lower with upper if lower is greater than upper
     if (lower >= upper) {
       double temp = lower;
       lower = upper;
       upper = temp;
+    }
+
+    if (m == Model.EleMarsh){
+
+      double gammaLowerEleveld = 4.55410613557215;
+      double coeffLowerEleveld = 0.465936758202314;
+      double offsetLowerEleveld = 0.477223367024224;
+      double lowerEleveld = ce / (pow((basese / se - 1), (1 / gammaLowerEleveld))) * coeffLowerEleveld + offsetLowerEleveld;
+
+      // The upper below is upperEleMarsh
+      // Swap upperEleMarsh with lowerEleveld, if upper EleMarsh is less than lowerEleveld
+      if (upper <= lowerEleveld) {
+        upper = lowerEleveld;
+      }
     }
 
     return(lower: lower, upper: upper );

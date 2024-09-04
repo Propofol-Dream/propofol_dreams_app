@@ -342,7 +342,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
               : '';
 
       maintenanceSEController.text = toDefault
-          ? 50.toString()
+          ? 40.toString()
           : settings.EMMaintenanceSE != null
               ? settings.EMMaintenanceSE.toString()
               : '';
@@ -375,8 +375,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     final settings = context.watch<Settings>();
 
-    bool isMaintenanceSEOutOfRange = ((settings.EMMaintenanceSE ?? 50) >= 21 &&
-            (settings.EMMaintenanceSE ?? 50) <= 60)
+    bool isMaintenanceSEOutOfRange = ((settings.EMMaintenanceSE ?? 40) >= 21 &&
+            (settings.EMMaintenanceSE ?? 40) <= 60)
         ? false
         : true;
 
@@ -446,7 +446,8 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
+                  onPressed:  () async {
+                    await HapticFeedback.mediumImpact();
                     // Close the modal
                     Navigator.of(context).pop();
                   },
@@ -501,8 +502,8 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    // Close the modal
+                  onPressed: () async {
+                    await HapticFeedback.mediumImpact();
                     Navigator.of(context).pop();
                   },
                   child: Text('Close'),
@@ -847,7 +848,8 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(5))),
                           ),
-                          onPressed: () {
+                          onPressed: () async {
+                            await HapticFeedback.mediumImpact();
                             flowController.val == 0
                                 ? showInduceAlertDialog(context)
                                 : showWakeAlertDialog(context);
@@ -947,7 +949,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                     child: PDSwitchField(
                       labelText: 'Model',
                       prefixIcon: modelController.val == true
-                          ? Icons.science_outlined
+                          ? Icons.spoke_outlined
                           : Icons.hub_outlined,
                       controller: modelController,
                       switchTexts: {
@@ -965,7 +967,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                   Container(
                     width: UIWidth,
                     child: PDTextField(
-                      prefixIcon: Icons.psychology_outlined,
+                      prefixIcon: Icons.psychology_alt_outlined,
                       labelText: settings.EMWakeUpModel == Model.Eleveld
                           ? 'Maintenance Ce'
                           : 'Maintenance Cp',
