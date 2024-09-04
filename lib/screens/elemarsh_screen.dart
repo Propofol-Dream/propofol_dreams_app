@@ -141,7 +141,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       settings.EMWakeUpModel =
           model == 'Eleveld' ? Model.Eleveld : Model.EleMarsh;
     } else {
-      settings.EMWakeUpModel = Model.Eleveld;
+      settings.EMWakeUpModel = Model.EleMarsh;
     }
 
     if (pref.containsKey('EMMaintenanceCe')) {
@@ -330,10 +330,10 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
               : '';
     } else {
       modelController.val = toDefault
-          ? true
-          : settings.EMWakeUpModel == Model.Eleveld
-              ? true
-              : false;
+          ? false
+          : settings.EMWakeUpModel == Model.EleMarsh
+              ? false
+              : true;
 
       maintenanceCeController.text = toDefault
           ? 3.0.toString()
