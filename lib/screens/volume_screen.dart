@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 import 'package:propofol_dreams_app/providers/settings.dart';
@@ -789,7 +790,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                                 color: Theme.of(context).colorScheme.onPrimary,
                               ),
                         label: Text(
-                          settings.inAdultView ? 'Adult' : 'Paed',
+                          settings.inAdultView ? AppLocalizations.of(context)!.adult : AppLocalizations.of(context)!.paed,
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.onPrimary),
                         ),
@@ -876,7 +877,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     rowLabels: modelIsRunnable ? PDTableRows : EmptyTableRows,
                     tableController: tableController,
                     // scrollController: scrollController,
-                    tableLabel: 'Confidence\nInterval',
+                    tableLabel: AppLocalizations.of(context)!.confidenceInterval,
                     highlightLabel: result,
                   ),
                 )
@@ -945,14 +946,14 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 SizedBox(
                   width: UIWidth,
                   child: PDSwitchField(
-                    labelText: 'Sex',
+                    labelText: AppLocalizations.of(context)!.sex,
                     prefixIcon: genderController.val == true ?
                     settings.inAdultView ? Icons.woman : Icons.girl :
                     settings.inAdultView ? Icons.man : Icons.boy,
                     controller: genderController,
                     switchTexts: {
-                      true: Gender.Female.toString(),
-                      false: Gender.Male.toString()
+                      true: Gender.Female.toLocalizedString(context),
+                      false: Gender.Male.toLocalizedString(context)
                     },
                     // helperText: '',
                     onChanged: run,
@@ -968,7 +969,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.calendar_month,
-                    labelText: 'Age',
+                    labelText: AppLocalizations.of(context)!.age,
                     // helperText: '',
                     interval: 1.0,
                     fractionDigits: 0,
@@ -997,7 +998,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.straighten,
-                    labelText: 'Height (cm)',
+                    labelText: '${AppLocalizations.of(context)!.height} (cm)',
                     // helperText: '',
                     interval: 1,
                     fractionDigits: 0,
@@ -1015,7 +1016,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.monitor_weight_outlined,
-                    labelText: 'Weight (kg)',
+                    labelText: '${AppLocalizations.of(context)!.weight} (kg)',
                     // helperText: '',
                     interval: 1.0,
                     fractionDigits: 0,
@@ -1043,8 +1044,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.psychology_alt_outlined,
-                    // labelText: 'Target in mcg/mL',
-                    labelText: selectedModel.target.toString(),
+                    labelText: selectedModel.target.toLocalizedString(context),
                     // helperText: '',
                     interval: 0.5,
                     fractionDigits: 1,
@@ -1063,7 +1063,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   child: PDTextField(
                     prefixIcon: Icons.schedule,
                     // labelText: 'Duration in minutes',
-                    labelText: 'Duration (min)',
+                    labelText: '${AppLocalizations.of(context)!.duration} (${AppLocalizations.of(context)!.min})',
                     // helperText: '',
                     interval: double.tryParse(durationController.text) != null
                         ? double.parse(durationController.text) >= 60

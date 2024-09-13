@@ -18,7 +18,7 @@ enum Model {
       maxHeight: 210,
       minWeight: 0,
       maxWeight: 165,
-      target: Target.Effect_Site),
+      target: Target.EffectSite),
   Eleveld(
       minAge: 1,
       maxAge: 105,
@@ -26,7 +26,7 @@ enum Model {
       maxHeight: 210,
       minWeight: 1,
       maxWeight: 250,
-      target: Target.Effect_Site),
+      target: Target.EffectSite),
   Paedfusor(
       minAge: 1,
       maxAge: 16,
@@ -58,7 +58,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 999,
-      target: Target.Effect_Site);
+      target: Target.EffectSite);
 
   @override
   String toString() {

@@ -58,14 +58,11 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
             filled: widget.enabled ? true : false,
             fillColor: Theme.of(context).colorScheme.onPrimary,
             errorStyle: TextStyle(color: Theme.of(context).colorScheme.error),
-            prefixIcon: Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Icon(
-                widget.prefixIcon,
-                color: widget.enabled
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).disabledColor,
-              ),
+            prefixIcon: Icon(
+              widget.prefixIcon,
+              color: widget.enabled
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).disabledColor,
             ),
             // prefixIconConstraints: BoxConstraints.tight(const Size(40, 18)),
             helperText: '',

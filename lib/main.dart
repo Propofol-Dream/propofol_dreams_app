@@ -6,6 +6,8 @@ import 'screens/home_screen.dart';
 import 'providers/settings.dart';
 
 import 'theme.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -116,6 +118,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       //     background: Colors.white,
       //   ),
       // ),
+      localizationsDelegates: [
+        AppLocalizations.delegate, // Add this line
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+
+      ],
+      supportedLocales: [
+        Locale('en',''), // English
+        Locale('ja',''), // Japanese
+      ],
       theme: ThemeData(colorScheme: MaterialTheme.lightScheme()),
       // darkTheme: ThemeData.dark().copyWith(
       //   chipTheme:

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
@@ -112,8 +113,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Column(children: [
       AppBar(
-        title: const Text(
-          'Settings',
+        title:  Text(
+          AppLocalizations.of(context)!.settings,
         ),
       ),
       const SizedBox(
@@ -132,9 +133,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Propofol Formulation',
-                  style: TextStyle(fontSize: 16),
+                Text(
+                  AppLocalizations.of(context)!.propofolFormulation,
+                  style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(
                   height: 4,
@@ -177,8 +178,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Maximum Pump Rate',
+                 Text(
+                  AppLocalizations.of(context)!.maximumPumpRate,
                   style: TextStyle(fontSize: 16),
                 ),
                 const SizedBox(
@@ -191,7 +192,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   height: UIHeight + 24,
                   child: PDTextField(
                       prefixIcon: Icons.settings_input_component_outlined,
-                      labelText: 'Pump Rate (mL/hr)',
+                      labelText: '${AppLocalizations.of(context)!.pumpRate} (mL/hr)',
                       interval: 50,
                       fractionDigits: 0,
                       controller: pumpController,
@@ -215,8 +216,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Dark Mode',
+                 Text(
+                  AppLocalizations.of(context)!.appearance,
                   style: TextStyle(fontSize: 16),
                 ),
                 const SizedBox(
@@ -238,7 +239,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     fontSize: 16,
                     defaultColor: Theme.of(context).colorScheme.primary,
                     defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-                    labels: const ['Light', 'Dark', 'Auto'],
+                    labels:  [AppLocalizations.of(context)!.light,AppLocalizations.of(context)!.dark,AppLocalizations.of(context)!.auto],
                     segmentedController: themeController,
                     onPressed: [
                       () {

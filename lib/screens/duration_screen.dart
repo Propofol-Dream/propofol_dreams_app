@@ -2,18 +2,16 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
 import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart';
 import 'package:propofol_dreams_app/models/InfusionUnit.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 
 import '../providers/settings.dart';
-
-
 
 class DurationScreen extends StatefulWidget {
   const DurationScreen({super.key});
@@ -29,29 +27,6 @@ class _DurationScreenState extends State<DurationScreen> {
 
   // final PDTableController tableController = PDTableController();
 
-  List<DataColumn> durationColumns = [
-    const DataColumn(
-      label: Row(
-        children: [
-          Icon(Icons.science_outlined),
-          SizedBox(
-            width: 4.0,
-          ),
-          Text('Volume'),
-        ],
-      ),
-    ),
-    const DataColumn(
-        label: Row(
-      children: [
-        Icon(Icons.watch_later_outlined),
-        SizedBox(
-          width: 4.0,
-        ),
-        Text('Duration'),
-      ],
-    ))
-  ];
   final List<DataRow> emptyRows = [
     const DataRow(cells: [DataCell(Text('60 mL')), DataCell(Text('-- mins'))]),
     const DataRow(cells: [DataCell(Text('50 mL')), DataCell(Text('-- mins'))]),
@@ -81,8 +56,14 @@ class _DurationScreenState extends State<DurationScreen> {
         : settings.infusionUnit == InfusionUnit.mcg_kg_min
             ? 1
             : 2;
-    infusionRateDecimal = infusionUnits[infusionUnitController.val] == InfusionUnit.mg_kg_hr ? 1 :infusionUnits[infusionUnitController.val] == InfusionUnit.mcg_kg_min ?0:1;
-    infusionRateController.text = settings.infusionRate!.toStringAsFixed(infusionRateDecimal);
+    infusionRateDecimal = infusionUnits[infusionUnitController.val] ==
+            InfusionUnit.mg_kg_hr
+        ? 1
+        : infusionUnits[infusionUnitController.val] == InfusionUnit.mcg_kg_min
+            ? 0
+            : 1;
+    infusionRateController.text =
+        settings.infusionRate!.toStringAsFixed(infusionRateDecimal);
 
     load().then((value) {
       setState(() {});
@@ -108,7 +89,8 @@ class _DurationScreenState extends State<DurationScreen> {
       //max_pump_rate cannot be null
       settings.infusionRate = 10.0;
     }
-    infusionRateController.text = settings.infusionRate!.toStringAsFixed(infusionRateDecimal);
+    infusionRateController.text =
+        settings.infusionRate!.toStringAsFixed(infusionRateDecimal);
 
     if (pref.containsKey('infusionUnit')) {
       String? infusionUnit = pref.getString('infusionUnit');
@@ -202,7 +184,12 @@ class _DurationScreenState extends State<DurationScreen> {
     //update Infusion Rate if conditions met
     InfusionUnit previous = settings.infusionUnit;
     InfusionUnit current = infusionUnits[infusionUnitController.val];
-    infusionRateDecimal = infusionUnits[infusionUnitController.val] == InfusionUnit.mg_kg_hr ? 1 :infusionUnits[infusionUnitController.val] == InfusionUnit.mcg_kg_min ?0:1;
+    infusionRateDecimal = infusionUnits[infusionUnitController.val] ==
+            InfusionUnit.mg_kg_hr
+        ? 1
+        : infusionUnits[infusionUnitController.val] == InfusionUnit.mcg_kg_min
+            ? 0
+            : 1;
 
     int? weight = int.tryParse(weightController.text);
     double? infusionRate = double.tryParse(infusionRateController.text);
@@ -212,7 +199,8 @@ class _DurationScreenState extends State<DurationScreen> {
           infusionRate: infusionRate,
           previous: previous,
           current: current);
-      infusionRateController.text = settings.infusionRate!.toStringAsFixed(infusionRateDecimal);
+      infusionRateController.text =
+          settings.infusionRate!.toStringAsFixed(infusionRateDecimal);
     }
 
     settings.infusionUnit = infusionUnits[infusionUnitController.val];
@@ -244,7 +232,6 @@ class _DurationScreenState extends State<DurationScreen> {
   }
 
   void run() {
-
     int? weight = int.tryParse(weightController.text);
     double? infusionRate = double.tryParse(infusionRateController.text);
     InfusionUnit infusionUnit = infusionUnits[infusionUnitController.val];
@@ -253,7 +240,6 @@ class _DurationScreenState extends State<DurationScreen> {
         weight: weight,
         infusionRate: infusionRate,
         infusionUnit: infusionUnit)) {
-
       var settings = context.read<Settings>();
       durationRows = [];
       List<DataRow> durations = [];
@@ -282,7 +268,7 @@ class _DurationScreenState extends State<DurationScreen> {
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
-                DataCell(Text('${duration.toStringAsFixed(0)} mins',
+                DataCell(Text('${duration.toStringAsFixed(0)} ${AppLocalizations.of(context)!.mins}',
                     style: const TextStyle(fontWeight: FontWeight.bold)))
               ],
             ),
@@ -292,7 +278,7 @@ class _DurationScreenState extends State<DurationScreen> {
             DataRow(
               cells: [
                 DataCell(Text('${volumes[i]} mL')),
-                DataCell(Text('${duration.toStringAsFixed(0)} mins'))
+                DataCell(Text('${duration.toStringAsFixed(0)} ${AppLocalizations.of(context)!.mins}'))
               ],
             ),
           );
@@ -308,7 +294,37 @@ class _DurationScreenState extends State<DurationScreen> {
   @override
   Widget build(BuildContext context) {
     // final settings = context.watch<Settings>();
-    infusionRateDecimal = infusionUnits[infusionUnitController.val] == InfusionUnit.mg_kg_hr ? 1 :infusionUnits[infusionUnitController.val] == InfusionUnit.mcg_kg_min ?0:1;
+
+    List<DataColumn> durationColumns = [
+      DataColumn(
+        label: Row(
+          children: [
+            const Icon(Icons.science_outlined),
+            const SizedBox(
+              width: 4.0,
+            ),
+            Text(AppLocalizations.of(context)!.volume),
+          ],
+        ),
+      ),
+       DataColumn(
+          label: Row(
+        children: [
+          Icon(Icons.watch_later_outlined),
+          SizedBox(
+            width: 4.0,
+          ),
+          Text(AppLocalizations.of(context)!.duration),
+        ],
+      ))
+    ];
+
+    infusionRateDecimal = infusionUnits[infusionUnitController.val] ==
+            InfusionUnit.mg_kg_hr
+        ? 1
+        : infusionUnits[infusionUnitController.val] == InfusionUnit.mcg_kg_min
+            ? 0
+            : 1;
 
     final mediaQuery = MediaQuery.of(context);
     final double UIHeight = mediaQuery.size.aspectRatio >= 0.455
@@ -338,7 +354,8 @@ class _DurationScreenState extends State<DurationScreen> {
 
     return Container(
       height: screenHeight,
-      padding: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+      padding:
+          const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
       // decoration: BoxDecoration(
       //   borderRadius: BorderRadius.circular(5),
       //   border: Border.all(color: Theme.of(context).colorScheme.primary),
@@ -365,7 +382,7 @@ class _DurationScreenState extends State<DurationScreen> {
             height: UIHeight + 24,
             child: PDTextField(
               prefixIcon: Icons.monitor_weight_outlined,
-              labelText: 'Weight (kg)',
+              labelText: '${AppLocalizations.of(context)!.weight} (kg)',
               controller: weightController,
               fractionDigits: 0,
               interval: 1,
@@ -382,7 +399,7 @@ class _DurationScreenState extends State<DurationScreen> {
             height: UIHeight + 24,
             child: PDTextField(
               prefixIcon: Icons.water_drop_outlined,
-              labelText: 'Infusion Rate (${[
+              labelText: '${AppLocalizations.of(context)!.infusionRate} (${[
                 InfusionUnit.mg_kg_hr.toString(),
                 InfusionUnit.mcg_kg_min.toString(),
                 InfusionUnit.mL_hr.toString()
@@ -390,7 +407,13 @@ class _DurationScreenState extends State<DurationScreen> {
               controller: infusionRateController,
               fractionDigits: infusionRateDecimal,
               // helperText: '',
-              interval: infusionUnits[infusionUnitController.val] == InfusionUnit.mg_kg_hr ? 0.5 :infusionUnits[infusionUnitController.val] == InfusionUnit.mcg_kg_min ?10:1,
+              interval: infusionUnits[infusionUnitController.val] ==
+                      InfusionUnit.mg_kg_hr
+                  ? 0.5
+                  : infusionUnits[infusionUnitController.val] ==
+                          InfusionUnit.mcg_kg_min
+                      ? 10
+                      : 1,
               onPressed: updateInfusionRate,
               range: const [1, 9999],
             ),

@@ -1,0 +1,176 @@
+{
+    "abw": "ABW",
+    "@abw": {
+        "description": ""
+    },
+
+    "adult": "Adult",
+    "@adult": {
+        "description": ""
+    },
+
+    "age": "Age",
+    "@age": {
+        "description": ""
+    },
+
+    "appearance": "Appearance",
+    "@appearance": {
+        "description": ""
+    },
+
+    "auto": "Auto",
+    "@auto": {
+        "description": ""
+    },
+
+    "confidenceInterval": "Confidence\nInterval",
+    "@confidenceInterval": {
+        "description": ""
+    },
+
+    "dark": "Dark",
+    "@dark": {
+        "description": ""
+    },
+
+    "duration": "Duration",
+    "@duration": {
+        "description": ""
+    },
+
+    "effectSite": "Effect Site",
+    "@effectSite": {
+        "description": ""
+    },
+
+    "female": "Female",
+    "@female": {
+        "description": ""
+    },
+
+    "height": "Height",
+    "@height": {
+        "description": ""
+    },
+
+    "induce": "Induce",
+    "@induce": {
+        "description": ""
+    },
+
+    "induction": "Induction",
+    "@induction": {
+        "description": ""
+    },
+
+    "infusionRate": "Infusion Rate",
+    "@infusionRate": {
+        "description": ""
+    },
+
+    "light": "Light",
+    "@light": {
+        "description": ""
+    },
+
+    "maintenance": "Maintenance",
+    "@maintenance": {
+        "description": ""
+    },
+
+    "maintenanceStateEntropy": "Maintenance State Entropy",
+    "@maintenanceStateEntropy": {
+        "description": ""
+    },
+
+    "male": "Male",
+    "@male": {
+        "description": ""
+    },
+
+    "maximumPumpRate": "Maximum Pump Rate",
+    "@maximumPumpRate": {
+        "description": ""
+    },
+
+    "mins": "mins",
+    "@mins": {
+        "description": ""
+    },
+
+    "min": "min",
+    "@min": {
+        "description": ""
+    },
+
+    "ml": "mL",
+    "@ml": {
+        "description": ""
+    },
+
+    "model": "Model",
+    "@model": {
+        "description": ""
+    },
+
+    "paed": "Paed",
+    "@paed": {
+        "description": ""
+    },
+
+    "plasma": "Plasma",
+    "@plasma": {
+        "description": ""
+    },
+
+    "predicted": "Predicted",
+    "@predicted": {
+        "description": ""
+    },
+
+    "propofolFormulation": "Propofol Formulation",
+    "@propofolFormulation": {
+        "description": ""
+    },
+
+    "pumpRate": "Pump Rate",
+    "@pumpRate": {
+        "description": ""
+    },
+
+    "sex": "Sex",
+    "@sex": {
+        "description": ""
+    },
+
+    "settings": "Settings",
+    "@settings": {
+        "description": ""
+    },
+
+    "target": "Target",
+    "@target": {
+        "description": ""
+    },
+
+    "volume": "Volume",
+    "@volume": {
+        "description": ""
+    },
+
+    "wake": "Wake",
+    "@wake": {
+        "description": ""
+    },
+
+    "wakeUpRange": "Wake Up Range",
+    "@wakeUpRange": {
+        "description": ""
+    },
+
+    "weight": "Weight",
+    "@weight": {
+        "description": ""
+    }
+}

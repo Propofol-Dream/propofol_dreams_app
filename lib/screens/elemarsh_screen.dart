@@ -10,6 +10,7 @@ import 'package:propofol_dreams_app/models/calculator.dart';
 import 'package:propofol_dreams_app/models/elemarsh.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 import 'package:propofol_dreams_app/providers/settings.dart';
@@ -386,75 +387,97 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('EleMarsh Algorithm'),
-              content: SingleChildScrollView(
-                child: Text.rich(
-                  TextSpan(children: [
-                    TextSpan(
-                        text: "Aim:",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(text: "\n"),
-                    TextSpan(
-                        text:
-                            "Make the Marsh model accurately mimic the infusion behaviour of the Eleveld model."),
-                    TextSpan(text: "\n\n"),
-                    TextSpan(
-                        text: "Usage:",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(text: "\n"),
-                    TextSpan(
-                        text:
-                            """(1) Enter patient details and desired Eleveld Ce target
+            switch (Localizations.localeOf(context).languageCode) {
+              case 'ja':
+                return AlertDialog(
+                  title: Text('EleMarshハアルゴリズム'),
+                  content: SingleChildScrollView(
+                    child: Text.rich(TextSpan(children: [
+                      TextSpan(text: '''目的：
+MarshモデルがEleveldモデルの注入挙動を正確に模倣するようにします。
+
+使用方法：
+(1) 患者の詳細と希望するEleveld Ce（効果部位濃度）目標を入力します。
+
+(2) EleMarshが調整体重と導入時CpTを計算します。
+
+(3) TCIポンプのMarshモデルの入力体重として調整体重を使用します。
+
+(4) 初期CpT設定として導入時CpTを使用します。ボーラス投与が終わり次第、維持のために希望するCeT（効果部位目標濃度）まで CpT（血漿中目標濃度）を下げます。これにより、ポンプ上のMarshモデルがEleveldモデルを正確に模倣するようになります。''')
+                    ])),
+                  ),
+                );
+              default:
+                return AlertDialog(
+                  title: Text('EleMarsh Algorithm'),
+                  content: SingleChildScrollView(
+                    child: Text.rich(
+                      TextSpan(children: [
+                        TextSpan(
+                            text: "Aim:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: "\n"),
+                        TextSpan(
+                            text:
+                                "Make the Marsh model accurately mimic the infusion behaviour of the Eleveld model."),
+                        TextSpan(text: "\n\n"),
+                        TextSpan(
+                            text: "Usage:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: "\n"),
+                        TextSpan(
+                            text:
+                                """(1) Enter patient details and desired Eleveld Ce target
 
 (2) EleMarsh calculates the """),
-                    TextSpan(
-                        text: """Adjusted Body Weight""",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(text: """and """),
-                    TextSpan(
-                        text: """Induction CpT""",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(text: """
+                        TextSpan(
+                            text: """Adjusted Body Weight""",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: """and """),
+                        TextSpan(
+                            text: """Induction CpT""",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: """
 
 
 (3) Use the """),
-                    TextSpan(
-                        text: """Adjusted Body Weight""",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(
-                        text:
-                            """ as the input weight for Marsh model on TCI pump
+                        TextSpan(
+                            text: """Adjusted Body Weight""",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(
+                            text:
+                                """ as the input weight for Marsh model on TCI pump
 
 (4) Use the """),
-                    TextSpan(
-                        text: """Induction CpT""",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(
-                      text:
-                          """ as the initial CpT setting. As soon as the bolus is finished, drop CpT down to the desired CeT for maintenance. The Marsh model on your pump will now accurately mimic the Eleveld model.""",
-                    ),
-                    TextSpan(text: "\n\n"),
-                    TextSpan(
-                        text: "References:",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(text: "\n"),
-                    TextSpan(text: """
+                        TextSpan(
+                            text: """Induction CpT""",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(
+                          text:
+                              """ as the initial CpT setting. As soon as the bolus is finished, drop CpT down to the desired CeT for maintenance. The Marsh model on your pump will now accurately mimic the Eleveld model.""",
+                        ),
+                        TextSpan(text: "\n\n"),
+                        TextSpan(
+                            text: "References:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: "\n"),
+                        TextSpan(text: """
 Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275-278."""),
-                  ]),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed:  () async {
-                    await HapticFeedback.mediumImpact();
-                    // Close the modal
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Close'),
-                ),
-              ],
-            );
+                      ]),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () async {
+                        await HapticFeedback.mediumImpact();
+                        // Close the modal
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('Close'),
+                    ),
+                  ],
+                );
+            }
           });
     }
 
@@ -462,54 +485,81 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
       showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Wake Up Estimation'),
-              content: SingleChildScrollView(
-                child: Text.rich(
-                  TextSpan(children: [
-                    TextSpan(
-                        text: "Aim:",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(text: "\n"),
-                    TextSpan(
-                        text:
-                            "Estimate the propofol Ce at which the patient emerges from general anaesthesia (i.e. eye open to voice)."),
-                    TextSpan(text: "\n\n"),
-                    TextSpan(
-                        text: "Usage:",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(text: "\n"),
-                    TextSpan(text: """
+            switch (Localizations.localeOf(context).languageCode) {
+              case 'ja':
+                return AlertDialog(
+                  title: Text('麻酔覚醒濃度推定'),
+                  content: SingleChildScrollView(
+                    child: Text.rich(TextSpan(children: [
+                      TextSpan(text: '''目的：
+全身麻酔から患者が覚醒する（つまり、声に反応して目を開ける）プロポフォールの効果部位濃度を推定します。
+
+使用方法：
+(1) 維持期のEleveld Ce（効果部位濃度）を入力します。（注：代わりにEleMarsh Cp（血漿中濃度）を使用する場合は、定常状態に達していることを確認してください）
+
+(2) 観察された対応する状態エントロピー（SE）を入力します。
+
+(3) アルゴリズムは、個人のプロポフォール感受性に基づいて麻酔覚醒の濃度範囲を導き出します。
+
+注意事項：
+(a) アルゴリズムはEleveldモデルに基づいています。EleMarshalはヒステリシスを示す可能性があります。
+
+(b) 覚醒Ce推定値は最小の刺激を前提としています。実際の覚醒Ceは刺激、鎮痛、筋弛緩、補助薬に依存します。
+
+(c) 臨床検証研究が進行中です。''')
+                    ])),
+                  ),
+                );
+              default:
+                return AlertDialog(
+                  title: Text('Wake Up Estimation'),
+                  content: SingleChildScrollView(
+                    child: Text.rich(
+                      TextSpan(children: [
+                        TextSpan(
+                            text: "Aim:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: "\n"),
+                        TextSpan(
+                            text:
+                                "Estimate the propofol Ce at which the patient emerges from general anaesthesia (i.e. eye open to voice)."),
+                        TextSpan(text: "\n\n"),
+                        TextSpan(
+                            text: "Usage:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: "\n"),
+                        TextSpan(text: """
 (1) Enter the Eleveld Ce during maintenance phase. (N.B. if EleMarsh Cp is used instead, please ensure steady state has been achieved)
 
 (2) Enter the corresponding state entropy (SE) observed.
 
 (3) The algorithm will derive the Ce range for anaesthesia emergence based on the individual’s propofol sensitivity."""),
-                    TextSpan(text: "\n\n"),
-                    TextSpan(
-                        text: "Caveats:",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(text: "\n"),
-                    TextSpan(
-                        text:
-                            """(a) Algorithm based on Eleveld model. EleMarsh may demonstrate hysteresis.
+                        TextSpan(text: "\n\n"),
+                        TextSpan(
+                            text: "Caveats:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: "\n"),
+                        TextSpan(
+                            text:
+                                """(a) Algorithm based on Eleveld model. EleMarsh may demonstrate hysteresis.
 
 (b) Wake up Ce estimate assumes minimal stimulus. Actual wake up Ce will depend on stimulus, analgesia, paralysis and adjuvants.
 
 (c) Clinical validation study is in progress."""),
-                  ]),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    await HapticFeedback.mediumImpact();
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Close'),
-                ),
-              ],
-            );
+                      ]),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () async {
+                        await HapticFeedback.mediumImpact();
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('Close'),
+                    ),
+                  ],
+                );
+            }
           });
     }
 
@@ -525,10 +575,6 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
           Expanded(child: Container()),
           ClipRRect(
             borderRadius: BorderRadius.all(Radius.circular(10.0)),
-            // Opacity(
-            // opacity: flowController.val == 0 ? 1 : 0,
-            // child: Container(
-            // height: flowController.val == 0 ? UIHeight + 24 : 0,
             child: Column(
               children: [
                 Opacity(
@@ -554,7 +600,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "EleMarsh ABW",
+                                      "EleMarsh ${AppLocalizations.of(context)!.abw}",
                                       style: TextStyle(
                                           fontSize: 18,
                                           color: Theme.of(context)
@@ -608,7 +654,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "Induction CpT",
+                                      "${AppLocalizations.of(context)!.induction} CpT",
                                       style: TextStyle(
                                         fontSize: 16,
                                       ),
@@ -660,7 +706,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                                       child: Row(
                                         children: [
                                           Text(
-                                            "Predicted BIS",
+                                            "${AppLocalizations.of(context)!.predicted} BIS",
                                             style: TextStyle(
                                                 fontSize: 16,
                                                 color: Theme.of(context)
@@ -744,9 +790,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                       children: [
                         Container(
                           color: isMaintenanceSEOutOfRange
-                              ? Theme.of(context)
-                              .colorScheme
-                              .onTertiary
+                              ? Theme.of(context).colorScheme.onTertiary
                               : Theme.of(context).colorScheme.onPrimary,
                           padding: EdgeInsets.symmetric(horizontal: 16.0),
                           child: Column(
@@ -757,13 +801,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                                 height: 16,
                               ),
                               Text(
-                                  (settings.EMWakeUpModel == Model.Eleveld )
-                                    ? isMaintenanceSEOutOfRange
-                                      ? '*Wake Up Ce Range'
-                                      : 'Wake Up Ce Range'
-                                    : isMaintenanceSEOutOfRange
-                                      ? '*Wake Up Cp Range'
-                                      : 'Wake Up Cp Range',
+                                AppLocalizations.of(context)!.wakeUpRange,
                                 style: TextStyle(
                                     fontSize: 18,
                                     color: isMaintenanceSEOutOfRange
@@ -809,25 +847,25 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  alignment: Alignment.centerRight,
-                  child: SizedBox(
-                    height: UIHeight,
-                    child: PDSegmentedControl(
-                        fitHeight: true,
-                        fontSize: 14,
-                        defaultColor: Theme.of(context).colorScheme.primary,
-                        defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-                        labels: ["Induce", "Wake"],
-                        segmentedController: flowController,
-                        onPressed: [
-                          () {
-                            settings.EMFlow = 'induce';
-                          },
-                          () {
-                            settings.EMFlow = 'wake';
-                          }
-                        ]),
-                  ),
+                  height: UIHeight,
+                  child: PDSegmentedControl(
+                      fitHeight: true,
+                      fontSize: 14,
+                      defaultColor: Theme.of(context).colorScheme.primary,
+                      defaultOnColor: Theme.of(context).colorScheme.onPrimary,
+                      labels: [
+                        AppLocalizations.of(context)!.induce,
+                        AppLocalizations.of(context)!.wake
+                      ],
+                      segmentedController: flowController,
+                      onPressed: [
+                        () {
+                          settings.EMFlow = 'induce';
+                        },
+                        () {
+                          settings.EMFlow = 'wake';
+                        }
+                      ]),
                 ),
                 Row(
                   children: [
@@ -902,14 +940,14 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                   Container(
                     width: UIWidth,
                     child: PDSwitchField(
-                      labelText: 'Sex',
+                      labelText: AppLocalizations.of(context)!.sex,
                       prefixIcon: genderController.val == true
                           ? Icons.woman
                           : Icons.man,
                       controller: genderController,
                       switchTexts: {
-                        true: Gender.Female.toString(),
-                        false: Gender.Male.toString()
+                        true: Gender.Female.toLocalizedString(context),
+                        false: Gender.Male.toLocalizedString(context)
                       },
                       onChanged: run,
                       height: UIHeight,
@@ -923,7 +961,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                     width: UIWidth,
                     child: PDTextField(
                       prefixIcon: Icons.calendar_month,
-                      labelText: 'Age',
+                      labelText: AppLocalizations.of(context)!.age,
                       // helperText: '',
                       interval: 1.0,
                       fractionDigits: 0,
@@ -945,9 +983,11 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    width: UIWidth,
+                    width:
+                        mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                     child: PDSwitchField(
-                      labelText: 'Model',
+                      labelText: AppLocalizations.of(context)!.model,
+                      // labelText: "Model",
                       prefixIcon: modelController.val == true
                           ? Icons.spoke_outlined
                           : Icons.hub_outlined,
@@ -958,24 +998,6 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                       },
                       onChanged: run,
                       height: UIHeight,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 8,
-                    height: 0,
-                  ),
-                  Container(
-                    width: UIWidth,
-                    child: PDTextField(
-                      prefixIcon: Icons.psychology_alt_outlined,
-                      labelText: settings.EMWakeUpModel == Model.Eleveld
-                          ? 'Maintenance Ce'
-                          : 'Maintenance Cp',
-                      interval: 0.5,
-                      fractionDigits: 1,
-                      controller: maintenanceCeController,
-                      range: [0.5, 8],
-                      onPressed: updatePDTextEditingController,
                     ),
                   ),
                 ],
@@ -996,7 +1018,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                     width: UIWidth,
                     child: PDTextField(
                       prefixIcon: Icons.straighten,
-                      labelText: 'Height (cm)',
+                      labelText: '${AppLocalizations.of(context)!.height} (cm)',
                       // helperText: '',
                       interval: 1,
                       fractionDigits: 0,
@@ -1013,7 +1035,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                     width: UIWidth,
                     child: PDTextField(
                       prefixIcon: Icons.monitor_weight_outlined,
-                      labelText: 'Weight (kg)',
+                      labelText: '${AppLocalizations.of(context)!.weight} (kg)',
                       // helperText: '',
                       interval: 1.0,
                       fractionDigits: 0,
@@ -1038,7 +1060,8 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                         mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                     child: PDTextField(
                       prefixIcon: Icons.monitor_heart_outlined,
-                      labelText: 'Maintenance State Entropy',
+                      labelText:
+                          AppLocalizations.of(context)!.maintenanceStateEntropy,
                       helperText: isMaintenanceSEOutOfRange
                           ? '*Accuracy reduced, min: 21 and max: 60'
                           : '',
@@ -1069,7 +1092,16 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                     child: PDTextField(
                       prefixIcon: Icons.psychology_alt_outlined,
                       labelText:
-                          '${Model.Eleveld.target.toString()} Target (μg/mL)',
+                          '${Model.Eleveld.target.toLocalizedString(context)}'
+                          '${() {
+                        switch (Localizations.localeOf(context).languageCode) {
+                          case 'ja':
+                            return ''; // No space for Japanese
+                          default:
+                            return ' '; // Add space for other languages
+                        }
+                      }()}'
+                          '${AppLocalizations.of(context)!.target} (μg/mL)',
                       interval: 0.5,
                       fractionDigits: 1,
                       controller: targetController,
@@ -1090,15 +1122,28 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    width: UIWidth * 2 + 8,
+                    width:
+                        mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                     child: PDTextField(
-                      enabled: false,
-                      prefixIcon: Icons.water_drop_outlined,
-                      labelText: 'Infusion Rate (under development)',
+                      prefixIcon: Icons.psychology_alt_outlined,
+                      labelText: '${AppLocalizations.of(context)!.maintenance}'
+                          '${() {
+                        switch (Localizations.localeOf(context).languageCode) {
+                          case 'ja':
+                            return ''; // No space for Japanese
+                          default:
+                            return ' '; // Add space for other languages
+                        }
+                      }()}'
+                          '${() {
+                        return settings.EMWakeUpModel == Model.Eleveld
+                            ? 'Ce'
+                            : 'Cp';
+                      }()}',
                       interval: 0.5,
                       fractionDigits: 1,
-                      controller: infusionRateController,
-                      range: [1, 100],
+                      controller: maintenanceCeController,
+                      range: [0.5, 8],
                       onPressed: updatePDTextEditingController,
                     ),
                   ),

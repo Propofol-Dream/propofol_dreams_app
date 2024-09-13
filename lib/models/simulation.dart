@@ -350,7 +350,7 @@ class Simulation {
     if (targetIncreasedBy <= 0) return 0;
 
     double result = 0.0;
-    if (model.target == Target.Effect_Site) {
+    if (model.target == Target.EffectSite) {
       result = targetIncreasedBy / maxCe * pump.density;
     } else if (model.target == Target.Plasma) {
       double V1 = variables.V1;
@@ -363,7 +363,7 @@ class Simulation {
     if (bolusInfusedBy <= 0) return 0;
 
     double result = 0.0;
-    if (model.target == Target.Effect_Site) {
+    if (model.target == Target.EffectSite) {
       result = bolusInfusedBy * maxCe / pump.density;
     } else if (model.target == Target.Plasma) {
       result = (-15.693 +
@@ -483,7 +483,7 @@ class Simulation {
       double? pumpInf;
       double? A1;
 
-      if (model.target == Target.Effect_Site) {
+      if (model.target == Target.EffectSite) {
         A1 = step == 0
             ? 0
             : (pumpInfs.last / 60) * timeStep / 60 + A1Change + A1s.last;
@@ -652,7 +652,7 @@ class Simulation {
   //This is not initial bolus, Engbert's algo doesn't require bolus to be calculated
   //This was designed for calculate hand push bolus, but may not be required any more
   double get bolus {
-    if (model.target == Target.Effect_Site) {
+    if (model.target == Target.EffectSite) {
       return pump.target / maxCe * pump.density;
     } else if (model.target == Target.Plasma) {
       double V1 = variables.V1;

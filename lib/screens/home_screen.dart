@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 import '../providers/settings.dart';
 import 'volume_screen.dart';
@@ -74,19 +76,19 @@ class _HomeScreenState extends State<HomeScreen> {
               currenIndex = settings.currentScreenIndex = index;
             });
           },
-          items:const [
+          items:[
             BottomNavigationBarItem(
-                icon:  Icon(Icons.science_outlined),
-                label: 'Volume'),
-            BottomNavigationBarItem(
+                icon:  const Icon(Icons.science_outlined),
+                label: AppLocalizations.of(context)!.volume),
+            const BottomNavigationBarItem(
                 icon: Icon(Icons.hub_outlined),
                 label: 'EleMarsh'),
             BottomNavigationBarItem(
                 icon:  Icon(Icons.schedule),
-                label: 'Duration'),
-            BottomNavigationBarItem(
+                label: AppLocalizations.of(context)!.duration),
+             BottomNavigationBarItem(
                 icon:  Icon(Icons.settings),
-                label: 'Settings'),
+                label: AppLocalizations.of(context)!.settings),
             // BottomNavigationBarItem(
             //     icon:  Icon(Icons.science),
             //     label: 'Test'),
