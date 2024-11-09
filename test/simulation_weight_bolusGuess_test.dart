@@ -34,7 +34,7 @@ void main() {
     Simulation sim = Simulation(
             model: model, patient: patient, pump: pump);
 
-    print("patient: ${patient}");
+    print("patient: $patient");
     print("abw guess: ${sim.weightGuess}");
     print("bolus guess: ${sim.bolusGuess}");
 
@@ -58,7 +58,7 @@ void main() {
     Simulation sim = Simulation(
         model: model, patient: patient, pump: pump);
 
-    print("patient: ${patient}");
+    print("patient: $patient");
     print("abw guess: ${sim.weightGuess}");
     print("bolus guess: ${sim.bolusGuess}");
 
@@ -82,7 +82,7 @@ void main() {
     Simulation sim = Simulation(
         model: model, patient: patient, pump: pump);
 
-    print("patient: ${patient}");
+    print("patient: $patient");
     print("abw guess: ${sim.weightGuess}");
     print("bolus guess: ${sim.bolusGuess}");
 
@@ -106,7 +106,7 @@ void main() {
     Simulation sim = Simulation(
         model: model, patient: patient, pump: pump);
 
-    print("patient: ${patient}");
+    print("patient: $patient");
     print("abw guess: ${sim.weightGuess}");
     print("bolus guess: ${sim.bolusGuess}");
 
@@ -130,7 +130,7 @@ void main() {
     Simulation sim = Simulation(
         model: model, patient: patient, pump: pump);
 
-    print("patient: ${patient}");
+    print("patient: $patient");
     print("abw guess: ${sim.weightGuess}");
     print("bolus guess: ${sim.bolusGuess}");
 
@@ -154,7 +154,7 @@ void main() {
     Simulation sim = Simulation(
         model: model, patient: patient, pump: pump);
 
-    print("patient: ${patient}");
+    print("patient: $patient");
     print("abw guess: ${sim.weightGuess}");
     print("bolus guess: ${sim.bolusGuess}");
 
@@ -178,7 +178,7 @@ void main() {
     Simulation sim = Simulation(
         model: model, patient: patient, pump: pump);
 
-    print("patient: ${patient}");
+    print("patient: $patient");
     print("abw guess: ${sim.weightGuess}");
     print("bolus guess: ${sim.bolusGuess}");
 
