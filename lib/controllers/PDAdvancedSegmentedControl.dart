@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:propofol_dreams_app/models/gender.dart';
+import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 
 import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedController.dart';
@@ -31,33 +31,33 @@ class PDAdvancedSegmentedControl extends StatefulWidget {
 
 class _PDAdvancedSegmentedControlState
     extends State<PDAdvancedSegmentedControl> {
-  @override
+  // @override
   // void dispose() {
   //   widget.segmentedController.dispose();
   //   super.dispose();
   // }
 
   bool checkError(
-      {required Gender gender,
+      {required Sex sex,
         required int weight,
         required int height,
         required int age}) {
     Model selectedModel = widget.segmentedController.selection as Model;
     return !(selectedModel.checkConstraints(
-        gender: gender,
+        sex: sex,
         weight: weight,
         height: height,
         age: age)['assertion'] as bool);
   }
 
   String showErrorText(
-      {required Gender gender,
+      {required Sex sex,
         required int weight,
         required int height,
         required int age}) {
     Model selectedModel = widget.segmentedController.selection as Model;
     return (selectedModel.checkConstraints(
-        gender: gender,
+        sex: sex,
         weight: weight,
         height: height,
         age: age)['text'] as String);
@@ -69,15 +69,15 @@ class _PDAdvancedSegmentedControlState
     var screenRatio = mediaQuery.size.width / mediaQuery.size.height;
 
     bool isError = checkError(
-        gender:
-        widget.assertValues['gender'] as bool ? Gender.Female : Gender.Male,
+        sex:
+        widget.assertValues['sex'] as bool ? Sex.Female : Sex.Male,
         weight: widget.assertValues['weight'] as int,
         height: widget.assertValues['height'] as int,
         age: widget.assertValues['age'] as int);
 
     String errorText = showErrorText(
-        gender:
-        widget.assertValues['gender'] as bool ? Gender.Female : Gender.Male,
+        sex:
+        widget.assertValues['sex'] as bool ? Sex.Female : Sex.Male,
         weight: widget.assertValues['weight'] as int,
         height: widget.assertValues['height'] as int,
         age: widget.assertValues['age'] as int);

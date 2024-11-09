@@ -3,7 +3,7 @@ import 'package:flutter/scheduler.dart';
 
 import 'package:propofol_dreams_app/models/InfusionUnit.dart';
 import 'package:propofol_dreams_app/models/model.dart';
-import 'package:propofol_dreams_app/models/gender.dart';
+import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Settings with ChangeNotifier {
@@ -109,7 +109,7 @@ class Settings with ChangeNotifier {
 
 
   Model _adultModel = Model.None;
-  Gender? _adultGender;
+  Sex? _adultSex;
   int? _adultAge;
   int? _adultHeight;
   int? _adultWeight;
@@ -126,13 +126,13 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  Gender? get adultGender {
-    return _adultGender;
+  Sex? get adultSex {
+    return _adultSex;
   }
 
-  set adultGender(Gender? g) {
-    _adultGender = g;
-    setString('adultGender', g.toString());
+  set adultSex(Sex? s) {
+    _adultSex = s;
+    setString('adultSex', s.toString());
     notifyListeners();
   }
 
@@ -191,7 +191,7 @@ class Settings with ChangeNotifier {
   }
 
   Model _pediatricModel = Model.None;
-  Gender? _pediatricGender;
+  Sex? _pediatricSex;
   int? _pediatricAge;
   int? _pediatricHeight;
   int? _pediatricWeight;
@@ -208,13 +208,13 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  Gender? get pediatricGender {
-    return _pediatricGender;
+  Sex? get pediatricSex {
+    return _pediatricSex;
   }
 
-  set pediatricGender(Gender? g) {
-    _pediatricGender = g;
-    setString('pediatricGender', g.toString());
+  set pediatricSex(Sex? s) {
+    _pediatricSex = s;
+    setString('pediatricSex', s.toString());
     notifyListeners();
   }
 
@@ -328,7 +328,7 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  Gender? _EMGender;
+  Sex? _EMSex;
   int? _EMAge;
   int? _EMHeight;
   int? _EMWeight;
@@ -342,13 +342,13 @@ class Settings with ChangeNotifier {
   int? _EMMaintenanceSE;
   double? _EMInfusionRate;
 
-  Gender? get EMGender {
-    return _EMGender;
+  Sex? get EMSex {
+    return _EMSex;
   }
 
-  set EMGender(Gender? g) {
-    _EMGender = g;
-    setString('EMGender', g.toString());
+  set EMSex(Sex? s) {
+    _EMSex = s;
+    setString('EMSex', s.toString());
     notifyListeners();
   }
 

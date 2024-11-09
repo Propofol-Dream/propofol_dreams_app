@@ -17,7 +17,7 @@ import 'package:propofol_dreams_app/providers/settings.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/model.dart';
-import 'package:propofol_dreams_app/models/gender.dart';
+import 'package:propofol_dreams_app/models/sex.dart';
 
 import 'package:propofol_dreams_app/controllers/PDSwitchController.dart';
 import 'package:propofol_dreams_app/controllers/PDSwitchField.dart';
@@ -36,7 +36,7 @@ class EleMarshScreen extends StatefulWidget {
 }
 
 class _EleMarshScreenState extends State<EleMarshScreen> {
-  PDSwitchController genderController = PDSwitchController();
+  PDSwitchController sexController = PDSwitchController();
   TextEditingController ageController = TextEditingController();
   TextEditingController heightController = TextEditingController();
   TextEditingController weightController = TextEditingController();
@@ -60,7 +60,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   void initState() {
     final settings = context.read<Settings>();
 
-    genderController.val = settings.EMGender == Gender.Female ? true : false;
+    sexController.val = settings.EMSex == Sex.Female ? true : false;
     ageController.text = settings.EMAge.toString();
     heightController.text = settings.EMHeight.toString();
     weightController.text = settings.EMWeight.toString();
@@ -94,11 +94,11 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       settings.density = 10;
     }
 
-    if (pref.containsKey('EMGender')) {
-      String gender = pref.getString('EMGender')!;
-      settings.EMGender = gender == 'Female' ? Gender.Female : Gender.Male;
+    if (pref.containsKey('EMSex')) {
+      String sex = pref.getString('EMSex')!;
+      settings.EMSex = sex == 'Female' ? Sex.Female : Sex.Male;
     } else {
-      settings.EMGender = Gender.Female;
+      settings.EMSex = Sex.Female;
     }
 
     if (pref.containsKey('EMAge')) {
@@ -163,7 +163,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       settings.EMInfusionRate = 100;
     }
 
-    genderController.val = settings.EMGender == Gender.Female ? true : false;
+    sexController.val = settings.EMSex == Sex.Female ? true : false;
     ageController.text = settings.EMAge.toString();
     heightController.text = settings.EMHeight.toString();
     weightController.text = settings.EMWeight.toString();
@@ -190,7 +190,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
     double? target = double.tryParse(targetController.text);
-    Gender gender = genderController.val ? Gender.Female : Gender.Male;
+    Sex sex = sexController.val ? Sex.Female : Sex.Male;
 
     String flow = flowController.val == 0 ? 'induce' : 'wake';
     Model m = modelController.val ? Model.Eleveld : Model.EleMarsh;
@@ -199,7 +199,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     //Save all the settings
     if (initState == false) {
-      settings.EMGender = gender;
+      settings.EMSex = sex;
       settings.EMAge = age;
       settings.EMHeight = height;
       settings.EMWeight = weight;
@@ -217,12 +217,61 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         m != null &&
         maintenanceCe != null &&
         maintenanceSE != null) {
-      if (age >= 14 &&
-          age <= 105 &&
-          height >= 100 &&
-          height <= 220 &&
-          weight >= 35 &&
-          weight <= 350 &&
+
+      switch (age) {
+        case 5:
+          minWeightEleMarsh = 20;
+          maxWeightEleMarsh = 40;
+          minHeightEleMarsh = 85;
+          maxHeightEleMarsh = 132;
+        case 6:
+          minWeightEleMarsh = 20;
+          maxWeightEleMarsh = 55;
+          minHeightEleMarsh = 85;
+          maxHeightEleMarsh = 140;
+        case 7:
+          minWeightEleMarsh = 20;
+          maxWeightEleMarsh = 75;
+          minHeightEleMarsh = 85;
+          maxHeightEleMarsh = 148;
+        case 8:
+          minWeightEleMarsh = 20;
+          maxWeightEleMarsh = 90;
+          minHeightEleMarsh = 85;
+          maxHeightEleMarsh = 156;
+        case 9:
+          minWeightEleMarsh = 20;
+          maxWeightEleMarsh = 110;
+          minHeightEleMarsh = 85;
+          maxHeightEleMarsh = 165;
+        case 10:
+          minWeightEleMarsh = 20;
+          maxWeightEleMarsh = 140;
+          minHeightEleMarsh = 85;
+          maxHeightEleMarsh = 170;
+        case >= 11 && <= 13:
+          minWeightEleMarsh = 20;
+          maxWeightEleMarsh = 200;
+          minHeightEleMarsh = 85;
+          maxHeightEleMarsh = 200;
+        case > 13:
+          minWeightEleMarsh = 35;
+          maxWeightEleMarsh = 350;
+          minHeightEleMarsh = 100;
+          maxHeightEleMarsh = 220;
+        default:
+          minWeightEleMarsh = 20;
+          maxWeightEleMarsh = 350;
+          minHeightEleMarsh = 85;
+          maxHeightEleMarsh = 220;
+      }
+
+      if (age >= m.minAge &&
+          age <= m.maxAge &&
+          height >= minHeightEleMarsh &&
+          height <= maxHeightEleMarsh &&
+          weight >= minWeightEleMarsh &&
+          weight <= maxWeightEleMarsh &&
           target >= 0.5 &&
           target <= 8.0 &&
           maintenanceCe >= 0.5 &&
@@ -233,7 +282,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
         Model model = Model.Eleveld;
         Patient patient =
-            Patient(weight: weight, height: height, age: age, gender: gender);
+            Patient(weight: weight, height: height, age: age, sex: sex);
         Pump pump = Pump(
             timeStep: Duration(seconds: settings.time_step),
             density: settings.density,
@@ -304,9 +353,9 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     final settings = Provider.of<Settings>(context, listen: false);
 
     if (flowController.val == 0) {
-      genderController.val = toDefault
+      sexController.val = toDefault
           ? true
-          : settings.EMGender == Gender.Female
+          : settings.EMSex == Sex.Female
               ? true
               : false;
       ageController.text = toDefault
@@ -350,6 +399,11 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     }
     run();
   }
+
+  int minWeightEleMarsh = 20;
+  int maxWeightEleMarsh = 350;
+  int minHeightEleMarsh = 85;
+  int maxHeightEleMarsh = 220;
 
   @override
   Widget build(BuildContext context) {
@@ -563,7 +617,16 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
           });
     }
 
-    ;
+    int? age = int.tryParse(ageController.text);
+    bool isAdult = true;
+    if(age != null){
+      if(age<17){
+        isAdult = false;
+      }else{
+        isAdult=true;
+      }
+    }
+
 
     return Container(
       height: screenHeight,
@@ -855,7 +918,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                       defaultOnColor: Theme.of(context).colorScheme.onPrimary,
                       labels: [
                         AppLocalizations.of(context)!.induce,
-                        AppLocalizations.of(context)!.wake
+                        AppLocalizations.of(context)!.emerge
                       ],
                       segmentedController: flowController,
                       onPressed: [
@@ -941,13 +1004,13 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                     width: UIWidth,
                     child: PDSwitchField(
                       labelText: AppLocalizations.of(context)!.sex,
-                      prefixIcon: genderController.val == true
-                          ? Icons.woman
-                          : Icons.man,
-                      controller: genderController,
+                      prefixIcon: sexController.val == true
+                          ? isAdult ? Icons.woman : Icons.girl
+                          : isAdult ? Icons.man : Icons.boy,
+                      controller: sexController,
                       switchTexts: {
-                        true: Gender.Female.toLocalizedString(context),
-                        false: Gender.Male.toLocalizedString(context)
+                        true: isAdult ? Sex.Female.toLocalizedString(context) : Sex.Girl.toLocalizedString(context),
+                        false: isAdult ? Sex.Male.toLocalizedString(context) : Sex.Boy.toLocalizedString(context)
                       },
                       onChanged: run,
                       height: UIHeight,
@@ -966,7 +1029,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                       interval: 1.0,
                       fractionDigits: 0,
                       controller: ageController,
-                      range: [14, 105],
+                      range: [Model.EleMarsh.minAge, Model.EleMarsh.maxAge],
                       onPressed: updatePDTextEditingController,
                       // onChanged: restart,
                     ),
@@ -1023,7 +1086,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                       interval: 1,
                       fractionDigits: 0,
                       controller: heightController,
-                      range: [100, 220],
+                      range: [minHeightEleMarsh, maxHeightEleMarsh],
                       onPressed: updatePDTextEditingController,
                     ),
                   ),
@@ -1040,7 +1103,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                       interval: 1.0,
                       fractionDigits: 0,
                       controller: weightController,
-                      range: [35, 350],
+                      range: [minWeightEleMarsh, maxWeightEleMarsh],
                       onPressed: updatePDTextEditingController,
                     ),
                   ),

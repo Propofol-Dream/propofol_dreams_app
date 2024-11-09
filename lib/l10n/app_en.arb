@@ -24,6 +24,11 @@
         "description": ""
     },
 
+    "boy": "Boy",
+    "@boy": {
+        "description": ""
+    },
+
     "confidenceInterval": "Confidence\nInterval",
     "@confidenceInterval": {
         "description": ""
@@ -44,8 +49,18 @@
         "description": ""
     },
 
+    "emerge": "Emerge",
+    "@emerge": {
+        "description": ""
+    },
+
     "female": "Female",
     "@female": {
+        "description": ""
+    },
+
+    "girl": "Girl",
+    "@girl": {
         "description": ""
     },
 

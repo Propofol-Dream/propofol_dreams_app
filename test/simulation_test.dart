@@ -4,14 +4,14 @@ import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/simulation.dart';
 import 'package:propofol_dreams_app/models/model.dart';
-import 'package:propofol_dreams_app/models/gender.dart';
+import 'package:propofol_dreams_app/models/sex.dart';
 
 
 void main() {
   int weight = 128;
   int age = 40;
   int height = 160;
-  Gender gender = Gender.Female;
+  Sex gender = Sex.Female;
   Duration timeStep = const Duration(seconds: 1);
   int density = 10;
   int maxPumpRate = 2000;
@@ -22,7 +22,7 @@ void main() {
   test('Peak', () async {
     Model model = Model.Eleveld;
     Patient patient =
-    Patient(weight: weight, age: age, height: height, gender: gender);
+    Patient(weight: weight, age: age, height: height, sex: gender);
     Pump pump = Pump(
         timeStep: timeStep,
         density: density,

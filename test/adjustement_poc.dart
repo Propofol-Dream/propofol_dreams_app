@@ -5,7 +5,7 @@ import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/simulation.dart';
 import 'package:propofol_dreams_app/models/model.dart';
-import 'package:propofol_dreams_app/models/gender.dart';
+import 'package:propofol_dreams_app/models/sex.dart';
 
 void main() {
   test('Adjustment', () async {
@@ -14,7 +14,7 @@ void main() {
     int weight = 80;
     int age = 40;
     int height = 170;
-    Gender gender = Gender.Male;
+    Sex gender = Sex.Male;
     Duration timeStep = const Duration(seconds: 1);
     int density = 10;
     int maxPumpRate = 1200;
@@ -36,7 +36,7 @@ void main() {
 
     // Set up for baseline model
     Model baselineModel = Model.Eleveld;
-    Patient baselinePatient = Patient(weight: weight, age: age, height: height, gender: gender);
+    Patient baselinePatient = Patient(weight: weight, age: age, height: height, sex: gender);
     Pump baselinePump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate, target: target, duration: duration);
     // Operation baselineOperation = Operation(target: target, duration: duration);
     Simulation baselineSim = Simulation(

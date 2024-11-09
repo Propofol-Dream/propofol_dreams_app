@@ -21,8 +21,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
    int currenIndex = 1;
   final screens = [
+    EleMarshScreen(),
     const VolumeScreen(),
-     EleMarshScreen(),
     const DurationScreen(),
     const SettingsScreen(),
     // TestScreen()
@@ -77,17 +77,17 @@ class _HomeScreenState extends State<HomeScreen> {
             });
           },
           items:[
-            BottomNavigationBarItem(
-                icon:  const Icon(Icons.science_outlined),
-                label: AppLocalizations.of(context)!.volume),
             const BottomNavigationBarItem(
                 icon: Icon(Icons.hub_outlined),
                 label: 'EleMarsh'),
             BottomNavigationBarItem(
-                icon:  Icon(Icons.schedule),
+                icon:  const Icon(Icons.science_outlined),
+                label: AppLocalizations.of(context)!.volume),
+            BottomNavigationBarItem(
+                icon:  const Icon(Icons.schedule),
                 label: AppLocalizations.of(context)!.duration),
              BottomNavigationBarItem(
-                icon:  Icon(Icons.settings),
+                icon:  const Icon(Icons.settings),
                 label: AppLocalizations.of(context)!.settings),
             // BottomNavigationBarItem(
             //     icon:  Icon(Icons.science),

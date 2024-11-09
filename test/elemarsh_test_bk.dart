@@ -5,7 +5,7 @@ import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/simulation.dart';
 import 'package:propofol_dreams_app/models/model.dart';
-import 'package:propofol_dreams_app/models/gender.dart';
+import 'package:propofol_dreams_app/models/sex.dart';
 
 typedef GuessRow = ({
 int weightGuess,
@@ -109,7 +109,7 @@ void main() {
     int weight = 70;
     int age = 40;
     int height = 170;
-    Gender gender = Gender.Female;
+    Sex gender = Sex.Female;
     Duration timeStepSim = const Duration(seconds: 1);
     int density = 10;
     int maxPumpRate = 1200;
@@ -118,7 +118,7 @@ void main() {
 
     // Set up for the model
     Model goldModel = Model.Eleveld;
-    Patient goldPatient = Patient(weight: weight, age: age, height: height, gender: gender);
+    Patient goldPatient = Patient(weight: weight, age: age, height: height, sex: gender);
     Pump goldPump = Pump(timeStep: timeStepSim, density: density, maxPumpRate: maxPumpRate,target: target, duration: duration);
     // Operation baselineOperation = Operation(target: target, duration: duration);
     Simulation goldSimulation = Simulation(

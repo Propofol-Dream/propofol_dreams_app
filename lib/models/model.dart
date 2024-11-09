@@ -1,4 +1,4 @@
-import 'gender.dart';
+import 'sex.dart';
 import 'target.dart';
 import 'dart:math';
 
@@ -44,8 +44,8 @@ enum Model {
       maxWeight: 61,
       target: Target.Plasma),
   EleMarsh(
-      minAge: 0,
-      maxAge: 999,
+      minAge: 5,
+      maxAge: 105,
       minHeight: 0,
       maxHeight: 999,
       minWeight: 0,
@@ -121,7 +121,7 @@ enum Model {
     required int weight,
     required int height,
     required int age,
-    required Gender gender,
+    required Sex sex,
   }) {
     bool isAssertive = true;
     String text = '';
@@ -133,7 +133,7 @@ enum Model {
     } else if (this == Model.Schnider) {
       double tmpBMI = bmi(weight, height);
       double minBMI = 14;
-      double maxBMI = gender == Gender.Male ? 42 : 39;
+      double maxBMI = sex == Sex.Male ? 42 : 39;
       isAssertive = tmpBMI >= minBMI && tmpBMI <= maxBMI;
       text = isAssertive ? '' : '[BMI] min: $minBMI and max: $maxBMI';
       return {'assertion': isAssertive, 'text': text};

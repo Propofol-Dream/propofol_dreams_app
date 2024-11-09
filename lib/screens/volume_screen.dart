@@ -12,7 +12,7 @@ import 'package:propofol_dreams_app/providers/settings.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/model.dart';
-import 'package:propofol_dreams_app/models/gender.dart';
+import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:propofol_dreams_app/models/target.dart';
 
 import '../constants.dart';
@@ -29,7 +29,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
       PDAdvancedSegmentedController();
   final PDAdvancedSegmentedController pediatricModelController =
       PDAdvancedSegmentedController();
-  PDSwitchController genderController = PDSwitchController();
+  PDSwitchController sexController = PDSwitchController();
   TextEditingController ageController = TextEditingController();
   TextEditingController heightController = TextEditingController();
   TextEditingController weightController = TextEditingController();
@@ -76,8 +76,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     if (settings.inAdultView) {
       adultModelController.selection = settings.adultModel;
-      genderController.val =
-          settings.adultGender == Gender.Female ? true : false;
+      sexController.val =
+          settings.adultSex == Sex.Female ? true : false;
       ageController.text = settings.adultAge.toString();
       heightController.text = settings.adultHeight.toString();
       weightController.text = settings.adultWeight.toString();
@@ -85,8 +85,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
       durationController.text = settings.adultDuration.toString();
     } else {
       pediatricModelController.selection = settings.pediatricModel;
-      genderController.val =
-          settings.pediatricGender == Gender.Female ? true : false;
+      sexController.val =
+          settings.pediatricSex == Sex.Female ? true : false;
       ageController.text = settings.pediatricAge.toString();
       heightController.text = settings.pediatricHeight.toString();
       weightController.text = settings.pediatricWeight.toString();
@@ -161,12 +161,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
       settings.adultModel = Model.None;
     }
 
-    if (pref.containsKey('adultGender')) {
-      String adultGender = pref.getString('adultGender')!;
-      settings.adultGender =
-          adultGender == 'Female' ? Gender.Female : Gender.Male;
+    if (pref.containsKey('adultSex')) {
+      String adultSex = pref.getString('adultSex')!;
+      settings.adultSex =
+          adultSex == 'Female' ? Sex.Female : Sex.Male;
     } else {
-      settings.adultGender = Gender.Female;
+      settings.adultSex = Sex.Female;
     }
 
     if (pref.containsKey('adultAge')) {
@@ -230,12 +230,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
       settings.pediatricModel = Model.None;
     }
 
-    if (pref.containsKey('pediatricGender')) {
-      String pediatricGender = pref.getString('pediatricGender')!;
-      settings.pediatricGender =
-          pediatricGender == 'Female' ? Gender.Female : Gender.Male;
+    if (pref.containsKey('pediatricSex')) {
+      String pediatricSex = pref.getString('pediatricSex')!;
+      settings.pediatricSex =
+          pediatricSex == 'Female' ? Sex.Female : Sex.Male;
     } else {
-      settings.pediatricGender = Gender.Female;
+      settings.pediatricSex = Sex.Female;
     }
 
     if (pref.containsKey('pediatricAge')) {
@@ -270,8 +270,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     if (settings.inAdultView) {
       adultModelController.selection = settings.adultModel;
-      genderController.val =
-          settings.adultGender == Gender.Female ? true : false;
+      sexController.val =
+          settings.adultSex == Sex.Female ? true : false;
       ageController.text = settings.adultAge.toString();
 
       heightController.text = settings.adultHeight.toString();
@@ -280,8 +280,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
       durationController.text = settings.adultDuration.toString();
     } else {
       pediatricModelController.selection = settings.pediatricModel;
-      genderController.val =
-          settings.pediatricGender == Gender.Female ? true : false;
+      sexController.val =
+          settings.pediatricSex == Sex.Female ? true : false;
       ageController.text = settings.pediatricAge.toString();
       heightController.text = settings.pediatricHeight.toString();
       weightController.text = settings.pediatricWeight.toString();
@@ -365,12 +365,12 @@ class _VolumeScreenState extends State<VolumeScreen> {
     int? weight = int.tryParse(weightController.text);
     double? target = double.tryParse(targetController.text);
     int? duration = int.tryParse(durationController.text);
-    Gender gender = genderController.val ? Gender.Female : Gender.Male;
+    Sex sex = sexController.val ? Sex.Female : Sex.Male;
 
     if (initState == false) {
       if (settings.inAdultView) {
         settings.adultModel = adultModelController.selection;
-        settings.adultGender = gender;
+        settings.adultSex = sex;
         settings.adultAge = age;
         settings.adultHeight = height;
         settings.adultWeight = weight;
@@ -378,7 +378,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         settings.adultDuration = duration;
       } else {
         settings.pediatricModel = pediatricModelController.selection;
-        settings.pediatricGender = gender;
+        settings.pediatricSex = sex;
         settings.pediatricAge = age;
         settings.pediatricHeight = height;
         settings.pediatricWeight = weight;
@@ -420,13 +420,13 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 weight: weight,
                 height: height,
                 age: age,
-                gender: gender)['assertion'] as bool) {
+                sex: sex)['assertion'] as bool) {
               // print('model pass constraints');
 
               DateTime start = DateTime.now();
 
               Patient patient = Patient(
-                  weight: weight, age: age, height: height, gender: gender);
+                  weight: weight, age: age, height: height, sex: sex);
 
               Pump pump = Pump(
                   timeStep: Duration(seconds: settings.time_step),
@@ -574,9 +574,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
     final settings = Provider.of<Settings>(context, listen: false);
 
     if (settings.inAdultView) {
-      genderController.val = toDefault
+      sexController.val = toDefault
           ? true
-          : settings.adultGender == Gender.Female
+          : settings.adultSex == Sex.Female
               ? true
               : false;
       ageController.text = toDefault
@@ -605,9 +605,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ? settings.adultDuration.toString()
               : '';
     } else {
-      genderController.val = toDefault
+      sexController.val = toDefault
           ? true
-          : settings.pediatricGender == Gender.Female
+          : settings.pediatricSex == Sex.Female
               ? true
               : false;
       ageController.text = toDefault
@@ -710,7 +710,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         ? (adultModelController.selection as Model).target != Target.Plasma
         : (pediatricModelController.selection as Model).target != Target.Plasma;
 
-    final bool genderSwitchControlEnabled = settings.inAdultView
+    final bool sexSwitchControlEnabled = settings.inAdultView
         ? (adultModelController.selection as Model).target != Target.Plasma
         : (pediatricModelController.selection as Model).target != Target.Plasma;
 
@@ -903,7 +903,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         : pediatricModelController,
                     onPressed: updatePDSegmentedController,
                     assertValues: {
-                      'gender': genderController.val,
+                      'sex': sexController.val,
                       'age': (int.tryParse(ageController.text) ?? 0),
                       'height': (int.tryParse(heightController.text) ?? 0),
                       'weight': (int.tryParse(weightController.text) ?? 0)
@@ -947,18 +947,18 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   width: UIWidth,
                   child: PDSwitchField(
                     labelText: AppLocalizations.of(context)!.sex,
-                    prefixIcon: genderController.val == true ?
+                    prefixIcon: sexController.val == true ?
                     settings.inAdultView ? Icons.woman : Icons.girl :
                     settings.inAdultView ? Icons.man : Icons.boy,
-                    controller: genderController,
+                    controller: sexController,
                     switchTexts: {
-                      true: Gender.Female.toLocalizedString(context),
-                      false: Gender.Male.toLocalizedString(context)
+                      true: settings.inAdultView ? Sex.Female.toLocalizedString(context): Sex.Girl.toLocalizedString(context),
+                      false: settings.inAdultView ? Sex.Male.toLocalizedString(context): Sex.Boy.toLocalizedString(context)
                     },
                     // helperText: '',
                     onChanged: run,
                     height: UIHeight,
-                    enabled: genderSwitchControlEnabled,
+                    enabled: sexSwitchControlEnabled,
                   ),
                 ),
                 const SizedBox(

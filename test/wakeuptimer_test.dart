@@ -3,7 +3,7 @@ import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/simulation.dart';
 import 'package:propofol_dreams_app/models/model.dart';
-import 'package:propofol_dreams_app/models/gender.dart';
+import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:propofol_dreams_app/models/WUTInput.dart.bk';
 
 import 'dart:io';
@@ -15,7 +15,7 @@ void main() {
   int weight = 87;
   int age = 62;
   int height = 183;
-  Gender gender = Gender.Male;
+  Sex gender = Sex.Male;
 
   // List<int> durationInSeconds = [
   //   762,
@@ -126,7 +126,7 @@ void main() {
     var firstCumulativeInfusedDosage = dosageInputs.first;
 
     Patient patient =
-        Patient(weight: weight, height: height, age: age, gender: gender);
+        Patient(weight: weight, height: height, age: age, sex: gender);
     Pump pump = Pump(
         timeStep: timeStep,
         density: density,
