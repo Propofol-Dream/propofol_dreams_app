@@ -30,10 +30,10 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   intl: any
-  url_launcher: ^6.3.0
+  url_launcher: ^6.3.1
   provider: ^6.1.2
-  flutter_native_splash: ^2.4.1
-  shared_preferences: ^2.3.2
+  flutter_native_splash: ^2.4.2
+  shared_preferences: ^2.3.3
 
   flutter:
     sdk: flutter
@@ -52,7 +52,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
