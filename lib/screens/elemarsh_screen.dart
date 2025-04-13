@@ -1189,20 +1189,9 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                         mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                     child: PDTextField(
                       prefixIcon: Icons.psychology_alt_outlined,
-                      labelText: '${AppLocalizations.of(context)!.maintenance}'
-                          '${() {
-                        switch (Localizations.localeOf(context).languageCode) {
-                          case 'ja':
-                            return ''; // No space for Japanese
-                          default:
-                            return ' '; // Add space for other languages
-                        }
-                      }()}'
-                          '${() {
-                        return settings.EMWakeUpModel == Model.Eleveld
-                            ? 'Ce'
-                            : 'Cp';
-                      }()}',
+                      labelText: settings.EMWakeUpModel == Model.Eleveld
+                            ? AppLocalizations.of(context)!.maintenanceCe
+                            : AppLocalizations.of(context)!.maintenanceCp,
                       interval: 0.5,
                       fractionDigits: 1,
                       controller: maintenanceCeController,

@@ -11,22 +11,12 @@ class EleMarsh {
       {required this.goldSimulation});
 
   ({
-    // List<double> SSEs,
-    // List<double> MDAPEs,
-    // List<double> MDPEs,
-    // List<double> MaxAPEs,
-    double adjustmentBolus,
-    // List<Simulation> baselineSimulations,
-    // int bolusBestGuess,
-    // List<int> bolusGuesses,
-    // List<Simulation> comparedSimulations,
-    // List<Simulation> finalSimulations,
-    // int guessIndex,
-    double inductionCPTarget,
-    // int length,
-    double predictedBIS,
     int weightBestGuess,
-    // List<int> weightGuesses
+    int bolusBestGuess,
+    double adjustmentBolus,
+    double inductionCPTarget,
+    double handBolus,
+    double predictedBIS,
   }) estimate({required double weightBound, required double bolusBound}) {
     // Set up results
     List<int> weightGuesses = [];
@@ -35,9 +25,6 @@ class EleMarsh {
     List<Simulation> marshSimulations = [];
     List<Simulation> guessSimulations = [];
     List<double> marshSimTargetIncEstimates = [];
-    // List<double> SSEs = [];
-    // List<double> MDPEs = [];
-    // List<double> MDAPEs = [];
     List<double> MaxAPEs = [];
     int weightBestGuess = -1;
     int bolusBestGuess = -1;
@@ -61,7 +48,7 @@ class EleMarsh {
         weightGuess++) {
       for (int bolusGuess = minBolusGuess;
           bolusGuess <= maxBolusGuess;
-          bolusGuess=bolusGuess+2) {
+          bolusGuess = bolusGuess+2) {
 
         // Set up for the Marsh model
         Model marshModel = Model.Marsh;
@@ -104,10 +91,6 @@ class EleMarsh {
         double marshSimTargetIncEstimate = marshSimulation
             .estimateTargetIncreased(bolusInfusedBy: bolusGuess.toDouble());
 
-        // double SSE =
-        //     CEPErrors.reduce((value, element) => value + element * element);
-        // double MDPE = calculateMedian(CEPercentageErrors);
-        // double MDAPE = calculateMedian(CEAbsolutePercentageErrors);
         double maxPE =
             CEAbsolutePercentageErrors.where((element) => !element.isNaN)
                 .reduce(max);
@@ -121,9 +104,6 @@ class EleMarsh {
 
         marshSimTargetIncEstimates
             .add(marshSimTargetIncEstimate);
-        // SSEs.add(SSE);
-        // MDPEs.add(MDPE);
-        // MDAPEs.add(MDAPE);
         MaxAPEs.add(maxPE);
       }
     }
@@ -146,35 +126,24 @@ class EleMarsh {
     weightBestGuess = weightGuesses[guessIndex];
     bolusBestGuess = bolusGuesses[guessIndex];
     inductionCPTarget = marshSimTargetIncEstimates[guessIndex];
-
-    // double inductionCPTarget =
-    // initialCPTarget / 4 * baselineSimulation.operation.target;
     double adjustmentBolus = bolusBestGuess / 4;
+
+    // Getting handBolus
+    Simulation marshBestSim = marshSimulations[guessIndex];
+    double V1 = marshBestSim.variables.V1;
+    double handBolus = bolusBestGuess / 4 * goldSimulation.pump.target - V1 * goldSimulation.pump.target;
 
     double predictedBIS = predictBIS(
         age: goldSimulation.patient.age,
         target: goldSimulation.pump.target);
 
-
-
-
     return (
     weightBestGuess: weightBestGuess,
-      // bolusBestGuess: bolusBestGuess,
-      adjustmentBolus: adjustmentBolus,
+    bolusBestGuess: bolusBestGuess,
+    adjustmentBolus: adjustmentBolus,
     inductionCPTarget: inductionCPTarget,
-      // length: MaxAPEs.length,
-      // weightGuesses: weightGuesses,
-      // bolusGuesses: bolusGuesses,
-      // guessIndex: guessIndex,
-      // baselineSimulations: goldSimulations,
-      // comparedSimulations: marshSimulations,
-      // finalSimulations: guessSimulations,
-      // SSEs: SSEs,
-      // MDPEs: MDPEs,
-      // MDAPEs: MDAPEs,
-      // MaxAPEs: MaxAPEs,
-      predictedBIS: predictedBIS
+    handBolus:handBolus,
+    predictedBIS: predictedBIS
     );
   }
 

@@ -126,8 +126,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
       ],
       supportedLocales: [
-        Locale('en',''), // English
-        Locale('ja',''), // Japanese
+        Locale('en'), // English
+        Locale('ja'), // Japanese
+        Locale.fromSubtags(languageCode: 'zh'), // generic Chinese 'zh'
+        Locale.fromSubtags(
+          languageCode: 'zh',
+          scriptCode: 'Hans',
+        ), // generic simplified Chinese 'zh_Hans'
+        Locale.fromSubtags(
+          languageCode: 'zh',
+          scriptCode: 'Hant',
+        ), // generic traditional Chinese 'zh_Hant'
       ],
       theme: ThemeData(colorScheme: MaterialTheme.lightScheme()),
       // darkTheme: ThemeData.dark().copyWith(

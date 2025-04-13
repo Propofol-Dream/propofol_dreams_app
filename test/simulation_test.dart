@@ -16,7 +16,6 @@ void main() {
   int density = 10;
   int maxPumpRate = 2000;
   double target = 2.5;
-  // Duration duration = Duration(minutes: 60);
   Duration duration = const Duration(minutes: 10);
 
   test('Peak', () async {

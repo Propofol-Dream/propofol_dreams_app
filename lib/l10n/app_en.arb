@@ -89,8 +89,13 @@
         "description": ""
     },
 
-    "maintenance": "Maintenance",
-    "@maintenance": {
+    "maintenanceCe": "Maintenance Ce",
+    "@maintenanceCe": {
+        "description": ""
+    },
+
+    "maintenanceCp": "Maintenance Cp",
+    "@maintenanceCp": {
         "description": ""
     },
 
