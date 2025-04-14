@@ -33,11 +33,7 @@ void main() {
     var result = em.estimate(weightBound: 0, bolusBound: 0);
     print('bolusBestGuess: ${result.bolusBestGuess}');
     print('ABW: ${result.weightBestGuess}');
-    print('V1: ${result.V1}');
     print('handBolus: ${result.handBolus}');
-
-    // print(goldPatient);
-    print(goldSimulation);
   });
 }
 

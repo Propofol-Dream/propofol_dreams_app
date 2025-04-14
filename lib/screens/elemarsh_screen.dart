@@ -1155,16 +1155,7 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                     child: PDTextField(
                       prefixIcon: Icons.psychology_alt_outlined,
                       labelText:
-                          '${Model.Eleveld.target.toLocalizedString(context)}'
-                          '${() {
-                        switch (Localizations.localeOf(context).languageCode) {
-                          case 'ja':
-                            return ''; // No space for Japanese
-                          default:
-                            return ' '; // Add space for other languages
-                        }
-                      }()}'
-                          '${AppLocalizations.of(context)!.target} (μg/mL)',
+                          '${AppLocalizations.of(context)!.effectSiteTarget} (μg/mL)',
                       interval: 0.5,
                       fractionDigits: 1,
                       controller: targetController,

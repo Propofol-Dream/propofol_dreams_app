@@ -49,6 +49,12 @@
         "description": ""
     },
 
+    "effectSiteTarget": "Effect Site Target",
+    "@effectSiteTarget": {
+        "description": ""
+    },
+
+
     "emerge": "Emerge",
     "@emerge": {
         "description": ""
