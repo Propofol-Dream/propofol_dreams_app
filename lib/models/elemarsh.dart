@@ -138,12 +138,12 @@ class EleMarsh {
         target: goldSimulation.pump.target);
 
     return (
-    weightBestGuess: weightBestGuess,
-    bolusBestGuess: bolusBestGuess,
-    adjustmentBolus: adjustmentBolus,
-    inductionCPTarget: inductionCPTarget,
-    handBolus:handBolus,
-    predictedBIS: predictedBIS
+      weightBestGuess: weightBestGuess,
+      bolusBestGuess: bolusBestGuess,
+      adjustmentBolus: adjustmentBolus,
+      inductionCPTarget: inductionCPTarget,
+      handBolus:handBolus,
+      predictedBIS: predictedBIS
     );
   }
 

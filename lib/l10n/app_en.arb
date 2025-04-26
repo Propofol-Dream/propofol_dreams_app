@@ -29,6 +29,11 @@
         "description": ""
     },
 
+    "close": "Close",
+    "@close": {
+        "description": ""
+    },
+
     "confidenceInterval": "Confidence\nInterval",
     "@confidenceInterval": {
         "description": ""
@@ -67,6 +72,11 @@
 
     "girl": "Girl",
     "@girl": {
+        "description": ""
+    },
+
+    "handBolus": "Hand Bolus",
+    "@handBolus": {
         "description": ""
     },
 

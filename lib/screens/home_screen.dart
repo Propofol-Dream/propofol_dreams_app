@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
+import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 
 import '../providers/settings.dart';
 import 'volume_screen.dart';
@@ -19,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-   int currenIndex = 1;
+  int currenIndex = 1;
   final screens = [
     EleMarshScreen(),
     const VolumeScreen(),
@@ -33,8 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final settings = context.read<Settings>();
     currenIndex = settings.currentScreenIndex;
     load().then((value) {
-      setState(() {
-      });
+      setState(() {});
     });
     super.initState();
   }
@@ -44,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     var pref = await SharedPreferences.getInstance();
     if (pref.containsKey('currentScreenIndex')) {
       settings.currentScreenIndex = pref.getInt('currentScreenIndex')!;
-    }else{
+    } else {
       settings.currentScreenIndex = 0;
     }
     currenIndex = settings.currentScreenIndex;
@@ -54,19 +52,27 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final settings = context.watch<Settings>();
     //this is to set status bar text color
-    settings.isDarkTheme?
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light):
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
+    settings.isDarkTheme!
+        ? SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light)
+        : SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
 
     return Scaffold(
-      body: SingleChildScrollView(
-          physics: MediaQuery
-              .of(context)
-              .viewInsets
-              .bottom <= 0
-              ? const NeverScrollableScrollPhysics()
-              : const BouncingScrollPhysics(),
-          child: screens[currenIndex]),
+      // body: SingleChildScrollView(
+      // physics: MediaQuery
+      //     .of(context)
+      //     .viewInsets
+      //     .bottom <= 0
+      //     ? const NeverScrollableScrollPhysics()
+      //     : const BouncingScrollPhysics(),
+      // child: screens[currenIndex]),
+      body: Column(
+        children: [
+          Expanded(
+            child:
+                screens[currenIndex], // no need for SingleChildScrollView here
+          ),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           currentIndex: currenIndex,
@@ -76,18 +82,17 @@ class _HomeScreenState extends State<HomeScreen> {
               currenIndex = settings.currentScreenIndex = index;
             });
           },
-          items:[
+          items: [
             const BottomNavigationBarItem(
-                icon: Icon(Icons.hub_outlined),
-                label: 'EleMarsh'),
+                icon: Icon(Icons.hub_outlined), label: 'EleMarsh'),
             BottomNavigationBarItem(
-                icon:  const Icon(Icons.science_outlined),
+                icon: const Icon(Icons.science_outlined),
                 label: AppLocalizations.of(context)!.volume),
             BottomNavigationBarItem(
-                icon:  const Icon(Icons.schedule),
+                icon: const Icon(Icons.schedule),
                 label: AppLocalizations.of(context)!.duration),
-             BottomNavigationBarItem(
-                icon:  const Icon(Icons.settings),
+            BottomNavigationBarItem(
+                icon: const Icon(Icons.settings),
                 label: AppLocalizations.of(context)!.settings),
             // BottomNavigationBarItem(
             //     icon:  Icon(Icons.science),

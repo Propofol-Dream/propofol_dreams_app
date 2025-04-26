@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
-import 'package:propofol_dreams_app/models/operation.dart';
+import 'package:propofol_dreams_app/models/operation.dart.backup';
 import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:propofol_dreams_app/models/target.dart';

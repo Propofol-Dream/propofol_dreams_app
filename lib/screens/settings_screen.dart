@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 
 import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
@@ -111,160 +111,163 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final settings = context.watch<Settings>();
 
-    return Column(children: [
-      AppBar(
-        title:  Text(
-          AppLocalizations.of(context)!.settings,
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(children: [
+        AppBar(
+          title:  Text(
+            AppLocalizations.of(context)!.settings,
+          ),
         ),
-      ),
-      const SizedBox(
-        height: 16,
-      ),
-      Container(
-        height: MediaQuery.of(context).size.height - 90 - 96 - 16,
-        padding: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-        // decoration: BoxDecoration(
-        //   border: Border.all(color: Theme.of(context).colorScheme.primary),
-        // ),
-        child: ListView(
-          padding: EdgeInsets.zero,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.propofolFormulation,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(
-                  height: 4,
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                SizedBox(
-                  height: UIHeight,
-                  width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
-                  child: PDSegmentedControl(
-                    fitWidth: true,
-                    fitHeight: true,
-                    fontSize: 16,
-                    defaultColor: Theme.of(context).colorScheme.primary,
-                    defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-                    labels: const ['10 mg/mL', '20 mg/mL'],
-                    segmentedController: densityController,
-                    onPressed: [
-                      () {
-                        settings.density = 10;
-                      },
-                      () {
-                        settings.density = 20;
-                      }
-                    ],
+        const SizedBox(
+          height: 16,
+        ),
+        Container(
+          height: MediaQuery.of(context).size.height - 90 - 96 - 16,
+          padding: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+          // decoration: BoxDecoration(
+          //   border: Border.all(color: Theme.of(context).colorScheme.primary),
+          // ),
+          child: ListView(
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.propofolFormulation,
+                    style: const TextStyle(fontSize: 16),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 24,
-            ),
-            Divider(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                 Text(
-                  AppLocalizations.of(context)!.maximumPumpRate,
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(
-                  height: 4,
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                SizedBox(
-                  height: UIHeight + 24,
-                  child: PDTextField(
-                      prefixIcon: Icons.settings_input_component_outlined,
-                      labelText: '${AppLocalizations.of(context)!.pumpRate} (mL/hr)',
-                      interval: 50,
-                      fractionDigits: 0,
-                      controller: pumpController,
-                      onPressed: () {
-                        int? pumpRate = int.tryParse(pumpController.text);
-                        if (pumpRate != null) {
-                          settings.max_pump_rate = pumpRate;
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  SizedBox(
+                    height: UIHeight,
+                    width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                    child: PDSegmentedControl(
+                      fitWidth: true,
+                      fitHeight: true,
+                      fontSize: 16,
+                      defaultColor: Theme.of(context).colorScheme.primary,
+                      defaultOnColor: Theme.of(context).colorScheme.onPrimary,
+                      labels: const ['10 mg/mL', '20 mg/mL'],
+                      segmentedController: densityController,
+                      onPressed: [
+                        () {
+                          settings.density = 10;
+                        },
+                        () {
+                          settings.density = 20;
                         }
-                      },
-                      range: const [0, 1500]),
-                )
-              ],
-            ),
-
-            Divider(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                 Text(
-                  AppLocalizations.of(context)!.appearance,
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(
-                  height: 4,
-                ),
-                // Text(
-                //   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus finibus lorem vitae augue tincidunt, at aliquet mauris condimentum. Donec pellentesque tempus dapibus',
-                //   style: TextStyle(fontSize: 14),
-                // ),
-                const SizedBox(
-                  height: 16,
-                ),
-                SizedBox(
-                  height: UIHeight,
-                  width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
-                  child: PDSegmentedControl(
-                    fitWidth: true,
-                    fitHeight: true,
-                    fontSize: 16,
-                    defaultColor: Theme.of(context).colorScheme.primary,
-                    defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-                    labels:  [AppLocalizations.of(context)!.light,AppLocalizations.of(context)!.dark,AppLocalizations.of(context)!.auto],
-                    segmentedController: themeController,
-                    onPressed: [
-                      () {
-                        settings.themeModeSelection = ThemeMode.light;
-                      },
-                      () {
-                        settings.themeModeSelection = ThemeMode.dark;
-                      },
-                      () {
-                        settings.themeModeSelection = ThemeMode.system;
-                      }
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                // ElevatedButton(
-                //     onPressed: () async {
-                //       var pref = await SharedPreferences.getInstance();
-                //       pref.clear();
-                //     },
-                //     child: Text('Clear'))
-              ],
-            ),
-          ],
-        ),
-      )
-    ]);
+                ],
+              ),
+              const SizedBox(
+                height: 24,
+              ),
+              Divider(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   Text(
+                    AppLocalizations.of(context)!.maximumPumpRate,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  SizedBox(
+                    height: UIHeight + 24,
+                    child: PDTextField(
+                        prefixIcon: Icons.settings_input_component_outlined,
+                        labelText: '${AppLocalizations.of(context)!.pumpRate} (mL/hr)',
+                        interval: 50,
+                        fractionDigits: 0,
+                        controller: pumpController,
+                        onPressed: () {
+                          int? pumpRate = int.tryParse(pumpController.text);
+                          if (pumpRate != null) {
+                            settings.max_pump_rate = pumpRate;
+                          }
+                        },
+                        range: const [0, 1500]),
+                  )
+                ],
+              ),
+
+              Divider(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   Text(
+                    AppLocalizations.of(context)!.appearance,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  // Text(
+                  //   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus finibus lorem vitae augue tincidunt, at aliquet mauris condimentum. Donec pellentesque tempus dapibus',
+                  //   style: TextStyle(fontSize: 14),
+                  // ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  SizedBox(
+                    height: UIHeight,
+                    width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                    child: PDSegmentedControl(
+                      fitWidth: true,
+                      fitHeight: true,
+                      fontSize: 16,
+                      defaultColor: Theme.of(context).colorScheme.primary,
+                      defaultOnColor: Theme.of(context).colorScheme.onPrimary,
+                      labels:  [AppLocalizations.of(context)!.light,AppLocalizations.of(context)!.dark,AppLocalizations.of(context)!.auto],
+                      segmentedController: themeController,
+                      onPressed: [
+                        () {
+                          settings.themeModeSelection = ThemeMode.light;
+                        },
+                        () {
+                          settings.themeModeSelection = ThemeMode.dark;
+                        },
+                        () {
+                          settings.themeModeSelection = ThemeMode.system;
+                        }
+                      ],
+                    ),
+                  ),
+                  // ElevatedButton(
+                  //     onPressed: () async {
+                  //       var pref = await SharedPreferences.getInstance();
+                  //       pref.clear();
+                  //     },
+                  //     child: Text('Clear'))
+                ],
+              ),
+            ],
+          ),
+        )
+      ]),
+    );
   }
 }

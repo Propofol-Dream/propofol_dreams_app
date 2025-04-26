@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import the generated localization file
+import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 
 enum Target {
   Plasma(),

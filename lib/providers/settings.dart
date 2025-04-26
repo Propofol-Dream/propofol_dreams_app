@@ -103,7 +103,7 @@ class Settings with ChangeNotifier {
 
   set showMaxPumpRate(bool b) {
     _showMaxPumpRate = b;
-    setBool('inAdultView', b);
+    setBool('_showMaxPumpRate', b);
     notifyListeners();
   }
 
@@ -453,8 +453,16 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _EMRSI = false;
+  bool get EMRSI {
+    return _EMRSI;
+  }
 
-
+  set EMRSI(bool b) {
+    _EMRSI = b;
+    setBool('EMRSI', b);
+    notifyListeners();
+  }
 
 
   double? _calculatorWakeUpCE;

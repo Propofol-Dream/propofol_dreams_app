@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -10,7 +11,7 @@ import 'package:propofol_dreams_app/models/calculator.dart';
 import 'package:propofol_dreams_app/models/elemarsh.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 import 'package:propofol_dreams_app/providers/settings.dart';
@@ -52,6 +53,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   String weightBestGuess = "--";
   String adjustmentBolus = "--";
   String inductionCPTarget = "--";
+  String handBolus = "--";
   String BMI = "--";
   String predictedBIS = "--";
   String range = "--";
@@ -163,6 +165,12 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       settings.EMInfusionRate = 100;
     }
 
+    if (pref.containsKey('EMRSI')) {
+      settings.EMRSI = pref.getBool('EMRSI')!;
+    } else {
+      settings.EMRSI = false;
+    }
+
     sexController.val = settings.EMSex == Sex.Female ? true : false;
     ageController.text = settings.EMAge.toString();
     heightController.text = settings.EMHeight.toString();
@@ -217,7 +225,6 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         m != null &&
         maintenanceCe != null &&
         maintenanceSE != null) {
-
       switch (age) {
         case 5:
           minWeightEleMarsh = 20;
@@ -310,6 +317,10 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           weightBestGuess = resultInduction.weightBestGuess.toString();
           inductionCPTarget =
               resultInduction.inductionCPTarget.toStringAsFixed(1);
+          // round handBolus to nearest 10
+          int rawHandBolus = resultInduction.handBolus.round();
+          int roundedHandBolus10 = (rawHandBolus / 10).round() * 10;
+          handBolus = roundedHandBolus10.toString();
           adjustmentBolus = resultInduction.adjustmentBolus.round().toString();
           // int guessIndex = result.guessIndex;
           predictedBIS = resultInduction.predictedBIS.toStringAsFixed(0);
@@ -324,7 +335,9 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           print({
             'weightBestGuess': weightBestGuess,
             'adjustmentBolus': adjustmentBolus,
+            'settings.EMRSI': settings.EMRSI,
             'inductionCPTarget': inductionCPTarget,
+            'handBolus': handBolus,
             'flow': flow,
             'range': range,
             'calculation time':
@@ -336,6 +349,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           weightBestGuess = "--";
           adjustmentBolus = "--";
           inductionCPTarget = "--";
+          handBolus = "--";
           range = "--";
         });
       }
@@ -344,6 +358,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         weightBestGuess = "--";
         adjustmentBolus = "--";
         inductionCPTarget = "--";
+        handBolus = "--";
         range = "--";
       });
     }
@@ -384,13 +399,11 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           : settings.EMWakeUpModel == Model.EleMarsh
               ? false
               : true;
-
       maintenanceCeController.text = toDefault
           ? 3.0.toString()
           : settings.EMMaintenanceCe != null
               ? settings.EMMaintenanceCe.toString()
               : '';
-
       maintenanceSEController.text = toDefault
           ? 40.toString()
           : settings.EMMaintenanceSE != null
@@ -437,103 +450,416 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     int density = settings.density;
 
-    void showInduceAlertDialog(BuildContext context) {
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            switch (Localizations.localeOf(context).languageCode) {
-              case 'ja':
-                return AlertDialog(
-                  title: Text('EleMarshハアルゴリズム'),
-                  content: SingleChildScrollView(
-                    child: Text.rich(TextSpan(children: [
-                      TextSpan(text: '''目的：
-MarshモデルがEleveldモデルの注入挙動を正確に模倣するようにします。
-
-使用方法：
-(1) 患者の詳細と希望するEleveld Ce（効果部位濃度）目標を入力します。
-
-(2) EleMarshが調整体重と導入時CpTを計算します。
-
-(3) TCIポンプのMarshモデルの入力体重として調整体重を使用します。
-
-(4) 初期CpT設定として導入時CpTを使用します。ボーラス投与が終わり次第、維持のために希望するCeT（効果部位目標濃度）まで CpT（血漿中目標濃度）を下げます。これにより、ポンプ上のMarshモデルがEleveldモデルを正確に模倣するようになります。''')
-                    ])),
-                  ),
-                );
-              default:
-                return AlertDialog(
-                  title: Text('EleMarsh Algorithm'),
-                  content: SingleChildScrollView(
-                    child: Text.rich(
-                      TextSpan(children: [
-                        TextSpan(
-                            text: "Aim:",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: "\n"),
-                        TextSpan(
-                            text:
-                                "Make the Marsh model accurately mimic the infusion behaviour of the Eleveld model."),
-                        TextSpan(text: "\n\n"),
-                        TextSpan(
-                            text: "Usage:",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: "\n"),
-                        TextSpan(
-                            text:
-                                """(1) Enter patient details and desired Eleveld Ce target
-
-(2) EleMarsh calculates the """),
-                        TextSpan(
-                            text: """Adjusted Body Weight""",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: """and """),
-                        TextSpan(
-                            text: """Induction CpT""",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: """
-
-
-(3) Use the """),
-                        TextSpan(
-                            text: """Adjusted Body Weight""",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(
-                            text:
-                                """ as the input weight for Marsh model on TCI pump
-
-(4) Use the """),
-                        TextSpan(
-                            text: """Induction CpT""",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(
-                          text:
-                              """ as the initial CpT setting. As soon as the bolus is finished, drop CpT down to the desired CeT for maintenance. The Marsh model on your pump will now accurately mimic the Eleveld model.""",
-                        ),
-                        TextSpan(text: "\n\n"),
-                        TextSpan(
-                            text: "References:",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: "\n"),
-                        TextSpan(text: """
-Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275-278."""),
-                      ]),
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () async {
-                        await HapticFeedback.mediumImpact();
-                        // Close the modal
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Close'),
-                    ),
-                  ],
-                );
-            }
-          });
+    AlertDialog ja_std_induce_info(BuildContext context) {
+      return AlertDialog(
+        title: Text('EleMarshモデル使用手順'),
+        content: SingleChildScrollView(
+          child: Text.rich(
+            TextSpan(children: [
+              TextSpan(
+                  text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: 'Marshモデルを用いて、Eleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n'),
+              TextSpan(
+                  text: '使用方法：\n',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: "（1）患者情報および希望するEleveld効果部位目標濃度を入力する。\n"),
+              TextSpan(text: "（2）EleMarshアルゴリズムが調整体重および導入CpT（目標血漿濃度）を計算する。\n"),
+              TextSpan(text: "（3）TCIポンプのMarshモデルの体重入力には、算出された調整体重を用いる。\n"),
+              TextSpan(
+                  text:
+                      "（4）導入CpTを初期の目標血漿濃度として設定する。ボーラス投与が完了したら、直ちに目標血漿濃度を維持濃度へと下げる。その後、ポンプのMarshモデルはEleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n"),
+              TextSpan(
+                  text: "文献:\n", style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      "Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275."),
+            ]),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.close),
+          ),
+        ],
+      );
     }
+
+    AlertDialog ja_rsi_induce_info(BuildContext context) {
+      return AlertDialog(
+        title: Text('EleMarshモデル使用手順'),
+        content: SingleChildScrollView(
+          child: Text.rich(
+            TextSpan(children: [
+              TextSpan(
+                  text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: 'Marshモデルを用いて、Eleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n'),
+              TextSpan(
+                  text: '使用方法：\n',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: '（1）入力患者情報及び希望するEleveld効果部位目標濃度。\n'),
+              TextSpan(text: '（2）EleMarshアルゴリズムが調整体重及び手動ボーラス投与量を算出。\n'),
+              TextSpan(text: '（3）TCIポンプのMarshモデルの体重入力には、算出された調整体重を使用。\n'),
+              TextSpan(
+                  text:
+                      '（4）迅速導入（RSI）時には、まず算出された手動ボーラス投与量を迅速に静脈内投与する。投与終了後、直ちにTCIポンプを開始し、初期の血漿目標濃度を希望する効果部位目標濃度に設定する。維持期に入ると、TCIポンプ上のMarshモデルはEleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n'),
+              TextSpan(
+                  text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      'Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275.'),
+            ]),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.close),
+          ),
+        ],
+      );
+    }
+
+    AlertDialog zh_std_induce_info(BuildContext context) {
+      return AlertDialog(
+        title: Text('EleMarsh模型使用指南'),
+        content: SingleChildScrollView(
+          child: Text.rich(
+            TextSpan(children: [
+              TextSpan(
+                  text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: '用Marsh模型精准模拟Eleveld模型的输注行为。\n\n'),
+              TextSpan(
+                  text: '使用方法：\n',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: '（1）输入患者信息及期望达到的Eleveld效应室靶浓度。\n'),
+              TextSpan(text: '（2）EleMarsh算法将计算调整体重及诱导CpT(血浆靶浓度)。\n'),
+              TextSpan(text: '（3）在TCI泵的Marsh模型中，将调整体重作为患者体重输入。\n'),
+              TextSpan(
+                  text:
+                      '（4）初始设置血浆靶浓度为诱导CpT。当诱导剂量推注完毕后，立即将血浆靶浓度降低至维持靶浓度。此后，泵上的Marsh模型将精准模拟Eleveld模型的输注行为。\n\n'),
+              TextSpan(
+                  text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      'Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275.'),
+            ]),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.close),
+          ),
+        ],
+      );
+    }
+
+    AlertDialog zh_rsi_induce_info(BuildContext context) {
+      return AlertDialog(
+        title: Text('EleMarsh模型使用指南（快速顺序诱导）'),
+        content: SingleChildScrollView(
+          child: Text.rich(
+            TextSpan(children: [
+              TextSpan(
+                  text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: '使Marsh模型精准模拟Eleveld模型的输注行为。\n\n'),
+              TextSpan(
+                  text: '使用方法：\n',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: '（1）输入患者信息及期望达到的Eleveld效应室靶浓度。\n'),
+              TextSpan(text: '（2）EleMarsh算法将计算调整体重及手动推注剂量。\n'),
+              TextSpan(text: '（3）在TCI泵的Marsh模型中，将调整体重作为患者体重输入。\n'),
+              TextSpan(
+                  text:
+                      '（4）在快速顺序诱导时，先快速手动推注计算出的剂量，推注完成后立即启动TCI泵，初始血浆靶浓度设置为期望的效应室靶浓度。进入维持阶段后，泵上的Marsh模型即可精准模拟Eleveld模型的输注行为。\n\n'),
+              TextSpan(
+                  text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      'Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275.'),
+            ]),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.close),
+          ),
+        ],
+      );
+    }
+
+    AlertDialog en_std_induce_info(BuildContext context) {
+      return AlertDialog(
+        title: Text('EleMarsh Algorithm'),
+        content: SingleChildScrollView(
+          child: Text.rich(
+            TextSpan(children: [
+              TextSpan(
+                  text: "Aim:\n",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      "Accurately mimic the infusion behaviour of Eleveld model using Marsh model.\n\n"),
+              TextSpan(
+                  text: "Usage:\n",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      "(1) Enter patient details and desired Eleveld Ce target\n"),
+              TextSpan(
+                  text:
+                      "(2) EleMarsh calculates the Adjusted Body Weight and Induction CpT\n"),
+              TextSpan(
+                  text:
+                      "(3) Use the Adjusted Body Weight as the input weight for Marsh model on TCI pump\n"),
+              TextSpan(
+                  text:
+                      "(4) Use the Induction CpT as the initial CpT setting. As soon as the bolus is finished, drop CpT down to the desired CeT for maintenance. The Marsh model on your pump will now accurately mimic the Eleveld model.\n\n"),
+              TextSpan(
+                  text: "Reference:\n",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      "Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275."),
+            ]),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.close),
+          ),
+        ],
+      );
+    }
+
+    AlertDialog en_rsi_induce_info(BuildContext context) {
+      return AlertDialog(
+        title: Text('EleMarsh Algorithm'),
+        content: SingleChildScrollView(
+          child: Text.rich(
+            TextSpan(children: [
+              TextSpan(
+                  text: "Aim:\n",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      "Accurately mimic the infusion behaviour of Eleveld model using Marsh model.\n\n"),
+              TextSpan(
+                  text: "Usage:\n",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      "(1) Enter patient details and desired Eleveld Ce target\n"),
+              TextSpan(
+                  text:
+                      "(2) EleMarsh calculates the Adjusted Body Weight and Hand Bolus\n"),
+              TextSpan(
+                  text:
+                      "(3) Use the Adjusted Body Weight as the input weight for Marsh model on TCI pump\n"),
+              TextSpan(
+                  text:
+                      "(4) During RSI, rapidly inject the Hand Bolus dose and immediately start the TCI pump with initial CpT set to the desired CeT. During maintenance phase, the Marsh model on your pump will accurately mimic the Eleveld model.\n\n"),
+              TextSpan(
+                  text: "Reference:\n",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      "Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275."),
+            ]),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.close),
+          ),
+        ],
+      );
+    }
+
+    void showInduceAlertDialog(BuildContext context) {
+      settings.EMRSI
+          ? showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                switch (Localizations.localeOf(context).languageCode) {
+                  case 'ja':
+                    return ja_rsi_induce_info(context);
+                  case 'zh':
+                    return zh_rsi_induce_info(context);
+                  default:
+                    return en_rsi_induce_info(context);
+                }
+              },
+            )
+          : showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                switch (Localizations.localeOf(context).languageCode) {
+                  case 'ja':
+                    return ja_std_induce_info(context);
+                  case 'zh':
+                    return zh_std_induce_info(context);
+                  default:
+                    return en_std_induce_info(context);
+                }
+              },
+            );
+    }
+
+    AlertDialog ja_wake_info(BuildContext context) {
+      return AlertDialog(
+        title: Text('覚醒時血中濃度の推定'),
+        content: SingleChildScrollView(
+          child: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: '目的：\n',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextSpan(
+                  text: '患者が全身麻酔から覚醒（音声刺激で開眼）する際のプロポフォール血漿中濃度（Cp）を推定する。\n\n',
+                ),
+                TextSpan(
+                  text: '使用方法：\n',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextSpan(
+                  text: '（1）維持期におけるEleMarsh血漿中濃度を入力する（必ず定常状態に達していることを確認する）。\n',
+                ),
+                TextSpan(
+                  text: '（2）その時点での状態エントロピー（State Entropy, SE）の数値を入力する。\n',
+                ),
+                TextSpan(
+                  text:
+                      '（3）アルゴリズムが患者個人のプロポフォール感受性に基づき、麻酔覚醒時の血漿中濃度の範囲を推定する。\n\n',
+                ),
+                TextSpan(
+                  text: '注意事項：\n',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextSpan(
+                  text:
+                      '（a）本アルゴリズムが推定する覚醒時Cpは、最小限の外的刺激を前提としている。実際の覚醒濃度は、刺激の強度、疼痛の程度、筋弛緩薬の使用状況、併用薬剤などによって影響を受ける可能性がある。\n',
+                ),
+                TextSpan(
+                  text:
+                      '（b）本アルゴリズムは手術時間が60分を超える症例で検証されている。手術時間が短い場合、推定結果の精度が低下する可能性がある。\n\n',
+                ),
+                TextSpan(
+                  text: '文献:\n',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextSpan(
+                  text:
+                      'Zhong G., Tung AMS., Xu X. Simple model for predicting the awakening propofol plasma concentration during target-controlled infusion with the Marsh model. BJA. 2025;134(4):1253.',
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.close),
+          ),
+        ],
+      );
+    }
+
+    // Chinese wake info dialog
+    AlertDialog zh_wake_info(BuildContext context) {
+      return AlertDialog(
+        title: Text('苏醒浓度估算'),
+        content: SingleChildScrollView(
+          child: Text.rich(
+            TextSpan(children: [
+              TextSpan(
+                  text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: '估算患者从麻醉苏醒时的丙泊酚血浆浓度。\n\n'),
+              TextSpan(text: '使用方法：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: '（1）输入维持阶段的EleMarsh血浆浓度（请确认已达到稳态）。\n'),
+              TextSpan(text: '（2）输入对应的状态熵（SE）数值。\n'),
+              TextSpan(text: '（3）算法根据患者个体对丙泊酚的敏感性，推算出麻醉苏醒时的血浆浓度范围。\n'),
+              TextSpan(text: '注意事项：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                  '（a）本算法推测的苏醒血浆浓度是假设患者受到最小外界刺激的情形下得出。实际苏醒浓度可能受到刺激强度、疼痛程度、肌松药物使用及辅助用药的影响。\n'),
+              TextSpan(
+                  text: '（b）本算法适用于手术时长超过60分钟的病例；对于手术时间较短者，估算结果可能存在偏差。\n\n'),
+              TextSpan(
+                  text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                  'Zhong G., Tung AMS., Xu X. Simple model for predicting the awakening propofol plasma concentration during target-controlled infusion with the Marsh model. BJA. 2025;134(4):1253.'),
+            ]),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.close),
+          ),
+        ],
+      );
+    }
+
+    // English wake info dialog
+    AlertDialog en_wake_info(BuildContext context) {
+      return AlertDialog(
+        title: Text('Wake Up Estimation'),
+        content: SingleChildScrollView(
+          child: Text.rich(
+            TextSpan(children: [
+              TextSpan(
+                  text: "Aim:\n",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      "Estimate the propofol Cp at which the patient emerges from general anaesthesia (i.e. eye open to voice).\n\n"),
+              TextSpan(
+                  text: "Usage:\n",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      "(1) Enter the maintenance phase EleMarsh Cp (ensure steady state has been achieved).\n"),
+              TextSpan(
+                  text:
+                      "(2) Enter the corresponding state entropy (SE) observed.\n"),
+              TextSpan(
+                  text:
+                      "(3) The algorithm will derive the Cp range for anaesthesia emergence based on the individual’s propofol sensitivity.\n\n"),
+              TextSpan(
+                  text: "Limitations:\n",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      "(a) Wake up Cp estimate assumes minimal stimulus. Actual wake up Cp will depend on stimulus, pain, paralysis and adjuvants.\n"),
+              TextSpan(
+                  text:
+                      "(b) Validated for surgeries longer than 60 minutes. May be inaccurate for shorter procedures.\n\n"),
+              TextSpan(
+                  text: "Reference:\n",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text:
+                      "Zhong G., Tung AMS., Xu X. Simple model for predicting the awakening propofol plasma concentration during target-controlled infusion with the Marsh model. BJA. 2025;134(4):1253."),
+            ]),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.close),
+          ),
+        ],
+      );
+    }
+
 
     void showWakeAlertDialog(BuildContext context) {
       showDialog(
@@ -541,92 +867,24 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
           builder: (BuildContext context) {
             switch (Localizations.localeOf(context).languageCode) {
               case 'ja':
-                return AlertDialog(
-                  title: Text('麻酔覚醒濃度推定'),
-                  content: SingleChildScrollView(
-                    child: Text.rich(TextSpan(children: [
-                      TextSpan(text: '''目的：
-全身麻酔から患者が覚醒する（つまり、声に反応して目を開ける）プロポフォールの効果部位濃度を推定します。
-
-使用方法：
-(1) 維持期のEleveld Ce（効果部位濃度）を入力します。（注：代わりにEleMarsh Cp（血漿中濃度）を使用する場合は、定常状態に達していることを確認してください）
-
-(2) 観察された対応する状態エントロピー（SE）を入力します。
-
-(3) アルゴリズムは、個人のプロポフォール感受性に基づいて麻酔覚醒の濃度範囲を導き出します。
-
-注意事項：
-(a) アルゴリズムはEleveldモデルに基づいています。EleMarshalはヒステリシスを示す可能性があります。
-
-(b) 覚醒Ce推定値は最小の刺激を前提としています。実際の覚醒Ceは刺激、鎮痛、筋弛緩、補助薬に依存します。
-
-(c) 臨床検証研究が進行中です。''')
-                    ])),
-                  ),
-                );
+                return ja_wake_info(context);
+              case 'zh':
+                return zh_wake_info(context);
               default:
-                return AlertDialog(
-                  title: Text('Wake Up Estimation'),
-                  content: SingleChildScrollView(
-                    child: Text.rich(
-                      TextSpan(children: [
-                        TextSpan(
-                            text: "Aim:",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: "\n"),
-                        TextSpan(
-                            text:
-                                "Estimate the propofol Ce at which the patient emerges from general anaesthesia (i.e. eye open to voice)."),
-                        TextSpan(text: "\n\n"),
-                        TextSpan(
-                            text: "Usage:",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: "\n"),
-                        TextSpan(text: """
-(1) Enter the Eleveld Ce during maintenance phase. (N.B. if EleMarsh Cp is used instead, please ensure steady state has been achieved)
-
-(2) Enter the corresponding state entropy (SE) observed.
-
-(3) The algorithm will derive the Ce range for anaesthesia emergence based on the individual’s propofol sensitivity."""),
-                        TextSpan(text: "\n\n"),
-                        TextSpan(
-                            text: "Caveats:",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: "\n"),
-                        TextSpan(
-                            text:
-                                """(a) Algorithm based on Eleveld model. EleMarsh may demonstrate hysteresis.
-
-(b) Wake up Ce estimate assumes minimal stimulus. Actual wake up Ce will depend on stimulus, analgesia, paralysis and adjuvants.
-
-(c) Clinical validation study is in progress."""),
-                      ]),
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () async {
-                        await HapticFeedback.mediumImpact();
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Close'),
-                    ),
-                  ],
-                );
+                return en_wake_info(context);
             }
           });
     }
 
     int? age = int.tryParse(ageController.text);
     bool isAdult = true;
-    if(age != null){
-      if(age<17){
+    if (age != null) {
+      if (age < 17) {
         isAdult = false;
-      }else{
-        isAdult=true;
+      } else {
+        isAdult = true;
       }
     }
-
 
     return Container(
       height: screenHeight,
@@ -636,6 +894,39 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
           Expanded(child: Container()),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              flowController.val == 0
+                  ? GestureDetector(
+                      onTap: () async {
+                        await HapticFeedback.mediumImpact();
+                        settings.EMRSI = !settings.EMRSI;
+                        setState(() {
+                          settings.EMRSI;
+                        });
+                      },
+                      child: Chip(
+                        avatar: settings.EMRSI
+                            ? Icon(
+                                Symbols.syringe,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              )
+                            : Icon(
+                                Symbols.fluid,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                        label: Text(
+                          settings.EMRSI ? 'RSI' : 'STD',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary),
+                        ),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                      ),
+                    )
+                  : Container(),
+            ],
+          ),
           ClipRRect(
             borderRadius: BorderRadius.all(Radius.circular(10.0)),
             child: Column(
@@ -717,7 +1008,10 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "${AppLocalizations.of(context)!.induction} CpT",
+                                      settings.EMRSI
+                                          ? AppLocalizations.of(context)!
+                                              .handBolus
+                                          : "${AppLocalizations.of(context)!.induction} CpT",
                                       style: TextStyle(
                                         fontSize: 16,
                                       ),
@@ -725,13 +1019,15 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                                     Row(
                                       children: [
                                         Text(
-                                          "$inductionCPTarget",
+                                          settings.EMRSI
+                                              ? "$handBolus"
+                                              : "$inductionCPTarget",
                                           style: TextStyle(
                                               fontSize: 20,
                                               fontWeight: FontWeight.bold),
                                         ),
                                         Text(
-                                          " μg/mL",
+                                          settings.EMRSI ? " μg" : " μg/mL",
                                           style: TextStyle(fontSize: 20),
                                         ),
                                       ],
@@ -1005,12 +1301,20 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                     child: PDSwitchField(
                       labelText: AppLocalizations.of(context)!.sex,
                       prefixIcon: sexController.val == true
-                          ? isAdult ? Icons.woman : Icons.girl
-                          : isAdult ? Icons.man : Icons.boy,
+                          ? isAdult
+                              ? Icons.woman
+                              : Icons.girl
+                          : isAdult
+                              ? Icons.man
+                              : Icons.boy,
                       controller: sexController,
                       switchTexts: {
-                        true: isAdult ? Sex.Female.toLocalizedString(context) : Sex.Girl.toLocalizedString(context),
-                        false: isAdult ? Sex.Male.toLocalizedString(context) : Sex.Boy.toLocalizedString(context)
+                        true: isAdult
+                            ? Sex.Female.toLocalizedString(context)
+                            : Sex.Girl.toLocalizedString(context),
+                        false: isAdult
+                            ? Sex.Male.toLocalizedString(context)
+                            : Sex.Boy.toLocalizedString(context)
                       },
                       onChanged: run,
                       height: UIHeight,
@@ -1181,8 +1485,8 @@ Zhong G., Xu X. General purpose propofol target-controlled infusion using the Ma
                     child: PDTextField(
                       prefixIcon: Icons.psychology_alt_outlined,
                       labelText: settings.EMWakeUpModel == Model.Eleveld
-                            ? AppLocalizations.of(context)!.maintenanceCe
-                            : AppLocalizations.of(context)!.maintenanceCp,
+                          ? AppLocalizations.of(context)!.maintenanceCe
+                          : AppLocalizations.of(context)!.maintenanceCp,
                       interval: 0.5,
                       fractionDigits: 1,
                       controller: maintenanceCeController,
