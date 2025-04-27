@@ -15,7 +15,7 @@ class EleMarsh {
     int bolusBestGuess,
     double adjustmentBolus,
     double inductionCPTarget,
-    double handBolus,
+    double manualBolus,
     double predictedBIS,
   }) estimate({required double weightBound, required double bolusBound}) {
     // Set up results
@@ -128,10 +128,10 @@ class EleMarsh {
     inductionCPTarget = marshSimTargetIncEstimates[guessIndex];
     double adjustmentBolus = bolusBestGuess / 4;
 
-    // Getting handBolus
+    // Getting manualBolus
     Simulation marshBestSim = marshSimulations[guessIndex];
     double V1 = marshBestSim.variables.V1;
-    double handBolus = bolusBestGuess / 4 * goldSimulation.pump.target - V1 * goldSimulation.pump.target;
+    double manualBolus = bolusBestGuess / 4 * goldSimulation.pump.target - V1 * goldSimulation.pump.target;
 
     double predictedBIS = predictBIS(
         age: goldSimulation.patient.age,
@@ -142,7 +142,7 @@ class EleMarsh {
       bolusBestGuess: bolusBestGuess,
       adjustmentBolus: adjustmentBolus,
       inductionCPTarget: inductionCPTarget,
-      handBolus:handBolus,
+      manualBolus:manualBolus,
       predictedBIS: predictedBIS
     );
   }

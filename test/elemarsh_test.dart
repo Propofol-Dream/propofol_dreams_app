@@ -33,7 +33,7 @@ void main() {
     var result = em.estimate(weightBound: 0, bolusBound: 0);
     print('bolusBestGuess: ${result.bolusBestGuess}');
     print('ABW: ${result.weightBestGuess}');
-    print('handBolus: ${result.handBolus}');
+    print('handBolus: ${result.manualBolus}');
   });
 }
 

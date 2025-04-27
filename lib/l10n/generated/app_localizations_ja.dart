@@ -54,9 +54,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get girl => '女の子';
 
   @override
-  String get handBolus => '手動ボーラス投与量';
-
-  @override
   String get height => '身長';
 
   @override
@@ -82,6 +79,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get male => '男性';
+
+  @override
+  String get manualBolus => '手動ボーラス';
 
   @override
   String get maximumPumpRate => '最大ポンプ速度';

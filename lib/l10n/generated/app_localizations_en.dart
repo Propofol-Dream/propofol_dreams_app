@@ -54,9 +54,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get girl => 'Girl';
 
   @override
-  String get handBolus => 'Hand Bolus';
-
-  @override
   String get height => 'Height';
 
   @override
@@ -82,6 +79,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get male => 'Male';
+
+  @override
+  String get manualBolus => 'Manual Bolus';
 
   @override
   String get maximumPumpRate => 'Maximum Pump Rate';

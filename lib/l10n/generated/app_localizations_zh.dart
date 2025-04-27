@@ -54,9 +54,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get girl => '女孩';
 
   @override
-  String get handBolus => '手动推注量';
-
-  @override
   String get height => '身高';
 
   @override
@@ -82,6 +79,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get male => '男';
+
+  @override
+  String get manualBolus => '手动推注';
 
   @override
   String get maximumPumpRate => '最大泵速';
@@ -182,9 +182,6 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get girl => '女孩';
 
   @override
-  String get handBolus => '手动推注量';
-
-  @override
   String get height => '身高';
 
   @override
@@ -210,6 +207,9 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get male => '男';
+
+  @override
+  String get manualBolus => '手动推注';
 
   @override
   String get maximumPumpRate => '最大泵速';
@@ -310,9 +310,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get girl => '女孩';
 
   @override
-  String get handBolus => '手動推注量';
-
-  @override
   String get height => '身高';
 
   @override
@@ -338,6 +335,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get male => '男';
+
+  @override
+  String get manualBolus => '手動推注量';
 
   @override
   String get maximumPumpRate => '最大泵速';

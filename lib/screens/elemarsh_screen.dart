@@ -53,7 +53,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   String weightBestGuess = "--";
   String adjustmentBolus = "--";
   String inductionCPTarget = "--";
-  String handBolus = "--";
+  String manualBolus = "--";
   String BMI = "--";
   String predictedBIS = "--";
   String range = "--";
@@ -317,14 +317,12 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           weightBestGuess = resultInduction.weightBestGuess.toString();
           inductionCPTarget =
               resultInduction.inductionCPTarget.toStringAsFixed(1);
-          // round handBolus to nearest 10
-          int rawHandBolus = resultInduction.handBolus.round();
-          int roundedHandBolus10 = (rawHandBolus / 10).round() * 10;
-          handBolus = roundedHandBolus10.toString();
+          // round manua.Bolus to nearest 10
+          int rawManualBolus = resultInduction.manualBolus.round();
+          int roundedManualBolus10 = (rawManualBolus / 10).round() * 10;
+          manualBolus = roundedManualBolus10.toString();
           adjustmentBolus = resultInduction.adjustmentBolus.round().toString();
-          // int guessIndex = result.guessIndex;
           predictedBIS = resultInduction.predictedBIS.toStringAsFixed(0);
-          // MDAPE = (result.MDAPEs[guessIndex] * 100).toStringAsFixed(1);
           BMI = patient.bmi.toStringAsFixed(1);
 
           String lower = resultWakeUp.lower.toStringAsFixed(2);
@@ -337,7 +335,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             'adjustmentBolus': adjustmentBolus,
             'settings.EMRSI': settings.EMRSI,
             'inductionCPTarget': inductionCPTarget,
-            'handBolus': handBolus,
+            'manualBolus': manualBolus,
             'flow': flow,
             'range': range,
             'calculation time':
@@ -349,7 +347,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           weightBestGuess = "--";
           adjustmentBolus = "--";
           inductionCPTarget = "--";
-          handBolus = "--";
+          manualBolus = "--";
           range = "--";
         });
       }
@@ -358,7 +356,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         weightBestGuess = "--";
         adjustmentBolus = "--";
         inductionCPTarget = "--";
-        handBolus = "--";
+        manualBolus = "--";
         range = "--";
       });
     }
@@ -452,7 +450,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     AlertDialog ja_std_induce_info(BuildContext context) {
       return AlertDialog(
-        title: Text('EleMarshモデル使用手順'),
+        title: Text('EleMarshモデル使用手順 （標準）'),
         content: SingleChildScrollView(
           child: Text.rich(
             TextSpan(children: [
@@ -487,7 +485,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     AlertDialog ja_rsi_induce_info(BuildContext context) {
       return AlertDialog(
-        title: Text('EleMarshモデル使用手順'),
+        title: Text('EleMarshモデル使用手順 (迅速なシーケンス誘導)'),
         content: SingleChildScrollView(
           child: Text.rich(
             TextSpan(children: [
@@ -522,7 +520,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     AlertDialog zh_std_induce_info(BuildContext context) {
       return AlertDialog(
-        title: Text('EleMarsh模型使用指南'),
+        title: Text('EleMarsh模型使用指南 (标准）'),
         content: SingleChildScrollView(
           child: Text.rich(
             TextSpan(children: [
@@ -592,7 +590,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     AlertDialog en_std_induce_info(BuildContext context) {
       return AlertDialog(
-        title: Text('EleMarsh Algorithm'),
+        title: Text('EleMarsh Algorithm (Standard)'),
         content: SingleChildScrollView(
           child: Text.rich(
             TextSpan(children: [
@@ -637,7 +635,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     AlertDialog en_rsi_induce_info(BuildContext context) {
       return AlertDialog(
-        title: Text('EleMarsh Algorithm'),
+        title: Text('EleMarsh Algorithm (RSI)'),
         content: SingleChildScrollView(
           child: Text.rich(
             TextSpan(children: [
@@ -655,13 +653,13 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                       "(1) Enter patient details and desired Eleveld Ce target\n"),
               TextSpan(
                   text:
-                      "(2) EleMarsh calculates the Adjusted Body Weight and Hand Bolus\n"),
+                      "(2) EleMarsh calculates the Adjusted Body Weight and Manual Bolus\n"),
               TextSpan(
                   text:
                       "(3) Use the Adjusted Body Weight as the input weight for Marsh model on TCI pump\n"),
               TextSpan(
                   text:
-                      "(4) During RSI, rapidly inject the Hand Bolus dose and immediately start the TCI pump with initial CpT set to the desired CeT. During maintenance phase, the Marsh model on your pump will accurately mimic the Eleveld model.\n\n"),
+                      "(4) During RSI, rapidly inject the Manual Bolus dose and immediately start the TCI pump with initial CpT set to the desired CeT. During maintenance phase, the Marsh model on your pump will accurately mimic the Eleveld model.\n\n"),
               TextSpan(
                   text: "Reference:\n",
                   style: TextStyle(fontWeight: FontWeight.bold)),
@@ -781,21 +779,25 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
               TextSpan(
                   text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
               TextSpan(text: '估算患者从麻醉苏醒时的丙泊酚血浆浓度。\n\n'),
-              TextSpan(text: '使用方法：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text: '使用方法：\n',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               TextSpan(text: '（1）输入维持阶段的EleMarsh血浆浓度（请确认已达到稳态）。\n'),
               TextSpan(text: '（2）输入对应的状态熵（SE）数值。\n'),
               TextSpan(text: '（3）算法根据患者个体对丙泊酚的敏感性，推算出麻醉苏醒时的血浆浓度范围。\n'),
-              TextSpan(text: '注意事项：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text: '注意事项：\n',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               TextSpan(
                   text:
-                  '（a）本算法推测的苏醒血浆浓度是假设患者受到最小外界刺激的情形下得出。实际苏醒浓度可能受到刺激强度、疼痛程度、肌松药物使用及辅助用药的影响。\n'),
+                      '（a）本算法推测的苏醒血浆浓度是假设患者受到最小外界刺激的情形下得出。实际苏醒浓度可能受到刺激强度、疼痛程度、肌松药物使用及辅助用药的影响。\n'),
               TextSpan(
                   text: '（b）本算法适用于手术时长超过60分钟的病例；对于手术时间较短者，估算结果可能存在偏差。\n\n'),
               TextSpan(
                   text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
               TextSpan(
                   text:
-                  'Zhong G., Tung AMS., Xu X. Simple model for predicting the awakening propofol plasma concentration during target-controlled infusion with the Marsh model. BJA. 2025;134(4):1253.'),
+                      'Zhong G., Tung AMS., Xu X. Simple model for predicting the awakening propofol plasma concentration during target-controlled infusion with the Marsh model. BJA. 2025;134(4):1253.'),
             ]),
           ),
         ),
@@ -860,7 +862,6 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       );
     }
 
-
     void showWakeAlertDialog(BuildContext context) {
       showDialog(
           context: context,
@@ -909,19 +910,26 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                       child: Chip(
                         avatar: settings.EMRSI
                             ? Icon(
-                                Symbols.syringe,
-                                color: Theme.of(context).colorScheme.onPrimary,
+                                Symbols.front_hand,
+                                color: Theme.of(context).colorScheme.onTertiary,
                               )
                             : Icon(
-                                Symbols.fluid,
+                                Symbols.syringe,
                                 color: Theme.of(context).colorScheme.onPrimary,
                               ),
                         label: Text(
                           settings.EMRSI ? 'RSI' : 'STD',
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimary),
+                          style: settings.EMRSI
+                              ? TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onTertiary)
+                              : TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary),
                         ),
-                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        backgroundColor: settings.EMRSI
+                            ? Theme.of(context).colorScheme.tertiary
+                            : Theme.of(context).colorScheme.primary,
                       ),
                     )
                   : Container(),
@@ -1007,31 +1015,71 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      settings.EMRSI
-                                          ? AppLocalizations.of(context)!
-                                              .handBolus
-                                          : "${AppLocalizations.of(context)!.induction} CpT",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          settings.EMRSI
-                                              ? "$handBolus"
-                                              : "$inductionCPTarget",
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        Text(
-                                          settings.EMRSI ? " μg" : " μg/mL",
-                                          style: TextStyle(fontSize: 20),
-                                        ),
-                                      ],
-                                    ),
+                                    settings.EMRSI
+                                        ? Text(
+                                            AppLocalizations.of(context)!
+                                                .manualBolus,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .tertiary,
+                                            ),
+                                          )
+                                        : Text(
+                                            "${AppLocalizations.of(context)!.induction} CpT",
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary),
+                                          ),
+                                    settings.EMRSI
+                                        ? Row(
+                                            children: [
+                                              Text(
+                                                "$manualBolus",
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .tertiary,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              Text(
+                                                " mg",
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .tertiary,
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        : Row(
+                                            children: [
+                                              Text(
+                                                "$inductionCPTarget",
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              Text(
+                                                " μg/mL",
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary),
+                                              ),
+                                            ],
+                                          ),
                                   ],
                                 ),
                               ),
@@ -1067,10 +1115,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                           Text(
                                             "${AppLocalizations.of(context)!.predicted} BIS",
                                             style: TextStyle(
-                                                fontSize: 16,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary),
+                                              fontSize: 16,
+                                            ),
                                           ),
                                           SizedBox(
                                             width: 8.0,
@@ -1092,7 +1138,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                       children: [
                                         Text(
                                           "BMI",
-                                          style: TextStyle(fontSize: 14),
+                                          style: TextStyle(fontSize: 16),
                                         ),
                                         SizedBox(
                                           width: 8.0,
@@ -1102,7 +1148,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                             Text(
                                               "$BMI",
                                               style: TextStyle(
-                                                  fontSize: 14,
+                                                  fontSize: 16,
                                                   fontWeight: FontWeight.bold),
                                             ),
                                           ],

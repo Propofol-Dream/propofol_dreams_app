@@ -192,12 +192,6 @@ abstract class AppLocalizations {
   ///
   ///
   /// In en, this message translates to:
-  /// **'Hand Bolus'**
-  String get handBolus;
-
-  ///
-  ///
-  /// In en, this message translates to:
   /// **'Height'**
   String get height;
 
@@ -248,6 +242,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Male'**
   String get male;
+
+  ///
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Bolus'**
+  String get manualBolus;
 
   ///
   ///
