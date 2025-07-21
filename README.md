@@ -14,14 +14,21 @@ This medical calculator app provides anesthetists with tools to:
 
 - **Volume Calculations**: Calculate propofol volumes based on patient parameters
 - **Duration Tracking**: Monitor anesthesia duration and adjust dosing accordingly  
-- **Ele-Marsh Integration**: Implements Ele-Marsh pharmacokinetic model for propofol
+- **Multi-Model Support**: Supports multiple pharmacokinetic models:
+  - Marsh (Plasma targeting)
+  - Schnider (Effect-site targeting)
+  - Eleveld (Effect-site targeting)
+  - Paedfusor (Pediatric)
+  - Kataria (Pediatric)
+- **Modal Model Selection**: Enhanced UI with modal selector for easy model switching
+- **Validation System**: Real-time validation with error messaging for patient parameters
 - **Multi-language Support**: Available in English, Japanese, and Chinese (Simplified & Traditional)
 - **Dark/Light Theme**: Adaptive theming with system preference support
 - **Cross-platform**: Runs on iOS, Android, web, macOS, Linux, and Windows
 
 ## Tech Stack
 
-- **Framework**: Flutter 3.1.0+
+- **Framework**: Flutter 3.32.7
 - **Language**: Dart
 - **State Management**: Provider pattern
 - **Local Storage**: SharedPreferences
@@ -47,7 +54,7 @@ lib/
 
 ### Prerequisites
 
-- Flutter SDK 3.1.0 or higher
+- Flutter SDK 3.32.0 or higher
 - Dart SDK (included with Flutter)
 - Platform-specific development tools (Xcode for iOS, Android Studio for Android)
 
@@ -99,7 +106,17 @@ This application is designed as a clinical tool for qualified medical profession
 
 ## Version
 
-Current version: 2.2.20 (Build 107)
+Current version: 2.2.21 (Build 108)
+
+## Recent Updates (v2.2.21)
+
+- **Flutter 3.32.7**: Updated to latest stable Flutter SDK with Dart 3.8.1
+- **Enhanced Model Selection**: Redesigned modal interface for model selection
+- **Improved Validation**: Added real-time error display for model constraints
+- **UI Consistency**: Updated modal styling to match app design patterns
+- **One-handed UX**: Optimized modal positioning for mobile ergonomics
+- **Dependency Updates**: All packages updated to latest versions
+- **Code Improvements**: Fixed deprecation warnings and enhanced error handling
 
 ## License
 
