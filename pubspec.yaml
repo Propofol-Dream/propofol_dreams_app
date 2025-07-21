@@ -20,7 +20,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 2.2.20+107
 
 environment:
-  sdk: '>=3.1.0 <=3.10.0'
+  sdk: '>=3.1.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -29,20 +29,20 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  intl: any
-  url_launcher: ^6.3.1
-  provider: ^6.1.2
-  flutter_native_splash: ^2.4.2
-  shared_preferences: ^2.3.3
+  intl: ^0.20.2
+  url_launcher: ^6.3.2
+  provider: ^6.1.5
+  flutter_native_splash: ^2.4.6
+  shared_preferences: ^2.5.3
 
   flutter:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  rename: ^3.0.2
+  rename: ^3.1.0
   flutter_localizations:
     sdk: flutter
-  material_symbols_icons: ^4.2815.0
+  material_symbols_icons: ^4.2815.1
 
 dev_dependencies:
   flutter_test:
@@ -53,7 +53,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

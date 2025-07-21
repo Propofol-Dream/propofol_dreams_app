@@ -2,6 +2,25 @@ import 'sex.dart';
 import 'target.dart';
 import 'dart:math';
 
+class ValidationResult {
+  const ValidationResult({
+    required this.isValid,
+    required this.errorMessage,
+  });
+
+  final bool isValid;
+  final String errorMessage;
+
+  factory ValidationResult.fromMap(Map<String, Object> map) {
+    return ValidationResult(
+      isValid: map['assertion'] as bool,
+      errorMessage: map['text'] as String,
+    );
+  }
+
+  bool get hasError => !isValid;
+}
+
 enum Model {
   Marsh(
       minAge: 17,
@@ -142,6 +161,22 @@ enum Model {
       return {'assertion': isAssertive, 'text': text};
     }
     return {'assertion': isAssertive, 'text': text};
+  }
+
+  ValidationResult validate({
+    required int weight,
+    required int height,
+    required int age,
+    required Sex sex,
+  }) {
+    return ValidationResult.fromMap(
+      checkConstraints(
+        weight: weight,
+        height: height,
+        age: age,
+        sex: sex,
+      ),
+    );
   }
 
   final int minAge;

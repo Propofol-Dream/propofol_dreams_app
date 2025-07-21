@@ -104,7 +104,7 @@ class _PDTextFieldState extends State<PDTextField> {
         keyboardType: TextInputType.numberWithOptions(
             signed: true, decimal: widget.fractionDigits > 0 ? true : false),
         keyboardAppearance:
-            settings.isDarkTheme! ? Brightness.dark : Brightness.light,
+            settings.isDarkTheme == true ? Brightness.dark : Brightness.light,
         decoration: InputDecoration(
           // contentPadding: EdgeInsets.only(bottom: 0),
           filled: widget.enabled ? true : false,

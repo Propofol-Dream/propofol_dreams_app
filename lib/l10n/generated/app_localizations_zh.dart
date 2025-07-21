@@ -137,7 +137,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
 class AppLocalizationsZhHans extends AppLocalizationsZh {
-  AppLocalizationsZhHans(): super('zh_Hans');
+  AppLocalizationsZhHans() : super('zh_Hans');
 
   @override
   String get abw => '调整体重';
@@ -265,7 +265,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
 class AppLocalizationsZhHant extends AppLocalizationsZh {
-  AppLocalizationsZhHant(): super('zh_Hant');
+  AppLocalizationsZhHant() : super('zh_Hant');
 
   @override
   String get abw => '調整體重';

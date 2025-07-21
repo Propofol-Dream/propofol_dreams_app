@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import '../models/model.dart';
+import '../models/sex.dart';
+import 'PDModelSelectorModal.dart';
+import 'PDSwitchController.dart';
 
 class PDAdvancedSegmentedController extends ChangeNotifier {
   PDAdvancedSegmentedController();
 
   dynamic _selection;
+  ValidationResult? _cachedValidation;
 
   dynamic get selection {
     return _selection == null
@@ -13,6 +18,91 @@ class PDAdvancedSegmentedController extends ChangeNotifier {
 
   set selection(s) {
     _selection = s;
+    _cachedValidation = null; // Clear cache when selection changes
     notifyListeners();
+  }
+
+  ValidationResult validateSelection({
+    required Sex sex,
+    required int weight,
+    required int height,
+    required int age,
+  }) {
+    if (_cachedValidation != null) {
+      return _cachedValidation!;
+    }
+    
+    if (_selection is Model) {
+      final Model selectedModel = _selection as Model;
+      _cachedValidation = selectedModel.validate(
+        sex: sex,
+        weight: weight,
+        height: height,
+        age: age,
+      );
+      return _cachedValidation!;
+    }
+    
+    // Default to valid if no model selected
+    return const ValidationResult(isValid: true, errorMessage: '');
+  }
+
+  bool hasValidationError({
+    required Sex sex,
+    required int weight,
+    required int height,
+    required int age,
+  }) {
+    return validateSelection(
+      sex: sex,
+      weight: weight,
+      height: height,
+      age: age,
+    ).hasError;
+  }
+
+  String getValidationErrorText({
+    required Sex sex,
+    required int weight,
+    required int height,
+    required int age,
+  }) {
+    return validateSelection(
+      sex: sex,
+      weight: weight,
+      height: height,
+      age: age,
+    ).errorMessage;
+  }
+
+  void showModelSelector({
+    required BuildContext context,
+    required bool inAdultView,
+    required PDSwitchController sexController,
+    required TextEditingController ageController,
+    required TextEditingController heightController,
+    required TextEditingController weightController,
+    required TextEditingController targetController,
+    required TextEditingController durationController,
+    required Function(Model) onModelSelected,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => PDModelSelectorModal(
+        controller: this,
+        inAdultView: inAdultView,
+        sexController: sexController,
+        ageController: ageController,
+        heightController: heightController,
+        weightController: weightController,
+        targetController: targetController,
+        durationController: durationController,
+        onModelSelected: onModelSelected,
+      ),
+    );
   }
 }

@@ -100,12 +100,12 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).disabledColor,
                 activeTrackColor:
-                    Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 inactiveThumbColor: widget.enabled
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).disabledColor,
                 inactiveTrackColor:
-                    Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 value: widget.controller.val,
                 onChanged: widget.enabled
                     ? (val) async {

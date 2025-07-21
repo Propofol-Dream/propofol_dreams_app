@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:propofol_dreams_app/models/sex.dart';
-import 'package:propofol_dreams_app/models/model.dart';
 
 import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedController.dart';
 
@@ -37,50 +36,28 @@ class _PDAdvancedSegmentedControlState
   //   super.dispose();
   // }
 
-  bool checkError(
-      {required Sex sex,
-        required int weight,
-        required int height,
-        required int age}) {
-    Model selectedModel = widget.segmentedController.selection as Model;
-    return !(selectedModel.checkConstraints(
-        sex: sex,
-        weight: weight,
-        height: height,
-        age: age)['assertion'] as bool);
-  }
-
-  String showErrorText(
-      {required Sex sex,
-        required int weight,
-        required int height,
-        required int age}) {
-    Model selectedModel = widget.segmentedController.selection as Model;
-    return (selectedModel.checkConstraints(
-        sex: sex,
-        weight: weight,
-        height: height,
-        age: age)['text'] as String);
-  }
 
   @override
   Widget build(BuildContext context) {
     var mediaQuery = MediaQuery.of(context);
     var screenRatio = mediaQuery.size.width / mediaQuery.size.height;
 
-    bool isError = checkError(
-        sex:
-        widget.assertValues['sex'] as bool ? Sex.Female : Sex.Male,
-        weight: widget.assertValues['weight'] as int,
-        height: widget.assertValues['height'] as int,
-        age: widget.assertValues['age'] as int);
+    final Sex sex = widget.assertValues['sex'] as bool ? Sex.Female : Sex.Male;
+    final int weight = widget.assertValues['weight'] as int;
+    final int height = widget.assertValues['height'] as int;
+    final int age = widget.assertValues['age'] as int;
 
-    String errorText = showErrorText(
-        sex:
-        widget.assertValues['sex'] as bool ? Sex.Female : Sex.Male,
-        weight: widget.assertValues['weight'] as int,
-        height: widget.assertValues['height'] as int,
-        age: widget.assertValues['age'] as int);
+    bool isError = widget.segmentedController.hasValidationError(
+        sex: sex,
+        weight: weight,
+        height: height,
+        age: age);
+
+    String errorText = widget.segmentedController.getValidationErrorText(
+        sex: sex,
+        weight: weight,
+        height: height,
+        age: age);
 
     return Stack(children: [
       SizedBox(
@@ -113,9 +90,9 @@ class _PDAdvancedSegmentedControlState
             return SizedBox(
               child: ElevatedButton(
                 onPressed: widget.options[buildIndex].isEnable(
-                    age: widget.assertValues['age'],
-                    height: widget.assertValues['height'],
-                    weight: widget.assertValues['weight'])
+                    age: age,
+                    height: height,
+                    weight: weight)
                     ? () async {
                   await HapticFeedback.mediumImpact();
                   widget.segmentedController.selection =
@@ -143,9 +120,9 @@ class _PDAdvancedSegmentedControlState
                       // strokeAlign: StrokeAlign.outside, // deprecated in flutter 3.7
                         strokeAlign: BorderSide.strokeAlignOutside,
                         color: widget.options[buildIndex].isEnable(
-                            age: widget.assertValues['age'],
-                            height: widget.assertValues['height'],
-                            weight: widget.assertValues['weight'])
+                            age: age,
+                            height: height,
+                            weight: weight)
                             ? isError
                             ? widget.segmentedController.selection ==
                             widget.options[buildIndex]
@@ -170,9 +147,9 @@ class _PDAdvancedSegmentedControlState
                   style: TextStyle(
                       fontSize: screenRatio >= 0.455 ? 14 : 12,
                       color: widget.options[buildIndex].isEnable(
-                          age: widget.assertValues['age'],
-                          height: widget.assertValues['height'],
-                          weight: widget.assertValues['weight'])
+                          age: age,
+                          height: height,
+                          weight: weight)
                           ? isError
                           ? widget.segmentedController.selection ==
                           widget.options[buildIndex]

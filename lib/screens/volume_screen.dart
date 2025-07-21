@@ -660,6 +660,117 @@ class _VolumeScreenState extends State<VolumeScreen> {
     run();
   }
 
+  Widget buildModelSelector(Settings settings, double UIHeight) {
+    final currentModel = settings.inAdultView
+        ? (adultModelController.selection is Model ? adultModelController.selection as Model : null)
+        : (pediatricModelController.selection is Model ? pediatricModelController.selection as Model : null);
+    
+    final Sex sex = sexController.val ? Sex.Female : Sex.Male;
+    final int age = int.tryParse(ageController.text) ?? 0;
+    final int height = int.tryParse(heightController.text) ?? 0;
+    final int weight = int.tryParse(weightController.text) ?? 0;
+
+    final hasValidationError = currentModel != null && 
+        (settings.inAdultView ? adultModelController : pediatricModelController)
+        .hasValidationError(sex: sex, weight: weight, height: height, age: age);
+
+    final String? validationErrorText = hasValidationError
+        ? (settings.inAdultView ? adultModelController : pediatricModelController)
+            .getValidationErrorText(sex: sex, weight: weight, height: height, age: age)
+        : null;
+
+    return SizedBox(
+      width: (MediaQuery.of(context).size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () {
+              final controller = settings.inAdultView ? adultModelController : pediatricModelController;
+              controller.showModelSelector(
+                context: context,
+                inAdultView: settings.inAdultView,
+                sexController: sexController,
+                ageController: ageController,
+                heightController: heightController,
+                weightController: weightController,
+                targetController: targetController,
+                durationController: durationController,
+                onModelSelected: (model) {
+                  controller.selection = model;
+                  updatePDSegmentedController(model);
+                },
+              );
+            },
+            child: Container(
+              height: UIHeight,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: hasValidationError 
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.primary,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(5),
+                color: Theme.of(context).colorScheme.surface,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      currentModel?.toString() ?? 'Select Model',
+                      style: TextStyle(
+                        color: hasValidationError 
+                            ? Theme.of(context).colorScheme.error
+                            : Theme.of(context).colorScheme.onSurface,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_drop_down,
+                    color: hasValidationError 
+                        ? Theme.of(context).colorScheme.error
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                  if (hasValidationError)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Icon(
+                        Icons.error,
+                        color: Theme.of(context).colorScheme.error,
+                        size: 16,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          // Error text below container, matching PDTextField pattern
+          // Always reserve space to prevent layout shift
+          const SizedBox(height: 4),
+          SizedBox(
+            height: 14, // Reserve consistent height for error text (10px font + 4px padding)
+            child: validationErrorText != null && validationErrorText.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      validationErrorText,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: 10,
+                      ),
+                    ),
+                  )
+                : null, // Empty space when no error
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -828,23 +939,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  height: UIHeight + 20,
-                  child: PDAdvancedSegmentedControl(
-                    height: UIHeight,
-                    options: modelOptions,
-                    segmentedController: settings.inAdultView
-                        ? adultModelController
-                        : pediatricModelController,
-                    onPressed: updatePDSegmentedController,
-                    assertValues: {
-                      'sex': sexController.val,
-                      'age': (int.tryParse(ageController.text) ?? 0),
-                      'height': (int.tryParse(heightController.text) ?? 0),
-                      'weight': (int.tryParse(weightController.text) ?? 0)
-                    },
-                  ),
-                ),
+                buildModelSelector(settings, UIHeight),
                 SizedBox(
                     height: UIHeight,
                     width: UIHeight,
