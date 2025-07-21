@@ -27,6 +27,13 @@ flutter test
 
 # Analyze code
 flutter analyze
+
+# Update dependencies
+flutter pub upgrade
+flutter pub upgrade --major-versions  # For major version updates
+
+# Check outdated packages
+flutter pub outdated
 ```
 
 ### Building
@@ -61,6 +68,8 @@ flutter build web --release
 - `lib/models/patient.dart`: Patient data model
 - `lib/models/pump.dart`: Pump configuration model
 - `lib/models/calculator.dart`: Calculation logic
+- `lib/models/model.dart`: Pharmacokinetic model definitions with ValidationResult pattern
+- `lib/models/sex.dart`: Sex enumeration for calculations
 - `lib/models/elemarsh.dart`: Ele-Marsh pharmacokinetic model
 - `lib/models/simulation.dart`: Simulation data structures
 
@@ -72,7 +81,11 @@ flutter build web --release
 - `lib/screens/settings_screen.dart`: App settings
 
 ### Custom Components
-- `lib/controllers/`: Custom form fields and controllers
+- `lib/controllers/PDAdvancedSegmentedController.dart`: Controller for model selection with validation
+- `lib/controllers/PDModelSelectorModal.dart`: Modal for enhanced model selection UI
+- `lib/controllers/PDTextField.dart`: Custom text input with validation
+- `lib/controllers/PDSwitchField.dart`: Custom switch component
+- `lib/controllers/`: Other custom form fields and controllers
 - `lib/widgets/`: Reusable UI components with PD prefix
 
 ### State Management
@@ -96,16 +109,19 @@ flutter build web --release
 
 ### Production
 - `flutter`: Framework
-- `provider`: State management
-- `shared_preferences`: Local storage
+- `provider ^6.1.5`: State management
+- `shared_preferences ^2.5.3`: Local storage
 - `flutter_localizations`: Internationalization
-- `material_symbols_icons`: Material icons
-- `url_launcher`: External URL handling
-- `flutter_native_splash`: Splash screen generation
+- `material_symbols_icons ^4.2815.1`: Material icons
+- `url_launcher ^6.3.2`: External URL handling
+- `flutter_native_splash ^2.4.6`: Splash screen generation
+- `intl ^0.20.2`: Internationalization support
+- `cupertino_icons ^1.0.8`: iOS-style icons
+- `rename ^3.1.0`: Asset renaming utility
 
 ### Development
 - `flutter_test`: Testing framework
-- `flutter_lints`: Linting rules
+- `flutter_lints ^6.0.0`: Enhanced linting rules
 
 ## Testing
 
@@ -136,6 +152,40 @@ This is a **medical application** for qualified healthcare professionals. All ca
 
 ## Version Info
 
-- Current: v2.2.20 (Build 107)
-- Flutter SDK: 3.1.0 - 3.10.0
+- Current: v2.2.21 (Build 108)
+- Flutter SDK: 3.32.7 (Dart 3.8.1)
+- SDK Constraint: '>=3.1.0 <4.0.0'
 - Private package (not published to pub.dev)
+
+## Recent Changes (v2.2.21)
+
+### Flutter & Dependencies
+- **Upgraded Flutter**: 3.29.3 → 3.32.7 with Dart 3.8.1
+- **Updated Dependencies**: All packages upgraded to latest compatible versions
+- **Fixed Deprecations**: Replaced `withOpacity()` with `withValues(alpha:)` for color operations
+- **Enhanced Error Handling**: Added proper async context checks with `context.mounted`
+
+### Model Selection Enhancement
+- **Redesigned Modal UI**: Created `PDModelSelectorModal` with bottom-sheet interface
+- **Improved UX**: Positioned modal at bottom for better one-handed mobile usage
+- **Smart Filtering**: Models automatically filter based on adult/pediatric view
+- **Real-time Validation**: Displays error messages for unavailable models with explanations
+- **Enhanced Styling**: Modal buttons match app's UI height and border radius standards
+- **Removed EleMarsh**: Excluded from available model options per requirements
+
+### Validation System Improvements
+- **ValidationResult Pattern**: Replaced Map returns with structured ValidationResult class
+- **Controller-based Validation**: Moved validation logic from UI to PDAdvancedSegmentedController
+- **Error Text Display**: Added consistent error messaging on main volume screen
+- **Reserved Error Space**: Prevents UI layout shifts when errors appear/disappear
+
+### UI/UX Enhancements
+- **Consistent Styling**: Modal components match existing control dimensions (56px height, 5px border radius)
+- **Error Messaging**: Follows PDTextField pattern for consistent error display
+- **Direct Selection**: Tap-to-select model behavior without separate confirm step
+- **Responsive Design**: Handle bar and title positioning optimized for various screen sizes
+
+### Code Quality
+- **Lint Compliance**: Fixed async context warnings and unnecessary assertions
+- **Type Safety**: Enhanced null safety with proper validation patterns
+- **Documentation**: Updated README.md and CLAUDE.md with latest changes
