@@ -69,6 +69,7 @@ flutter build web --release
 - `lib/models/pump.dart`: Pump configuration model
 - `lib/models/calculator.dart`: Calculation logic
 - `lib/models/model.dart`: Pharmacokinetic model definitions with ValidationResult pattern
+- `lib/models/pk_parameters.dart`: **NEW** - Pharmacokinetic parameter calculations for all models
 - `lib/models/sex.dart`: Sex enumeration for calculations
 - `lib/models/elemarsh.dart`: Ele-Marsh pharmacokinetic model
 - `lib/models/simulation.dart`: Simulation data structures
