@@ -69,7 +69,7 @@ flutter build web --release
 - `lib/models/pump.dart`: Pump configuration model
 - `lib/models/calculator.dart`: Calculation logic
 - `lib/models/model.dart`: Pharmacokinetic model definitions with ValidationResult pattern
-- `lib/models/pk_parameters.dart`: **NEW** - Pharmacokinetic parameter calculations for all models
+- `lib/models/parameters.dart`: **NEW** - Pharmacokinetic parameter calculations for all models
 - `lib/models/sex.dart`: Sex enumeration for calculations
 - `lib/models/elemarsh.dart`: Ele-Marsh pharmacokinetic model
 - `lib/models/simulation.dart`: Simulation data structures
@@ -185,6 +185,18 @@ This is a **medical application** for qualified healthcare professionals. All ca
 - **Error Messaging**: Follows PDTextField pattern for consistent error display
 - **Direct Selection**: Tap-to-select model behavior without separate confirm step
 - **Responsive Design**: Handle bar and title positioning optimized for various screen sizes
+
+### Pharmacokinetic Parameters Consolidation
+- **New parameters.dart**: Comprehensive PK parameter calculation system
+- **Model Support**: Implemented calculations for Marsh, Schnider, Eleveld, Paedfusor, Kataria models
+- **Extension Methods**: Added `calculatePKParameters()` method to Model enum
+- **Record Types**: Used Dart 3 record types for clean data structures
+- **Future Models**: Framework for remifentanil, dexmedetomidine, and remimazolam models
+- **BIS Parameters**: Added baseline BIS, CE50, and delay BIS calculations for propofol models
+- **Consolidation**: Refactored simulation.dart to use PKParameters class, eliminating 150+ lines of duplicate code
+- **Improved Eleveld Model**: More accurate calculations matching MATLAB equations exactly
+- **Created operation.dart**: Added missing Operation class to fix compilation errors
+- **Backward Compatibility**: Maintained existing API while improving code organization
 
 ### Code Quality
 - **Lint Compliance**: Fixed async context warnings and unnecessary assertions
