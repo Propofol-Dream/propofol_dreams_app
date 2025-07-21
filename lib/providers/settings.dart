@@ -7,6 +7,8 @@ import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Settings with ChangeNotifier {
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
   ThemeMode _themeModeSelection = ThemeMode.system;
 
   ThemeMode get themeModeSelection {
@@ -505,34 +507,205 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setInt(String key, int? i) async {
-    var pref = await SharedPreferences.getInstance();
-    if (i != null) {
-      pref.setInt(key, i);
-    }
+  // Cache SharedPreferences instance for better performance
+  SharedPreferences? _prefs;
 
+  Future<void> setInt(String key, int? i) async {
+    _prefs ??= await SharedPreferences.getInstance();
+    if (i != null) {
+      await _prefs!.setInt(key, i);
+    }
   }
 
   Future<void> setDouble(String key, double? d) async {
-    var pref = await SharedPreferences.getInstance();
+    _prefs ??= await SharedPreferences.getInstance();
     if (d != null) {
-      pref.setDouble(key, d);
+      await _prefs!.setDouble(key, d);
     }
-
   }
 
   Future<void> setBool(String key, bool? b) async {
-    var pref = await SharedPreferences.getInstance();
+    _prefs ??= await SharedPreferences.getInstance();
     if (b != null) {
-      pref.setBool(key, b);
+      await _prefs!.setBool(key, b);
     }
-
   }
 
   Future<void> setString(String key, String? s) async {
-    var pref = await SharedPreferences.getInstance();
+    _prefs ??= await SharedPreferences.getInstance();
     if (s != null) {
-      pref.setString(key, s);
+      await _prefs!.setString(key, s);
+    }
+  }
+
+  /// Save all current settings to disk immediately
+  /// Call this when app is pausing to ensure data is saved
+  Future<void> saveAllSettings() async {
+    _prefs ??= await SharedPreferences.getInstance();
+    
+    // Save all current values to ensure they're persisted
+    await Future.wait([
+      _prefs!.setBool('inAdultView', _inAdultView),
+      _prefs!.setInt('density', _density),
+      _prefs!.setBool('isVolumeTableExpanded', _isVolumeTableExpanded),
+      _prefs!.setString('adultModel', _adultModel.toString()),
+      _prefs!.setString('adultSex', _adultSex.toString()),
+      if (_adultAge != null) _prefs!.setInt('adultAge', _adultAge!),
+      if (_adultHeight != null) _prefs!.setInt('adultHeight', _adultHeight!),
+      if (_adultWeight != null) _prefs!.setInt('adultWeight', _adultWeight!),
+      if (_adultTarget != null) _prefs!.setDouble('adultTarget', _adultTarget!),
+      if (_adultDuration != null) _prefs!.setInt('adultDuration', _adultDuration!),
+      _prefs!.setString('pediatricModel', _pediatricModel.toString()),
+      _prefs!.setString('pediatricSex', _pediatricSex.toString()),
+      if (_pediatricAge != null) _prefs!.setInt('pediatricAge', _pediatricAge!),
+      if (_pediatricHeight != null) _prefs!.setInt('pediatricHeight', _pediatricHeight!),
+      if (_pediatricWeight != null) _prefs!.setInt('pediatricWeight', _pediatricWeight!),
+      if (_pediatricTarget != null) _prefs!.setDouble('pediatricTarget', _pediatricTarget!),
+      if (_pediatricDuration != null) _prefs!.setInt('pediatricDuration', _pediatricDuration!),
+      if (_weight != null) _prefs!.setInt('weight', _weight!),
+      if (_infusionRate != null) _prefs!.setDouble('infusionRate', _infusionRate!),
+      _prefs!.setString('infusionUnit', _infusinUnit.toString()),
+      _prefs!.setInt('currentScreenIndex', _currentScreenIndex),
+      _prefs!.setString('themeMode', _themeModeSelection.toString()),
+      _prefs!.setBool('isDarkTheme', _isDarkTheme),
+      _prefs!.setInt('time_step', _time_step),
+      _prefs!.setInt('max_pump_rate_20230820', _max_pump_rate),
+      _prefs!.setBool('_showMaxPumpRate', _showMaxPumpRate),
+    ]);
+  }
+
+  /// Initialize all settings from SharedPreferences during app startup
+  /// This eliminates the need for individual load() functions in screens
+  Future<void> initializeFromDisk() async {
+    if (_isInitialized) return;
+
+    _prefs = await SharedPreferences.getInstance();
+    final pref = _prefs!;
+
+    // Load all preferences once at startup
+    _inAdultView = pref.getBool('inAdultView') ?? true;
+    _density = pref.getInt('density') ?? 10;
+    _isVolumeTableExpanded = pref.getBool('isVolumeTableExpanded') ?? false;
+
+    // Adult model settings
+    final adultModelString = pref.getString('adultModel');
+    _adultModel = _parseModelFromString(adultModelString) ?? Model.None;
+    
+    final adultSexString = pref.getString('adultSex');
+    _adultSex = adultSexString == 'Sex.Female' ? Sex.Female : Sex.Male;
+    
+    _adultAge = pref.getInt('adultAge') ?? 40;
+    _adultHeight = pref.getInt('adultHeight') ?? 170;
+    _adultWeight = pref.getInt('adultWeight') ?? 70;
+    _adultTarget = pref.getDouble('adultTarget') ?? 3.0;
+    _adultDuration = pref.getInt('adultDuration') ?? 60;
+
+    // Pediatric model settings
+    final pediatricModelString = pref.getString('pediatricModel');
+    _pediatricModel = _parseModelFromString(pediatricModelString) ?? Model.None;
+    
+    final pediatricSexString = pref.getString('pediatricSex');
+    _pediatricSex = pediatricSexString == 'Sex.Female' ? Sex.Female : Sex.Male;
+    
+    _pediatricAge = pref.getInt('pediatricAge') ?? 8;
+    _pediatricHeight = pref.getInt('pediatricHeight') ?? 130;
+    _pediatricWeight = pref.getInt('pediatricWeight') ?? 26;
+    _pediatricTarget = pref.getDouble('pediatricTarget') ?? 3.0;
+    _pediatricDuration = pref.getInt('pediatricDuration') ?? 60;
+
+    // Duration screen settings
+    _weight = pref.getInt('weight');
+    _infusionRate = pref.getDouble('infusionRate') ?? 10;
+    
+    final infusionUnitString = pref.getString('infusionUnit');
+    _infusinUnit = _parseInfusionUnitFromString(infusionUnitString) ?? InfusionUnit.mg_kg_hr;
+
+    // EleMarsh screen settings
+    final emSexString = pref.getString('EMSex');
+    _EMSex = emSexString == 'Sex.Female' ? Sex.Female : Sex.Male;
+    
+    _EMAge = pref.getInt('EMAge');
+    _EMHeight = pref.getInt('EMHeight');
+    _EMWeight = pref.getInt('EMWeight');
+    _EMTarget = pref.getDouble('EMTarget');
+    _EMDuration = pref.getInt('EMDuration');
+    _EMFlow = pref.getString('EMFlow');
+    
+    final emWakeUpModelString = pref.getString('EMWakeUpModel');
+    _EMWakeUpModel = _parseModelFromString(emWakeUpModelString) ?? Model.None;
+    
+    _EMMaintenanceCe = pref.getDouble('EMMaintenanceCe');
+    _EMMaintenanceSE = pref.getInt('EMMaintenanceSE');
+    _EMInfusionRate = pref.getDouble('_EMInfusionRate');
+    _EMRSI = pref.getBool('EMRSI') ?? false;
+
+    // Home screen settings
+    _currentScreenIndex = pref.getInt('currentScreenIndex') ?? 0;
+
+    // Test screen settings
+    _calculatorWakeUpCE = pref.getDouble('calculatorWakeUpCE');
+    _calculatorWakeUpSE = pref.getInt('EMObservedSE');
+
+    // System settings
+    _time_step = pref.getInt('time_step') ?? 1;
+    _max_pump_rate = pref.getInt('max_pump_rate_20230820') ?? 1200;
+    _showMaxPumpRate = pref.getBool('_showMaxPumpRate') ?? false;
+
+    // Theme settings
+    final themeModeString = pref.getString('themeMode');
+    _themeModeSelection = _parseThemeModeFromString(themeModeString) ?? ThemeMode.system;
+    _isDarkTheme = pref.getBool('isDarkTheme') ?? false;
+
+    _isInitialized = true;
+    // Don't call notifyListeners() here as UI hasn't been built yet
+  }
+
+  /// Parse Model enum from string
+  Model? _parseModelFromString(String? modelString) {
+    if (modelString == null) return null;
+    switch (modelString) {
+      case 'Model.Marsh':
+        return Model.Marsh;
+      case 'Model.Schnider':
+        return Model.Schnider;
+      case 'Model.Eleveld':
+        return Model.Eleveld;
+      case 'Model.Paedfusor':
+        return Model.Paedfusor;
+      case 'Model.Kataria':
+        return Model.Kataria;
+      default:
+        return Model.None;
+    }
+  }
+
+  /// Parse InfusionUnit enum from string
+  InfusionUnit? _parseInfusionUnitFromString(String? unitString) {
+    if (unitString == null) return null;
+    switch (unitString) {
+      case 'InfusionUnit.mg_kg_hr':
+        return InfusionUnit.mg_kg_hr;
+      case 'InfusionUnit.mcg_kg_min':
+        return InfusionUnit.mcg_kg_min;
+      case 'InfusionUnit.mL_hr':
+        return InfusionUnit.mL_hr;
+      default:
+        return InfusionUnit.mg_kg_hr;
+    }
+  }
+
+  /// Parse ThemeMode enum from string
+  ThemeMode? _parseThemeModeFromString(String? themeModeString) {
+    if (themeModeString == null) return null;
+    switch (themeModeString) {
+      case 'ThemeMode.light':
+        return ThemeMode.light;
+      case 'ThemeMode.dark':
+        return ThemeMode.dark;
+      case 'ThemeMode.system':
+        return ThemeMode.system;
+      default:
+        return ThemeMode.system;
     }
   }
 }

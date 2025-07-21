@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
@@ -70,32 +69,36 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
   @override
   void initState() {
-    var settings = context.read<Settings>();
+    super.initState();
+    
+    // Settings are already loaded - initialize controllers with final values
+    final settings = context.read<Settings>();
+    _setControllersFromSettings(settings);
+    
+    updateModelOptions(settings.inAdultView);
+    run(initState: true);
+  }
 
+  void _setControllersFromSettings(Settings settings) {
     tableController.val = settings.isVolumeTableExpanded;
 
     if (settings.inAdultView) {
       adultModelController.selection = settings.adultModel;
-      sexController.val =
-          settings.adultSex == Sex.Female ? true : false;
-      ageController.text = settings.adultAge.toString();
-      heightController.text = settings.adultHeight.toString();
-      weightController.text = settings.adultWeight.toString();
-      targetController.text = settings.adultTarget.toString();
-      durationController.text = settings.adultDuration.toString();
+      sexController.val = settings.adultSex == Sex.Female ? true : false;
+      ageController.text = settings.adultAge?.toString() ?? '';
+      heightController.text = settings.adultHeight?.toString() ?? '';
+      weightController.text = settings.adultWeight?.toString() ?? '';
+      targetController.text = settings.adultTarget?.toString() ?? '';
+      durationController.text = settings.adultDuration?.toString() ?? '';
     } else {
       pediatricModelController.selection = settings.pediatricModel;
-      sexController.val =
-          settings.pediatricSex == Sex.Female ? true : false;
-      ageController.text = settings.pediatricAge.toString();
-      heightController.text = settings.pediatricHeight.toString();
-      weightController.text = settings.pediatricWeight.toString();
-      targetController.text = settings.pediatricTarget.toString();
-      durationController.text = settings.pediatricDuration.toString();
+      sexController.val = settings.pediatricSex == Sex.Female ? true : false;
+      ageController.text = settings.pediatricAge?.toString() ?? '';
+      heightController.text = settings.pediatricHeight?.toString() ?? '';
+      weightController.text = settings.pediatricWeight?.toString() ?? '';
+      targetController.text = settings.pediatricTarget?.toString() ?? '';
+      durationController.text = settings.pediatricDuration?.toString() ?? '';
     }
-
-    load();
-    super.initState();
   }
 
   @override
@@ -104,193 +107,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
     super.dispose();
   }
 
-  Future<void> load() async {
-    var pref = await SharedPreferences.getInstance();
-    final settings = context.read<Settings>();
-
-    if (pref.containsKey('inAdultView')) {
-      settings.inAdultView = pref.getBool('inAdultView')!;
-    } else {
-      settings.inAdultView = true;
-    }
-
-    if (pref.containsKey('density')) {
-      settings.density = pref.getInt('density')!;
-    } else {
-      settings.density = 10;
-    }
-
-    if (pref.containsKey('isVolumeTableExpanded')) {
-      settings.isVolumeTableExpanded = pref.getBool('isVolumeTableExpanded')!;
-      tableController.val = settings.isVolumeTableExpanded;
-    } else {
-      settings.isVolumeTableExpanded =
-          false; //TODO: set isVolumeTableExpanded = true, if device is tablet
-      tableController.val = settings.isVolumeTableExpanded;
-    }
-
-    if (pref.containsKey('adultModel')) {
-      String adultModel = pref.getString('adultModel')!;
-      switch (adultModel) {
-        case 'Marsh':
-          {
-            settings.adultModel = Model.Marsh;
-          }
-          break;
-
-        case 'Schnider':
-          {
-            settings.adultModel = Model.Schnider;
-          }
-          break;
-
-        case 'Eleveld':
-          {
-            settings.adultModel = Model.Eleveld;
-          }
-          break;
-
-        default:
-          {
-            settings.adultModel = Model.None;
-          }
-          break;
-      }
-    } else {
-      settings.adultModel = Model.None;
-    }
-
-    if (pref.containsKey('adultSex')) {
-      String adultSex = pref.getString('adultSex')!;
-      settings.adultSex =
-          adultSex == 'Female' ? Sex.Female : Sex.Male;
-    } else {
-      settings.adultSex = Sex.Female;
-    }
-
-    if (pref.containsKey('adultAge')) {
-      settings.adultAge = pref.getInt('adultAge');
-    } else {
-      settings.adultAge = 40;
-    }
-
-    if (pref.containsKey('adultHeight')) {
-      settings.adultHeight = pref.getInt('adultHeight');
-    } else {
-      settings.adultHeight = 170;
-    }
-
-    if (pref.containsKey('adultWeight')) {
-      settings.adultWeight = pref.getInt('adultWeight');
-    } else {
-      settings.adultWeight = 70;
-    }
-
-    if (pref.containsKey('adultTarget')) {
-      settings.adultTarget = pref.getDouble('adultTarget');
-    } else {
-      settings.adultTarget = 3.0;
-    }
-
-    if (pref.containsKey('adultDuration')) {
-      settings.adultDuration = pref.getInt('adultDuration');
-    } else {
-      settings.adultDuration = 60;
-    }
-
-    if (pref.containsKey('pediatricModel')) {
-      String pediatricModel = pref.getString('pediatricModel')!;
-      switch (pediatricModel) {
-        case 'Paedfusor':
-          {
-            settings.pediatricModel = Model.Paedfusor;
-          }
-          break;
-
-        case 'Kataria':
-          {
-            settings.pediatricModel = Model.Kataria;
-          }
-          break;
-
-        case 'Eleveld':
-          {
-            settings.pediatricModel = Model.Eleveld;
-          }
-          break;
-
-        default:
-          {
-            settings.pediatricModel = Model.None;
-          }
-          break;
-      }
-    } else {
-      settings.pediatricModel = Model.None;
-    }
-
-    if (pref.containsKey('pediatricSex')) {
-      String pediatricSex = pref.getString('pediatricSex')!;
-      settings.pediatricSex =
-          pediatricSex == 'Female' ? Sex.Female : Sex.Male;
-    } else {
-      settings.pediatricSex = Sex.Female;
-    }
-
-    if (pref.containsKey('pediatricAge')) {
-      settings.pediatricAge = pref.getInt('pediatricAge');
-    } else {
-      settings.pediatricAge = 8;
-    }
-
-    if (pref.containsKey('pediatricHeight')) {
-      settings.pediatricHeight = pref.getInt('pediatricHeight');
-    } else {
-      settings.pediatricHeight = 130;
-    }
-
-    if (pref.containsKey('pediatricWeight')) {
-      settings.pediatricWeight = pref.getInt('pediatricWeight');
-    } else {
-      settings.pediatricWeight = 26;
-    }
-
-    if (pref.containsKey('pediatricTarget')) {
-      settings.pediatricTarget = pref.getDouble('pediatricTarget');
-    } else {
-      settings.pediatricTarget = 3.0;
-    }
-
-    if (pref.containsKey('pediatricDuration')) {
-      settings.pediatricDuration = pref.getInt('pediatricDuration');
-    } else {
-      settings.pediatricDuration = 60;
-    }
-
-    if (settings.inAdultView) {
-      adultModelController.selection = settings.adultModel;
-      sexController.val =
-          settings.adultSex == Sex.Female ? true : false;
-      ageController.text = settings.adultAge.toString();
-
-      heightController.text = settings.adultHeight.toString();
-      weightController.text = settings.adultWeight.toString();
-      targetController.text = settings.adultTarget.toString();
-      durationController.text = settings.adultDuration.toString();
-    } else {
-      pediatricModelController.selection = settings.pediatricModel;
-      sexController.val =
-          settings.pediatricSex == Sex.Female ? true : false;
-      ageController.text = settings.pediatricAge.toString();
-      heightController.text = settings.pediatricHeight.toString();
-      weightController.text = settings.pediatricWeight.toString();
-      targetController.text = settings.pediatricTarget.toString();
-      durationController.text = settings.pediatricDuration.toString();
-    }
-
-    updateModelOptions(settings.inAdultView);
-    run(initState: true);
-  }
 
   void updateRowsAndResult({cols, times}) {
     List col1 = cols[0];

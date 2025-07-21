@@ -2,7 +2,6 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 
 import 'package:propofol_dreams_app/constants.dart';
@@ -48,9 +47,18 @@ class _DurationScreenState extends State<DurationScreen> {
 
   @override
   void initState() {
-    var settings = context.read<Settings>();
+    super.initState();
+    
+    // Settings are already loaded - initialize controllers with final values
+    final settings = context.read<Settings>();
+    _setControllersFromSettings(settings);
+    
+    // Run calculations to populate the table
+    run();
+  }
 
-    weightController.text = settings.weight.toString();
+  void _setControllersFromSettings(Settings settings) {
+    weightController.text = settings.weight?.toString() ?? '';
     infusionUnitController.val = settings.infusionUnit == InfusionUnit.mg_kg_hr
         ? 0
         : settings.infusionUnit == InfusionUnit.mcg_kg_min
@@ -63,78 +71,9 @@ class _DurationScreenState extends State<DurationScreen> {
             ? 0
             : 1;
     infusionRateController.text =
-        settings.infusionRate!.toStringAsFixed(infusionRateDecimal);
-
-    load().then((value) {
-      setState(() {});
-    });
-
-    super.initState();
+        settings.infusionRate?.toStringAsFixed(infusionRateDecimal) ?? '';
   }
 
-  Future<void> load() async {
-    var pref = await SharedPreferences.getInstance();
-    final settings = context.read<Settings>();
-
-    if (pref.containsKey('weight')) {
-      settings.weight = pref.getInt('weight')!;
-    } else {
-      settings.weight = 70;
-    }
-    weightController.text = settings.weight.toString();
-
-    if (pref.containsKey('infusionRate')) {
-      settings.infusionRate = pref.getDouble('infusionRate')!;
-    } else {
-      //max_pump_rate cannot be null
-      settings.infusionRate = 10.0;
-    }
-    infusionRateController.text =
-        settings.infusionRate!.toStringAsFixed(infusionRateDecimal);
-
-    if (pref.containsKey('infusionUnit')) {
-      String? infusionUnit = pref.getString('infusionUnit');
-
-      switch (infusionUnit) {
-        case 'mg/kg/h':
-          {
-            settings.infusionUnit = InfusionUnit.mg_kg_hr;
-            // infusionUnitController.val = 0;
-          }
-          break;
-
-        case 'mcg/kg/min':
-          {
-            settings.infusionUnit = InfusionUnit.mcg_kg_min;
-            // infusionUnitController.val = 1;
-          }
-          break;
-
-        case 'mL/hr':
-          {
-            settings.infusionUnit = InfusionUnit.mL_hr;
-            // infusionUnitController.val = 2;
-          }
-          break;
-
-        default:
-          {
-            settings.infusionUnit = InfusionUnit.mg_kg_hr;
-            // infusionUnitController.val = 0;
-          }
-          break;
-      }
-    } else {
-      settings.infusionUnit = InfusionUnit.mg_kg_hr;
-    }
-    infusionUnitController.val = settings.infusionUnit == InfusionUnit.mg_kg_hr
-        ? 0
-        : settings.infusionUnit == InfusionUnit.mcg_kg_min
-            ? 1
-            : 2;
-
-    run();
-  }
 
   void updateWeight() {
     final settings = context.read<Settings>();

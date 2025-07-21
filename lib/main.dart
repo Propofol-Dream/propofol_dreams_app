@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'screens/home_screen.dart';
 import 'providers/settings.dart';
@@ -12,9 +11,13 @@ import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize settings from disk before UI renders
+  final settings = Settings();
+  await settings.initializeFromDisk();
+
   runApp(MultiProvider(
     providers: [
-      ChangeNotifierProvider(create: (context) => Settings()),
+      ChangeNotifierProvider<Settings>.value(value: settings),
     ],
     child: const MyApp(),
   ));
@@ -33,17 +36,19 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     switch (state) {
       case AppLifecycleState.resumed:
         print("app resumed");
-        // Provider.of<Settings>(context, listen: false).load();
         break;
       case AppLifecycleState.inactive:
         print("app inactive");
         break;
       case AppLifecycleState.paused:
-        print("app paused");
-        // Provider.of<Settings>(context, listen: false).save();
+        print("app paused - saving settings");
+        // Save all settings when app pauses to ensure data persistence
+        Provider.of<Settings>(context, listen: false).saveAllSettings();
         break;
       case AppLifecycleState.detached:
-        print("app detached");
+        print("app detached - saving settings");
+        // Save all settings when app is being terminated
+        Provider.of<Settings>(context, listen: false).saveAllSettings();
         break;
       case AppLifecycleState.hidden:
         print("app in hidden");
@@ -52,56 +57,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void initState() {
-
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    load().then((value) {
-      setState(() {
-      });
-    });
-
+    // Settings are already initialized in main() - no async loading needed
   }
 
   @override
   void dispose() {
+    // Save settings one final time before disposal
+    Provider.of<Settings>(context, listen: false).saveAllSettings();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-
-  Future<void> load() async {
-    var pref = await SharedPreferences.getInstance();
-    final settings = context.read<Settings>();
-
-    if (pref.containsKey('themeMode')) {
-
-      String? themeMode = pref.getString('themeMode');
-      switch (themeMode) {
-        case 'ThemeMode.light':
-          {
-            settings.themeModeSelection = ThemeMode.light;
-          }
-          break;
-
-        case 'ThemeMode.dark':
-          {
-            settings.themeModeSelection = ThemeMode.dark;
-          }
-          break;
-
-        case 'ThemeMode.system':
-          {
-            settings.themeModeSelection = ThemeMode.system;
-          }
-          break;
-
-        default:
-          {
-            settings.themeModeSelection = ThemeMode.system;
-          }
-          break;
-      }
-    }
   }
 
   @override

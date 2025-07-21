@@ -198,6 +198,14 @@ This is a **medical application** for qualified healthcare professionals. All ca
 - **Created operation.dart**: Added missing Operation class to fix compilation errors
 - **Backward Compatibility**: Maintained existing API while improving code organization
 
+### App-Wide Performance Optimization
+- **Centralized Settings Initialization**: Added `initializeFromDisk()` to Settings provider
+- **Eliminated Double-Initialization**: Removed async `load()` functions from all 6 screens
+- **Synchronous initState()**: All screens now initialize controllers synchronously
+- **Preloaded Settings**: Settings loaded once in main.dart before UI renders
+- **Performance Benefits**: Eliminated UI flicker, double renders, and async delays across entire app
+- **Code Reduction**: Removed 300+ lines of duplicate SharedPreferences loading code
+
 ### Code Quality
 - **Lint Compliance**: Fixed async context warnings and unnecessary assertions
 - **Type Safety**: Enhanced null safety with proper validation patterns

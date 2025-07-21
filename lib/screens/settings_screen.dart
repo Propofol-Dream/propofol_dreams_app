@@ -24,7 +24,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void initState() {
+    super.initState();
+    
+    // Settings are already loaded - initialize controllers with final values
     final settings = context.read<Settings>();
+    _setControllersFromSettings(settings);
+  }
+
+  void _setControllersFromSettings(Settings settings) {
     densityController.val = settings.density == 10 ? 0 : 1;
     pumpController.text = settings.max_pump_rate.toString();
     themeController.val = settings.themeModeSelection == ThemeMode.light
@@ -32,70 +39,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         : settings.themeModeSelection == ThemeMode.dark
             ? 1
             : 2;
-
-    load().then((value) {
-      setState(() {});
-    });
-    super.initState();
-  }
-
-  Future<void> load() async {
-    var pref = await SharedPreferences.getInstance();
-    final settings = context.read<Settings>();
-
-    if (pref.containsKey('density')) {
-      settings.density = pref.getInt('density')!;
-    } else {
-      settings.density = 10;
-    }
-    densityController.val = settings.density == 10 ? 0 : 1;
-
-    if (pref.containsKey('max_pump_rate_20230820')) {
-      settings.max_pump_rate = pref.getInt('max_pump_rate_20230820')!;
-    } else {
-      settings.max_pump_rate = 1200;
-    }
-    pumpController.text = settings.max_pump_rate.toString();
-
-    if (pref.containsKey('themeMode')) {
-      String? themeMode = pref.getString('themeMode');
-      switch (themeMode) {
-        case 'ThemeMode.light':
-          {
-            settings.themeModeSelection = ThemeMode.light;
-            // themeController.val = 0;
-          }
-          break;
-
-        case 'ThemeMode.dark':
-          {
-            settings.themeModeSelection = ThemeMode.dark;
-            // themeController.val = 1;
-          }
-          break;
-
-        case 'ThemeMode.system':
-          {
-            settings.themeModeSelection = ThemeMode.system;
-          }
-          break;
-
-        default:
-          {
-            settings.themeModeSelection = ThemeMode.system;
-
-          }
-          break;
-      }
-    } else {
-      settings.themeModeSelection = ThemeMode.system;
-    }
-
-    themeController.val = settings.themeModeSelection == ThemeMode.light
-        ? 0
-        : settings.themeModeSelection == ThemeMode.dark
-        ? 1
-        : 2;
   }
 
   @override

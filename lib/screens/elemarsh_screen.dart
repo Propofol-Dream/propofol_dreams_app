@@ -60,25 +60,11 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
   @override
   void initState() {
-    final settings = context.read<Settings>();
-
-    sexController.val = settings.EMSex == Sex.Female ? true : false;
-    ageController.text = settings.EMAge.toString();
-    heightController.text = settings.EMHeight.toString();
-    weightController.text = settings.EMWeight.toString();
-    targetController.text = settings.EMTarget.toString();
-
-    flowController.val = settings.EMFlow == 'induce' ? 0 : 1;
-
-    modelController.val =
-        settings.EMWakeUpModel == Model.Eleveld ? true : false;
-    maintenanceCeController.text = settings.EMMaintenanceCe.toString();
-    maintenanceSEController.text = settings.EMMaintenanceSE.toString();
-    infusionRateController.text = settings.EMInfusionRate.toString();
-
-    load();
-
     super.initState();
+    
+    // Settings are already loaded - initialize controllers with final values
+    final settings = context.read<Settings>();
+    _setControllersFromSettings(settings);
   }
 
   @override
@@ -86,103 +72,18 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     super.dispose();
   }
 
-  Future<void> load() async {
-    var pref = await SharedPreferences.getInstance();
-    final settings = context.read<Settings>();
-
-    if (pref.containsKey('density')) {
-      settings.density = pref.getInt('density')!;
-    } else {
-      settings.density = 10;
-    }
-
-    if (pref.containsKey('EMSex')) {
-      String sex = pref.getString('EMSex')!;
-      settings.EMSex = sex == 'Female' ? Sex.Female : Sex.Male;
-    } else {
-      settings.EMSex = Sex.Female;
-    }
-
-    if (pref.containsKey('EMAge')) {
-      settings.EMAge = pref.getInt('EMAge');
-    } else {
-      settings.EMAge = 40;
-    }
-
-    if (pref.containsKey('EMHeight')) {
-      settings.EMHeight = pref.getInt('EMHeight');
-    } else {
-      settings.EMHeight = 170;
-    }
-
-    if (pref.containsKey('EMWeight')) {
-      settings.EMWeight = pref.getInt('EMWeight');
-    } else {
-      settings.EMWeight = 70;
-    }
-
-    if (pref.containsKey('EMTarget')) {
-      settings.EMTarget = pref.getDouble('EMTarget');
-    } else {
-      settings.EMTarget = 3.0;
-    }
-
-    if (pref.containsKey('EMDuration')) {
-      settings.EMDuration = pref.getInt('EMDuration');
-    } else {
-      settings.EMDuration = 60;
-    }
-
-    if (pref.containsKey('EMFlow')) {
-      settings.EMFlow = pref.getString('EMFlow')!;
-    } else {
-      settings.EMFlow = 'induce';
-    }
-
-    if (pref.containsKey('EMWakeUpModel')) {
-      String model = pref.getString('EMWakeUpModel')!;
-      settings.EMWakeUpModel =
-          model == 'Eleveld' ? Model.Eleveld : Model.EleMarsh;
-    } else {
-      settings.EMWakeUpModel = Model.EleMarsh;
-    }
-
-    if (pref.containsKey('EMMaintenanceCe')) {
-      settings.EMMaintenanceCe = pref.getDouble('EMMaintenanceCe');
-    } else {
-      settings.EMMaintenanceCe = 3.0;
-    }
-
-    if (pref.containsKey('EMMaintenanceSE')) {
-      settings.EMMaintenanceSE = pref.getInt('EMMaintenanceSE');
-    } else {
-      settings.EMMaintenanceSE = 40;
-    }
-
-    if (pref.containsKey('EMInfusionRate')) {
-      settings.EMInfusionRate = pref.getDouble('EMInfusionRate');
-    } else {
-      settings.EMInfusionRate = 100;
-    }
-
-    if (pref.containsKey('EMRSI')) {
-      settings.EMRSI = pref.getBool('EMRSI')!;
-    } else {
-      settings.EMRSI = false;
-    }
-
+  void _setControllersFromSettings(Settings settings) {
     sexController.val = settings.EMSex == Sex.Female ? true : false;
-    ageController.text = settings.EMAge.toString();
-    heightController.text = settings.EMHeight.toString();
-    weightController.text = settings.EMWeight.toString();
-    targetController.text = settings.EMTarget.toString();
+    ageController.text = settings.EMAge?.toString() ?? '';
+    heightController.text = settings.EMHeight?.toString() ?? '';
+    weightController.text = settings.EMWeight?.toString() ?? '';
+    targetController.text = settings.EMTarget?.toString() ?? '';
 
     flowController.val = settings.EMFlow == 'induce' ? 0 : 1;
-    modelController.val =
-        settings.EMWakeUpModel == Model.Eleveld ? true : false;
-    maintenanceCeController.text = settings.EMMaintenanceCe.toString();
-    maintenanceSEController.text = settings.EMMaintenanceSE.toString();
-    infusionRateController.text = settings.EMInfusionRate.toString();
+    modelController.val = settings.EMWakeUpModel == Model.Eleveld ? true : false;
+    maintenanceCeController.text = settings.EMMaintenanceCe?.toString() ?? '';
+    maintenanceSEController.text = settings.EMMaintenanceSE?.toString() ?? '';
+    infusionRateController.text = settings.EMInfusionRate?.toString() ?? '';
     run(initState: true);
   }
 

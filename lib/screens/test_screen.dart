@@ -34,14 +34,11 @@ class _TestScreenState extends State<TestScreen> {
 
   @override
   void initState() {
-    final settings = context.read<Settings>();
-
-    calculatorWakeUpCEController.text = settings.calculatorWakeUpCE.toString();
-    calculatorWakeUpSEController.text = settings.calculatorWakeUpSE.toString();
-
-    load();
-
     super.initState();
+    
+    // Settings are already loaded - initialize controllers with final values
+    final settings = context.read<Settings>();
+    _setControllersFromSettings(settings);
   }
 
   @override
@@ -49,24 +46,9 @@ class _TestScreenState extends State<TestScreen> {
     super.dispose();
   }
 
-  Future<void> load() async {
-    var pref = await SharedPreferences.getInstance();
-    final settings = context.read<Settings>();
-
-    if (pref.containsKey('calculatorWakeUpCE')) {
-      settings.calculatorWakeUpCE = pref.getDouble('calculatorWakeUpCE')!;
-    } else {
-      settings.calculatorWakeUpCE = 3;
-    }
-
-    if (pref.containsKey('calculatorWakeUpSE')) {
-      settings.calculatorWakeUpSE = pref.getInt('calculatorWakeUpSE')!;
-    } else {
-      settings.calculatorWakeUpSE = 3;
-    }
-
-    calculatorWakeUpCEController.text = settings.calculatorWakeUpCE.toString();
-    calculatorWakeUpSEController.text = settings.calculatorWakeUpSE.toString();
+  void _setControllersFromSettings(Settings settings) {
+    calculatorWakeUpCEController.text = settings.calculatorWakeUpCE?.toString() ?? '';
+    calculatorWakeUpSEController.text = settings.calculatorWakeUpSE?.toString() ?? '';
     run(initState: true);
   }
 
