@@ -7,6 +7,7 @@ import 'package:propofol_dreams_app/models/operation.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:propofol_dreams_app/models/target.dart';
+import 'package:propofol_dreams_app/models/parameters.dart';
 
 class Simulation {
   Model model;
@@ -36,160 +37,16 @@ class Simulation {
     double k31,
     double ke0
   }) get variables {
-    // print('variables');
-    double k10 = 0,
-        k12 = 0,
-        k13 = 0,
-        k21 = 0,
-        k31 = 0,
-        ke0 = 0,
-        V1 = 0,
-        V2 = 0,
-        V3 = 0;
-    if (model == Model.Paedfusor) {
-      k10 = 0.1527 * pow(patient.weight, -0.3); // per min;
-      k12 = 0.114; // per min
-      k13 = 0.0419; // per min
-      k21 = 0.055; // per min
-      k31 = 0.0033; // per min
-      ke0 = 0.26; // per min
-
-      V1 = 0.4584 * patient.weight;
-      V2 = V1 * k12 / k21;
-      V3 = V1 * k13 / k31;
-
-      if (patient.age == 13) {
-        k10 = 0.0678; // per min
-
-        V1 = 0.4 * patient.weight;
-        V2 = V1 * k12 / k21;
-        V3 = V1 * k13 / k31;
-      } else if (patient.age == 14) {
-        k10 = 0.0792; // per min
-
-        V1 = 0.342 * patient.weight;
-        V2 = V1 * k12 / k21;
-        V3 = V1 * k13 / k31;
-      } else if (patient.age == 15) {
-        k10 = 0.0954; // per min
-
-        V1 = 0.284 * patient.weight;
-        V2 = V1 * k12 / k21;
-        V3 = V1 * k13 / k31;
-      } else if (patient.age == 16) {
-        k10 = 0.119; // per min
-
-        V1 = 0.22857 * patient.weight;
-        V2 = V1 * k12 / k21;
-        V3 = V1 * k13 / k31;
-      }
-    } else if (model == Model.Kataria) {
-      k10 = 0.085; // per min
-      k12 = 0.188; // per min
-      k13 = 0.063; // per min
-      k21 = 0.102; // per min
-      k31 = 0.0038; // per min
-      ke0 = 0; // per min
-
-      V1 = 0.41 * patient.weight;
-      V2 = 0.78 * patient.weight + 3.1 * patient.age;
-      V3 = 6.9 * patient.weight;
-    } else if (model == Model.Marsh) {
-      k10 = 0.119; // per min
-      k12 = 0.112; // per min
-      k13 = 0.042; // per min
-      k21 = 0.055; // per min
-      k31 = 0.0033; // per min
-      ke0 = 1.2; // per min
-
-      V1 = 0.228 * patient.weight;
-      V2 = 0.463 * patient.weight;
-      V3 = 2.893 * patient.weight;
-    } else if (model == Model.Schnider) {
-      V1 = 4.27; //litre
-      V2 = 18.9 - 0.391 * (patient.age - 53); //litre
-      V3 = 238.0; //litre
-
-      k10 = (0.443 +
-          0.0107 * (patient.weight - 77) -
-          0.0159 * (patient.lbm - 59) +
-          0.0062 * (patient.height - 177)); // per min
-
-      k12 = (0.302 - 0.0056 * (patient.age - 53)); // per min
-      k13 = 0.196; // per min
-      k21 = (1.29 - 0.024 * (patient.age - 53)) /
-          (18.9 - 0.391 * (patient.age - 53)); // per min
-      k31 = 0.0035; // per min
-      ke0 = 0.456; // per min
-      // t_half_keo = np.log(2) / (ke0 * steps_per_min) //deprecated
-    }
-    double Cl1 = k10 * V1; //litre / steps per min
-    double Cl2 = k21 * V2; //litre / steps per min
-    double Cl3 = k31 * V3; //litre / steps per min
-
-    if (model == Model.Eleveld) {
-      bool opioid = true; // arbitrarily set YES to intraop opioids
-
-      V1 = 6.28 * (patient.weight / (patient.weight + 33.6)) / (0.675675675676);
-      V2 = 25.5 * (patient.weight / 70) * exp(-0.0156 * (patient.age - 35));
-
-      V3 = 273 *
-          patient.ffm *
-          (opioid ? exp(-0.0138 * patient.age) : 1) /
-          54.4752059601377;
-
-      Cl1 = ((patient.sex == Sex.Male ? 1.79 : 2.1) *
-              (pow((patient.weight / 70), 0.75)) *
-              (pow(patient.pma, 9.06)) /
-              (pow(patient.pma, 9.06) + pow(42.3, 9.06))) *
-          (opioid ? exp(-0.00286 * patient.age) : 1);
-
-      Cl2 = 1.75 *
-          (pow(
-              ((25.5 *
-                      (patient.weight / 70) *
-                      exp(-0.0156 * (patient.age - 35))) /
-                  25.5),
-              0.75)) *
-          (1 + 1.3 * (1 - patient.pma / (patient.pma + 68.3)));
-
-      Cl3 = 1.11 *
-          (pow(
-              (patient.ffm *
-                  (opioid ? exp(-0.0138 * patient.age) : 1) /
-                  54.4752059601377),
-              0.75)) *
-          (patient.pma / (patient.pma + 68.3) / 0.964695544);
-
-      k10 = Cl1 / V1;
-      k12 = Cl2 / V1;
-      k13 = Cl3 / V1;
-      k21 = Cl2 / V2;
-      k31 = Cl3 / V3;
-      ke0 = 0.146 * pow((patient.weight / 70), -0.25);
-    }
-
-    double ce50 = 3.08 * exp(-0.00635 * (patient.age - 35));
-    double baselineBIS = 93;
-    double delayBIS = 15 + exp(0.0517 * (patient.age - 35));
-
-    return (
-      V1: V1,
-      V2: V2,
-      V3: V3,
-      k10: k10,
-      k12: k12,
-      k13: k13,
-      k21: k21,
-      k31: k31,
-      ke0: ke0,
-      Cl1: Cl1,
-      Cl2: Cl2,
-      Cl3: Cl3,
-      ce50: ce50,
-      baselineBIS: baselineBIS,
-      delayBIS: delayBIS,
+    // Use new PKParameters system for cleaner, more accurate calculations
+    final Sex sex = patient.sex;
+    final pkParams = model.calculatePKParameters(
+      sex: sex,
+      weight: patient.weight,
+      height: patient.height,
+      age: patient.age,
     );
+    
+    return pkParams.toSimulationRecord();
   }
 
   ({
