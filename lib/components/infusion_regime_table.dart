@@ -54,6 +54,23 @@ class ConfidenceIntervalRowData extends TableRowData {
   String? get highlightedValue => _highlightValue;
 }
 
+class DurationTableRowData extends TableRowData {
+  final String volume;
+  final String duration;
+  final bool isHighlighted;
+
+  DurationTableRowData(this.volume, this.duration, {this.isHighlighted = false});
+
+  @override
+  String get timeString => volume;
+
+  @override
+  List<String> get values => [duration];
+
+  @override
+  String? get highlightedValue => null;
+}
+
 // Generic animated data table (used by volume screen)
 class AnimatedDataTable extends StatefulWidget {
   final List<TableRowData> data;
@@ -341,6 +358,10 @@ class DataTable extends StatelessWidget {
           style: TextStyle(color: Colors.grey),
         ),
       );
+    }
+
+    if (maxVisibleRows == 0) {
+      return const SizedBox.shrink();
     }
 
     final theme = Theme.of(context);
@@ -664,8 +685,7 @@ class _AnimatedDosageTableState extends State<AnimatedDosageTable>
                 scale: Tween<double>(begin: 0.95, end: 1.0).animate(_contentAnimation),
                 child: DosageDataTable(
                   data: widget.data,
-                  maxVisibleRows: widget.maxVisibleRows,
-                ),
+              maxVisibleRows: widget.isExpanded ? widget.maxVisibleRows : 0,                ),
               ),
             ),
           ),

@@ -804,7 +804,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                               'Target ${(target + targetInterval).toStringAsFixed(1)}'
                             ]
                           : ['Target --', 'Target --', 'Target --'],
-                      maxVisibleRows: tableController.val ? 5 : 3,
+                      maxVisibleRows: tableController.val ? _calculateOptimalRowCount(screenHeight, true) : 0,
                       selectedRowIndex: settings.selectedVolumeTableRow,
                        onRowTap: (index) {
                          // Toggle selection: if same row is tapped, deselect it
@@ -822,7 +822,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   height: 0,
                 ),
           const SizedBox(
-            height: 32,
+            height: 16,
           ),
           SizedBox(
             width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
