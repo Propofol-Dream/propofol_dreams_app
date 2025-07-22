@@ -529,7 +529,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   width: 1,
                 ),
                 borderRadius: BorderRadius.circular(5),
-                color: Theme.of(context).colorScheme.surface,
+                color: Theme.of(context).colorScheme.onPrimary,
               ),
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
@@ -540,7 +540,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       style: TextStyle(
                         color: hasValidationError 
                             ? Theme.of(context).colorScheme.error
-                            : Theme.of(context).colorScheme.onSurface,
+                            : Theme.of(context).colorScheme.primary,
                         fontSize: 14,
                       ),
                     ),

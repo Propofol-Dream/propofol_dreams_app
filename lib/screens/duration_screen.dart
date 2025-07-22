@@ -52,8 +52,13 @@ class _DurationScreenState extends State<DurationScreen> {
     // Settings are already loaded - initialize controllers with final values
     final settings = context.read<Settings>();
     _setControllersFromSettings(settings);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     
-    // Run calculations to populate the table
+    // Run calculations to populate the table (after MediaQuery is available)
     run();
   }
 
