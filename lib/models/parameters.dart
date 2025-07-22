@@ -196,12 +196,12 @@ extension PKCalculation on Model {
     // V2 calculation  
     final double V2 = 25.5 * (weight / 70) * math.exp(-0.0156 * (age - 35));
     
-    // V3 calculation - full equation (more accurate than simulation.dart shortcut)
-    final double V3 = 273 * math.exp(-0.0138 * age) * 
-                      (sex * ((0.88 + (0.12) / (1 + math.pow(age / 13.4, -12.7))) * 
-                             (9270 * weight / (6680 + 216 * weight / (height / 100) * (height / 100)))) +
-                       (1 - sex) * ((1.11 + (-0.11) / (1 + math.pow(age / 7.1, -1.1))) *
-                                   (9270 * weight / (8780 + 244 * weight / (height / 100) * (height / 100))))) / 54.4752059601377;
+    // V3 calculation - using BMI like simulation.dart (matches original implementation)
+    final double bmi = weight / math.pow(height / 100, 2);
+    final double ffm = sex == 1 
+        ? (0.88 + (1 - 0.88) / (1 + math.pow(age / 13.4, -12.7))) * (9270 * weight / (6680 + 216 * bmi))
+        : (1.11 + (1 - 1.11) / (1 + math.pow(age / 7.1, -1.1))) * (9270 * weight / (8780 + 244 * bmi));
+    final double V3 = 273 * ffm * math.exp(-0.0138 * age) / 54.4752059601377;
     
     // PMA calculation (matches simulation.dart)
     final double pma = age * 52.143 + 40;
@@ -215,12 +215,8 @@ extension PKCalculation on Model {
     final double Cl2 = 1.75 * math.pow(((25.5 * (weight / 70) * math.exp(-0.0156 * (age - 35))) / 25.5), 0.75) *
                        (1 + 1.3 * (1 - pma / (pma + 68.3)));
                        
-    // Cl3 calculation - full equation (more accurate than simulation.dart)
-    final double Cl3 = 1.11 * math.pow(((sex * ((0.88 + (0.12) / (1 + math.pow(age / 13.4, -12.7))) *
-                                              (9270 * weight / (6680 + 216 * weight / (height / 100) * (height / 100)))) +
-                                       (1 - sex) * ((1.11 + (-0.11) / (1 + math.pow(age / 7.1, -1.1))) *
-                                                   (9270 * weight / (8780 + 244 * weight / (height / 100) * (height / 100))))) *
-                                       (opioid ? math.exp(-0.0138 * age) : 1) / 54.4752059601377), 0.75) *
+    // Cl3 calculation - using FFM like simulation.dart (matches original implementation)
+    final double Cl3 = 1.11 * math.pow((ffm * (opioid ? math.exp(-0.0138 * age) : 1) / 54.4752059601377), 0.75) *
                        (pma / (pma + 68.3) / 0.964695544);
 
     // Rate constants

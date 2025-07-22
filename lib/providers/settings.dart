@@ -105,7 +105,7 @@ class Settings with ChangeNotifier {
 
   set showMaxPumpRate(bool b) {
     _showMaxPumpRate = b;
-    setBool('_showMaxPumpRate', b);
+    setBool('showMaxPumpRate', b);
     notifyListeners();
   }
 
@@ -451,7 +451,7 @@ class Settings with ChangeNotifier {
 
   set EMInfusionRate(double? d) {
     _EMInfusionRate = d;
-    setDouble('_EMInfusionRate', d);
+    setDouble('EMInfusionRate', d);
     notifyListeners();
   }
 
@@ -487,7 +487,7 @@ class Settings with ChangeNotifier {
 
   set calculatorWakeUpSE(int? i) {
     _calculatorWakeUpSE = i;
-    setInt('EMObservedSE', i);
+    setInt('calculatorWakeUpSE', i);
     notifyListeners();
   }
 
@@ -566,11 +566,31 @@ class Settings with ChangeNotifier {
       if (_infusionRate != null) _prefs!.setDouble('infusionRate', _infusionRate!),
       _prefs!.setString('infusionUnit', _infusinUnit.toString()),
       _prefs!.setInt('currentScreenIndex', _currentScreenIndex),
+      
+      // EleMarsh screen settings
+      if (_EMSex != null) _prefs!.setString('EMSex', _EMSex.toString()),
+      if (_EMAge != null) _prefs!.setInt('EMAge', _EMAge!),
+      if (_EMHeight != null) _prefs!.setInt('EMHeight', _EMHeight!),
+      if (_EMWeight != null) _prefs!.setInt('EMWeight', _EMWeight!),
+      if (_EMTarget != null) _prefs!.setDouble('EMTarget', _EMTarget!),
+      if (_EMDuration != null) _prefs!.setInt('EMDuration', _EMDuration!),
+      if (_EMFlow != null) _prefs!.setString('EMFlow', _EMFlow!),
+      _prefs!.setString('EMWakeUpModel', _EMWakeUpModel.toString()),
+      if (_EMMaintenanceCe != null) _prefs!.setDouble('EMMaintenanceCe', _EMMaintenanceCe!),
+      if (_EMMaintenanceSE != null) _prefs!.setInt('EMMaintenanceSE', _EMMaintenanceSE!),
+      if (_EMInfusionRate != null) _prefs!.setDouble('EMInfusionRate', _EMInfusionRate!),
+      _prefs!.setBool('EMRSI', _EMRSI),
+      
+      // Test screen settings
+      if (_calculatorWakeUpCE != null) _prefs!.setDouble('calculatorWakeUpCE', _calculatorWakeUpCE!),
+      if (_calculatorWakeUpSE != null) _prefs!.setInt('calculatorWakeUpSE', _calculatorWakeUpSE!),
+      
+      // System settings
       _prefs!.setString('themeMode', _themeModeSelection.toString()),
       _prefs!.setBool('isDarkTheme', _isDarkTheme),
       _prefs!.setInt('time_step', _time_step),
       _prefs!.setInt('max_pump_rate_20230820', _max_pump_rate),
-      _prefs!.setBool('_showMaxPumpRate', _showMaxPumpRate),
+      _prefs!.setBool('showMaxPumpRate', _showMaxPumpRate),
     ]);
   }
 
@@ -592,7 +612,7 @@ class Settings with ChangeNotifier {
     _adultModel = _parseModelFromString(adultModelString) ?? Model.None;
     
     final adultSexString = pref.getString('adultSex');
-    _adultSex = adultSexString == 'Sex.Female' ? Sex.Female : Sex.Male;
+    _adultSex = _parseSexFromString(adultSexString) ?? Sex.Female;
     
     _adultAge = pref.getInt('adultAge') ?? 40;
     _adultHeight = pref.getInt('adultHeight') ?? 170;
@@ -605,7 +625,7 @@ class Settings with ChangeNotifier {
     _pediatricModel = _parseModelFromString(pediatricModelString) ?? Model.None;
     
     final pediatricSexString = pref.getString('pediatricSex');
-    _pediatricSex = pediatricSexString == 'Sex.Female' ? Sex.Female : Sex.Male;
+    _pediatricSex = _parseSexFromString(pediatricSexString) ?? Sex.Female;
     
     _pediatricAge = pref.getInt('pediatricAge') ?? 8;
     _pediatricHeight = pref.getInt('pediatricHeight') ?? 130;
@@ -622,7 +642,7 @@ class Settings with ChangeNotifier {
 
     // EleMarsh screen settings
     final emSexString = pref.getString('EMSex');
-    _EMSex = emSexString == 'Sex.Female' ? Sex.Female : Sex.Male;
+    _EMSex = _parseSexFromString(emSexString) ?? Sex.Female;
     
     _EMAge = pref.getInt('EMAge');
     _EMHeight = pref.getInt('EMHeight');
@@ -636,7 +656,7 @@ class Settings with ChangeNotifier {
     
     _EMMaintenanceCe = pref.getDouble('EMMaintenanceCe');
     _EMMaintenanceSE = pref.getInt('EMMaintenanceSE');
-    _EMInfusionRate = pref.getDouble('_EMInfusionRate');
+    _EMInfusionRate = pref.getDouble('EMInfusionRate');
     _EMRSI = pref.getBool('EMRSI') ?? false;
 
     // Home screen settings
@@ -644,12 +664,12 @@ class Settings with ChangeNotifier {
 
     // Test screen settings
     _calculatorWakeUpCE = pref.getDouble('calculatorWakeUpCE');
-    _calculatorWakeUpSE = pref.getInt('EMObservedSE');
+    _calculatorWakeUpSE = pref.getInt('calculatorWakeUpSE');
 
     // System settings
     _time_step = pref.getInt('time_step') ?? 1;
     _max_pump_rate = pref.getInt('max_pump_rate_20230820') ?? 1200;
-    _showMaxPumpRate = pref.getBool('_showMaxPumpRate') ?? false;
+    _showMaxPumpRate = pref.getBool('showMaxPumpRate') ?? false;
 
     // Theme settings
     final themeModeString = pref.getString('themeMode');
@@ -661,9 +681,11 @@ class Settings with ChangeNotifier {
   }
 
   /// Parse Model enum from string
+  /// Handles both new format ('Model.Marsh') and legacy format ('Marsh')
   Model? _parseModelFromString(String? modelString) {
     if (modelString == null) return null;
     switch (modelString) {
+      // New format (from .toString())
       case 'Model.Marsh':
         return Model.Marsh;
       case 'Model.Schnider':
@@ -674,20 +696,62 @@ class Settings with ChangeNotifier {
         return Model.Paedfusor;
       case 'Model.Kataria':
         return Model.Kataria;
+      case 'Model.None':
+        return Model.None;
+      // Legacy format (from old load() functions)
+      case 'Marsh':
+        return Model.Marsh;
+      case 'Schnider':
+        return Model.Schnider;
+      case 'Eleveld':
+        return Model.Eleveld;
+      case 'Paedfusor':
+        return Model.Paedfusor;
+      case 'Kataria':
+        return Model.Kataria;
       default:
         return Model.None;
     }
   }
 
+  /// Parse Sex enum from string
+  /// Handles both new format ('Sex.Female') and legacy format ('Female')
+  Sex? _parseSexFromString(String? sexString) {
+    if (sexString == null) return null;
+    switch (sexString) {
+      // New format (from .toString())
+      case 'Sex.Female':
+        return Sex.Female;
+      case 'Sex.Male':
+        return Sex.Male;
+      // Legacy format (from old load() functions)
+      case 'Female':
+        return Sex.Female;
+      case 'Male':
+        return Sex.Male;
+      default:
+        return Sex.Female; // Default to Female like original code
+    }
+  }
+
   /// Parse InfusionUnit enum from string
+  /// Handles both new format ('InfusionUnit.mg_kg_hr') and legacy format ('mg/kg/h')
   InfusionUnit? _parseInfusionUnitFromString(String? unitString) {
     if (unitString == null) return null;
     switch (unitString) {
+      // New format (from .toString())
       case 'InfusionUnit.mg_kg_hr':
         return InfusionUnit.mg_kg_hr;
       case 'InfusionUnit.mcg_kg_min':
         return InfusionUnit.mcg_kg_min;
       case 'InfusionUnit.mL_hr':
+        return InfusionUnit.mL_hr;
+      // Legacy format (from old load() functions)
+      case 'mg/kg/h':
+        return InfusionUnit.mg_kg_hr;
+      case 'mcg/kg/min':
+        return InfusionUnit.mcg_kg_min;
+      case 'mL/hr':
         return InfusionUnit.mL_hr;
       default:
         return InfusionUnit.mg_kg_hr;
