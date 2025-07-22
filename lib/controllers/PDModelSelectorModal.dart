@@ -67,7 +67,7 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
       // Adult view: show adult + universal models
       return [
         Model.Marsh,
-        Model.Schnider, 
+          Model.Schnider,
         Model.Eleveld,
       ];
     } else {
@@ -160,7 +160,7 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
                 ? Theme.of(context).colorScheme.primary
                 : evaluation.availability == ModelAvailability.warning
                     ? Colors.orange.shade50
-                    : Theme.of(context).colorScheme.surface,
+                    : Theme.of(context).colorScheme.onPrimary,
             foregroundColor: isSelected
                 ? Theme.of(context).colorScheme.onPrimary
                 : isDisabled
