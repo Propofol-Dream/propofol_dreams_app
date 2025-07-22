@@ -90,19 +90,24 @@ class PDAdvancedSegmentedController extends ChangeNotifier {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => PDModelSelectorModal(
-        controller: this,
-        inAdultView: inAdultView,
-        sexController: sexController,
-        ageController: ageController,
-        heightController: heightController,
-        weightController: weightController,
-        targetController: targetController,
-        durationController: durationController,
-        onModelSelected: onModelSelected,
+      enableDrag: true,
+      isDismissible: true,
+      useSafeArea: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: PDModelSelectorModal(
+          controller: this,
+          inAdultView: inAdultView,
+          sexController: sexController,
+          ageController: ageController,
+          heightController: heightController,
+          weightController: weightController,
+          targetController: targetController,
+          durationController: durationController,
+          onModelSelected: onModelSelected,
+        ),
       ),
     );
   }

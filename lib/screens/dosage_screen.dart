@@ -1,19 +1,19 @@
 import 'dart:async';
 import 'dart:io' show Platform;
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
-import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
+import 'package:propofol_dreams_app/models/infusion_regime_data.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
+import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
-import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:propofol_dreams_app/models/target.dart';
+import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 
 import '../constants.dart';
 import '../components/infusion_regime_table.dart';
@@ -22,10 +22,30 @@ import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 import 'package:propofol_dreams_app/controllers/PDSwitchController.dart';
 import 'package:propofol_dreams_app/controllers/PDSwitchField.dart';
 import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedController.dart';
-import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedControl.dart';
 
+class DosageScreen extends StatefulWidget {
+  const DosageScreen({super.key});
 
-class _VolumeScreenState extends State<VolumeScreen> {
+  @override
+  State<DosageScreen> createState() => _DosageScreenState();
+}
+
+class PDTableController extends ChangeNotifier {
+  PDTableController();
+
+  bool _val = true;
+
+  bool get val {
+    return _val;
+  }
+
+  set val(bool v) {
+    _val = v;
+    notifyListeners();
+  }
+}
+
+class _DosageScreenState extends State<DosageScreen> {
   final PDAdvancedSegmentedController adultModelController =
       PDAdvancedSegmentedController();
   final PDAdvancedSegmentedController pediatricModelController =
@@ -42,47 +62,41 @@ class _VolumeScreenState extends State<VolumeScreen> {
   final List<Model> modelOptions = [];
   Timer timer = Timer(Duration.zero, () {});
   Duration delay = const Duration(milliseconds: 500);
-  bool _shouldAnimateTableExpansion = false;
+  String? _lastDebugOutput; // Track last debug output to avoid duplicates
 
-  double targetInterval = 0.5;
-  int durationInterval = 10; //in mins
-
-  String result = '   mL';
-  String emptyResult = '-- mL';
-  List PDTableRows = [];
-  List EmptyTableRows = [
-    [
-      '--',
-      '--',
-      '--',
-      '--',
-    ],
-    [
-      '--',
-      '--',
-      '--',
-      '--',
-    ],
-    [
-      '--',
-      '--',
-      '--',
-      '--',
-    ]
-  ];
+  InfusionRegimeData? infusionRegimeData;
+  String result = '';
+  String emptyResult = '';
 
   @override
   void initState() {
     super.initState();
     
-    // Settings are already loaded - initialize controllers with final values
     final settings = context.read<Settings>();
     _setControllersFromSettings(settings);
     
+    // Removed automatic listeners - now using event-driven approach
+    // adultModelController.addListener(calculate);
+    // pediatricModelController.addListener(calculate);
+    // sexController.addListener(calculate);
+    ageController.addListener(_onTextFieldChanged);
+    heightController.addListener(_onTextFieldChanged);
+    weightController.addListener(_onTextFieldChanged);
+    targetController.addListener(_onTextFieldChanged);
+    durationController.addListener(_onTextFieldChanged);
+
+    modelOptions.addAll([
+      Model.Schnider,
+      Model.Eleveld,
+      Model.Kataria,
+      Model.Paedfusor,
+      Model.Eleveld,
+    ]);
+
     // Restore table scroll position
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (settings.volumeTableScrollPosition != null && tableScrollController.hasClients) {
-        tableScrollController.jumpTo(settings.volumeTableScrollPosition!);
+      if (settings.dosageTableScrollPosition != null && tableScrollController.hasClients) {
+        tableScrollController.jumpTo(settings.dosageTableScrollPosition!);
       }
     });
     
@@ -90,122 +104,42 @@ class _VolumeScreenState extends State<VolumeScreen> {
     tableScrollController.addListener(() {
       if (tableScrollController.hasClients) {
         final settings = context.read<Settings>();
-        settings.volumeTableScrollPosition = tableScrollController.offset;
+        settings.dosageTableScrollPosition = tableScrollController.offset;
       }
     });
-    
+
     updateModelOptions(settings.inAdultView);
-    run(initState: true);
+    calculate();
   }
 
   void _setControllersFromSettings(Settings settings) {
-    tableController.val = settings.isVolumeTableExpanded;
+    tableController.val = true; // Always keep table expanded
 
     if (settings.inAdultView) {
       adultModelController.selection = settings.adultModel;
       sexController.val = settings.adultSex == Sex.Female ? true : false;
-      ageController.text = settings.adultAge?.toString() ?? '';
-      heightController.text = settings.adultHeight?.toString() ?? '';
-      weightController.text = settings.adultWeight?.toString() ?? '';
-      targetController.text = settings.adultTarget?.toString() ?? '';
-      durationController.text = settings.adultDuration?.toString() ?? '';
+      ageController.text = settings.adultAge?.toString() ?? '40';
+      heightController.text = settings.adultHeight?.toString() ?? '170';
+      weightController.text = settings.adultWeight?.toString() ?? '70';
+      targetController.text = settings.adultTarget?.toString() ?? '3.0';
+      durationController.text = settings.adultDuration?.toString() ?? '80';
     } else {
       pediatricModelController.selection = settings.pediatricModel;
       sexController.val = settings.pediatricSex == Sex.Female ? true : false;
-      ageController.text = settings.pediatricAge?.toString() ?? '';
-      heightController.text = settings.pediatricHeight?.toString() ?? '';
-      weightController.text = settings.pediatricWeight?.toString() ?? '';
-      targetController.text = settings.pediatricTarget?.toString() ?? '';
-      durationController.text = settings.pediatricDuration?.toString() ?? '';
+      ageController.text = settings.pediatricAge?.toString() ?? '8';
+      heightController.text = settings.pediatricHeight?.toString() ?? '130';
+      weightController.text = settings.pediatricWeight?.toString() ?? '26';
+      targetController.text = settings.pediatricTarget?.toString() ?? '3.0';
+      durationController.text = settings.pediatricDuration?.toString() ?? '60';
     }
   }
 
-  @override
-  void dispose() {
-    scrollController.dispose();
-    tableScrollController.dispose();
-    super.dispose();
-  }
-
-
-  void updateRowsAndResult({cols, times}) {
-    List col1 = cols[0];
-    List col2 = cols[1];
-    List col3 = cols[2];
-    List durations = times;
-
-    int durationPlusInterval =
-        int.parse(durationController.text) + 2 * durationInterval;
-
-    List<String> resultsCol1 = [];
-    List<String> resultsCol2 = [];
-    List<String> resultsCol3 = [];
-    List<String> resultDuration = [];
-
-    for (int i = durationPlusInterval;
-        i >= kMinDuration;
-        i -= durationInterval) {
-      int index = durations.indexWhere((element) {
-        if ((element as Duration).inSeconds == i * 60) {
-          return true;
-        }
-        return false;
-      });
-
-      // Format time like infusion regime table: H:MM
-      final duration = durations[index] as Duration;
-      final hours = duration.inHours;
-      final minutes = duration.inMinutes.remainder(60);
-      final timeString = '${hours.toString().padLeft(1, '0')}:${minutes.toString().padLeft(2, '0')}';
-      resultDuration.add(timeString);
-      resultsCol1.add('${col1[index].toStringAsFixed(numOfDigits)} mL');
-      resultsCol2.add('${col2[index].toStringAsFixed(numOfDigits)} mL');
-      resultsCol3.add('${col3[index].toStringAsFixed(numOfDigits)} mL');
-
-      if (i == durationPlusInterval - 2 * durationInterval) {
-        updateResultLabel(col2[index]);
-      }
-    }
-
-    //if duration is greater than 5 mins, add extra row for the 5th mins
-    if (durationPlusInterval - 2 * durationInterval >= kMinDuration) {
-      int index = durations.indexWhere((element) {
-        if ((element as Duration).inSeconds == kMinDuration * 60) {
-          return true;
-        }
-        return false;
-      });
-
-      // Format time like infusion regime table: H:MM
-      final duration = durations[index] as Duration;
-      final hours = duration.inHours;
-      final minutes = duration.inMinutes.remainder(60);
-      final timeString = '${hours.toString().padLeft(1, '0')}:${minutes.toString().padLeft(2, '0')}';
-      
-      if (!resultDuration.contains(timeString)) {
-        resultDuration.add(timeString);
-        resultsCol1.add('${col1[index].toStringAsFixed(numOfDigits)} mL');
-        resultsCol2.add('${col2[index].toStringAsFixed(numOfDigits)} mL');
-        resultsCol3.add('${col3[index].toStringAsFixed(numOfDigits)} mL');
-      }
-    }
-
-    List resultRows = [];
-    for (int i = 0; i < resultDuration.length; i++) {
-      var row = [
-        resultDuration[i],
-        resultsCol1[i],
-        resultsCol2[i],
-        resultsCol3[i]
-      ];
-      resultRows.add(row);
-    }
-    PDTableRows = resultRows;
-  }
-
-  void run({initState = false}) {
+  void _saveToSettings() {
+    if (!mounted) return;
+    
     final settings = Provider.of<Settings>(context, listen: false);
-
+    
+    // Save current values to settings
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
@@ -213,222 +147,159 @@ class _VolumeScreenState extends State<VolumeScreen> {
     int? duration = int.tryParse(durationController.text);
     Sex sex = sexController.val ? Sex.Female : Sex.Male;
 
-    if (initState == false) {
-      if (settings.inAdultView) {
-        settings.adultModel = adultModelController.selection;
-        settings.adultSex = sex;
-        settings.adultAge = age;
-        settings.adultHeight = height;
-        settings.adultWeight = weight;
-        settings.adultTarget = target;
-        settings.adultDuration = duration;
-      } else {
-        settings.pediatricModel = pediatricModelController.selection;
-        settings.pediatricSex = sex;
-        settings.pediatricAge = age;
-        settings.pediatricHeight = height;
-        settings.pediatricWeight = weight;
-        settings.pediatricTarget = target;
-        settings.pediatricDuration = duration;
-      }
-    }
-
-    //Check whether Age is null, if so, clear all adult & peadiatric models to Model.None
-    //If Age is not null, check whether other input fiels are null
-    //If all input fields are not null and Age is >0, select the model, and check whether the model is Runnable
-    //If model is runnable, run the model except Model.None
-
-    // print('Age != null');
-
-    if (age != null &&
-        height != null &&
-        weight != null &&
-        target != null &&
-        duration != null) {
-      if (age >= 0 &&
-          height >= 0 &&
-          weight >= 0 &&
-          target >= 0 &&
-          duration >= 0) {
-        Model model = age >= 17 ? settings.adultModel : settings.pediatricModel;
-
-        if (model != Model.None) {
-          // print('model != Model.None');
-
-          if (model.isEnable(age: age, height: height, weight: weight) &&
-              target <= kMaxTarget &&
-              target >= kMinTarget &&
-              duration <= kMaxDuration &&
-              duration >= kMinDuration) {
-            // print('model is enable');
-
-            if (model.checkConstraints(
-                weight: weight,
-                height: height,
-                age: age,
-                sex: sex)['assertion'] as bool) {
-              // print('model pass constraints');
-
-              DateTime start = DateTime.now();
-
-              Patient patient = Patient(
-                  weight: weight, age: age, height: height, sex: sex);
-
-              Pump pump = Pump(
-                  timeStep: Duration(seconds: settings.time_step),
-                  density: settings.density,
-                  maxPumpRate: settings.max_pump_rate,
-                  target: target,
-                  duration: Duration(minutes: duration));
-
-              Pump pump1 = Pump(
-                  timeStep: Duration(seconds: settings.time_step),
-                  density: settings.density,
-                  maxPumpRate: settings.max_pump_rate,
-                  target: target - targetInterval,
-                  duration: Duration(minutes: duration + 2 * durationInterval));
-
-              Pump pump2 = Pump(
-                  timeStep: Duration(seconds: settings.time_step),
-                  density: settings.density,
-                  maxPumpRate: settings.max_pump_rate,
-                  target: target,
-                  duration: Duration(minutes: duration + 2 * durationInterval));
-
-              Pump pump3 = Pump(
-                  timeStep: Duration(seconds: settings.time_step),
-                  density: settings.density,
-                  maxPumpRate: settings.max_pump_rate,
-                  target: target + targetInterval,
-                  duration: Duration(minutes: duration + 2 * durationInterval));
-
-              PDSim.Simulation sim1 = PDSim.Simulation(
-                  model: model,
-                  patient: patient,
-                  pump: pump1);
-
-              PDSim.Simulation sim2 = PDSim.Simulation(
-                  model: model,
-                  patient: patient,
-                  pump: pump2);
-
-              PDSim.Simulation sim3 = PDSim.Simulation(
-                  model: model,
-                  patient: patient,
-                  pump: pump3);
-
-              var results1 = sim1.estimate;
-
-              var results2 = sim2.estimate;
-
-              var results3 = sim3.estimate;
-
-              DateTime finish = DateTime.now();
-
-              Duration calculationDuration = finish.difference(start);
-
-              print({
-                'model': model,
-                'patient': patient,
-                'pump': pump,
-                'calcuation time':
-                    '${calculationDuration.inMilliseconds.toString()} milliseconds'
-              });
-
-              setState(() {
-                updateRowsAndResult(cols: [
-                  results1.cumulativeInfusedVolumes,
-                  results2.cumulativeInfusedVolumes,
-                  results3.cumulativeInfusedVolumes
-                ], times: results2.times);
-              });
-            } else {
-              // print('Model does not meet its constraint');
-
-              setState(() {
-                result = emptyResult;
-                PDTableRows = EmptyTableRows;
-                // print(result);
-              });
-            }
-          } else {
-            // print('Model is not enable');
-            setState(() {
-              result = emptyResult;
-              PDTableRows = EmptyTableRows;
-              // print(result);
-            });
-          }
-        } else {
-          // print('Selected Model = Model.None');
-          setState(() {
-            result = emptyResult;
-            PDTableRows = EmptyTableRows;
-            // print(result);
-          });
-        }
-      } else {
-        // print('Age <0');
-        setState(() {
-          result = emptyResult;
-          PDTableRows = EmptyTableRows;
-          // print(result);
-        });
-      }
+    if (settings.inAdultView) {
+      settings.adultModel = adultModelController.selection;
+      settings.adultSex = sex;
+      settings.adultAge = age;
+      settings.adultHeight = height;
+      settings.adultWeight = weight;
+      settings.adultTarget = target;
+      settings.adultDuration = duration;
     } else {
-      // print('Some fields == null');
-      setState(() {
-        result = emptyResult;
-        PDTableRows = EmptyTableRows;
-        // print(result);
-      });
+      settings.pediatricModel = pediatricModelController.selection;
+      settings.pediatricSex = sex;
+      settings.pediatricAge = age;
+      settings.pediatricHeight = height;
+      settings.pediatricWeight = weight;
+      settings.pediatricTarget = target;
+      settings.pediatricDuration = duration;
     }
-    // print('run ends');
   }
 
-  void updateResultLabel(double d) {
-    // print(i);
-    setState(() {
-      result = '${d.toStringAsFixed(numOfDigits)} mL';
-      // print(result);
+  void updateModelOptions(bool inAdultView) {
+    // Update model options based on adult/pediatric view
+  }
+
+  void _onTextFieldChanged() {
+    // Debounced timer: Cancel previous timer and start new one
+    // This prevents calculate() from running on every keystroke
+    timer.cancel();
+    timer = Timer(delay, () {
+      calculate(); // Only runs after user stops typing for 500ms
     });
+  }
+
+  void calculate() {
+    try {
+      // Defer settings updates to avoid build phase conflicts
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _saveToSettings();
+      });
+
+      DateTime start = DateTime.now();
+
+      final settings = Provider.of<Settings>(context, listen: false);
+      final finalAge = int.tryParse(ageController.text) ?? 40;
+      final finalHeight = int.tryParse(heightController.text) ?? 170;
+      final finalWeight = int.tryParse(weightController.text) ?? 70;
+      final finalTarget = double.tryParse(targetController.text) ?? 3.0;
+      final finalDuration = int.tryParse(durationController.text) ?? 80;
+      final sex = sexController.val ? Sex.Female : Sex.Male;
+      
+      // Get current model
+      final model = settings.inAdultView 
+          ? adultModelController.selection 
+          : pediatricModelController.selection;
+
+      // Create patient object for debugging (similar to volume screen)
+      final patient = Patient(
+        weight: finalWeight, 
+        age: finalAge, 
+        height: finalHeight, 
+        sex: sex
+      );
+
+      // Only calculate if we have a valid model and all required parameters
+      if (model != Model.None && 
+          model.isRunnable(
+            age: finalAge,
+            height: finalHeight,
+            weight: finalWeight,
+            target: finalTarget,
+            duration: finalDuration,
+          )) {
+        
+        // Create pump configuration (matching volume screen pattern)
+        final pump = Pump(
+          timeStep: Duration(seconds: settings.time_step),
+          density: settings.density,
+          maxPumpRate: settings.max_pump_rate,
+          target: finalTarget,
+          duration: Duration(minutes: finalDuration),
+        );
+
+        // Run real pharmacokinetic simulation
+        PDSim.Simulation simulation = PDSim.Simulation(
+          model: model,
+          patient: patient,
+          pump: pump,
+        );
+
+        var results = simulation.estimate;
+        
+        setState(() {
+          infusionRegimeData = InfusionRegimeData.fromSimulation(
+            times: results.times,
+            pumpInfs: results.pumpInfs,
+            cumulativeInfusedVolumes: results.cumulativeInfusedVolumes,
+            density: 10,
+            totalDuration: Duration(minutes: finalDuration),
+          );
+        });
+      } else {
+        // Clear data if model is not runnable
+        setState(() {
+          infusionRegimeData = null;
+        });
+      }
+
+      DateTime finish = DateTime.now();
+      Duration calculationDuration = finish.difference(start);
+
+      // Create debug output string
+      final debugOutput = 'Dosage: $model, Patient(${sex.name}, ${finalAge}y, ${finalHeight}cm, ${finalWeight}kg), Target: $finalTarget, Duration: ${finalDuration}min';
+      
+      // Only print if output has changed (avoid spam)
+      if (_lastDebugOutput != debugOutput) {
+        _lastDebugOutput = debugOutput;
+        print({
+          'screen': 'Dosage',
+          'model': model,
+          'patient': patient,
+          'target': finalTarget,
+          'duration': finalDuration,
+          'calculation time': '${calculationDuration.inMilliseconds.toString()} milliseconds',
+          'bolus': infusionRegimeData?.totalBolus.toStringAsFixed(1) ?? '0.0',
+          'total_volume': infusionRegimeData?.totalVolume.toStringAsFixed(1) ?? '0.0',
+          'max_rate': infusionRegimeData?.maxInfusionRate.toStringAsFixed(1) ?? '0.0'
+        });
+      }
+    } catch (e) {
+      debugPrint('Calculation error: $e');
+    }
   }
 
   void updatePDTableController(PDTableController controller) {
     final settings = Provider.of<Settings>(context, listen: false);
     settings.isVolumeTableExpanded = !settings.isVolumeTableExpanded;
-
     setState(() {
-      _shouldAnimateTableExpansion = true; // Enable animation for button tap
       controller.val = settings.isVolumeTableExpanded;
-    });
-    
-    // Reset animation flag after a short delay to ensure it's used for this update only
-    Future.delayed(const Duration(milliseconds: 50), () {
-      if (mounted) {
-        setState(() {
-          _shouldAnimateTableExpansion = false;
-        });
-      }
     });
   }
 
-  void updateModelOptions(bool inAdultView) {
-    modelOptions.clear();
-    if (inAdultView) {
-      modelOptions.add(Model.Marsh);
-      modelOptions.add(Model.Schnider);
-      modelOptions.add(Model.Eleveld);
-    } else {
-      modelOptions.add(Model.Paedfusor);
-      modelOptions.add(Model.Kataria);
-      modelOptions.add(Model.Eleveld);
+  void updatePDTextEditingController() {
+    final settings = Provider.of<Settings>(context, listen: false);
+    int? age = int.tryParse(ageController.text);
+    if (age != null) {
+      settings.inAdultView = age >= 17 ? true : false;
     }
+    updateModelOptions(settings.inAdultView);
+    calculate();
   }
 
   void reset({bool toDefault = false}) {
     final settings = Provider.of<Settings>(context, listen: false);
-
+    
     if (settings.inAdultView) {
       sexController.val = toDefault
           ? true
@@ -456,7 +327,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ? settings.adultTarget.toString()
               : '';
       durationController.text = toDefault
-          ? 60.toString()
+          ? 80.toString()
           : settings.adultDuration != null
               ? settings.adultDuration.toString()
               : '';
@@ -494,51 +365,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     }
 
     updateModelOptions(settings.inAdultView);
-    run();
-  }
-
-  void updatePDSegmentedController(dynamic s) {
-    run();
-  }
-
-  void updatePDTextEditingController() {
-    final settings = Provider.of<Settings>(context, listen: false);
-    int? age = int.tryParse(ageController.text);
-    if (age != null) {
-      settings.inAdultView = age >= 17 ? true : false;
-    }
-    updateModelOptions(settings.inAdultView);
-    run();
-  }
-
-  void restart() {
-    final settings = Provider.of<Settings>(context, listen: false);
-    updateModelOptions(settings.inAdultView);
-    run();
-  }
-
-  List<ConfidenceIntervalRowData> _buildConfidenceIntervalData(bool modelIsRunnable) {
-    final rows = modelIsRunnable ? PDTableRows : EmptyTableRows;
-    return rows.map<ConfidenceIntervalRowData>((row) {
-      final List<String> rowData = row.cast<String>();
-      return ConfidenceIntervalRowData(
-        rowData, 
-        highlightValue: result.contains(rowData.length > 2 ? rowData[2] : '') ? rowData[2] : null,
-      );
-    }).toList();
-  }
-
-  int _calculateOptimalRowCount(double screenHeight, bool isTableExpanded) {
-    // Be more conservative to prevent overflow
-    if (screenHeight < 600) {
-      return 3; // Small screens - keep it safe
-    } else if (screenHeight < 800) {
-      return 4; // Medium screens
-    } else if (screenHeight < 1000) {
-      return 5; // Large screens
-    } else {
-      return 6; // Very large screens
-    }
+    calculate();
   }
 
   Widget buildModelSelector(Settings settings, double UIHeight) {
@@ -568,7 +395,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
           TextField(
             enabled: true,
             readOnly: true,
-            controller: TextEditingController(text: currentModel?.toString() ?? 'Select Model'),
+            controller: TextEditingController(text: currentModel?.name ?? 'Select Model'),
             style: TextStyle(
               color: hasValidationError 
                 ? Theme.of(context).colorScheme.error
@@ -586,9 +413,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ),
               prefixIcon: Icon(
                 Symbols.modeling,
-                color: hasValidationError
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.primary,
+                color: hasValidationError 
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.primary,
               ),
               labelText: AppLocalizations.of(context)!.model,
               labelStyle: TextStyle(
@@ -621,30 +448,29 @@ class _VolumeScreenState extends State<VolumeScreen> {
             child: GestureDetector(
               onTap: () async {
                 await HapticFeedback.lightImpact();
-                final controller = settings.inAdultView ? adultModelController : pediatricModelController;
-                controller.showModelSelector(
-                  context: context,
-                  inAdultView: settings.inAdultView,
-                  sexController: sexController,
-                  ageController: ageController,
-                  heightController: heightController,
-                  weightController: weightController,
-                  targetController: targetController,
-                  durationController: durationController,
-                  onModelSelected: (model) {
-                    setState(() {
-                      if (settings.inAdultView) {
-                        adultModelController.selection = model;
-                        settings.adultModel = model;
-                      } else {
-                        pediatricModelController.selection = model;
-                        settings.pediatricModel = model;
-                      }
-                    });
-                    controller.selection = model;
-                    updatePDSegmentedController(model);
-                  },
-                );
+                (settings.inAdultView ? adultModelController : pediatricModelController)
+                  .showModelSelector(
+                    context: context,
+                    inAdultView: settings.inAdultView,
+                    sexController: sexController,
+                    ageController: ageController,
+                    heightController: heightController,
+                    weightController: weightController,
+                    targetController: targetController,
+                    durationController: durationController,
+                    onModelSelected: (model) {
+                      setState(() {
+                        if (settings.inAdultView) {
+                          adultModelController.selection = model;
+                          settings.adultModel = model;
+                        } else {
+                          pediatricModelController.selection = model;
+                          settings.pediatricModel = model;
+                        }
+                      });
+                      calculate();
+                    },
+                  );
               },
             ),
           ),
@@ -654,11 +480,19 @@ class _VolumeScreenState extends State<VolumeScreen> {
   }
 
   @override
+  void dispose() {
+    // Note: PDSwitchController, PDAdvancedSegmentedController, and TextEditingControllers 
+    // used with PD widgets are disposed by their respective widgets
+    // Only dispose controllers that are not managed by PD widgets
+    scrollController.dispose();
+    tableScrollController.dispose();
+    timer.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-
-    // print(mediaQuery.size.height);
-
     final double UIHeight = mediaQuery.size.aspectRatio >= 0.455
         ? mediaQuery.size.height >= screenBreakPoint1
             ? 56
@@ -666,42 +500,36 @@ class _VolumeScreenState extends State<VolumeScreen> {
         : 48;
     final double UIWidth =
         (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
-
     final double screenHeight = mediaQuery.size.height -
         (Platform.isAndroid
             ? 48
             : mediaQuery.size.height >= screenBreakPoint1
                 ? 88
                 : 56);
-
+    
     final settings = context.watch<Settings>();
-
-    int density = settings.density;
-
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
     int? duration = int.tryParse(durationController.text);
     double? target = double.tryParse(targetController.text);
-
+    
     adultModelController.selection = settings.adultModel;
     pediatricModelController.selection = settings.pediatricModel;
-
     Model selectedModel = settings.inAdultView
         ? adultModelController.selection
         : pediatricModelController.selection;
-
+    
     bool modelIsRunnable = selectedModel.isRunnable(
         age: age,
         height: height,
         weight: weight,
         target: target,
         duration: duration);
-
+    
     final bool heightTextFieldEnabled = settings.inAdultView
         ? (adultModelController.selection as Model).target != Target.Plasma
         : (pediatricModelController.selection as Model).target != Target.Plasma;
-
     final bool sexSwitchControlEnabled = settings.inAdultView
         ? (adultModelController.selection as Model).target != Target.Plasma
         : (pediatricModelController.selection as Model).target != Target.Plasma;
@@ -716,12 +544,14 @@ class _VolumeScreenState extends State<VolumeScreen> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
+          // Top half - Results area
           Expanded(
             child: Column(
               children: [
                 Expanded(
                   child: Container(),
                 ),
+                // Adult/Paed chip
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -739,6 +569,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         }
                         settings.inAdultView = !settings.inAdultView;
                         reset();
+                        calculate(); // Ensure calculation runs after toggle
                       },
                       child: Chip(
                         avatar: settings.inAdultView
@@ -760,70 +591,46 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     ),
                   ],
                 ),
+                // Expand button and result text
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    mediaQuery.size.height >= screenBreakPoint1
-                        ? IconButton(
-                            onPressed: () async {
-                              await HapticFeedback.mediumImpact();
-                              updatePDTableController(tableController);
-                            },
-                            icon: tableController.val
-                                ? const Icon(Icons.expand_more)
-                                : const Icon(Icons.expand_less))
-                        : Container(),
-                    AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.fastOutSlowIn,
-                      style: TextStyle(
-                        fontSize: tableController.val ? 34 : 60,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      child: Text(
-                        modelIsRunnable ? result : emptyResult,
-                      ),
-                    )
+                    Container(), // Removed expand/collapse button
+                    Container(), // Removed text display
                   ],
                 ),
               ],
             ),
           ),
+          // Infusion regime table (fixed position above inputs)
           mediaQuery.size.height >= screenBreakPoint1
-              ? Consumer<Settings>(
-                  builder: (context, settings, child) {
-                    return AnimatedDataTable(
-                      isExpanded: tableController.val,
-                      data: _buildConfidenceIntervalData(modelIsRunnable),
-                      headers: modelIsRunnable
-                          ? [
-                              (target! - targetInterval) >= 0
-                                  ? 'Target ${(target - targetInterval).toStringAsFixed(1)}'
-                                  : 'Target ${0.toStringAsFixed(1)}',
-                              'Target ${target.toStringAsFixed(1)}',
-                              'Target ${(target + targetInterval).toStringAsFixed(1)}'
-                            ]
-                          : ['Target --', 'Target --', 'Target --'],
-                      maxVisibleRows: tableController.val ? 5 : 3,
-                      selectedRowIndex: settings.selectedVolumeTableRow,
-                       onRowTap: (index) {
-                         // Toggle selection: if same row is tapped, deselect it
-                         if (settings.selectedVolumeTableRow == index) {
-                           settings.selectedVolumeTableRow = null;
-                         } else {
-                           settings.selectedVolumeTableRow = index;
-                         }
+              ? Container(
+                  child: infusionRegimeData != null
+                    ? Consumer<Settings>(
+                        builder: (context, settings, child) {
+                          return DosageDataTable(
+                            data: infusionRegimeData!,
+                            maxVisibleRows: 5,
+                            selectedRowIndex: settings.selectedDosageTableRow,
+                            onRowTap: (index) {
+                              // Toggle selection: if same row is tapped, deselect it
+                              if (settings.selectedDosageTableRow == index) {
+                                settings.selectedDosageTableRow = null;
+                              } else {
+                                settings.selectedDosageTableRow = index;
+                              }
+                            },
+                            scrollController: tableScrollController,
+                          );
                         },
-                        scrollController: tableScrollController,
-                        animate: _shouldAnimateTableExpansion,
-                      );                  },
+                      )
+                    : Container(),
                 )
               : const SizedBox(
                   height: 0,
                 ),
-          const SizedBox(
-            height: 32,
-          ),
+          const SizedBox(height: 16),
+          // Bottom half - Fixed input area (doesn't move when table expands)
           SizedBox(
             width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
             child: Row(
@@ -842,8 +649,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                         shape: RoundedRectangleBorder(
                             side: BorderSide(
                               color: Theme.of(context).colorScheme.primary,
-                              // strokeAlign: StrokeAlign.outside, //depreicated in flutter 3.7
-                              strokeAlign: BorderSide.strokeAlignOutside,
+                              strokeAlign: BorderSide.strokeAlignInside,
                             ),
                             borderRadius: const BorderRadius.all(Radius.circular(5))),
                       ),
@@ -856,9 +662,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
+          // Sex and Age row
           SizedBox(
             height: UIHeight + 24,
             child: Row(
@@ -876,8 +681,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       true: settings.inAdultView ? Sex.Female.toLocalizedString(context): Sex.Girl.toLocalizedString(context),
                       false: settings.inAdultView ? Sex.Male.toLocalizedString(context): Sex.Boy.toLocalizedString(context)
                     },
-                    // helperText: '',
-                    onChanged: run,
+                    onChanged: calculate,
                     height: UIHeight,
                     enabled: sexSwitchControlEnabled,
                   ),
@@ -891,7 +695,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   child: PDTextField(
                     prefixIcon: Icons.calendar_month,
                     labelText: AppLocalizations.of(context)!.age,
-                    // helperText: '',
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: ageController,
@@ -907,9 +710,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
+          // Height and Weight row
           SizedBox(
             height: UIHeight + 24,
             child: Row(
@@ -920,7 +722,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   child: PDTextField(
                     prefixIcon: Icons.straighten,
                     labelText: '${AppLocalizations.of(context)!.height} (cm)',
-                    // helperText: '',
                     interval: 1,
                     fractionDigits: 0,
                     controller: heightController,
@@ -938,24 +739,18 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   child: PDTextField(
                     prefixIcon: Icons.monitor_weight_outlined,
                     labelText: '${AppLocalizations.of(context)!.weight} (kg)',
-                    // helperText: '',
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: weightController,
                     range: [selectedModel.minWeight, selectedModel.maxWeight],
                     onPressed: updatePDTextEditingController,
-                    // onChanged: restart,
-                    // onLongPressedStart: onLongPressStartUpdatePDTextEditingController,
-                    // onLongPressedEnd: onLongPressCancelledPDTextEditingController,
-                    // timer: timer,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
+          // Target and Duration row
           SizedBox(
             height: UIHeight + 24,
             child: Row(
@@ -966,13 +761,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   child: PDTextField(
                     prefixIcon: Icons.psychology_alt_outlined,
                     labelText: selectedModel.target.toLocalizedString(context),
-                    // helperText: '',
                     interval: 0.5,
                     fractionDigits: 1,
                     controller: targetController,
                     range: const [kMinTarget, kMaxTarget],
                     onPressed: updatePDTextEditingController,
-                    // onChanged: restart,
                   ),
                 ),
                 const SizedBox(
@@ -983,9 +776,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   width: UIWidth,
                   child: PDTextField(
                     prefixIcon: Icons.schedule,
-                    // labelText: 'Duration in minutes',
                     labelText: '${AppLocalizations.of(context)!.duration} (${AppLocalizations.of(context)!.min})',
-                    // helperText: '',
                     interval: double.tryParse(durationController.text) != null
                         ? double.parse(durationController.text) >= 60
                             ? 10
@@ -995,45 +786,14 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     controller: durationController,
                     range: const [kMinDuration, kMaxDuration],
                     onPressed: updatePDTextEditingController,
-                    // onChanged: restart,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
         ],
       ),
     );
   }
 }
-
-class VolumeScreen extends StatefulWidget {
-  const VolumeScreen({super.key});
-
-  @override
-  State<VolumeScreen> createState() => _VolumeScreenState();
-}
-
-class PDTableController extends ChangeNotifier {
-  PDTableController();
-
-  bool _val = true;
-
-  bool get val {
-    return _val;
-  }
-
-  set val(bool v) {
-    _val = v;
-    notifyListeners();
-  }
-}
-
-
-
-
-
-

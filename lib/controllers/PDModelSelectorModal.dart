@@ -148,7 +148,7 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
                   await HapticFeedback.mediumImpact();
                   // Directly select and close modal
                   widget.onModelSelected(model);
-                  if (context.mounted) {
+                  if (mounted) {
                     Navigator.pop(context);
                   }
                 }
@@ -209,17 +209,17 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).colorScheme.surface,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.75,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           // Handle bar
           Container(
             width: 40,
@@ -249,9 +249,7 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
                     ),
                     IconButton(
                       onPressed: () {
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                        }
+                        Navigator.pop(context);
                       },
                       icon: const Icon(Icons.close),
                       padding: EdgeInsets.zero,
@@ -274,7 +272,6 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
             ),
           ),
         ],
-        ),
       ),
     );
   }

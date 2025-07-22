@@ -507,6 +507,51 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
+  int? _selectedDosageTableRow;
+  int? _selectedVolumeTableRow;
+  double? _dosageTableScrollPosition;
+  double? _volumeTableScrollPosition;
+
+  int? get selectedDosageTableRow {
+    return _selectedDosageTableRow;
+  }
+
+  set selectedDosageTableRow(int? i) {
+    _selectedDosageTableRow = i;
+    setInt('selectedDosageTableRow', i);
+    notifyListeners();
+  }
+
+  int? get selectedVolumeTableRow {
+    return _selectedVolumeTableRow;
+  }
+
+  set selectedVolumeTableRow(int? i) {
+    _selectedVolumeTableRow = i;
+    setInt('selectedVolumeTableRow', i);
+    notifyListeners();
+  }
+
+  double? get dosageTableScrollPosition {
+    return _dosageTableScrollPosition;
+  }
+
+  set dosageTableScrollPosition(double? position) {
+    _dosageTableScrollPosition = position;
+    setDouble('dosageTableScrollPosition', position);
+    notifyListeners();
+  }
+
+  double? get volumeTableScrollPosition {
+    return _volumeTableScrollPosition;
+  }
+
+  set volumeTableScrollPosition(double? position) {
+    _volumeTableScrollPosition = position;
+    setDouble('volumeTableScrollPosition', position);
+    notifyListeners();
+  }
+
   // Cache SharedPreferences instance for better performance
   SharedPreferences? _prefs;
 
@@ -566,6 +611,12 @@ class Settings with ChangeNotifier {
       if (_infusionRate != null) _prefs!.setDouble('infusionRate', _infusionRate!),
       _prefs!.setString('infusionUnit', _infusinUnit.toString()),
       _prefs!.setInt('currentScreenIndex', _currentScreenIndex),
+      
+      // Table row selection and scroll position settings
+      if (_selectedDosageTableRow != null) _prefs!.setInt('selectedDosageTableRow', _selectedDosageTableRow!),
+      if (_selectedVolumeTableRow != null) _prefs!.setInt('selectedVolumeTableRow', _selectedVolumeTableRow!),
+      if (_dosageTableScrollPosition != null) _prefs!.setDouble('dosageTableScrollPosition', _dosageTableScrollPosition!),
+      if (_volumeTableScrollPosition != null) _prefs!.setDouble('volumeTableScrollPosition', _volumeTableScrollPosition!),
       
       // EleMarsh screen settings
       if (_EMSex != null) _prefs!.setString('EMSex', _EMSex.toString()),
@@ -661,6 +712,12 @@ class Settings with ChangeNotifier {
 
     // Home screen settings
     _currentScreenIndex = pref.getInt('currentScreenIndex') ?? 0;
+
+    // Table row selection and scroll position settings
+    _selectedDosageTableRow = pref.getInt('selectedDosageTableRow');
+    _selectedVolumeTableRow = pref.getInt('selectedVolumeTableRow');
+    _dosageTableScrollPosition = pref.getDouble('dosageTableScrollPosition');
+    _volumeTableScrollPosition = pref.getDouble('volumeTableScrollPosition');
 
     // Test screen settings
     _calculatorWakeUpCE = pref.getDouble('calculatorWakeUpCE');

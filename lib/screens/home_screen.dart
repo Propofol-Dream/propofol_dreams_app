@@ -8,6 +8,7 @@ import '../providers/settings.dart';
 import 'volume_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
+import 'dosage_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -23,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
     EleMarshScreen(),
     const VolumeScreen(),
     const DurationScreen(),
+    const DosageScreen(),
     const SettingsScreen(),
     // TestScreen()
   ];
@@ -83,6 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
             BottomNavigationBarItem(
                 icon: const Icon(Icons.schedule),
                 label: AppLocalizations.of(context)!.duration),
+            const BottomNavigationBarItem(
+                icon: Icon(Icons.local_pharmacy_outlined), label: 'Dosage'),
             BottomNavigationBarItem(
                 icon: const Icon(Icons.settings),
                 label: AppLocalizations.of(context)!.settings),
