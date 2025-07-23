@@ -68,9 +68,18 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
     if (widget.inAdultView) {
       // Adult view: show adult + universal models
       if (widget.isDosageScreen) {
-        // Dosage screen: only show Eleveld (exclude Marsh and Schnider)
+        // Dosage screen: show all available models including new drugs
         return [
+          // Propofol models
           Model.Eleveld,
+          Model.Marsh,
+          Model.Schnider,
+          
+          // New drug models
+          Model.MintoRemifentanil,
+          Model.EleveldRemifentanil,
+          Model.HannivoortDexmedetomidine,
+          Model.EleveldRemimazolam,
         ];
       } else {
         // Other screens (like Volume): show all adult models

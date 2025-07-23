@@ -1,6 +1,9 @@
 import 'sex.dart';
 import 'target.dart';
+import 'drug.dart';
+import 'target_unit.dart';
 import 'dart:math';
+import 'package:flutter/material.dart';
 
 class ValidationResult {
   const ValidationResult({
@@ -22,6 +25,7 @@ class ValidationResult {
 }
 
 enum Model {
+  // EXISTING PROPOFOL MODELS - Enhanced with drug and target unit
   Marsh(
       minAge: 17,
       maxAge: 105,
@@ -29,7 +33,9 @@ enum Model {
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 150,
-      target: Target.Plasma),
+      target: Target.Plasma,
+      drug: Drug.propofol,
+      targetUnit: TargetUnit.mcgPerMl),
   Schnider(
       minAge: 17,
       maxAge: 100,
@@ -37,7 +43,9 @@ enum Model {
       maxHeight: 210,
       minWeight: 0,
       maxWeight: 165,
-      target: Target.EffectSite),
+      target: Target.EffectSite,
+      drug: Drug.propofol,
+      targetUnit: TargetUnit.mcgPerMl),
   Eleveld(
       minAge: 1,
       maxAge: 105,
@@ -45,7 +53,9 @@ enum Model {
       maxHeight: 210,
       minWeight: 1,
       maxWeight: 250,
-      target: Target.EffectSite),
+      target: Target.EffectSite,
+      drug: Drug.propofol,
+      targetUnit: TargetUnit.mcgPerMl),
   Paedfusor(
       minAge: 1,
       maxAge: 16,
@@ -53,7 +63,9 @@ enum Model {
       maxHeight: 999,
       minWeight: 5,
       maxWeight: 61,
-      target: Target.Plasma),
+      target: Target.Plasma,
+      drug: Drug.propofol,
+      targetUnit: TargetUnit.mcgPerMl),
   Kataria(
       minAge: 3,
       maxAge: 16,
@@ -61,7 +73,9 @@ enum Model {
       maxHeight: 999,
       minWeight: 15,
       maxWeight: 61,
-      target: Target.Plasma),
+      target: Target.Plasma,
+      drug: Drug.propofol,
+      targetUnit: TargetUnit.mcgPerMl),
   EleMarsh(
       minAge: 5,
       maxAge: 105,
@@ -69,7 +83,53 @@ enum Model {
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 999,
-      target: Target.Plasma),
+      target: Target.Plasma,
+      drug: Drug.propofol,
+      targetUnit: TargetUnit.mcgPerMl),
+  
+  // NEW DRUG MODELS
+  MintoRemifentanil(
+      minAge: 1,
+      maxAge: 105,
+      minHeight: 50,
+      maxHeight: 210,
+      minWeight: 1,
+      maxWeight: 250,
+      target: Target.EffectSite,
+      drug: Drug.remifentanilMinto,
+      targetUnit: TargetUnit.ngPerMl),
+  EleveldRemifentanil(
+      minAge: 1,
+      maxAge: 105,
+      minHeight: 50,
+      maxHeight: 210,
+      minWeight: 1,
+      maxWeight: 250,
+      target: Target.EffectSite,
+      drug: Drug.remifentanilEleveld,
+      targetUnit: TargetUnit.ngPerMl),
+  HannivoortDexmedetomidine(
+      minAge: 1,
+      maxAge: 105,
+      minHeight: 50,
+      maxHeight: 210,
+      minWeight: 1,
+      maxWeight: 250,
+      target: Target.Plasma,
+      drug: Drug.dexmedetomidine,
+      targetUnit: TargetUnit.ngPerMl),
+  EleveldRemimazolam(
+      minAge: 1,
+      maxAge: 105,
+      minHeight: 50,
+      maxHeight: 210,
+      minWeight: 1,
+      maxWeight: 250,
+      target: Target.EffectSite,
+      drug: Drug.remimazolam,
+      targetUnit: TargetUnit.mcgPerMl),
+  
+  // KEEP NONE FOR COMPATIBILITY
   None(
       minAge: 0,
       maxAge: 999,
@@ -77,7 +137,9 @@ enum Model {
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 999,
-      target: Target.EffectSite);
+      target: Target.EffectSite,
+      drug: Drug.propofol,
+      targetUnit: TargetUnit.mcgPerMl);
 
   @override
   String toString() {
@@ -186,6 +248,8 @@ enum Model {
   final int minWeight;
   final int maxWeight;
   final Target target;
+  final Drug drug;
+  final TargetUnit targetUnit;
 
   const Model({
     required this.minAge,
@@ -195,5 +259,12 @@ enum Model {
     required this.minWeight,
     required this.maxWeight,
     required this.target,
+    required this.drug,
+    required this.targetUnit,
   });
+  
+  /// Get target label for UI display
+  String getTargetLabel(BuildContext context) {
+    return '${target.toLocalizedString(context)} (${targetUnit.displayName})';
+  }
 }

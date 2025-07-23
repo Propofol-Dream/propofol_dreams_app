@@ -1,0 +1,20 @@
+enum TargetUnit {
+  mcgPerMl('mcg/mL'),
+  ngPerMl('ng/mL');
+  
+  const TargetUnit(this.displayName);
+  final String displayName;
+  
+  /// Conversion factor to standardized mcg/mL for internal calculations
+  double get toMcgPerMlFactor {
+    switch (this) {
+      case TargetUnit.mcgPerMl:
+        return 1.0;
+      case TargetUnit.ngPerMl:
+        return 0.001; // 1 ng = 0.001 mcg
+    }
+  }
+  
+  @override
+  String toString() => displayName;
+}

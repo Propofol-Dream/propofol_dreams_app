@@ -328,6 +328,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
               Duration calculationDuration = finish.difference(start);
 
               print({
+                'screen': 'Volume',
                 'model': model,
                 'patient': patient,
                 'pump': pump,

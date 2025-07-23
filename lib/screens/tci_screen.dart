@@ -13,6 +13,7 @@ import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:propofol_dreams_app/models/target.dart';
+import 'package:propofol_dreams_app/models/target_unit.dart';
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 
 import '../constants.dart';
@@ -86,7 +87,16 @@ class _TCIScreenState extends State<TCIScreen> {
     // durationController.addListener(_onTextFieldChanged); // Removed - duration is hardcoded
 
     modelOptions.addAll([
+      // Propofol models
       Model.Eleveld,
+      Model.Marsh,
+      Model.Schnider,
+      
+      // New drug models
+      Model.MintoRemifentanil,
+      Model.EleveldRemifentanil,
+      Model.HannivoortDexmedetomidine,
+      Model.EleveldRemimazolam,
     ]);
 
     // Restore table scroll position
@@ -217,8 +227,10 @@ class _TCIScreenState extends State<TCIScreen> {
             times: results.times,
             pumpInfs: results.pumpInfs,
             cumulativeInfusedVolumes: results.cumulativeInfusedVolumes,
-            density: 10,
+            density: 10, // LEGACY: Keep for backward compatibility
             totalDuration: Duration(minutes: finalDuration),
+            isEffectSiteTargeting: model.target == Target.EffectSite,
+            drugConcentrationMgMl: model.drug.concentrationInMgPerMl, // NEW: Use model's drug concentration
           );
         });
       } else {
@@ -628,11 +640,11 @@ class _TCIScreenState extends State<TCIScreen> {
                 Expanded(
                   child: PDTextField(
                     prefixIcon: Icons.psychology_alt_outlined,
-                    labelText: selectedModel.target.toLocalizedString(context),
-                    interval: 0.5,
+                    labelText: selectedModel.getTargetLabel(context), // Dynamic unit display
+                    interval: selectedModel.targetUnit == TargetUnit.ngPerMl ? 0.1 : 0.5, // Different intervals for different units
                     fractionDigits: 1,
                     controller: targetController,
-                    range: const [kMinTarget, kMaxTarget],
+                    range: const [kMinTarget, kMaxTarget], // Keep existing range for now
                     onPressed: updatePDTextEditingController,
                   ),
                 ),

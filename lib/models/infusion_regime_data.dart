@@ -28,13 +28,23 @@ class InfusionRegimeData {
   });
 
   /// Create infusion regime data from simulation results
-  /// Based on analysis: initial high rate (~29 seconds) represents "bolus"
+  /// OPTIMIZED ALGORITHM: Implements clinical optimization from MATLAB code
+  /// 
+  /// This algorithm optimizes the infusion regime for practical pump programming:
+  /// 1. First 15 minutes: Calculates augmented bolus + continuous infusion to eliminate pump pauses
+  /// 2. Subsequent intervals: Uses averaging with smart rounding for clinical usability
+  /// 3. Smart rounding: 1 decimal place if <10 mL/hr, integer if ≥10 mL/hr
+  /// 
+  /// Based on MATLAB optimization algorithm that eliminates the need to pause pumps
+  /// during Ce targeting, making TCI procedures smoother for clinicians.
   static InfusionRegimeData fromSimulation({
     required List<Duration> times,
     required List<double> pumpInfs, // mg/hr
     required List<double> cumulativeInfusedVolumes, // mL
-    required int density, // mg/mL
+    required int density, // mg/mL - LEGACY: kept for backward compatibility
     Duration? totalDuration,
+    bool isEffectSiteTargeting = true, // New parameter to handle targeting type
+    double? drugConcentrationMgMl, // NEW: Standardized drug concentration
   }) {
     if (times.isEmpty || pumpInfs.isEmpty || cumulativeInfusedVolumes.isEmpty) {
       return const InfusionRegimeData(rows: []);
@@ -49,25 +59,78 @@ class InfusionRegimeData {
     final totalIntervals = (maxDuration.inMinutes / intervalMinutes).ceil();
     final rows = <InfusionRegimeRow>[];
 
-    // Find the end of high-rate "bolus" period (approximately first 30 seconds)
-    final maxRate = pumpInfs.isNotEmpty ? pumpInfs.reduce((a, b) => a > b ? a : b) : 0.0;
-    final bolusThreshold = maxRate * 0.9; // 90% of max rate
-    int bolusEndIndex = 0;
+    // Use new drug concentration if provided, otherwise fall back to legacy density
+    final effectiveConcentration = drugConcentrationMgMl ?? density.toDouble();
+
+    // STEP 1: OPTIMIZED FIRST 15 MINUTES
+    // Calculate total dose for first 15 minutes (900 seconds)
+    final first15MinIndex = times.indexWhere((time) => time.inSeconds >= 900);
+    final validFirst15Index = first15MinIndex != -1 ? first15MinIndex : times.length - 1;
     
-    for (int i = 0; i < times.length && times[i].inSeconds <= 60; i++) {
-      if (pumpInfs[i] >= bolusThreshold) {
-        bolusEndIndex = i;
-      } else {
-        break;
+    // Calculate total dose in first 900 seconds (convert mg/hr to mg total)
+    double totalDoseFirst15Min = 0.0;
+    for (int i = 0; i < validFirst15Index && i < pumpInfs.length; i++) {
+      totalDoseFirst15Min += pumpInfs[i] / 3600.0; // Convert mg/hr to mg/second, sum over seconds
+    }
+
+    // STEP 2: Find infusion restart time (when bolus+pause finishes)
+    int infusionRestartIndex = 0;
+    if (isEffectSiteTargeting) {
+      // For effect site targeting: find when infusion rate drops to zero (end of pause)
+      for (int i = 0; i < validFirst15Index && i < pumpInfs.length; i++) {
+        if (pumpInfs[i] == 0.0) {
+          infusionRestartIndex = i;
+        } else if (pumpInfs[i] > 0.0 && infusionRestartIndex > 0) {
+          break; // Found restart after pause
+        }
+      }
+    } else {
+      // For plasma targeting: calculate based on bolus duration
+      final maxRate = pumpInfs.isNotEmpty ? pumpInfs.reduce((a, b) => a > b ? a : b) : 0.0;
+      if (maxRate > 0) {
+        final bolusVolume = cumulativeInfusedVolumes.isNotEmpty ? cumulativeInfusedVolumes.first : 0.0;
+        final bolusDurationSeconds = (bolusVolume * density / maxRate * 3600).round();
+        infusionRestartIndex = bolusDurationSeconds + 1; // +1 like MATLAB code
       }
     }
 
-    // Calculate bolus volume (volume delivered during high-rate period)
-    final bolusVolume = bolusEndIndex < cumulativeInfusedVolumes.length 
-        ? cumulativeInfusedVolumes[bolusEndIndex] 
+    // STEP 3: Calculate average infusion rate for non-bolus section
+    double totalDoseAfterBolus = 0.0;
+    for (int i = infusionRestartIndex; i < validFirst15Index && i < pumpInfs.length; i++) {
+      totalDoseAfterBolus += pumpInfs[i] / 3600.0;
+    }
+    
+    final remainingSeconds = 900 - infusionRestartIndex;
+    double avgInfusionRate = remainingSeconds > 0 
+        ? (totalDoseAfterBolus / remainingSeconds) * 3600.0 // Convert back to mg/hr
         : 0.0;
 
-    for (int interval = 0; interval < totalIntervals; interval++) {
+    // STEP 4: Apply smart rounding to average infusion rate
+    avgInfusionRate = _applySmartRounding(avgInfusionRate, effectiveConcentration);
+
+    // STEP 5: Calculate augmented bolus (eliminates pump pauses)
+    final continuousInfusionDose = 900 * avgInfusionRate / 3600.0; // mg for 15 min
+    double augmentedBolus = totalDoseFirst15Min - continuousInfusionDose;
+    augmentedBolus = augmentedBolus / effectiveConcentration; // Convert to mL
+    
+    // Round bolus to practical values
+    if (augmentedBolus < 1.0 && augmentedBolus > 0) {
+      augmentedBolus = (augmentedBolus * 10).round() / 10.0; // Round to 0.1 mL
+    } else {
+      augmentedBolus = augmentedBolus.round().toDouble(); // Round to nearest mL
+    }
+    if (augmentedBolus < 0) augmentedBolus = 0.0;
+
+    // Add first 15-minute interval with optimized values
+    rows.add(InfusionRegimeRow(
+      time: const Duration(minutes: 0),
+      bolus: augmentedBolus,
+      infusionRate: avgInfusionRate / effectiveConcentration, // Convert to mL/hr for display
+      accumulatedVolume: augmentedBolus + (avgInfusionRate / effectiveConcentration * 0.25), // Bolus + 15min infusion
+    ));
+
+    // STEP 6: AVERAGING ALGORITHM FOR SUBSEQUENT INTERVALS
+    for (int interval = 1; interval < totalIntervals; interval++) {
       final intervalStart = Duration(minutes: interval * intervalMinutes);
       final intervalEnd = Duration(minutes: (interval + 1) * intervalMinutes);
       
@@ -79,33 +142,30 @@ class InfusionRegimeData {
         }
       }
 
-      // Calculate average infusion rate for this interval (convert mg/hr to mL/hr)
+      // Calculate average infusion rate for this interval
       double avgRate = 0.0;
       if (intervalIndices.isNotEmpty) {
         double totalRate = 0.0;
         for (final index in intervalIndices) {
-          totalRate += pumpInfs[index] / density; // Convert to mL/hr
+          totalRate += pumpInfs[index]; // Keep in mg/hr for calculation
         }
         avgRate = totalRate / intervalIndices.length;
+        
+        // Apply smart rounding
+        avgRate = _applySmartRounding(avgRate, effectiveConcentration);
       }
 
-      // Get accumulated volume at end of interval
+      // Calculate accumulated volume
       double accumVolume = 0.0;
-      if (intervalIndices.isNotEmpty) {
-        final lastIndex = intervalIndices.last;
-        accumVolume = cumulativeInfusedVolumes[lastIndex];
-      } else if (interval > 0 && rows.isNotEmpty) {
-        // Use previous accumulated volume if no data in this interval
-        accumVolume = rows.last.accumulatedVolume;
+      if (rows.isNotEmpty) {
+        // Previous accumulated volume + this interval's contribution
+        accumVolume = rows.last.accumulatedVolume + (avgRate / effectiveConcentration * 0.25); // 0.25 hr = 15 min
       }
-
-      // Bolus is only shown at 0:00
-      final bolus = interval == 0 ? bolusVolume : 0.0;
 
       rows.add(InfusionRegimeRow(
         time: intervalStart,
-        bolus: bolus,
-        infusionRate: avgRate,
+        bolus: 0.0, // No bolus after first interval
+        infusionRate: avgRate / effectiveConcentration, // Convert to mL/hr for display
         accumulatedVolume: accumVolume,
       ));
     }
@@ -114,6 +174,21 @@ class InfusionRegimeData {
       rows: rows,
       intervalDuration: intervalDuration,
     );
+  }
+
+  /// Apply smart rounding based on MATLAB algorithm
+  /// If rate < 10 mL/hr: round to 1 decimal place
+  /// If rate >= 10 mL/hr: round to integer
+  static double _applySmartRounding(double rateMgHr, double concentrationMgMl) {
+    final rateMlHr = rateMgHr / concentrationMgMl;
+    
+    if (rateMlHr < 10.0) {
+      // Round to 1 decimal place, then convert back to mg/hr
+      return (rateMlHr * 10).round() / 10.0 * concentrationMgMl;
+    } else {
+      // Round to integer, then convert back to mg/hr
+      return rateMlHr.round().toDouble() * concentrationMgMl;
+    }
   }
 
   /// Get total estimated bolus volume (volume at 0:00)

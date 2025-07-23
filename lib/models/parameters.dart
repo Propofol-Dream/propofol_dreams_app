@@ -113,6 +113,14 @@ extension PKCalculation on Model {
         return _calculatePaedfusorParameters(sexInt, weightKg, heightCm, ageYr);
       case Model.Kataria:
         return _calculateKatariaParameters(sexInt, weightKg, heightCm, ageYr);
+      case Model.MintoRemifentanil:
+        return _calculateMintoParameters(sexInt, weightKg, heightCm, ageYr);
+      case Model.EleveldRemifentanil:
+        return _calculateRemifentanilEleveldParameters(sexInt, weightKg, heightCm, ageYr);
+      case Model.HannivoortDexmedetomidine:
+        return _calculateHannivoortParameters(sexInt, weightKg, heightCm, ageYr);
+      case Model.EleveldRemimazolam:
+        return _calculateRemimazolamEleveldParameters(sexInt, weightKg, heightCm, ageYr);
       default:
         // Return default parameters for unsupported models
         return const PKParameters(
@@ -324,40 +332,6 @@ extension PKCalculation on Model {
       ce50: ce50, baselineBIS: baselineBIS, delayBIS: delayBIS,
     );
   }
-}
-
-/// Future models that can be implemented by extending this file
-enum FutureModels {
-  RemifentanilMinto,
-  RemifentanilEleveld, 
-  DexmedetomidineHannivoort,
-  RemimazolamEleveld,
-}
-
-extension FuturePKCalculation on FutureModels {
-  /// Calculate pharmacokinetic parameters for future models
-  PKParameters calculatePKParameters({
-    required Sex sex,
-    required int weight,
-    required int height,
-    required int age,
-  }) {
-    final double weightKg = weight.toDouble();
-    final double heightCm = height.toDouble();
-    final double ageYr = age.toDouble();
-    final int sexInt = sex == Sex.Male ? 1 : 0;
-
-    switch (this) {
-      case FutureModels.RemifentanilMinto:
-        return _calculateMintoParameters(sexInt, weightKg, heightCm, ageYr);
-      case FutureModels.RemifentanilEleveld:
-        return _calculateRemifentanilEleveldParameters(sexInt, weightKg, heightCm, ageYr);
-      case FutureModels.DexmedetomidineHannivoort:
-        return _calculateHannivoortParameters(sexInt, weightKg, heightCm, ageYr);
-      case FutureModels.RemimazolamEleveld:
-        return _calculateRemimazolamEleveldParameters(sexInt, weightKg, heightCm, ageYr);
-    }
-  }
 
   /// Calculate Minto Remifentanil parameters
   static PKParameters _calculateMintoParameters(int sex, double weight, double height, double age) {
@@ -467,3 +441,4 @@ extension FuturePKCalculation on FutureModels {
     );
   }
 }
+

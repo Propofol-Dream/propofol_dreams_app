@@ -4,7 +4,10 @@ import 'package:flutter/scheduler.dart';
 import 'package:propofol_dreams_app/models/InfusionUnit.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
+import 'package:propofol_dreams_app/models/drug.dart';
+import 'package:propofol_dreams_app/models/target_unit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class Settings with ChangeNotifier {
   bool _isInitialized = false;
@@ -61,17 +64,63 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
-  int _density = 10;
+  // REMOVED: _density (legacy)
+  
+  // NEW: Drug-specific concentration system
+  Map<Drug, double> _drugConcentrations = {
+    Drug.propofol: 10.0, // User can select 10 or 20
+    Drug.remifentanilMinto: 50.0, // Fixed
+    Drug.remifentanilEleveld: 50.0, // Fixed (mcg/mL)
+    Drug.dexmedetomidine: 4.0, // Fixed (mcg/mL)
+    Drug.remimazolam: 1.0, // Fixed
+  };
 
+  // LEGACY BRIDGE: Keep for backward compatibility
   int get density {
-    return _density;
+    // Return propofol concentration for backward compatibility
+    final propofolConcentration = _drugConcentrations[Drug.propofol]!;
+    return propofolConcentration.round();
   }
 
   set density(int i) {
-    _density = i;
-    setInt('density', i);
+    // Update propofol concentration
+    _drugConcentrations[Drug.propofol] = i.toDouble();
+    setString('drugConcentrations', jsonEncode(_drugConcentrations.map(
+      (key, value) => MapEntry(key.toString(), value)
+    )));
     notifyListeners();
   }
+
+  // NEW: Drug concentration getters and setters
+  double getDrugConcentration(Drug drug) {
+    return _drugConcentrations[drug] ?? drug.concentration;
+  }
+
+  void setDrugConcentration(Drug drug, double concentration) {
+    _drugConcentrations[drug] = concentration;
+    setString('drugConcentrations', jsonEncode(_drugConcentrations.map(
+      (key, value) => MapEntry(key.toString(), value)
+    )));
+    notifyListeners();
+  }
+
+  // Get available concentration options for a drug
+  List<double> getAvailableConcentrations(Drug drug) {
+    switch (drug) {
+      case Drug.propofol:
+        return [10.0, 20.0]; // User can choose
+      case Drug.remifentanilMinto:
+        return [50.0]; // Fixed
+      case Drug.remifentanilEleveld:
+        return [50.0]; // Fixed
+      case Drug.dexmedetomidine:
+        return [4.0]; // Fixed
+      case Drug.remimazolam:
+        return [1.0]; // Fixed
+    }
+  }
+
+  // REMOVED: selectedDrug system for now - will add back when implementing drug selection
 
   int _time_step = 1;
 
@@ -602,7 +651,9 @@ class Settings with ChangeNotifier {
     // Save all current values to ensure they're persisted
     await Future.wait([
       _prefs!.setBool('inAdultView', _inAdultView),
-      _prefs!.setInt('density', _density),
+      _prefs!.setString('drugConcentrations', jsonEncode(_drugConcentrations.map(
+        (key, value) => MapEntry(key.toString(), value)
+      ))),
       _prefs!.setBool('isVolumeTableExpanded', _isVolumeTableExpanded),
       _prefs!.setString('adultModel', _adultModel.toString()),
       _prefs!.setString('adultSex', _adultSex.toString()),
@@ -667,8 +718,29 @@ class Settings with ChangeNotifier {
 
     // Load all preferences once at startup
     _inAdultView = pref.getBool('inAdultView') ?? true;
-    _density = pref.getInt('density') ?? 10;
     _isVolumeTableExpanded = pref.getBool('isVolumeTableExpanded') ?? false;
+
+    // NEW: Load drug concentrations
+    final drugConcentrationsString = pref.getString('drugConcentrations');
+    if (drugConcentrationsString != null) {
+      try {
+        final Map<String, dynamic> concentrationsMap = jsonDecode(drugConcentrationsString);
+        concentrationsMap.forEach((key, value) {
+          final drug = _parseDrugFromString(key);
+          if (drug != null) {
+            _drugConcentrations[drug] = (value as num).toDouble();
+          }
+        });
+      } catch (e) {
+        // Keep default concentrations if parsing fails
+      }
+    } else {
+      // MIGRATION: Load legacy density for propofol
+      final legacyDensity = pref.getInt('density') ?? 10;
+      _drugConcentrations[Drug.propofol] = legacyDensity.toDouble();
+    }
+    
+    // Model-specific targets removed for now
 
     // Adult model settings
     final adultModelString = pref.getString('adultModel');
@@ -840,6 +912,30 @@ class Settings with ChangeNotifier {
         return ThemeMode.system;
       default:
         return ThemeMode.system;
+    }
+  }
+
+  /// Parse Drug enum from string
+  Drug? _parseDrugFromString(String? drugString) {
+    if (drugString == null) return null;
+    switch (drugString) {
+      case 'Drug.propofol':
+      case 'Propofol':
+        return Drug.propofol;
+      case 'Drug.remifentanilMinto':
+      case 'Remifentanil (Minto)':
+        return Drug.remifentanilMinto;
+      case 'Drug.remifentanilEleveld':
+      case 'Remifentanil (Eleveld)':
+        return Drug.remifentanilEleveld;
+      case 'Drug.dexmedetomidine':
+      case 'Dexmedetomidine':
+        return Drug.dexmedetomidine;
+      case 'Drug.remimazolam':
+      case 'Remimazolam':
+        return Drug.remimazolam;
+      default:
+        return Drug.propofol; // Default to propofol for backward compatibility
     }
   }
 }
