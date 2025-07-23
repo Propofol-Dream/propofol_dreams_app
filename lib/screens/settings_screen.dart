@@ -177,15 +177,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 16),
                   
-                  // Remifentanil (Eleveld) - display only  
-                  _buildDrugConcentrationSection(
-                    Drug.remifentanilEleveld, 
-                    settings, 
-                    UIHeight, 
-                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
-                  ),
-                  const SizedBox(height: 16),
-                  
                   // Dexmedetomidine - display only
                   _buildDrugConcentrationSection(
                     Drug.dexmedetomidine, 

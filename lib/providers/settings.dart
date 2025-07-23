@@ -70,7 +70,6 @@ class Settings with ChangeNotifier {
   Map<Drug, double> _drugConcentrations = {
     Drug.propofol: 10.0, // User can select 10 or 20
     Drug.remifentanilMinto: 50.0, // Fixed
-    Drug.remifentanilEleveld: 50.0, // Fixed (mcg/mL)
     Drug.dexmedetomidine: 4.0, // Fixed (mcg/mL)
     Drug.remimazolam: 1.0, // Fixed
   };
@@ -111,12 +110,12 @@ class Settings with ChangeNotifier {
         return [10.0, 20.0]; // User can choose
       case Drug.remifentanilMinto:
         return [50.0]; // Fixed
-      case Drug.remifentanilEleveld:
-        return [50.0]; // Fixed
       case Drug.dexmedetomidine:
         return [4.0]; // Fixed
       case Drug.remimazolam:
         return [1.0]; // Fixed
+      case Drug.remifentanilEleveld:
+        return [50.0]; // Keep for backward compatibility but not shown in UI
     }
   }
 
