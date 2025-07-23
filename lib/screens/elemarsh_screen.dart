@@ -26,6 +26,7 @@ import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 
 import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
 import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart';
+import 'package:propofol_dreams_app/controllers/PDTextFieldSegmentedControl.dart';
 
 import '../constants.dart';
 
@@ -1152,13 +1153,14 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
-                  height: UIHeight,
-                  child: PDSegmentedControl(
-                      fitHeight: true,
+                SizedBox(
+                  width: (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2,
+                  child: PDTextFieldSegmentedControl(
+                      height: UIHeight,
                       fontSize: 14,
-                      defaultColor: Theme.of(context).colorScheme.primary,
-                      defaultOnColor: Theme.of(context).colorScheme.onPrimary,
+                      helperText: '', // Reserve space for consistent alignment
+                      // labelText: "Flow",
+                      // prefixIcon: Icons.settings_input_component,
                       labels: [
                         AppLocalizations.of(context)!.induce,
                         AppLocalizations.of(context)!.emerge
@@ -1233,8 +1235,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             ),
           ),
           const SizedBox(
-            height:
-                28, //this has been manually adjusted from 24, don't know the root cause yet.
+            height: 25,
           ),
           Opacity(
             opacity: flowController.val == 0 ? 1 : 0,

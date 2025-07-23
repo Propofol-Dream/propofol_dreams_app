@@ -23,11 +23,11 @@ import 'package:propofol_dreams_app/controllers/PDSwitchController.dart';
 import 'package:propofol_dreams_app/controllers/PDSwitchField.dart';
 import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedController.dart';
 
-class DosageScreen extends StatefulWidget {
-  const DosageScreen({super.key});
+class TCIScreen extends StatefulWidget {
+  const TCIScreen({super.key});
 
   @override
-  State<DosageScreen> createState() => _DosageScreenState();
+  State<TCIScreen> createState() => _TCIScreenState();
 }
 
 class PDTableController extends ChangeNotifier {
@@ -45,7 +45,7 @@ class PDTableController extends ChangeNotifier {
   }
 }
 
-class _DosageScreenState extends State<DosageScreen> {
+class _TCIScreenState extends State<TCIScreen> {
   final PDAdvancedSegmentedController adultModelController =
       PDAdvancedSegmentedController();
   final PDAdvancedSegmentedController pediatricModelController =
@@ -83,13 +83,9 @@ class _DosageScreenState extends State<DosageScreen> {
     heightController.addListener(_onTextFieldChanged);
     weightController.addListener(_onTextFieldChanged);
     targetController.addListener(_onTextFieldChanged);
-    durationController.addListener(_onTextFieldChanged);
+    // durationController.addListener(_onTextFieldChanged); // Removed - duration is hardcoded
 
     modelOptions.addAll([
-      Model.Schnider,
-      Model.Eleveld,
-      Model.Kataria,
-      Model.Paedfusor,
       Model.Eleveld,
     ]);
 
@@ -108,30 +104,21 @@ class _DosageScreenState extends State<DosageScreen> {
       }
     });
 
-    updateModelOptions(settings.inAdultView);
+    updateModelOptions(true); // Always adult view
     calculate();
   }
 
   void _setControllersFromSettings(Settings settings) {
     tableController.val = true; // Always keep table expanded
 
-    if (settings.inAdultView) {
-      adultModelController.selection = settings.adultModel;
-      sexController.val = settings.adultSex == Sex.Female ? true : false;
-      ageController.text = settings.adultAge?.toString() ?? '40';
-      heightController.text = settings.adultHeight?.toString() ?? '170';
-      weightController.text = settings.adultWeight?.toString() ?? '70';
-      targetController.text = settings.adultTarget?.toString() ?? '3.0';
-      durationController.text = settings.adultDuration?.toString() ?? '80';
-    } else {
-      pediatricModelController.selection = settings.pediatricModel;
-      sexController.val = settings.pediatricSex == Sex.Female ? true : false;
-      ageController.text = settings.pediatricAge?.toString() ?? '8';
-      heightController.text = settings.pediatricHeight?.toString() ?? '130';
-      weightController.text = settings.pediatricWeight?.toString() ?? '26';
-      targetController.text = settings.pediatricTarget?.toString() ?? '3.0';
-      durationController.text = settings.pediatricDuration?.toString() ?? '60';
-    }
+    // Always use adult settings
+    adultModelController.selection = settings.adultModel;
+    sexController.val = settings.adultSex == Sex.Female ? true : false;
+    ageController.text = settings.adultAge?.toString() ?? '40';
+    heightController.text = settings.adultHeight?.toString() ?? '170';
+    weightController.text = settings.adultWeight?.toString() ?? '70';
+    targetController.text = settings.adultTarget?.toString() ?? '3.0';
+    durationController.text = '240'; // Hardcoded to 4 hours for modal compatibility
   }
 
   void _saveToSettings() {
@@ -144,26 +131,16 @@ class _DosageScreenState extends State<DosageScreen> {
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
     double? target = double.tryParse(targetController.text);
-    int? duration = int.tryParse(durationController.text);
     Sex sex = sexController.val ? Sex.Female : Sex.Male;
 
-    if (settings.inAdultView) {
-      settings.adultModel = adultModelController.selection;
-      settings.adultSex = sex;
-      settings.adultAge = age;
-      settings.adultHeight = height;
-      settings.adultWeight = weight;
-      settings.adultTarget = target;
-      settings.adultDuration = duration;
-    } else {
-      settings.pediatricModel = pediatricModelController.selection;
-      settings.pediatricSex = sex;
-      settings.pediatricAge = age;
-      settings.pediatricHeight = height;
-      settings.pediatricWeight = weight;
-      settings.pediatricTarget = target;
-      settings.pediatricDuration = duration;
-    }
+    // Always save to adult settings
+    settings.adultModel = adultModelController.selection;
+    settings.adultSex = sex;
+    settings.adultAge = age;
+    settings.adultHeight = height;
+    settings.adultWeight = weight;
+    settings.adultTarget = target;
+    // settings.adultDuration removed - duration is hardcoded to 240 minutes
   }
 
   void updateModelOptions(bool inAdultView) {
@@ -193,13 +170,11 @@ class _DosageScreenState extends State<DosageScreen> {
       final finalHeight = int.tryParse(heightController.text) ?? 170;
       final finalWeight = int.tryParse(weightController.text) ?? 70;
       final finalTarget = double.tryParse(targetController.text) ?? 3.0;
-      final finalDuration = int.tryParse(durationController.text) ?? 80;
+      final finalDuration = 240; // Hardcoded to 4 hours
       final sex = sexController.val ? Sex.Female : Sex.Male;
       
       // Get current model
-      final model = settings.inAdultView 
-          ? adultModelController.selection 
-          : pediatricModelController.selection;
+      final model = adultModelController.selection;
 
       // Create patient object for debugging (similar to volume screen)
       final patient = Patient(
@@ -257,13 +232,13 @@ class _DosageScreenState extends State<DosageScreen> {
       Duration calculationDuration = finish.difference(start);
 
       // Create debug output string
-      final debugOutput = 'Dosage: $model, Patient(${sex.name}, ${finalAge}y, ${finalHeight}cm, ${finalWeight}kg), Target: $finalTarget, Duration: ${finalDuration}min';
+      final debugOutput = 'TCI: $model, Patient(${sex.name}, ${finalAge}y, ${finalHeight}cm, ${finalWeight}kg), Target: $finalTarget, Duration: ${finalDuration}min';
       
       // Only print if output has changed (avoid spam)
       if (_lastDebugOutput != debugOutput) {
         _lastDebugOutput = debugOutput;
         print({
-          'screen': 'Dosage',
+          'screen': 'TCI',
           'model': model,
           'patient': patient,
           'target': finalTarget,
@@ -288,90 +263,48 @@ class _DosageScreenState extends State<DosageScreen> {
   }
 
   void updatePDTextEditingController() {
-    final settings = Provider.of<Settings>(context, listen: false);
-    int? age = int.tryParse(ageController.text);
-    if (age != null) {
-      settings.inAdultView = age >= 17 ? true : false;
-    }
-    updateModelOptions(settings.inAdultView);
+    // Always adult view now, no need to check age
+    updateModelOptions(true);
     calculate();
   }
 
   void reset({bool toDefault = false}) {
     final settings = Provider.of<Settings>(context, listen: false);
     
-    if (settings.inAdultView) {
-      sexController.val = toDefault
-          ? true
-          : settings.adultSex == Sex.Female
-              ? true
-              : false;
-      ageController.text = toDefault
-          ? 40.toString()
-          : settings.adultAge != null
-              ? settings.adultAge.toString()
-              : '';
-      heightController.text = toDefault
-          ? 170.toString()
-          : settings.adultHeight != null
-              ? settings.adultHeight.toString()
-              : '';
-      weightController.text = toDefault
-          ? 70.toString()
-          : settings.adultWeight != null
-              ? settings.adultWeight.toString()
-              : '';
-      targetController.text = toDefault
-          ? 3.0.toString()
-          : settings.adultTarget != null
-              ? settings.adultTarget.toString()
-              : '';
-      durationController.text = toDefault
-          ? 80.toString()
-          : settings.adultDuration != null
-              ? settings.adultDuration.toString()
-              : '';
-    } else {
-      sexController.val = toDefault
-          ? true
-          : settings.pediatricSex == Sex.Female
-              ? true
-              : false;
-      ageController.text = toDefault
-          ? 8.toString()
-          : settings.pediatricAge != null
-              ? settings.pediatricAge.toString()
-              : '';
-      heightController.text = toDefault
-          ? 130.toString()
-          : settings.pediatricHeight != null
-              ? settings.pediatricHeight.toString()
-              : '';
-      weightController.text = toDefault
-          ? 26.toString()
-          : settings.pediatricWeight != null
-              ? settings.pediatricWeight.toString()
-              : '';
-      targetController.text = toDefault
-          ? 3.0.toString()
-          : settings.pediatricTarget != null
-              ? settings.pediatricTarget.toString()
-              : '';
-      durationController.text = toDefault
-          ? 60.toString()
-          : settings.pediatricDuration != null
-              ? settings.pediatricDuration.toString()
-              : '';
-    }
+    // Always use adult defaults and settings
+    sexController.val = toDefault
+        ? true
+        : settings.adultSex == Sex.Female
+            ? true
+            : false;
+    ageController.text = toDefault
+        ? 40.toString()
+        : settings.adultAge != null
+            ? settings.adultAge.toString()
+            : '';
+    heightController.text = toDefault
+        ? 170.toString()
+        : settings.adultHeight != null
+            ? settings.adultHeight.toString()
+            : '';
+    weightController.text = toDefault
+        ? 70.toString()
+        : settings.adultWeight != null
+            ? settings.adultWeight.toString()
+            : '';
+    targetController.text = toDefault
+        ? 3.0.toString()
+        : settings.adultTarget != null
+            ? settings.adultTarget.toString()
+            : '';
+    durationController.text = '240'; // Hardcoded to 4 hours for modal compatibility
 
-    updateModelOptions(settings.inAdultView);
+    updateModelOptions(true); // Always adult view
     calculate();
   }
 
   Widget buildModelSelector(Settings settings, double UIHeight) {
-    final currentModel = settings.inAdultView
-        ? (adultModelController.selection is Model ? adultModelController.selection as Model : null)
-        : (pediatricModelController.selection is Model ? pediatricModelController.selection as Model : null);
+    final currentModel = adultModelController.selection is Model ? adultModelController.selection as Model : null;
     
     final Sex sex = sexController.val ? Sex.Female : Sex.Male;
     final int age = int.tryParse(ageController.text) ?? 0;
@@ -379,12 +312,10 @@ class _DosageScreenState extends State<DosageScreen> {
     final int weight = int.tryParse(weightController.text) ?? 0;
 
     final hasValidationError = currentModel != null && 
-        (settings.inAdultView ? adultModelController : pediatricModelController)
-        .hasValidationError(sex: sex, weight: weight, height: height, age: age);
+        adultModelController.hasValidationError(sex: sex, weight: weight, height: height, age: age);
 
     final String? validationErrorText = hasValidationError
-        ? (settings.inAdultView ? adultModelController : pediatricModelController)
-            .getValidationErrorText(sex: sex, weight: weight, height: height, age: age)
+        ? adultModelController.getValidationErrorText(sex: sex, weight: weight, height: height, age: age)
         : null;
 
     return SizedBox(
@@ -412,7 +343,7 @@ class _DosageScreenState extends State<DosageScreen> {
                 fontSize: 10,
               ),
               prefixIcon: Icon(
-                Symbols.modeling,
+                Symbols.graph_4,
                 color: hasValidationError 
                   ? Theme.of(context).colorScheme.error
                   : Theme.of(context).colorScheme.primary,
@@ -448,25 +379,20 @@ class _DosageScreenState extends State<DosageScreen> {
             child: GestureDetector(
               onTap: () async {
                 await HapticFeedback.lightImpact();
-                (settings.inAdultView ? adultModelController : pediatricModelController)
-                  .showModelSelector(
+                adultModelController.showModelSelector(
                     context: context,
-                    inAdultView: settings.inAdultView,
+                    inAdultView: true, // Always adult view now
                     sexController: sexController,
                     ageController: ageController,
                     heightController: heightController,
                     weightController: weightController,
                     targetController: targetController,
-                    durationController: durationController,
+                    durationController: durationController, // Still needed for modal compatibility
+                    isDosageScreen: true, // Identify this as dosage screen
                     onModelSelected: (model) {
                       setState(() {
-                        if (settings.inAdultView) {
-                          adultModelController.selection = model;
-                          settings.adultModel = model;
-                        } else {
-                          pediatricModelController.selection = model;
-                          settings.pediatricModel = model;
-                        }
+                        adultModelController.selection = model;
+                        settings.adultModel = model;
                       });
                       calculate();
                     },
@@ -508,34 +434,22 @@ class _DosageScreenState extends State<DosageScreen> {
                 : 56);
     
     final settings = context.watch<Settings>();
-    int? age = int.tryParse(ageController.text);
-    int? height = int.tryParse(heightController.text);
-    int? weight = int.tryParse(weightController.text);
-    int? duration = int.tryParse(durationController.text);
-    double? target = double.tryParse(targetController.text);
     
     adultModelController.selection = settings.adultModel;
-    pediatricModelController.selection = settings.pediatricModel;
-    Model selectedModel = settings.inAdultView
-        ? adultModelController.selection
-        : pediatricModelController.selection;
+    Model selectedModel = adultModelController.selection;
     
-    bool modelIsRunnable = selectedModel.isRunnable(
-        age: age,
-        height: height,
-        weight: weight,
-        target: target,
-        duration: duration);
+    // Check if model is runnable (kept for potential future use)
+    // bool modelIsRunnable = selectedModel.isRunnable(
+    //     age: age,
+    //     height: height,
+    //     weight: weight,
+    //     target: target,
+    //     duration: duration);
     
-    final bool heightTextFieldEnabled = settings.inAdultView
-        ? (adultModelController.selection as Model).target != Target.Plasma
-        : (pediatricModelController.selection as Model).target != Target.Plasma;
-    final bool sexSwitchControlEnabled = settings.inAdultView
-        ? (adultModelController.selection as Model).target != Target.Plasma
-        : (pediatricModelController.selection as Model).target != Target.Plasma;
+    final bool heightTextFieldEnabled = (adultModelController.selection as Model).target != Target.Plasma;
+    final bool sexSwitchControlEnabled = (adultModelController.selection as Model).target != Target.Plasma;
 
-    final ageTextFieldEnabled = !(settings.inAdultView &&
-        adultModelController.selection == Model.Marsh);
+    final ageTextFieldEnabled = adultModelController.selection != Model.Marsh;
 
     return Container(
       height: screenHeight,
@@ -551,46 +465,7 @@ class _DosageScreenState extends State<DosageScreen> {
                 Expanded(
                   child: Container(),
                 ),
-                // Adult/Paed chip
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    GestureDetector(
-                      onTap: () async {
-                        await HapticFeedback.mediumImpact();
-                        if (settings.inAdultView) {
-                          ageController.text = settings.pediatricAge != null
-                              ? settings.pediatricAge.toString()
-                              : '';
-                        } else {
-                          ageController.text = settings.adultAge != null
-                              ? settings.adultAge.toString()
-                              : '';
-                        }
-                        settings.inAdultView = !settings.inAdultView;
-                        reset();
-                        calculate(); // Ensure calculation runs after toggle
-                      },
-                      child: Chip(
-                        avatar: settings.inAdultView
-                            ? Icon(
-                                Icons.face,
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              )
-                            : Icon(
-                                Icons.child_care_outlined,
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              ),
-                        label: Text(
-                          settings.inAdultView ? AppLocalizations.of(context)!.adult : AppLocalizations.of(context)!.paed,
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimary),
-                        ),
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
+                // Removed adult/paed toggle
                 // Expand button and result text
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -649,7 +524,7 @@ class _DosageScreenState extends State<DosageScreen> {
                         shape: RoundedRectangleBorder(
                             side: BorderSide(
                               color: Theme.of(context).colorScheme.primary,
-                              strokeAlign: BorderSide.strokeAlignInside,
+                              strokeAlign: BorderSide.strokeAlignOutside,
                             ),
                             borderRadius: const BorderRadius.all(Radius.circular(5))),
                       ),
@@ -673,13 +548,11 @@ class _DosageScreenState extends State<DosageScreen> {
                   width: UIWidth,
                   child: PDSwitchField(
                     labelText: AppLocalizations.of(context)!.sex,
-                    prefixIcon: sexController.val == true ?
-                    settings.inAdultView ? Icons.woman : Icons.girl :
-                    settings.inAdultView ? Icons.man : Icons.boy,
+                    prefixIcon: sexController.val == true ? Icons.woman : Icons.man,
                     controller: sexController,
                     switchTexts: {
-                      true: settings.inAdultView ? Sex.Female.toLocalizedString(context): Sex.Girl.toLocalizedString(context),
-                      false: settings.inAdultView ? Sex.Male.toLocalizedString(context): Sex.Boy.toLocalizedString(context)
+                      true: Sex.Female.toLocalizedString(context),
+                      false: Sex.Male.toLocalizedString(context)
                     },
                     onChanged: calculate,
                     height: UIHeight,
@@ -698,11 +571,7 @@ class _DosageScreenState extends State<DosageScreen> {
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: ageController,
-                    range: age != null
-                        ? age >= 17
-                            ? [17, selectedModel == Model.Schnider ? 100 : 105]
-                            : [1, 16]
-                        : [1, 16],
+                    range: [17, selectedModel == Model.Schnider ? 100 : 105],
                     onPressed: updatePDTextEditingController,
                     enabled: ageTextFieldEnabled,
                   ),
@@ -750,14 +619,13 @@ class _DosageScreenState extends State<DosageScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          // Target and Duration row
+          // Target row (now full width)
           SizedBox(
             height: UIHeight + 24,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: UIWidth,
+                Expanded(
                   child: PDTextField(
                     prefixIcon: Icons.psychology_alt_outlined,
                     labelText: selectedModel.target.toLocalizedString(context),
@@ -765,26 +633,6 @@ class _DosageScreenState extends State<DosageScreen> {
                     fractionDigits: 1,
                     controller: targetController,
                     range: const [kMinTarget, kMaxTarget],
-                    onPressed: updatePDTextEditingController,
-                  ),
-                ),
-                const SizedBox(
-                  width: 8,
-                  height: 0,
-                ),
-                SizedBox(
-                  width: UIWidth,
-                  child: PDTextField(
-                    prefixIcon: Icons.schedule,
-                    labelText: '${AppLocalizations.of(context)!.duration} (${AppLocalizations.of(context)!.min})',
-                    interval: double.tryParse(durationController.text) != null
-                        ? double.parse(durationController.text) >= 60
-                            ? 10
-                            : 5
-                        : 1,
-                    fractionDigits: 0,
-                    controller: durationController,
-                    range: const [kMinDuration, kMaxDuration],
                     onPressed: updatePDTextEditingController,
                   ),
                 ),

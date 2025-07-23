@@ -585,7 +585,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 fontSize: 10,
               ),
               prefixIcon: Icon(
-                Symbols.modeling,
+                Symbols.graph_4,
                 color: hasValidationError
                     ? Theme.of(context).colorScheme.error
                     : Theme.of(context).colorScheme.primary,

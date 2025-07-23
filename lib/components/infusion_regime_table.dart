@@ -21,8 +21,8 @@ class InfusionTableRowData extends TableRowData {
 
   @override
   List<String> get values => [
-    row.bolus.toStringAsFixed(1),
-    row.infusionRate.toStringAsFixed(1),
+    row.bolus.toStringAsFixed(0),
+    row.infusionRate.toStringAsFixed(0),
     row.accumulatedVolume.toStringAsFixed(1),
   ];
 
@@ -57,6 +57,7 @@ class ConfidenceIntervalRowData extends TableRowData {
 class DurationTableRowData extends TableRowData {
   final String volume;
   final String duration;
+  @override
   final bool isHighlighted;
 
   DurationTableRowData(this.volume, this.duration, {this.isHighlighted = false});
@@ -136,9 +137,17 @@ class _AnimatedDataTableState extends State<AnimatedDataTable>
       end: Offset.zero,
     ).animate(_contentAnimation);
 
+    // Set initial state without animation
     if (widget.isExpanded) {
-      _mainController.forward();
-      _contentController.forward();
+      if (widget.animate) {
+        // Only animate if specifically requested (button tap)
+        _mainController.forward();
+        _contentController.forward();
+      } else {
+        // Jump to final state immediately (screen restoration)
+        _mainController.value = 1.0;
+        _contentController.value = 1.0;
+      }
     }
   }
 
@@ -173,6 +182,15 @@ class _AnimatedDataTableState extends State<AnimatedDataTable>
           _mainController.value = 0.0;
           _contentController.value = 0.0;
         }
+      }
+    } else if (widget.animate != oldWidget.animate && !widget.animate) {
+      // If animate flag changes from true to false, ensure we're in the correct final state
+      if (widget.isExpanded) {
+        _mainController.value = 1.0;
+        _contentController.value = 1.0;
+      } else {
+        _mainController.value = 0.0;
+        _contentController.value = 0.0;
       }
     }
   }
@@ -861,12 +879,10 @@ class DosageDataTable extends StatelessWidget {
         ? theme.colorScheme.primary.withValues(alpha: 0.1)
         : Colors.transparent;
 
-    // Format infusion rate - show 0 decimal places for whole numbers, 1 for decimals
+    // Format infusion rate - always show as integer
     final rateText = row.infusionRate < 0.1 
         ? '—'
-        : row.infusionRate % 1 == 0 
-            ? row.infusionRate.toStringAsFixed(0)
-            : row.infusionRate.toStringAsFixed(1);
+        : row.infusionRate.round().toString();
 
     return GestureDetector(
       onTap: () {
@@ -906,6 +922,202 @@ class DosageDataTable extends StatelessWidget {
                 style: bodyStyle?.copyWith(
                   fontWeight: FontWeight.normal,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Duration screen data structure
+class DurationRowData {
+  final int volume;
+  final double duration;
+  final bool isHighlighted;
+
+  const DurationRowData({
+    required this.volume,
+    required this.duration,
+    this.isHighlighted = false,
+  });
+}
+
+class DurationDataTable extends StatelessWidget {
+  final List<DurationRowData> rows;
+  final int maxVisibleRows;
+  final int? selectedRowIndex;
+  final Function(int)? onRowTap;
+  final ScrollController? scrollController;
+
+  const DurationDataTable({
+    super.key,
+    required this.rows,
+    this.maxVisibleRows = 6,
+    this.selectedRowIndex,
+    this.onRowTap,
+    this.scrollController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (rows.isEmpty) {
+      return const Center(
+        child: Text(
+          'No data available',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
+    }
+
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: theme.colorScheme.primary, width: 1),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: IntrinsicHeight(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: maxVisibleRows * 41.0),
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: rows.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final row = entry.value;
+                      final isSelected = selectedRowIndex == index;
+                      return _buildDataRow(context, row, isSelected, index);
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final headerStyle = theme.textTheme.labelMedium?.copyWith(
+      fontWeight: FontWeight.w600,
+      color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.8),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(5),
+          topRight: Radius.circular(5),
+        ),
+        border: Border(
+          bottom: BorderSide(color: theme.colorScheme.primary, width: 1),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      child: Row(
+        children: [
+          // Volume column (40%)
+          Expanded(
+            flex: 40,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.science_outlined,
+                  size: 16,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                ),
+                const SizedBox(width: 4),
+                Text('Volume', style: headerStyle),
+              ],
+            ),
+          ),
+          // Duration column (60%)
+          Expanded(
+            flex: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.watch_later_outlined,
+                  size: 16,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Duration', 
+                  style: headerStyle, 
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDataRow(BuildContext context, DurationRowData row, bool isSelected, int index) {
+    final theme = Theme.of(context);
+    final bodyStyle = theme.textTheme.bodyMedium?.copyWith(
+      color: theme.colorScheme.onSurface,
+    );
+    
+    // Highlight selected row
+    final backgroundColor = isSelected 
+        ? theme.colorScheme.primary.withValues(alpha: 0.1)
+        : Colors.transparent;
+
+    return GestureDetector(
+      onTap: () {
+        onRowTap?.call(index);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          border: Border(
+            bottom: BorderSide(
+              color: theme.colorScheme.primary.withValues(alpha: 0.2), 
+              width: 0.5
+            ),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        child: Row(
+          children: [
+            // Volume column (40%)
+            Expanded(
+              flex: 40,
+              child: Text(
+                '${row.volume} mL',
+                style: bodyStyle?.copyWith(
+                  fontWeight: row.isHighlighted ? FontWeight.bold : FontWeight.normal,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+            // Duration column (60%)
+            Expanded(
+              flex: 60,
+              child: Text(
+                '${row.duration.toStringAsFixed(0)} mins',
+                style: bodyStyle?.copyWith(
+                  fontWeight: row.isHighlighted ? FontWeight.bold : FontWeight.normal,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
                 textAlign: TextAlign.center,

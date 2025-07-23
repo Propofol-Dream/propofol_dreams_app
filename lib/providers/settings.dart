@@ -509,6 +509,7 @@ class Settings with ChangeNotifier {
 
   int? _selectedDosageTableRow;
   int? _selectedVolumeTableRow;
+  int? _selectedDurationTableRow;
   double? _dosageTableScrollPosition;
   double? _volumeTableScrollPosition;
 
@@ -529,6 +530,16 @@ class Settings with ChangeNotifier {
   set selectedVolumeTableRow(int? i) {
     _selectedVolumeTableRow = i;
     setInt('selectedVolumeTableRow', i);
+    notifyListeners();
+  }
+
+  int? get selectedDurationTableRow {
+    return _selectedDurationTableRow;
+  }
+
+  set selectedDurationTableRow(int? i) {
+    _selectedDurationTableRow = i;
+    setInt('selectedDurationTableRow', i);
     notifyListeners();
   }
 
@@ -615,6 +626,7 @@ class Settings with ChangeNotifier {
       // Table row selection and scroll position settings
       if (_selectedDosageTableRow != null) _prefs!.setInt('selectedDosageTableRow', _selectedDosageTableRow!),
       if (_selectedVolumeTableRow != null) _prefs!.setInt('selectedVolumeTableRow', _selectedVolumeTableRow!),
+      if (_selectedDurationTableRow != null) _prefs!.setInt('selectedDurationTableRow', _selectedDurationTableRow!),
       if (_dosageTableScrollPosition != null) _prefs!.setDouble('dosageTableScrollPosition', _dosageTableScrollPosition!),
       if (_volumeTableScrollPosition != null) _prefs!.setDouble('volumeTableScrollPosition', _volumeTableScrollPosition!),
       
@@ -716,6 +728,7 @@ class Settings with ChangeNotifier {
     // Table row selection and scroll position settings
     _selectedDosageTableRow = pref.getInt('selectedDosageTableRow');
     _selectedVolumeTableRow = pref.getInt('selectedVolumeTableRow');
+    _selectedDurationTableRow = pref.getInt('selectedDurationTableRow');
     _dosageTableScrollPosition = pref.getDouble('dosageTableScrollPosition');
     _volumeTableScrollPosition = pref.getDouble('volumeTableScrollPosition');
 

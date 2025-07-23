@@ -35,6 +35,7 @@ class PDModelSelectorModal extends StatefulWidget {
     required this.targetController,
     required this.durationController,
     required this.onModelSelected,
+    this.isDosageScreen = false, // New parameter to identify dosage screen
   });
 
   final PDAdvancedSegmentedController controller;
@@ -46,6 +47,7 @@ class PDModelSelectorModal extends StatefulWidget {
   final TextEditingController targetController;
   final TextEditingController durationController;
   final Function(Model) onModelSelected;
+  final bool isDosageScreen;
 
   @override
   State<PDModelSelectorModal> createState() => _PDModelSelectorModalState();
@@ -65,11 +67,19 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
   List<Model> get availableModels {
     if (widget.inAdultView) {
       // Adult view: show adult + universal models
-      return [
-        Model.Marsh,
+      if (widget.isDosageScreen) {
+        // Dosage screen: only show Eleveld (exclude Marsh and Schnider)
+        return [
+          Model.Eleveld,
+        ];
+      } else {
+        // Other screens (like Volume): show all adult models
+        return [
+          Model.Marsh,
           Model.Schnider,
-        Model.Eleveld,
-      ];
+          Model.Eleveld,
+        ];
+      }
     } else {
       // Pediatric view: show pediatric + universal models
       return [

@@ -9,6 +9,7 @@ import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
 import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart';
 import 'package:propofol_dreams_app/models/InfusionUnit.dart';
+import 'package:propofol_dreams_app/components/infusion_regime_table.dart';
 
 import '../providers/settings.dart';
 
@@ -23,19 +24,9 @@ class _DurationScreenState extends State<DurationScreen> {
   final TextEditingController weightController = TextEditingController();
   final TextEditingController infusionRateController = TextEditingController();
   final PDSegmentedController infusionUnitController = PDSegmentedController();
+  final ScrollController tableScrollController = ScrollController();
 
-  // final PDTableController tableController = PDTableController();
-
-  final List<DataRow> emptyRows = [
-    const DataRow(cells: [DataCell(Text('60 mL')), DataCell(Text('-- mins'))]),
-    const DataRow(cells: [DataCell(Text('50 mL')), DataCell(Text('-- mins'))]),
-    const DataRow(cells: [DataCell(Text('40 mL')), DataCell(Text('-- mins'))]),
-    const DataRow(cells: [DataCell(Text('30 mL')), DataCell(Text('-- mins'))]),
-    const DataRow(cells: [DataCell(Text('20 mL')), DataCell(Text('-- mins'))]),
-    const DataRow(cells: [DataCell(Text('10 mL')), DataCell(Text('-- mins'))]),
-  ];
-
-  List<DataRow> durationRows = [];
+  List<DurationRowData> durationRows = [];
 
   List<InfusionUnit> infusionUnits = [
     InfusionUnit.mg_kg_hr,
@@ -185,8 +176,7 @@ class _DurationScreenState extends State<DurationScreen> {
         infusionRate: infusionRate,
         infusionUnit: infusionUnit)) {
       var settings = context.read<Settings>();
-      durationRows = [];
-      List<DataRow> durations = [];
+      List<DurationRowData> durations = [];
       var height = MediaQuery.of(context).size.height;
       List<int> volumes = height >= screenBreakPoint2
           ? [100, 90, 80, 70, 60, 50, 40, 30, 20, 10]
@@ -194,7 +184,6 @@ class _DurationScreenState extends State<DurationScreen> {
               ? [60, 50, 40, 30, 20, 10]
               : [50, 20];
       for (int i = 0; i < volumes.length; i++) {
-        // for (int i = 60; i >= 10; i -= 10) {
         double duration = calculate(
             volume: volumes[i],
             weight: weight,
@@ -202,66 +191,37 @@ class _DurationScreenState extends State<DurationScreen> {
             infusionUnit: infusionUnit,
             density: settings.density);
 
-        if (volumes[i] == 50 || volumes[i] == 20) {
-          durations.add(
-            DataRow(
-              cells: [
-                DataCell(
-                  Text(
-                    '${volumes[i]} mL',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                DataCell(Text('${duration.toStringAsFixed(0)} ${AppLocalizations.of(context)!.mins}',
-                    style: const TextStyle(fontWeight: FontWeight.bold)))
-              ],
-            ),
-          );
-        } else {
-          durations.add(
-            DataRow(
-              cells: [
-                DataCell(Text('${volumes[i]} mL')),
-                DataCell(Text('${duration.toStringAsFixed(0)} ${AppLocalizations.of(context)!.mins}'))
-              ],
-            ),
-          );
-        }
+        // Highlight volumes 50mL and 20mL (commonly used sizes)
+        bool isHighlighted = volumes[i] == 50 || volumes[i] == 20;
+        
+        durations.add(
+          DurationRowData(
+            volume: volumes[i],
+            duration: duration,
+            isHighlighted: isHighlighted,
+          ),
+        );
       }
 
       setState(() {
         durationRows = durations;
       });
+    } else {
+      setState(() {
+        durationRows = [];
+      });
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    // final settings = context.watch<Settings>();
+  void dispose() {
+    tableScrollController.dispose();
+    super.dispose();
+  }
 
-    List<DataColumn> durationColumns = [
-      DataColumn(
-        label: Row(
-          children: [
-            const Icon(Icons.science_outlined),
-            const SizedBox(
-              width: 4.0,
-            ),
-            Text(AppLocalizations.of(context)!.volume),
-          ],
-        ),
-      ),
-       DataColumn(
-          label: Row(
-        children: [
-          Icon(Icons.watch_later_outlined),
-          SizedBox(
-            width: 4.0,
-          ),
-          Text(AppLocalizations.of(context)!.duration),
-        ],
-      ))
-    ];
+  @override
+  Widget build(BuildContext context) {
+    final settings = context.watch<Settings>();
 
     infusionRateDecimal = infusionUnits[infusionUnitController.val] ==
             InfusionUnit.mg_kg_hr
@@ -292,32 +252,32 @@ class _DurationScreenState extends State<DurationScreen> {
             ? false
             : true;
 
-    int? weight = int.tryParse(weightController.text);
-    double? infusionRate = double.tryParse(infusionRateController.text);
-    InfusionUnit infusionUnit = infusionUnits[infusionUnitController.val];
-
     return Container(
       height: screenHeight,
       padding:
           const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-      // decoration: BoxDecoration(
-      //   borderRadius: BorderRadius.circular(5),
-      //   border: Border.all(color: Theme.of(context).colorScheme.primary),
-      // ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          DataTable(
-              // dataRowHeight
-              headingTextStyle: Theme.of(context).textTheme.titleLarge,
-              dataTextStyle: Theme.of(context).textTheme.titleMedium,
-              columns: durationColumns,
-              rows: isRunnable(
-                      weight: weight,
-                      infusionRate: infusionRate,
-                      infusionUnit: infusionUnit)
-                  ? durationRows
-                  : emptyRows),
+          // Top spacer to push content to bottom
+          Expanded(child: Container()),
+          // Duration table with consistent styling
+          mediaQuery.size.height >= screenBreakPoint1
+              ? DurationDataTable(
+                  rows: durationRows,
+                  maxVisibleRows: 6,
+                  scrollController: tableScrollController,
+                  selectedRowIndex: settings.selectedDurationTableRow,
+                  onRowTap: (index) {
+                    // Toggle selection: if same row is tapped, deselect it
+                    if (settings.selectedDurationTableRow == index) {
+                      settings.selectedDurationTableRow = null;
+                    } else {
+                      settings.selectedDurationTableRow = index;
+                    }
+                  },
+                )
+              : Container(),
           const SizedBox(
             height: 16,
           ),

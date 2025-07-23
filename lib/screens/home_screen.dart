@@ -8,7 +8,7 @@ import '../providers/settings.dart';
 import 'volume_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
-import 'dosage_screen.dart';
+import 'tci_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -22,9 +22,9 @@ class _HomeScreenState extends State<HomeScreen> {
   int currenIndex = 1;
   final screens = [
     EleMarshScreen(),
+    const TCIScreen(), // Moved to position 1 (TCI screen)
     const VolumeScreen(),
     const DurationScreen(),
-    const DosageScreen(),
     const SettingsScreen(),
     // TestScreen()
   ];
@@ -79,14 +79,14 @@ class _HomeScreenState extends State<HomeScreen> {
           items: [
             const BottomNavigationBarItem(
                 icon: Icon(Icons.hub_outlined), label: 'EleMarsh'),
+            const BottomNavigationBarItem(
+                icon: Icon(Icons.local_pharmacy_outlined), label: 'TCI'), // Moved to position 1 and renamed
             BottomNavigationBarItem(
                 icon: const Icon(Icons.science_outlined),
                 label: AppLocalizations.of(context)!.volume),
             BottomNavigationBarItem(
                 icon: const Icon(Icons.schedule),
                 label: AppLocalizations.of(context)!.duration),
-            const BottomNavigationBarItem(
-                icon: Icon(Icons.local_pharmacy_outlined), label: 'Dosage'),
             BottomNavigationBarItem(
                 icon: const Icon(Icons.settings),
                 label: AppLocalizations.of(context)!.settings),

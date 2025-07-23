@@ -85,6 +85,7 @@ class PDAdvancedSegmentedController extends ChangeNotifier {
     required TextEditingController targetController,
     required TextEditingController durationController,
     required Function(Model) onModelSelected,
+    bool isDosageScreen = false, // New parameter
   }) {
     showModalBottomSheet(
       context: context,
@@ -107,6 +108,7 @@ class PDAdvancedSegmentedController extends ChangeNotifier {
           targetController: targetController,
           durationController: durationController,
           onModelSelected: onModelSelected,
+          isDosageScreen: isDosageScreen, // Pass the parameter
         ),
       ),
     );
