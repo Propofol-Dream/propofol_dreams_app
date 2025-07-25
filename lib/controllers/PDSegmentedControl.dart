@@ -45,9 +45,41 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
   }
 
   Widget buildButton(BuildContext context, int buildIndex) {
-    return SizedBox(
+    final bool isFirst = buildIndex == 0;
+    final bool isLast = buildIndex == widget.labels.length - 1;
+    
+    return Container(
       height: widget.fitHeight ? double.infinity : null,
-      // Set height based on fitHeight
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(isFirst ? 5 : 0),
+          bottomLeft: Radius.circular(isFirst ? 5 : 0),
+          topRight: Radius.circular(isLast ? 5 : 0),
+          bottomRight: Radius.circular(isLast ? 5 : 0),
+        ),
+        border: Border(
+          top: BorderSide(
+            color: widget.onPressed[buildIndex] == null
+                ? Theme.of(context).disabledColor
+                : widget.defaultColor,
+          ),
+          bottom: BorderSide(
+            color: widget.onPressed[buildIndex] == null
+                ? Theme.of(context).disabledColor
+                : widget.defaultColor,
+          ),
+          left: isFirst ? BorderSide(
+            color: widget.onPressed[buildIndex] == null
+                ? Theme.of(context).disabledColor
+                : widget.defaultColor,
+          ) : BorderSide.none,
+          right: BorderSide(
+            color: widget.onPressed[buildIndex] == null
+                ? Theme.of(context).disabledColor
+                : widget.defaultColor,
+          ),
+        ),
+      ),
       child: ElevatedButton(
         onPressed: widget.onPressed[buildIndex] == null
             ? null
@@ -71,38 +103,13 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
                   ? widget.defaultColor
                   : widget.defaultOnColor,
           shape: RoundedRectangleBorder(
-            side: BorderSide(
-              strokeAlign: BorderSide.strokeAlignInside,
-              color: widget.onPressed[buildIndex] == null
-                  ? Theme.of(context).disabledColor
-                  : widget.defaultColor,
-            ),
+            side: BorderSide.none,
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
-              bottomLeft: Radius.circular(buildIndex == 0 ? 5 : 0),
-              topRight: Radius.circular(
-                  buildIndex == widget.labels.length - 1 ? 5 : 0),
-              bottomRight: Radius.circular(
-                  buildIndex == widget.labels.length - 1 ? 5 : 0),
+              topLeft: Radius.circular(isFirst ? 5 : 0),
+              bottomLeft: Radius.circular(isFirst ? 5 : 0),
+              topRight: Radius.circular(isLast ? 5 : 0),
+              bottomRight: Radius.circular(isLast ? 5 : 0),
             ),
-          ).copyWith(
-            side: MaterialStateBorderSide.resolveWith((states) {
-              // Only show borders on outer edges and between segments
-              final bool isFirst = buildIndex == 0;
-              final bool isLast = buildIndex == widget.labels.length - 1;
-              
-              if (isFirst || isLast) {
-                // Full border for first and last buttons
-                return BorderSide(
-                  color: widget.onPressed[buildIndex] == null
-                      ? Theme.of(context).disabledColor
-                      : widget.defaultColor,
-                );
-              } else {
-                // Only top and bottom borders for middle buttons
-                return BorderSide.none;
-              }
-            }),
           ),
         ),
         child: Text(
