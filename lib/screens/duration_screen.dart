@@ -98,16 +98,16 @@ class _DurationScreenState extends State<DurationScreen> {
       return infusionRate / 1000 * 60;
     } else if (previous == InfusionUnit.mg_kg_hr &&
         current == InfusionUnit.mL_hr) {
-      return infusionRate * weight / settings.concentration;
+      return infusionRate * weight / settings.propofol_concentration;
     } else if (previous == InfusionUnit.mL_hr &&
         current == InfusionUnit.mg_kg_hr) {
-      return infusionRate / weight * settings.concentration;
+      return infusionRate / weight * settings.propofol_concentration;
     } else if (previous == InfusionUnit.mL_hr &&
         current == InfusionUnit.mcg_kg_min) {
-      return infusionRate / weight * settings.concentration * 1000 / 60;
+      return infusionRate / weight * settings.propofol_concentration * 1000 / 60;
     } else if (previous == InfusionUnit.mcg_kg_min &&
         current == InfusionUnit.mL_hr) {
-      return infusionRate * weight / settings.concentration / 1000 * 60;
+      return infusionRate * weight / settings.propofol_concentration / 1000 * 60;
     } else {
       return 0;
     }
@@ -147,12 +147,12 @@ class _DurationScreenState extends State<DurationScreen> {
       int? weight,
       required double infusionRate,
       required InfusionUnit infusionUnit,
-      required double density}) {
+      required double concentration}) {
     double res = 0.0;
     if (infusionUnit == InfusionUnit.mg_kg_hr) {
-      res = volume * density / weight! / infusionRate * 60;
+      res = volume * concentration / weight! / infusionRate * 60;
     } else if (infusionUnit == InfusionUnit.mcg_kg_min) {
-      res = volume * density / weight! / infusionRate * 1000;
+      res = volume * concentration / weight! / infusionRate * 1000;
     } else if (infusionUnit == InfusionUnit.mL_hr) {
       res = volume / infusionRate * 60;
     }
@@ -189,7 +189,7 @@ class _DurationScreenState extends State<DurationScreen> {
             weight: weight,
             infusionRate: infusionRate!,
             infusionUnit: infusionUnit,
-            density: settings.concentration);
+            concentration: settings.propofol_concentration);
 
         // Highlight volumes 50mL and 20mL (commonly used sizes)
         bool isHighlighted = volumes[i] == 50 || volumes[i] == 20;

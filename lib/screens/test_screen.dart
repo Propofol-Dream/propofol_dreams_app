@@ -143,7 +143,7 @@ class _TestScreenState extends State<TestScreen> {
                 : 56);
 
     final settings = context.watch<Settings>();
-    double density = settings.concentration;
+    double concentration = settings.propofol_concentration;
 
     void showAlertDialog(BuildContext context) {
       showDialog(

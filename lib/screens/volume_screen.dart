@@ -276,28 +276,28 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
               Pump pump = Pump(
                   timeStep: Duration(seconds: settings.time_step),
-                  concentration: settings.concentration,
+                  concentration: settings.propofol_concentration,
                   maxPumpRate: settings.max_pump_rate,
                   target: target,
                   duration: Duration(minutes: duration));
 
               Pump pump1 = Pump(
                   timeStep: Duration(seconds: settings.time_step),
-                  concentration: settings.concentration,
+                  concentration: settings.propofol_concentration,
                   maxPumpRate: settings.max_pump_rate,
                   target: target - targetInterval,
                   duration: Duration(minutes: duration + 2 * durationInterval));
 
               Pump pump2 = Pump(
                   timeStep: Duration(seconds: settings.time_step),
-                  concentration: settings.concentration,
+                  concentration: settings.propofol_concentration,
                   maxPumpRate: settings.max_pump_rate,
                   target: target,
                   duration: Duration(minutes: duration + 2 * durationInterval));
 
               Pump pump3 = Pump(
                   timeStep: Duration(seconds: settings.time_step),
-                  concentration: settings.concentration,
+                  concentration: settings.propofol_concentration,
                   maxPumpRate: settings.max_pump_rate,
                   target: target + targetInterval,
                   duration: Duration(minutes: duration + 2 * durationInterval));
@@ -682,7 +682,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     final settings = context.watch<Settings>();
 
-    double density = settings.concentration;
+    double concentration = settings.propofol_concentration;
 
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);

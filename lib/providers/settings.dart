@@ -66,82 +66,90 @@ class Settings with ChangeNotifier {
 
   // REMOVED: _density (legacy)
   
-  // NEW: Drug-specific concentration system
-  Map<Drug, double> _drugConcentrations = {
-    Drug.propofol10mg: 10.0, // Default propofol
-    Drug.remifentanil50mcg: 50.0, // Default remifentanil
-    Drug.dexmedetomidine: 4.0, // Fixed (mcg/mL)
-    Drug.remimazolam: 1.0, // Fixed
-  };
+  // Individual drug concentrations with direct SharedPreferences storage
+  double _propofolConcentration = 10.0;
+  double _remifentanilConcentration = 50.0;
+  double _dexmedetomidineConcentration = 4.0;
+  double _remimazolamConcentration = 1.0;
 
-  // LEGACY BRIDGE: Keep for backward compatibility
-  int get density {
-    // Return propofol concentration for backward compatibility
-    // Check both propofol variants to determine current concentration
-    if (_drugConcentrations.containsKey(Drug.propofol20mg)) {
-      return 20;
-    } else if (_drugConcentrations.containsKey(Drug.propofol10mg)) {
-      return 10;
-    } else {
-      return 10; // Default to 10mg
-    }
-  }
+  // Individual drug concentration getters
+  double get propofol_concentration => _propofolConcentration;
+  double get remifentanil_concentration => _remifentanilConcentration;
+  double get dexmedetomidine_concentration => _dexmedetomidineConcentration;
+  double get remimazolam_concentration => _remimazolamConcentration;
 
-  // NEW: concentration getter (returns double for pump compatibility)
-  double get concentration {
-    return density.toDouble();
-  }
-
-  set density(int i) {
-    // Update propofol concentration
-    // Update appropriate propofol concentration based on value
-    if (i == 20) {
-      _drugConcentrations.remove(Drug.propofol10mg);
-      _drugConcentrations[Drug.propofol20mg] = 20.0;
-    } else {
-      _drugConcentrations.remove(Drug.propofol20mg);
-      _drugConcentrations[Drug.propofol10mg] = 10.0;
-    }
-    setString('drugConcentrations', jsonEncode(_drugConcentrations.map(
-      (key, value) => MapEntry(key.toString(), value)
-    )));
+  // Individual drug concentration setters
+  set propofol_concentration(double value) {
+    _propofolConcentration = value;
+    setDouble('propofol_concentration', value);
     notifyListeners();
   }
 
-  // NEW: Drug concentration getters and setters
+  set remifentanil_concentration(double value) {
+    _remifentanilConcentration = value;
+    setDouble('remifentanil_concentration', value);
+    notifyListeners();
+  }
+
+  set dexmedetomidine_concentration(double value) {
+    _dexmedetomidineConcentration = value;
+    setDouble('dexmedetomidine_concentration', value);
+    notifyListeners();
+  }
+
+  set remimazolam_concentration(double value) {
+    _remimazolamConcentration = value;
+    setDouble('remimazolam_concentration', value);
+    notifyListeners();
+  }
+
+  // LEGACY BRIDGE: Keep 'density' name for backward compatibility
+  int get density {
+    return _propofolConcentration.round();
+  }
+
+  set density(int value) {
+    propofol_concentration = value.toDouble();
+  }
+
+  // Drug concentration methods using individual storage
   double getDrugConcentration(Drug drug) {
-    return _drugConcentrations[drug] ?? drug.concentration;
+    switch (drug.displayName) {
+      case 'Propofol':
+        return propofol_concentration;
+      case 'Remifentanil':
+        return remifentanil_concentration;
+      case 'Dexmedetomidine':
+        return dexmedetomidine_concentration;
+      case 'Remimazolam':
+        return remimazolam_concentration;
+      default:
+        return drug.concentration; // Fallback to enum default
+    }
   }
 
   void setDrugConcentration(Drug drug, double concentration) {
-    // Handle drug variant switching - remove conflicting variants
+    // Set the appropriate individual concentration
     switch (drug.displayName) {
       case 'Propofol':
-        // Remove other propofol variants
-        _drugConcentrations.removeWhere((key, value) => 
-          key.displayName == 'Propofol' && key != drug);
+        propofol_concentration = concentration;
         break;
       case 'Remifentanil':
-        // Remove other remifentanil variants
-        _drugConcentrations.removeWhere((key, value) => 
-          key.displayName == 'Remifentanil' && key != drug);
+        remifentanil_concentration = concentration;
         break;
-      // Other drugs (dexmedetomidine, remimazolam) only have one variant
+      case 'Dexmedetomidine':
+        dexmedetomidine_concentration = concentration;
+        break;
+      case 'Remimazolam':
+        remimazolam_concentration = concentration;
+        break;
     }
-    
-    // Set the new drug concentration
-    _drugConcentrations[drug] = concentration;
     
     // Check if this drug change affects the current TCI drug
     if (_tciDrug.displayName == drug.displayName) {
       _tciDrug = drug;
       setString('tciDrug', drug.name);
     }
-    
-    setString('drugConcentrations', jsonEncode(_drugConcentrations.map(
-      (key, value) => MapEntry(key.toString(), value)
-    )));
-    notifyListeners();
   }
 
   // Get available concentration options for a drug type
@@ -164,9 +172,28 @@ class Settings with ChangeNotifier {
   Drug getCurrentDrugVariant(String drugType) {
     final variants = getAvailableDrugVariants(drugType);
     
-    // Find which variant is currently in the concentrations map
+    // Find which variant matches the current concentration
+    double currentConcentration;
+    switch (drugType) {
+      case 'Propofol':
+        currentConcentration = propofol_concentration;
+        break;
+      case 'Remifentanil':
+        currentConcentration = remifentanil_concentration;
+        break;
+      case 'Dexmedetomidine':
+        currentConcentration = dexmedetomidine_concentration;
+        break;
+      case 'Remimazolam':
+        currentConcentration = remimazolam_concentration;
+        break;
+      default:
+        return variants.isNotEmpty ? variants.first : Drug.propofol10mg;
+    }
+    
+    // Find variant that matches the current concentration
     for (final variant in variants) {
-      if (_drugConcentrations.containsKey(variant)) {
+      if (variant.concentration == currentConcentration) {
         return variant;
       }
     }
@@ -735,9 +762,7 @@ class Settings with ChangeNotifier {
     // Save all current values to ensure they're persisted
     await Future.wait([
       _prefs!.setBool('inAdultView', _inAdultView),
-      _prefs!.setString('drugConcentrations', jsonEncode(_drugConcentrations.map(
-        (key, value) => MapEntry(key.toString(), value)
-      ))),
+      // Individual drug concentrations are saved by their respective setters
       _prefs!.setBool('isVolumeTableExpanded', _isVolumeTableExpanded),
       _prefs!.setString('adultModel', _adultModel.name),
       _prefs!.setString('tciModel', _tciModel.name),
@@ -806,28 +831,25 @@ class Settings with ChangeNotifier {
     _inAdultView = pref.getBool('inAdultView') ?? true;
     _isVolumeTableExpanded = pref.getBool('isVolumeTableExpanded') ?? false;
 
-    // NEW: Load drug concentrations
-    final drugConcentrationsString = pref.getString('drugConcentrations');
-    if (drugConcentrationsString != null) {
-      try {
-        final Map<String, dynamic> concentrationsMap = jsonDecode(drugConcentrationsString);
-        concentrationsMap.forEach((key, value) {
-          final drug = _parseDrugFromString(key);
-          if (drug != null) {
-            _drugConcentrations[drug] = (value as num).toDouble();
-          }
-        });
-      } catch (e) {
-        // Keep default concentrations if parsing fails
-      }
-    } else {
-      // MIGRATION: Load legacy density for propofol
-      final legacyDensity = pref.getInt('density') ?? 10;
-      if (legacyDensity == 20) {
-        _drugConcentrations[Drug.propofol20mg] = 20.0;
-      } else {
-        _drugConcentrations[Drug.propofol10mg] = 10.0;
-      }
+    // Load individual drug concentrations with migration support
+    
+    // Propofol concentration
+    _propofolConcentration = pref.getDouble('propofol_concentration') ??
+      // Migration from legacy density or old JSON format
+      (pref.getInt('density')?.toDouble() ?? 10.0);
+    
+    // Remifentanil concentration  
+    _remifentanilConcentration = pref.getDouble('remifentanil_concentration') ?? 50.0;
+    
+    // Dexmedetomidine concentration
+    _dexmedetomidineConcentration = pref.getDouble('dexmedetomidine_concentration') ?? 4.0;
+    
+    // Remimazolam concentration
+    _remimazolamConcentration = pref.getDouble('remimazolam_concentration') ?? 1.0;
+    
+    // Migration: If we loaded from legacy, save to new individual keys
+    if (pref.getDouble('propofol_concentration') == null && pref.getInt('density') != null) {
+      propofol_concentration = _propofolConcentration; // This will save to new key
     }
     
     // Model-specific targets removed for now
@@ -844,13 +866,10 @@ class Settings with ChangeNotifier {
     final tciDrugString = pref.getString('tciDrug');
     _tciDrug = _parseDrugFromString(tciDrugString) ?? Drug.propofol10mg;
     
-    // Ensure drug concentrations map is synchronized with loaded TCI drug
+    // Ensure individual concentrations are synchronized with loaded TCI drug
     if (_tciDrug != Drug.propofol10mg) {
-      // Remove conflicting variants of the same drug type
-      _drugConcentrations.removeWhere((key, value) => 
-        key.displayName == _tciDrug.displayName && key != _tciDrug);
-      // Ensure the TCI drug is in the concentrations map
-      _drugConcentrations[_tciDrug] = _tciDrug.concentration;
+      // Update the appropriate concentration to match the TCI drug
+      setDrugConcentration(_tciDrug, _tciDrug.concentration);
     }
     
     final adultSexString = pref.getString('adultSex');

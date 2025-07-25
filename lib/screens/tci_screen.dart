@@ -227,7 +227,7 @@ class _TCIScreenState extends State<TCIScreen> {
         // Create pump configuration (matching volume screen pattern)
         final pump = Pump(
           timeStep: Duration(seconds: settings.time_step),
-          concentration: settings.concentration,
+          concentration: settings.propofol_concentration,
           maxPumpRate: settings.max_pump_rate,
           target: finalTarget,
           duration: Duration(minutes: finalDuration),
@@ -247,7 +247,7 @@ class _TCIScreenState extends State<TCIScreen> {
             times: results.times,
             pumpInfs: results.pumpInfs,
             cumulativeInfusedVolumes: results.cumulativeInfusedVolumes,
-            density: 10, // LEGACY: Keep for backward compatibility
+            density: 10, // LEGACY parameter name: kept for InfusionRegimeData backward compatibility
             totalDuration: Duration(minutes: finalDuration),
             isEffectSiteTargeting: model.target == Target.EffectSite,
             drugConcentrationMgMl: selectedDrug?.concentration ?? 10.0, // Use selected drug concentration or default
@@ -269,7 +269,9 @@ class _TCIScreenState extends State<TCIScreen> {
       // Only print if output has changed (avoid spam)
       if (_lastDebugOutput != debugOutput) {
         _lastDebugOutput = debugOutput;
-        print({
+        
+        // Prepare enhanced output with first 15min details
+        final outputData = {
           'screen': 'TCI',
           'model': model,
           'drug': selectedDrug?.displayName ?? 'Unknown',
@@ -278,10 +280,25 @@ class _TCIScreenState extends State<TCIScreen> {
           'target': finalTarget,
           'duration': finalDuration,
           'calculation time': '${calculationDuration.inMilliseconds.toString()} milliseconds',
-          'bolus': infusionRegimeData?.totalBolus.toStringAsFixed(1) ?? '0.0',
           'total_volume': infusionRegimeData?.totalVolume.toStringAsFixed(1) ?? '0.0',
-          'max_rate': infusionRegimeData?.maxInfusionRate.toStringAsFixed(1) ?? '0.0'
-        });
+          'max_rate': infusionRegimeData?.maxInfusionRate.toStringAsFixed(1) ?? '0.0',
+        };
+        
+        // Add first 15 minutes detailed information
+        if (infusionRegimeData != null && infusionRegimeData!.rows.isNotEmpty) {
+          final firstRow = infusionRegimeData!.rows.first;
+          outputData['first_15min_bolus'] = '${firstRow.bolus.toStringAsFixed(2)} mL';
+          outputData['first_15min_bolus_raw'] = firstRow.rawBolus != null ? '${firstRow.rawBolus!.toStringAsFixed(6)} mL' : 'N/A';
+          outputData['first_15min_rate'] = '${firstRow.infusionRate.toStringAsFixed(2)} mL/hr';
+          outputData['first_15min_total'] = '${firstRow.accumulatedVolume.toStringAsFixed(2)} mL';
+        } else {
+          outputData['first_15min_bolus'] = '0.0 mL';
+          outputData['first_15min_bolus_raw'] = 'N/A';
+          outputData['first_15min_rate'] = '0.0 mL/hr';
+          outputData['first_15min_total'] = '0.0 mL';
+        }
+        
+        print(outputData);
       }
     } catch (e) {
       debugPrint('Calculation error: $e');

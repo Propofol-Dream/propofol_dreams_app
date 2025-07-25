@@ -7,7 +7,7 @@ import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 import 'package:propofol_dreams_app/models/infusion_regime_data.dart';
 
 void main() {
-  group('TCI Screen New Models Integration Test', () {
+  group('TCI Screen Model Integration Test', () {
     // Test patient: 35 yo male, 70 kg, 170 cm
     const Sex sex = Sex.Male;
     const int weight = 70;
@@ -26,14 +26,14 @@ void main() {
 
       final pump = Pump(
         timeStep: const Duration(seconds: 1),
-        density: 50, // 50 mg/mL for remifentanil
+        concentration: 50, // 50 mcg/mL for remifentanil
         maxPumpRate: 1200,
         target: target,
         duration: const Duration(minutes: duration),
       );
 
       final simulation = PDSim.Simulation(
-        model: Model.MintoRemifentanil,
+        model: Model.Minto,
         patient: patient,
         pump: pump,
       );
@@ -52,8 +52,8 @@ void main() {
         cumulativeInfusedVolumes: results.cumulativeInfusedVolumes,
         density: 50,
         totalDuration: const Duration(minutes: duration),
-        isEffectSiteTargeting: Model.MintoRemifentanil.target.name == 'EffectSite',
-        drugConcentrationMgMl: Model.MintoRemifentanil.drug.concentration,
+        isEffectSiteTargeting: Model.Minto.target.name == 'EffectSite',
+        drugConcentrationMgMl: 50.0,
       );
 
       // Verify infusion regime data is created
@@ -61,58 +61,7 @@ void main() {
       expect(infusionRegimeData.totalBolus, greaterThanOrEqualTo(0));
       expect(infusionRegimeData.totalVolume, greaterThan(0));
 
-      print('Minto Remifentanil TCI Results:');
-      print('Total bolus: ${infusionRegimeData.totalBolus.toStringAsFixed(2)} mL');
-      print('Total volume: ${infusionRegimeData.totalVolume.toStringAsFixed(2)} mL');
-      print('Max rate: ${infusionRegimeData.maxInfusionRate.toStringAsFixed(2)} mL/hr');
-    });
-
-    test('Eleveld Remifentanil TCI simulation works', () {
-      final patient = Patient(
-        weight: weight,
-        age: age,
-        height: height,
-        sex: sex,
-      );
-
-      final pump = Pump(
-        timeStep: const Duration(seconds: 1),
-        density: 50, // mcg/mL for Eleveld remifentanil  
-        maxPumpRate: 1200,
-        target: target,
-        duration: const Duration(minutes: duration),
-      );
-
-      final simulation = PDSim.Simulation(
-        model: Model.EleveldRemifentanil,
-        patient: patient,
-        pump: pump,
-      );
-
-      final results = simulation.estimate;
-
-      // Verify simulation produces valid results
-      expect(results.times.isNotEmpty, true);
-      expect(results.pumpInfs.isNotEmpty, true);
-      expect(results.cumulativeInfusedVolumes.isNotEmpty, true);
-
-      // Create infusion regime data
-      final infusionRegimeData = InfusionRegimeData.fromSimulation(
-        times: results.times,
-        pumpInfs: results.pumpInfs,
-        cumulativeInfusedVolumes: results.cumulativeInfusedVolumes,
-        density: 50,
-        totalDuration: const Duration(minutes: duration),
-        isEffectSiteTargeting: Model.EleveldRemifentanil.target.name == 'EffectSite',
-        drugConcentrationMgMl: Model.EleveldRemifentanil.drug.concentration,
-      );
-
-      // Verify infusion regime data is created
-      expect(infusionRegimeData.rows.isNotEmpty, true);
-      expect(infusionRegimeData.totalBolus, greaterThanOrEqualTo(0));
-      expect(infusionRegimeData.totalVolume, greaterThan(0));
-
-      print('Eleveld Remifentanil TCI Results:');
+      print('Minto TCI Results:');
       print('Total bolus: ${infusionRegimeData.totalBolus.toStringAsFixed(2)} mL');
       print('Total volume: ${infusionRegimeData.totalVolume.toStringAsFixed(2)} mL');
       print('Max rate: ${infusionRegimeData.maxInfusionRate.toStringAsFixed(2)} mL/hr');
@@ -128,14 +77,14 @@ void main() {
 
       final pump = Pump(
         timeStep: const Duration(seconds: 1),
-        density: 4, // mcg/mL for dexmedetomidine
+        concentration: 4, // 4 mcg/mL for dexmedetomidine
         maxPumpRate: 1200,
         target: target,
         duration: const Duration(minutes: duration),
       );
 
       final simulation = PDSim.Simulation(
-        model: Model.HannivoortDexmedetomidine,
+        model: Model.Hannivoort,
         patient: patient,
         pump: pump,
       );
@@ -154,8 +103,8 @@ void main() {
         cumulativeInfusedVolumes: results.cumulativeInfusedVolumes,
         density: 4,
         totalDuration: const Duration(minutes: duration),
-        isEffectSiteTargeting: Model.HannivoortDexmedetomidine.target.name == 'EffectSite',
-        drugConcentrationMgMl: Model.HannivoortDexmedetomidine.drug.concentration,
+        isEffectSiteTargeting: Model.Hannivoort.target.name == 'EffectSite',
+        drugConcentrationMgMl: 4.0,
       );
 
       // Verify infusion regime data is created
@@ -169,66 +118,18 @@ void main() {
       print('Max rate: ${infusionRegimeData.maxInfusionRate.toStringAsFixed(2)} mL/hr');
     });
 
-    test('Eleveld Remimazolam TCI simulation works', () {
-      final patient = Patient(
-        weight: weight,
-        age: age,
-        height: height,
-        sex: sex,
-      );
-
-      final pump = Pump(
-        timeStep: const Duration(seconds: 1),
-        density: 1, // mg/mL for remimazolam
-        maxPumpRate: 1200,
-        target: target,
-        duration: const Duration(minutes: duration),
-      );
-
-      final simulation = PDSim.Simulation(
-        model: Model.EleveldRemimazolam,
-        patient: patient,
-        pump: pump,
-      );
-
-      final results = simulation.estimate;
-
-      // Verify simulation produces valid results
-      expect(results.times.isNotEmpty, true);
-      expect(results.pumpInfs.isNotEmpty, true);
-      expect(results.cumulativeInfusedVolumes.isNotEmpty, true);
-
-      // Create infusion regime data
-      final infusionRegimeData = InfusionRegimeData.fromSimulation(
-        times: results.times,
-        pumpInfs: results.pumpInfs,
-        cumulativeInfusedVolumes: results.cumulativeInfusedVolumes,
-        density: 1,
-        totalDuration: const Duration(minutes: duration),
-        isEffectSiteTargeting: Model.EleveldRemimazolam.target.name == 'EffectSite',
-        drugConcentrationMgMl: Model.EleveldRemimazolam.drug.concentration,
-      );
-
-      // Verify infusion regime data is created
-      expect(infusionRegimeData.rows.isNotEmpty, true);
-      expect(infusionRegimeData.totalBolus, greaterThanOrEqualTo(0));
-      expect(infusionRegimeData.totalVolume, greaterThan(0));
-
-      print('Eleveld Remimazolam TCI Results:');
-      print('Total bolus: ${infusionRegimeData.totalBolus.toStringAsFixed(2)} mL');
-      print('Total volume: ${infusionRegimeData.totalVolume.toStringAsFixed(2)} mL');
-      print('Max rate: ${infusionRegimeData.maxInfusionRate.toStringAsFixed(2)} mL/hr');
-    });
-
-    test('All new models are selectable and work in TCI calculations', () {
-      final newModels = [
-        Model.MintoRemifentanil,
-        Model.EleveldRemifentanil,
-        Model.HannivoortDexmedetomidine,
-        Model.EleveldRemimazolam,
+    test('All available models are selectable and work in TCI calculations', () {
+      final availableModels = [
+        Model.Marsh,
+        Model.Schnider, 
+        Model.Eleveld,
+        Model.Paedfusor,
+        Model.Kataria,
+        Model.Minto,
+        Model.Hannivoort,
       ];
 
-      for (final model in newModels) {
+      for (final model in availableModels) {
         // Verify model is runnable with test parameters
         final isRunnable = model.isRunnable(
           age: age,
@@ -240,12 +141,19 @@ void main() {
 
         expect(isRunnable, true, reason: '$model should be runnable with test parameters');
 
-        // Verify model has proper drug and target unit configuration
-        expect(model.drug, isNotNull, reason: '$model should have associated drug');
+        // Verify model has proper target unit configuration
         expect(model.targetUnit, isNotNull, reason: '$model should have target unit');
         
-        print('✓ $model - Drug: ${model.drug.displayName}, Target: ${model.target.name} (${model.targetUnit.displayName})');
+        print('✓ $model - Target: ${model.target.name} (${model.targetUnit.displayName})');
       }
     });
   });
+}
+
+extension on InfusionRegimeData {
+  /// Calculate maximum infusion rate across all intervals
+  double get maxInfusionRate {
+    if (rows.isEmpty) return 0.0;
+    return rows.map((row) => row.infusionRate).reduce((a, b) => a > b ? a : b);
+  }
 }

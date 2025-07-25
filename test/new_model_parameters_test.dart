@@ -11,8 +11,8 @@ void main() {
     const int height = 170;
     const int age = 35;
 
-    test('Minto Remifentanil parameters calculation', () {
-      final params = Model.MintoRemifentanil.calculatePKParameters(
+    test('Minto parameters calculation', () {
+      final params = Model.Minto.calculatePKParameters(
         sex: sex,
         weight: weight,
         height: height,
@@ -34,7 +34,7 @@ void main() {
       expect(params.ke0, greaterThan(0));
 
       // Print values for verification against MATLAB
-      print('Minto Remifentanil Parameters:');
+      print('Minto Parameters:');
       print('V1: ${params.V1.toStringAsFixed(4)} L');
       print('V2: ${params.V2.toStringAsFixed(4)} L');
       print('V3: ${params.V3.toStringAsFixed(4)} L');
@@ -44,8 +44,8 @@ void main() {
       print('ke0: ${params.ke0.toStringAsFixed(4)} min⁻¹');
     });
 
-    test('Eleveld Remifentanil parameters calculation', () {
-      final params = Model.EleveldRemifentanil.calculatePKParameters(
+    test('Eleveld parameters calculation', () {
+      final params = Model.Eleveld.calculatePKParameters(
         sex: sex,
         weight: weight,
         height: height,
@@ -67,7 +67,7 @@ void main() {
       expect(params.ke0, greaterThan(0));
 
       // Print values for verification against MATLAB
-      print('Eleveld Remifentanil Parameters:');
+      print('Eleveld Parameters:');
       print('V1: ${params.V1.toStringAsFixed(4)} L');
       print('V2: ${params.V2.toStringAsFixed(4)} L');
       print('V3: ${params.V3.toStringAsFixed(4)} L');
@@ -77,8 +77,8 @@ void main() {
       print('ke0: ${params.ke0.toStringAsFixed(4)} min⁻¹');
     });
 
-    test('Hannivoort Dexmedetomidine parameters calculation', () {
-      final params = Model.HannivoortDexmedetomidine.calculatePKParameters(
+    test('Hannivoort parameters calculation', () {
+      final params = Model.Hannivoort.calculatePKParameters(
         sex: sex,
         weight: weight,
         height: height,
@@ -102,7 +102,7 @@ void main() {
       expect(params.ke0, equals(0));
 
       // Print values for verification against MATLAB
-      print('Hannivoort Dexmedetomidine Parameters:');
+      print('Hannivoort Parameters:');
       print('V1: ${params.V1.toStringAsFixed(4)} L');
       print('V2: ${params.V2.toStringAsFixed(4)} L');
       print('V3: ${params.V3.toStringAsFixed(4)} L');
@@ -112,8 +112,8 @@ void main() {
       print('ke0: ${params.ke0.toStringAsFixed(4)} min⁻¹');
     });
 
-    test('Eleveld Remimazolam parameters calculation', () {
-      final params = Model.EleveldRemimazolam.calculatePKParameters(
+    test('Marsh parameters calculation', () {
+      final params = Model.Marsh.calculatePKParameters(
         sex: sex,
         weight: weight,
         height: height,
@@ -135,7 +135,7 @@ void main() {
       expect(params.ke0, greaterThan(0));
 
       // Print values for verification against MATLAB
-      print('Eleveld Remimazolam Parameters:');
+      print('Marsh Parameters:');
       print('V1: ${params.V1.toStringAsFixed(4)} L');
       print('V2: ${params.V2.toStringAsFixed(4)} L');
       print('V3: ${params.V3.toStringAsFixed(4)} L');
@@ -148,10 +148,10 @@ void main() {
     test('All models return valid parameters', () {
       // Test all models don't return default zero parameters
       for (final model in [
-        Model.MintoRemifentanil,
-        Model.EleveldRemifentanil,
-        Model.HannivoortDexmedetomidine,
-        Model.EleveldRemimazolam,
+        Model.Minto,
+        Model.Eleveld,
+        Model.Hannivoort,
+        Model.Marsh,
       ]) {
         final params = model.calculatePKParameters(
           sex: sex,

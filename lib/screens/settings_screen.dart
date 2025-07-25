@@ -33,8 +33,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _setControllersFromSettings(Settings settings) {
-    // Check which propofol variant is currently set by checking legacy density
-    final currentPropofolConcentration = settings.density; // Use legacy density getter
+    // Check which propofol variant is currently set by checking legacy concentration
+    final currentPropofolConcentration = settings.density; // Use legacy density getter for backward compatibility
     propofolController.val = currentPropofolConcentration == 10 ? 0 : 1;
     
     // Check which remifentanil variant is currently set

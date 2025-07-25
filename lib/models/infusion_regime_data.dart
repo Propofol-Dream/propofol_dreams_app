@@ -3,12 +3,14 @@ class InfusionRegimeRow {
   final double bolus; // mL (only non-zero at 0:00)
   final double infusionRate; // mL/hr (average for this 15-min interval)
   final double accumulatedVolume; // mL (total volume delivered)
+  final double? rawBolus; // mL (unrounded bolus value for debugging)
 
   const InfusionRegimeRow({
     required this.time,
     required this.bolus,
     required this.infusionRate,
     required this.accumulatedVolume,
+    this.rawBolus,
   });
 
   String get timeString {
@@ -89,7 +91,7 @@ class InfusionRegimeData {
       final maxRate = pumpInfs.isNotEmpty ? pumpInfs.reduce((a, b) => a > b ? a : b) : 0.0;
       if (maxRate > 0) {
         final bolusVolume = cumulativeInfusedVolumes.isNotEmpty ? cumulativeInfusedVolumes.first : 0.0;
-        final bolusDurationSeconds = (bolusVolume * density / maxRate * 3600).round();
+        final bolusDurationSeconds = (bolusVolume * effectiveConcentration / maxRate * 3600).round();
         infusionRestartIndex = bolusDurationSeconds + 1; // +1 like MATLAB code
       }
     }
@@ -113,6 +115,9 @@ class InfusionRegimeData {
     double augmentedBolus = totalDoseFirst15Min - continuousInfusionDose;
     augmentedBolus = augmentedBolus / effectiveConcentration; // Convert to mL
     
+    // Store raw bolus value before rounding
+    final rawAugmentedBolus = augmentedBolus;
+    
     // Round bolus to practical values
     if (augmentedBolus < 1.0 && augmentedBolus > 0) {
       augmentedBolus = (augmentedBolus * 10).round() / 10.0; // Round to 0.1 mL
@@ -127,6 +132,7 @@ class InfusionRegimeData {
       bolus: augmentedBolus,
       infusionRate: avgInfusionRate / effectiveConcentration, // Convert to mL/hr for display
       accumulatedVolume: augmentedBolus + (avgInfusionRate / effectiveConcentration * 0.25), // Bolus + 15min infusion
+      rawBolus: rawAugmentedBolus > 0 ? rawAugmentedBolus : null, // Store raw value for debugging
     ));
 
     // STEP 6: AVERAGING ALGORITHM FOR SUBSEQUENT INTERVALS
@@ -167,6 +173,7 @@ class InfusionRegimeData {
         bolus: 0.0, // No bolus after first interval
         infusionRate: avgRate / effectiveConcentration, // Convert to mL/hr for display
         accumulatedVolume: accumVolume,
+        rawBolus: null, // No raw bolus for subsequent intervals
       ));
     }
 
