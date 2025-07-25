@@ -63,8 +63,6 @@ class _TCIScreenState extends State<TCIScreen> {
   final ScrollController scrollController = ScrollController();
   final ScrollController tableScrollController = ScrollController();
   final List<Model> modelOptions = [];
-  Timer timer = Timer(Duration.zero, () {});
-  Duration delay = const Duration(milliseconds: 500);
 
   InfusionRegimeData? infusionRegimeData;
   String result = '';
@@ -81,10 +79,10 @@ class _TCIScreenState extends State<TCIScreen> {
     // tciModelController.addListener(calculate);
     // pediatricModelController.addListener(calculate);
     // sexController.addListener(calculate);
-    ageController.addListener(_onTextFieldChanged);
-    heightController.addListener(_onTextFieldChanged);
-    weightController.addListener(_onTextFieldChanged);
-    targetController.addListener(_onTextFieldChanged);
+    ageController.addListener(calculate);
+    heightController.addListener(calculate);
+    weightController.addListener(calculate);
+    targetController.addListener(calculate);
     // durationController.addListener(_onTextFieldChanged); // Removed - duration is hardcoded
 
     modelOptions.addAll([
@@ -125,23 +123,6 @@ class _TCIScreenState extends State<TCIScreen> {
     tciModelController.selection = settings.tciModel;
     // Load selected drug from settings
     selectedDrug = settings.tciDrug;
-    
-    // Auto-correct model for Dexmedetomidine if needed
-    if (selectedDrug == Drug.dexmedetomidine && settings.tciModel != Model.Hannivoort) {
-      // Auto-correct the model for Dexmedetomidine - defer to avoid build-time setState
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        tciModelController.selection = Model.Hannivoort;
-        settings.tciModel = Model.Hannivoort;
-      });
-    } else if (selectedDrug != null && settings.tciModel == Model.None) {
-      // Auto-correct model for any drug when it's None
-      final expectedModel = selectedDrug == Drug.dexmedetomidine ? Model.Hannivoort : Model.Eleveld;
-      // Defer to avoid build-time setState
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        tciModelController.selection = expectedModel;
-        settings.tciModel = expectedModel;
-      });
-    }
     sexController.val = settings.adultSex == Sex.Female ? true : false;
     ageController.text = settings.adultAge?.toString() ?? '40';
     heightController.text = settings.adultHeight?.toString() ?? '170';
@@ -162,8 +143,8 @@ class _TCIScreenState extends State<TCIScreen> {
     double? target = double.tryParse(targetController.text);
     Sex sex = sexController.val ? Sex.Female : Sex.Male;
 
-    // Save TCI model (drug is already saved immediately in onDrugSelected)
-    settings.tciModel = tciModelController.selection;
+    // TCI model and drug are saved immediately in onModelSelected/onDrugSelected
+    // No need to save them here to avoid duplicate settings updates
     settings.adultSex = sex;
     settings.adultAge = age;
     settings.adultHeight = height;
@@ -176,14 +157,6 @@ class _TCIScreenState extends State<TCIScreen> {
     // Update model options based on adult/pediatric view
   }
 
-  void _onTextFieldChanged() {
-    // Debounced timer: Cancel previous timer and start new one
-    // This prevents calculate() from running on every keystroke
-    timer.cancel();
-    timer = Timer(delay, () {
-      calculate(); // Only runs after user stops typing for 500ms
-    });
-  }
 
   void calculate() {
     try {
@@ -448,19 +421,30 @@ class _TCIScreenState extends State<TCIScreen> {
                     isTCIScreen: true, // Identify this as dosage screen
                     currentDrug: selectedDrug, // Pass current selected drug
                     onModelSelected: (model) {
+                      // Hard-coded model-drug combinations (no auto-correction)
                       setState(() {
                         tciModelController.selection = model;
                         settings.tciModel = model;
+                        // Keep existing drug selection
                       });
                       calculate();
                     },
                     onDrugSelected: (drug) {
-                      // Set as the active TCI drug directly
-                      settings.tciDrug = drug;
+                      // Hard-coded model-drug combinations (no auto-correction)
+                      Model requiredModel;
+                      if (drug.isDexmedetomidine) {
+                        requiredModel = Model.Hannivoort;
+                      } else if (drug.isRemifentanil) {
+                        requiredModel = Model.Eleveld; // or Model.Minto - user can choose
+                      } else {
+                        requiredModel = Model.Eleveld; // Default for propofol, remimazolam
+                      }
                       
                       setState(() {
-                        // Update local state to match settings
-                        selectedDrug = settings.tciDrug;
+                        selectedDrug = drug;
+                        settings.tciDrug = drug;
+                        tciModelController.selection = requiredModel;
+                        settings.tciModel = requiredModel;
                       });
                       calculate();
                     },
@@ -480,7 +464,6 @@ class _TCIScreenState extends State<TCIScreen> {
     // Only dispose controllers that are not managed by PD widgets
     scrollController.dispose();
     tableScrollController.dispose();
-    timer.cancel();
     super.dispose();
   }
 
@@ -503,7 +486,8 @@ class _TCIScreenState extends State<TCIScreen> {
     
     final settings = context.watch<Settings>();
     
-    tciModelController.selection = settings.tciModel;
+    // Controllers are managed directly by onModelSelected/onDrugSelected
+    // No need to sync from settings here since we use hard-coded combinations
     Model selectedModel = tciModelController.selection;
     
     // Check if model is runnable (kept for potential future use)

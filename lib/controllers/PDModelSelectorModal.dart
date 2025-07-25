@@ -262,8 +262,11 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
                   // Select drug and its optimal model
                   if (widget.onDrugSelected != null) {
                     widget.onDrugSelected!(drug);
+                    // Don't call onModelSelected - onDrugSelected handles model selection
+                  } else {
+                    // Fallback for screens without drug selection (Volume screen)
+                    widget.onModelSelected(model);
                   }
-                  widget.onModelSelected(model);
                   if (mounted) {
                     Navigator.pop(context);
                   }
