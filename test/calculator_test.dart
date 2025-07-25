@@ -6,7 +6,7 @@ void main() {
   test('Calculator WakeUpCE', () async {
 
     Calculator c = Calculator();
-    var result = c.calcWakeUpCE(ce: 2.6, se: 45 , m: Model.Eleveld);
+    var result = c.calcWakeUpCE(ce: 2.6, se: 45 , m: Model.EleveldPropofol);
     print(result.lower);
     print(result.upper);
   });

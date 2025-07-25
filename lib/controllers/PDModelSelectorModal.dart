@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../models/model.dart';
+import '../models/drug.dart';
 import '../models/sex.dart';
+import '../providers/settings.dart';
 import 'PDAdvancedSegmentedController.dart';
 import 'PDSwitchController.dart';
 
@@ -35,7 +38,9 @@ class PDModelSelectorModal extends StatefulWidget {
     required this.targetController,
     required this.durationController,
     required this.onModelSelected,
-    this.isDosageScreen = false, // New parameter to identify dosage screen
+    this.onDrugSelected,
+    this.currentDrug, // Current selected drug for TCI screen
+    this.isTCIScreen = false, // New parameter to identify TCI screen
   });
 
   final PDAdvancedSegmentedController controller;
@@ -47,7 +52,9 @@ class PDModelSelectorModal extends StatefulWidget {
   final TextEditingController targetController;
   final TextEditingController durationController;
   final Function(Model) onModelSelected;
-  final bool isDosageScreen;
+  final Function(Drug)? onDrugSelected;
+  final Drug? currentDrug; // Current selected drug
+  final bool isTCIScreen;
 
   @override
   State<PDModelSelectorModal> createState() => _PDModelSelectorModalState();
@@ -55,6 +62,7 @@ class PDModelSelectorModal extends StatefulWidget {
 
 class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
   late Model? selectedModel;
+  late Drug? selectedDrug;
   
   @override
   void initState() {
@@ -62,40 +70,51 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
     final currentSelection = widget.controller.selection;
     // Check if it's a valid Model (not the error Map)
     selectedModel = (currentSelection is Model) ? currentSelection : null;
+    selectedDrug = widget.currentDrug; // Initialize with current drug if provided
   }
 
   List<Model> get availableModels {
     if (widget.inAdultView) {
-      // Adult view: show adult + universal models
-      if (widget.isDosageScreen) {
-        // Dosage screen: show all available models including new drugs
-        return [
-          // Propofol models
-          Model.Eleveld,
-          Model.Marsh,
-          Model.Schnider,
-          
-          // New drug models
-          Model.MintoRemifentanil,
-          Model.EleveldRemifentanil,
-          Model.HannivoortDexmedetomidine,
-          Model.EleveldRemimazolam,
-        ];
-      } else {
-        // Other screens (like Volume): show all adult models
-        return [
-          Model.Marsh,
-          Model.Schnider,
-          Model.Eleveld,
-        ];
-      }
+      // Adult view: show adult + universal models for Volume screen
+      return [
+        Model.Marsh,
+        Model.Schnider,
+        Model.Eleveld,
+      ];
     } else {
-      // Pediatric view: show pediatric + universal models
+      // Pediatric view: show pediatric + universal models for Volume screen
       return [
         Model.Paedfusor,
         Model.Kataria,
         Model.Eleveld,
       ];
+    }
+  }
+
+  List<Drug> get availableDrugs {
+    // TCI screen: show drug types only (concentration set in Settings)
+    // Return the currently selected concentration variant for each drug type
+    final settings = Provider.of<Settings>(context, listen: false);
+    
+    return [
+      // Get current variants for each drug type
+      settings.getCurrentDrugVariant('Propofol'),
+      settings.getCurrentDrugVariant('Remifentanil'),
+      settings.getCurrentDrugVariant('Dexmedetomidine'),
+      settings.getCurrentDrugVariant('Remimazolam'),
+    ];
+  }
+
+  Model getOptimalModelForDrug(Drug drug) {
+    // Simplified TCI model logic:
+    // - Dexmedetomidine uses Hannivoort
+    // - All other drugs use Eleveld
+    switch (drug) {
+      case Drug.dexmedetomidine:
+        return Model.Hannivoort;
+      default:
+        // Propofol, Remifentanil, Remimazolam all use Eleveld
+        return Model.Eleveld;
     }
   }
 
@@ -200,7 +219,85 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
             ),
           ),
           child: Text(
-            model.toString(),
+            model.name,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        // Error text below button for unavailable models only
+        if (isDisabled && evaluation.reason != null) ...[
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              evaluation.reason!,
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 10,
+              ),
+              textAlign: TextAlign.start,
+            ),
+          ),
+        ] else ...[
+          // Add consistent spacing for non-disabled items
+          const SizedBox(height: 14),
+        ],
+      ],
+    );
+  }
+
+  Widget buildDrugButton(Drug drug) {
+    final model = getOptimalModelForDrug(drug);
+    final evaluation = evaluateModel(model);
+    final bool isSelected = selectedDrug == drug;
+    final bool isDisabled = evaluation.availability == ModelAvailability.unavailable;
+    
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ElevatedButton(
+          onPressed: !isDisabled
+              ? () async {
+                  await HapticFeedback.mediumImpact();
+                  // Select drug and its optimal model
+                  if (widget.onDrugSelected != null) {
+                    widget.onDrugSelected!(drug);
+                  }
+                  widget.onModelSelected(model);
+                  if (mounted) {
+                    Navigator.pop(context);
+                  }
+                }
+              : null,
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+            minimumSize: const Size(double.infinity, 56), // Match UIHeight standard
+            backgroundColor: isSelected 
+                ? Theme.of(context).colorScheme.primary
+                : evaluation.availability == ModelAvailability.warning
+                    ? Colors.orange.shade50
+                    : Theme.of(context).colorScheme.onPrimary,
+            foregroundColor: isSelected
+                ? Theme.of(context).colorScheme.onPrimary
+                : isDisabled
+                    ? Theme.of(context).disabledColor
+                    : Theme.of(context).colorScheme.onSurface,
+            side: BorderSide(
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : evaluation.availability == ModelAvailability.warning
+                      ? Colors.orange
+                      : isDisabled
+                          ? Theme.of(context).disabledColor
+                          : Theme.of(context).colorScheme.outline,
+              width: isSelected ? 2 : 1,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5), // Match other controls
+            ),
+          ),
+          child: Text(
+            drug.displayName, // Show drug name only, not concentration
             textAlign: TextAlign.center,
           ),
         ),
@@ -261,7 +358,7 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Select Model',
+                      widget.isTCIScreen ? 'Select Drug' : 'Select Model',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -276,17 +373,32 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
                     ),
                   ],
                 ),
-                // Models immediately below title
-                ...availableModels.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final model = entry.value;
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      top: index == 0 ? 8 : 16, // Small gap after title for first item
-                    ),
-                    child: buildModelButton(model),
-                  );
-                }),
+                // Models or drugs immediately below title
+                if (widget.isTCIScreen) ...[
+                  // TCI screen: show drugs
+                  ...availableDrugs.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final drug = entry.value;
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        top: index == 0 ? 8 : 16, // Small gap after title for first item
+                      ),
+                      child: buildDrugButton(drug),
+                    );
+                  }),
+                ] else ...[
+                  // Volume screen: show models
+                  ...availableModels.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final model = entry.value;
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        top: index == 0 ? 8 : 16, // Small gap after title for first item
+                      ),
+                      child: buildModelButton(model),
+                    );
+                  }),
+                ],
               ],
             ),
           ),

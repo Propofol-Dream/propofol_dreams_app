@@ -19,7 +19,7 @@ void main() {
   Duration duration = const Duration(minutes: 10);
 
   test('Peak', () async {
-    Model model = Model.Eleveld;
+    Model model = Model.EleveldPropofol;
     Patient patient =
     Patient(weight: weight, age: age, height: height, sex: gender);
     Pump pump = Pump(

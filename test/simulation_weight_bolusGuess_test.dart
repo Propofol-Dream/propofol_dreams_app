@@ -17,7 +17,7 @@ void main() {
   Duration duration = const Duration(minutes: 10);
 
   test('Patient 1', () async {
-    Model model = Model.Eleveld;
+    Model model = Model.EleveldPropofol;
     int age = 5;
     int weight = 30;
     int height = 100;
@@ -41,7 +41,7 @@ void main() {
   });
 
   test('Patient 1', () async {
-    Model model = Model.Eleveld;
+    Model model = Model.EleveldPropofol;
     int age = 5;
     int weight = 30;
     int height = 100;
@@ -65,7 +65,7 @@ void main() {
   });
 
   test('Patient 2', () async {
-    Model model = Model.Eleveld;
+    Model model = Model.EleveldPropofol;
     int age = 6;
     int weight = 50;
     int height = 130;
@@ -89,7 +89,7 @@ void main() {
   });
 
   test('Patient 3', () async {
-    Model model = Model.Eleveld;
+    Model model = Model.EleveldPropofol;
     int age = 7;
     int weight = 70;
     int height = 140;
@@ -113,7 +113,7 @@ void main() {
   });
 
   test('Patient 4', () async {
-    Model model = Model.Eleveld;
+    Model model = Model.EleveldPropofol;
     int age = 8;
     int weight = 80;
     int height = 150;
@@ -137,7 +137,7 @@ void main() {
   });
 
   test('Patient 5', () async {
-    Model model = Model.Eleveld;
+    Model model = Model.EleveldPropofol;
     int age = 13;
     int weight = 190;
     int height = 200;
@@ -161,7 +161,7 @@ void main() {
   });
 
   test('Patient 6', () async {
-    Model model = Model.Eleveld;
+    Model model = Model.EleveldPropofol;
     int age = 14;
     int weight = 190;
     int height = 200;

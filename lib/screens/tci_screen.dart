@@ -9,6 +9,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:propofol_dreams_app/models/infusion_regime_data.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
 import 'package:propofol_dreams_app/models/model.dart';
+import 'package:propofol_dreams_app/models/drug.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
@@ -47,6 +48,7 @@ class PDTableController extends ChangeNotifier {
 }
 
 class _TCIScreenState extends State<TCIScreen> {
+  Drug? selectedDrug; // Track selected drug for concentration
   final PDAdvancedSegmentedController adultModelController =
       PDAdvancedSegmentedController();
   final PDAdvancedSegmentedController pediatricModelController =
@@ -93,10 +95,9 @@ class _TCIScreenState extends State<TCIScreen> {
       Model.Schnider,
       
       // New drug models
-      Model.MintoRemifentanil,
-      Model.EleveldRemifentanil,
-      Model.HannivoortDexmedetomidine,
-      Model.EleveldRemimazolam,
+      Model.Minto,
+      Model.Hannivoort,
+      Model.Eleveld,
     ]);
 
     // Restore table scroll position
@@ -121,8 +122,27 @@ class _TCIScreenState extends State<TCIScreen> {
   void _setControllersFromSettings(Settings settings) {
     tableController.val = true; // Always keep table expanded
 
-    // Always use adult settings
-    adultModelController.selection = settings.adultModel;
+    // Use TCI model (separate from volume screen)
+    adultModelController.selection = settings.tciModel;
+    // Load selected drug from settings
+    selectedDrug = settings.tciDrug;
+    
+    // Auto-correct model for Dexmedetomidine if needed
+    if (selectedDrug == Drug.dexmedetomidine && settings.tciModel != Model.Hannivoort) {
+      // Auto-correct the model for Dexmedetomidine - defer to avoid build-time setState
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        adultModelController.selection = Model.Hannivoort;
+        settings.tciModel = Model.Hannivoort;
+      });
+    } else if (selectedDrug != null && settings.tciModel == Model.None) {
+      // Auto-correct model for any drug when it's None
+      final expectedModel = selectedDrug == Drug.dexmedetomidine ? Model.Hannivoort : Model.Eleveld;
+      // Defer to avoid build-time setState
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        adultModelController.selection = expectedModel;
+        settings.tciModel = expectedModel;
+      });
+    }
     sexController.val = settings.adultSex == Sex.Female ? true : false;
     ageController.text = settings.adultAge?.toString() ?? '40';
     heightController.text = settings.adultHeight?.toString() ?? '170';
@@ -143,8 +163,8 @@ class _TCIScreenState extends State<TCIScreen> {
     double? target = double.tryParse(targetController.text);
     Sex sex = sexController.val ? Sex.Female : Sex.Male;
 
-    // Always save to adult settings
-    settings.adultModel = adultModelController.selection;
+    // Save TCI model (drug is already saved immediately in onDrugSelected)
+    settings.tciModel = adultModelController.selection;
     settings.adultSex = sex;
     settings.adultAge = age;
     settings.adultHeight = height;
@@ -207,7 +227,7 @@ class _TCIScreenState extends State<TCIScreen> {
         // Create pump configuration (matching volume screen pattern)
         final pump = Pump(
           timeStep: Duration(seconds: settings.time_step),
-          density: settings.density,
+          concentration: settings.concentration,
           maxPumpRate: settings.max_pump_rate,
           target: finalTarget,
           duration: Duration(minutes: finalDuration),
@@ -230,7 +250,7 @@ class _TCIScreenState extends State<TCIScreen> {
             density: 10, // LEGACY: Keep for backward compatibility
             totalDuration: Duration(minutes: finalDuration),
             isEffectSiteTargeting: model.target == Target.EffectSite,
-            drugConcentrationMgMl: model.drug.concentrationInMgPerMl, // NEW: Use model's drug concentration
+            drugConcentrationMgMl: selectedDrug?.concentration ?? 10.0, // Use selected drug concentration or default
           );
         });
       } else {
@@ -252,6 +272,8 @@ class _TCIScreenState extends State<TCIScreen> {
         print({
           'screen': 'TCI',
           'model': model,
+          'drug': selectedDrug?.displayName ?? 'Unknown',
+          'drug_unit': '${selectedDrug?.concentration.toStringAsFixed(selectedDrug?.concentration == selectedDrug?.concentration.roundToDouble() ? 0 : 1)} ${selectedDrug?.concentrationUnit.displayName}',
           'patient': patient,
           'target': finalTarget,
           'duration': finalDuration,
@@ -338,7 +360,7 @@ class _TCIScreenState extends State<TCIScreen> {
           TextField(
             enabled: true,
             readOnly: true,
-            controller: TextEditingController(text: currentModel?.name ?? 'Select Model'),
+            controller: TextEditingController(text: selectedDrug?.displayName ?? 'Select Drug'),
             style: TextStyle(
               color: hasValidationError 
                 ? Theme.of(context).colorScheme.error
@@ -400,11 +422,22 @@ class _TCIScreenState extends State<TCIScreen> {
                     weightController: weightController,
                     targetController: targetController,
                     durationController: durationController, // Still needed for modal compatibility
-                    isDosageScreen: true, // Identify this as dosage screen
+                    isTCIScreen: true, // Identify this as dosage screen
+                    currentDrug: selectedDrug, // Pass current selected drug
                     onModelSelected: (model) {
                       setState(() {
                         adultModelController.selection = model;
-                        settings.adultModel = model;
+                        settings.tciModel = model;
+                      });
+                      calculate();
+                    },
+                    onDrugSelected: (drug) {
+                      // Set as the active TCI drug directly
+                      settings.tciDrug = drug;
+                      
+                      setState(() {
+                        // Update local state to match settings
+                        selectedDrug = settings.tciDrug;
                       });
                       calculate();
                     },
@@ -447,7 +480,7 @@ class _TCIScreenState extends State<TCIScreen> {
     
     final settings = context.watch<Settings>();
     
-    adultModelController.selection = settings.adultModel;
+    adultModelController.selection = settings.tciModel;
     Model selectedModel = adultModelController.selection;
     
     // Check if model is runnable (kept for potential future use)

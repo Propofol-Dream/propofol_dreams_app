@@ -113,14 +113,12 @@ extension PKCalculation on Model {
         return _calculatePaedfusorParameters(sexInt, weightKg, heightCm, ageYr);
       case Model.Kataria:
         return _calculateKatariaParameters(sexInt, weightKg, heightCm, ageYr);
-      case Model.MintoRemifentanil:
+      case Model.Minto:
         return _calculateMintoParameters(sexInt, weightKg, heightCm, ageYr);
-      case Model.EleveldRemifentanil:
-        return _calculateRemifentanilEleveldParameters(sexInt, weightKg, heightCm, ageYr);
-      case Model.HannivoortDexmedetomidine:
+      case Model.EleMarsh:
+        return _calculateMarshParameters(sexInt, weightKg, heightCm, ageYr);
+      case Model.Hannivoort:
         return _calculateHannivoortParameters(sexInt, weightKg, heightCm, ageYr);
-      case Model.EleveldRemimazolam:
-        return _calculateRemimazolamEleveldParameters(sexInt, weightKg, heightCm, ageYr);
       default:
         // Return default parameters for unsupported models
         return const PKParameters(
@@ -364,9 +362,9 @@ extension PKCalculation on Model {
   static PKParameters _calculateRemifentanilEleveldParameters(int sex, double weight, double height, double age) {
     // Reference individual = 35 yo, male, 70 kg, 170 cm
     final double ffm = sex * (0.88 + (1 - 0.88) / (1 + math.pow(age / 13.4, -12.7))) *
-                          (9270 * weight / (6680 + 216 * (weight / (height / 100)) * (weight / (height / 100)))) +
+                          (9270 * weight / (6680 + 216 *  weight / math.pow(height/100, 2))) +
                        (1 - sex) * (1.11 + (1 - 1.11) / (1 + math.pow(age / 7.1, -1.1))) *
-                          (9270 * weight / (8780 + 244 * (weight / (height / 100)) * (weight / (height / 100))));
+                          (9270 * weight / (8780 + 244 * weight / math.pow(height/100, 2)));
     
     final double siz = ffm / 54.4752;
     final double ksex = sex + (1 - sex) * (1 + (0.470 * math.pow(age, 6) / (math.pow(age, 6) + math.pow(12, 6))) *

@@ -21,7 +21,7 @@ void main() {
     Duration duration = const Duration(minutes: 60);
 
     // Set up for the model
-    Model goldModel = Model.Eleveld;
+    Model goldModel = Model.EleveldPropofol;
     Patient goldPatient = Patient(weight: weight, age: age, height: height, sex: gender);
     Pump goldPump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate,target: target, duration: duration);
     // Operation baselineOperation = Operation(target: target, duration: duration);

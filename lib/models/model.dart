@@ -25,7 +25,7 @@ class ValidationResult {
 }
 
 enum Model {
-  // EXISTING PROPOFOL MODELS - Enhanced with drug and target unit
+  // PHARMACOKINETIC MODELS - Separated from drugs
   Marsh(
       minAge: 17,
       maxAge: 105,
@@ -34,7 +34,6 @@ enum Model {
       minWeight: 0,
       maxWeight: 150,
       target: Target.Plasma,
-      drug: Drug.propofol,
       targetUnit: TargetUnit.mcgPerMl),
   Schnider(
       minAge: 17,
@@ -44,7 +43,6 @@ enum Model {
       minWeight: 0,
       maxWeight: 165,
       target: Target.EffectSite,
-      drug: Drug.propofol,
       targetUnit: TargetUnit.mcgPerMl),
   Eleveld(
       minAge: 1,
@@ -54,7 +52,6 @@ enum Model {
       minWeight: 1,
       maxWeight: 250,
       target: Target.EffectSite,
-      drug: Drug.propofol,
       targetUnit: TargetUnit.mcgPerMl),
   Paedfusor(
       minAge: 1,
@@ -64,7 +61,6 @@ enum Model {
       minWeight: 5,
       maxWeight: 61,
       target: Target.Plasma,
-      drug: Drug.propofol,
       targetUnit: TargetUnit.mcgPerMl),
   Kataria(
       minAge: 3,
@@ -74,7 +70,6 @@ enum Model {
       minWeight: 15,
       maxWeight: 61,
       target: Target.Plasma,
-      drug: Drug.propofol,
       targetUnit: TargetUnit.mcgPerMl),
   EleMarsh(
       minAge: 5,
@@ -84,11 +79,10 @@ enum Model {
       minWeight: 0,
       maxWeight: 999,
       target: Target.Plasma,
-      drug: Drug.propofol,
       targetUnit: TargetUnit.mcgPerMl),
   
-  // NEW DRUG MODELS
-  MintoRemifentanil(
+  // ADDITIONAL MODELS FOR DIFFERENT DRUGS
+  Minto(
       minAge: 1,
       maxAge: 105,
       minHeight: 50,
@@ -96,19 +90,8 @@ enum Model {
       minWeight: 1,
       maxWeight: 250,
       target: Target.EffectSite,
-      drug: Drug.remifentanilMinto,
       targetUnit: TargetUnit.ngPerMl),
-  EleveldRemifentanil(
-      minAge: 1,
-      maxAge: 105,
-      minHeight: 50,
-      maxHeight: 210,
-      minWeight: 1,
-      maxWeight: 250,
-      target: Target.EffectSite,
-      drug: Drug.remifentanilEleveld,
-      targetUnit: TargetUnit.ngPerMl),
-  HannivoortDexmedetomidine(
+  Hannivoort(
       minAge: 1,
       maxAge: 105,
       minHeight: 50,
@@ -116,18 +99,7 @@ enum Model {
       minWeight: 1,
       maxWeight: 250,
       target: Target.Plasma,
-      drug: Drug.dexmedetomidine,
       targetUnit: TargetUnit.ngPerMl),
-  EleveldRemimazolam(
-      minAge: 1,
-      maxAge: 105,
-      minHeight: 50,
-      maxHeight: 210,
-      minWeight: 1,
-      maxWeight: 250,
-      target: Target.EffectSite,
-      drug: Drug.remimazolam,
-      targetUnit: TargetUnit.mcgPerMl),
   
   // KEEP NONE FOR COMPATIBILITY
   None(
@@ -138,7 +110,6 @@ enum Model {
       minWeight: 0,
       maxWeight: 999,
       target: Target.EffectSite,
-      drug: Drug.propofol,
       targetUnit: TargetUnit.mcgPerMl);
 
   @override
@@ -248,7 +219,6 @@ enum Model {
   final int minWeight;
   final int maxWeight;
   final Target target;
-  final Drug drug;
   final TargetUnit targetUnit;
 
   const Model({
@@ -259,7 +229,6 @@ enum Model {
     required this.minWeight,
     required this.maxWeight,
     required this.target,
-    required this.drug,
     required this.targetUnit,
   });
   

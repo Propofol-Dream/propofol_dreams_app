@@ -32,9 +32,9 @@ void main() {
 
       // Test all propofol models
       final propofolModels = [
-        Model.Eleveld,
-        Model.Marsh,
-        Model.Schnider,
+        Model.EleveldPropofol,
+        Model.MarshPropofol,
+        Model.SchniderPropofol,
       ];
 
       for (final model in propofolModels) {
@@ -61,11 +61,11 @@ void main() {
 
     test('Parameter calculation system works for all models', () {
       final allModels = [
-        Model.Eleveld,
-        Model.Marsh,
-        Model.Schnider,
-        Model.Paedfusor,
-        Model.Kataria,
+        Model.EleveldPropofol,
+        Model.MarshPropofol,
+        Model.SchniderPropofol,
+        Model.PaedfusorPropofol,
+        Model.KatariaPropofol,
         Model.MintoRemifentanil,
         Model.EleveldRemifentanil,
         Model.HannivoortDexmedetomidine,
@@ -74,7 +74,7 @@ void main() {
 
       for (final model in allModels) {
         // Skip models that don't support adult patients
-        if ((model == Model.Paedfusor || model == Model.Kataria) && age >= 17) {
+        if ((model == Model.PaedfusorPropofol || model == Model.KatariaPropofol) && age >= 17) {
           continue;
         }
 

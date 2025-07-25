@@ -2,24 +2,41 @@ import 'package:flutter/material.dart';
 import 'drug_unit.dart';
 
 enum Drug {
-  propofol(
+  // Propofol concentrations
+  propofol10mg(
     displayName: 'Propofol',
     concentration: 10.0,
     concentrationUnit: DrugUnit.mgPerMl,
     color: Colors.blue,
   ),
-  remifentanilMinto(
-    displayName: 'Remifentanil (Minto)',
-    concentration: 50.0,
+  propofol20mg(
+    displayName: 'Propofol',
+    concentration: 20.0,
     concentrationUnit: DrugUnit.mgPerMl,
+    color: Colors.blue,
+  ),
+  
+  // Remifentanil concentrations
+  remifentanil20mcg(
+    displayName: 'Remifentanil',
+    concentration: 20.0,
+    concentrationUnit: DrugUnit.mcgPerMl,
     color: Colors.red,
   ),
-  remifentanilEleveld(
-    displayName: 'Remifentanil (Eleveld)',
+  remifentanil40mcg(
+    displayName: 'Remifentanil',
+    concentration: 40.0,
+    concentrationUnit: DrugUnit.mcgPerMl,
+    color: Colors.red,
+  ),
+  remifentanil50mcg(
+    displayName: 'Remifentanil',
     concentration: 50.0,
     concentrationUnit: DrugUnit.mcgPerMl,
-    color: Colors.orange,
+    color: Colors.red,
   ),
+  
+  // Other drugs (single concentrations for now)
   dexmedetomidine(
     displayName: 'Dexmedetomidine',
     concentration: 4.0,
@@ -45,9 +62,12 @@ enum Drug {
   final DrugUnit concentrationUnit;
   final Color color;
   
-  /// Get concentration in standardized mg/mL for internal calculations
-  double get concentrationInMgPerMl {
-    return concentration * concentrationUnit.toMgPerMlFactor;
+  /// Get display string with concentration and unit
+  String get displayWithConcentration {
+    final concentrationStr = concentration < 1 
+        ? concentration.toStringAsFixed(1) 
+        : concentration.toStringAsFixed(0);
+    return '$displayName ($concentrationStr ${concentrationUnit.displayName})';
   }
   
   @override
@@ -64,8 +84,6 @@ class DrugConcentration {
     required this.unit,
   });
   
-  /// Get concentration in standardized mg/mL for calculations
-  double get concentrationInMgPerMl => value * unit.toMgPerMlFactor;
   
   /// Get display string with appropriate unit
   String get displayString {

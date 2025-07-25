@@ -53,7 +53,7 @@ void main() {
         density: 50,
         totalDuration: const Duration(minutes: duration),
         isEffectSiteTargeting: Model.MintoRemifentanil.target.name == 'EffectSite',
-        drugConcentrationMgMl: Model.MintoRemifentanil.drug.concentrationInMgPerMl,
+        drugConcentrationMgMl: Model.MintoRemifentanil.drug.concentration,
       );
 
       // Verify infusion regime data is created
@@ -104,7 +104,7 @@ void main() {
         density: 50,
         totalDuration: const Duration(minutes: duration),
         isEffectSiteTargeting: Model.EleveldRemifentanil.target.name == 'EffectSite',
-        drugConcentrationMgMl: Model.EleveldRemifentanil.drug.concentrationInMgPerMl,
+        drugConcentrationMgMl: Model.EleveldRemifentanil.drug.concentration,
       );
 
       // Verify infusion regime data is created
@@ -155,7 +155,7 @@ void main() {
         density: 4,
         totalDuration: const Duration(minutes: duration),
         isEffectSiteTargeting: Model.HannivoortDexmedetomidine.target.name == 'EffectSite',
-        drugConcentrationMgMl: Model.HannivoortDexmedetomidine.drug.concentrationInMgPerMl,
+        drugConcentrationMgMl: Model.HannivoortDexmedetomidine.drug.concentration,
       );
 
       // Verify infusion regime data is created
@@ -206,7 +206,7 @@ void main() {
         density: 1,
         totalDuration: const Duration(minutes: duration),
         isEffectSiteTargeting: Model.EleveldRemimazolam.target.name == 'EffectSite',
-        drugConcentrationMgMl: Model.EleveldRemimazolam.drug.concentrationInMgPerMl,
+        drugConcentrationMgMl: Model.EleveldRemimazolam.drug.concentration,
       );
 
       // Verify infusion regime data is created

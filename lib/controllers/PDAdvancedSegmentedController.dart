@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/model.dart';
+import '../models/drug.dart';
 import '../models/sex.dart';
 import 'PDModelSelectorModal.dart';
 import 'PDSwitchController.dart';
@@ -85,7 +86,9 @@ class PDAdvancedSegmentedController extends ChangeNotifier {
     required TextEditingController targetController,
     required TextEditingController durationController,
     required Function(Model) onModelSelected,
-    bool isDosageScreen = false, // New parameter
+    Function(Drug)? onDrugSelected,
+    Drug? currentDrug, // Current selected drug
+    bool isTCIScreen = false, // New parameter
   }) {
     showModalBottomSheet(
       context: context,
@@ -108,7 +111,9 @@ class PDAdvancedSegmentedController extends ChangeNotifier {
           targetController: targetController,
           durationController: durationController,
           onModelSelected: onModelSelected,
-          isDosageScreen: isDosageScreen, // Pass the parameter
+          onDrugSelected: onDrugSelected,
+          currentDrug: currentDrug,
+          isTCIScreen: isTCIScreen, // Pass the parameter
         ),
       ),
     );

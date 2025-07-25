@@ -72,7 +72,7 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
                   : widget.defaultOnColor,
           shape: RoundedRectangleBorder(
             side: BorderSide(
-              strokeAlign: BorderSide.strokeAlignOutside,
+              strokeAlign: BorderSide.strokeAlignInside,
               color: widget.onPressed[buildIndex] == null
                   ? Theme.of(context).disabledColor
                   : widget.defaultColor,

@@ -4,7 +4,7 @@ import 'dart:math' as math;
 
 void main() {
   // Test standard reference patient
-  final pkParams = Model.Eleveld.calculatePKParameters(
+  final pkParams = Model.EleveldPropofol.calculatePKParameters(
     sex: Sex.Male,
     weight: 70,
     height: 170,

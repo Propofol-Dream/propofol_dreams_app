@@ -1,11 +1,13 @@
 import 'dart:collection';
+import 'drug.dart';
 
 class Pump {
   Duration timeStep; //aka refresh rate
-  int density;
+  double concentration; // Renamed from density
   int maxPumpRate;
   double target;
   Duration duration;
+  Drug? drug; // Add drug property
 
   double? wakeUPCe;
 
@@ -13,10 +15,11 @@ class Pump {
   SplayTreeMap<Duration, double>? targetSequences;
 
   Pump({required this.timeStep,
-    required this.density,
+    required this.concentration, // Renamed from density
     required this.maxPumpRate,
     required this.target,
     required this.duration,
+    this.drug, // Add drug parameter
     this.wakeUPCe,
     this.pumpInfusionSequences,
     this.targetSequences});
@@ -24,10 +27,11 @@ class Pump {
   Pump copy() {
     return Pump(
         timeStep: timeStep,
-        density: density,
+        concentration: concentration,
         maxPumpRate: maxPumpRate,
         target: target,
         duration: duration,
+        drug: drug,
         wakeUPCe: wakeUPCe,
         pumpInfusionSequences: SplayTreeMap<Duration, double>.from(
             pumpInfusionSequences ?? {}),
@@ -59,7 +63,7 @@ class Pump {
   }
 
   Duration bolusInfusionDuration({required double bolus}) {
-    double infusionInSecs = bolus / (maxPumpRate * density / 3600);
+    double infusionInSecs = bolus / (maxPumpRate * concentration / 3600);
     double timeStepInSecs = timeStep.inMilliseconds / 1000;
 
     int infusionInTimeStep = (infusionInSecs / timeStepInSecs).floor();
@@ -71,7 +75,7 @@ class Pump {
     Duration endAt = startsAt + bolusInfusionDuration(bolus: bolus) - timeStep;
     for (Duration i = startsAt; i <= endAt; i = i + timeStep) {
       updatePumpInfusionSequence(
-          at: i, pumpInfusion: (maxPumpRate * density).toDouble());
+          at: i, pumpInfusion: (maxPumpRate * concentration).toDouble());
     }
   }
 
@@ -84,7 +88,11 @@ class Pump {
   String toString() {
     String str =
         '{time step: ${timeStep
-        .toString()}, density: $density, max pump rate: $maxPumpRate, target: $target, duration: $duration';
+        .toString()}, concentration: $concentration, max pump rate: $maxPumpRate, target: $target, duration: $duration';
+
+    if (drug != null) {
+      str += ', drug: ${drug?.displayName}';
+    }
 
     //TODO add sequence in output
     if (pumpInfusionSequences != null) {

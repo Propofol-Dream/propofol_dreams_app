@@ -144,7 +144,7 @@ void main() {
     for (final testCase in testCases) {
       test('${testCase.description} - Parameter calculations', () {
         // Calculate parameters using Flutter implementation
-        final pkParams = Model.Eleveld.calculatePKParameters(
+        final pkParams = Model.EleveldPropofol.calculatePKParameters(
           sex: testCase.sex,
           weight: testCase.weight,
           height: testCase.height,
@@ -192,7 +192,7 @@ void main() {
 
     group('Edge Case Validation', () {
       test('Very young pediatric patient (age 1)', () {
-        final pkParams = Model.Eleveld.calculatePKParameters(
+        final pkParams = Model.EleveldPropofol.calculatePKParameters(
           sex: Sex.Male,
           weight: 10,
           height: 75,
@@ -208,7 +208,7 @@ void main() {
       });
 
       test('Very elderly patient (age 95)', () {
-        final pkParams = Model.Eleveld.calculatePKParameters(
+        final pkParams = Model.EleveldPropofol.calculatePKParameters(
           sex: Sex.Female,
           weight: 50,
           height: 150,
@@ -223,7 +223,7 @@ void main() {
       });
 
       test('Very obese patient (weight 150kg)', () {
-        final pkParams = Model.Eleveld.calculatePKParameters(
+        final pkParams = Model.EleveldPropofol.calculatePKParameters(
           sex: Sex.Male,
           weight: 150,
           height: 180,
@@ -239,7 +239,7 @@ void main() {
 
     group('Mathematical Consistency', () {
       test('Rate constant relationships', () {
-        final pkParams = Model.Eleveld.calculatePKParameters(
+        final pkParams = Model.EleveldPropofol.calculatePKParameters(
           sex: Sex.Male,
           weight: 70,
           height: 170,
@@ -256,10 +256,10 @@ void main() {
 
       test('Parameter scaling with demographics', () {
         // Test that parameters scale logically with patient size
-        final small = Model.Eleveld.calculatePKParameters(
+        final small = Model.EleveldPropofol.calculatePKParameters(
           sex: Sex.Female, weight: 50, height: 150, age: 30,
         );
-        final large = Model.Eleveld.calculatePKParameters(
+        final large = Model.EleveldPropofol.calculatePKParameters(
           sex: Sex.Male, weight: 100, height: 190, age: 30,
         );
 

@@ -194,7 +194,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             Patient(weight: weight, height: height, age: age, sex: sex);
         Pump pump = Pump(
             timeStep: Duration(seconds: settings.time_step),
-            density: settings.density,
+            concentration: settings.concentration,
             maxPumpRate: settings.max_pump_rate,
             target: target,
             duration: Duration(hours: 3));
@@ -348,7 +348,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         ? false
         : true;
 
-    int density = settings.density;
+    double density = settings.concentration;
 
     AlertDialog ja_std_induce_info(BuildContext context) {
       return AlertDialog(

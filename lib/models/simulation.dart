@@ -63,7 +63,7 @@ class Simulation {
     for (Duration i = Duration.zero;
         i < const Duration(seconds: 100);
         i = i + testPump.timeStep) {
-      double maxInfusion = (testPump.density * testPump.maxPumpRate).toDouble();
+      double maxInfusion = (testPump.concentration * testPump.maxPumpRate).toDouble();
       testPump.updatePumpInfusionSequence(at: i, pumpInfusion: maxInfusion);
     }
     // print('calibrate');
@@ -207,7 +207,7 @@ class Simulation {
 
     double result = 0.0;
     if (model.target == Target.EffectSite) {
-      result = targetIncreasedBy / maxCe * pump.density;
+      result = targetIncreasedBy / maxCe * pump.concentration;
     } else if (model.target == Target.Plasma) {
       double V1 = variables.V1;
       result = targetIncreasedBy * V1;
@@ -220,7 +220,7 @@ class Simulation {
 
     double result = 0.0;
     if (model.target == Target.EffectSite) {
-      result = bolusInfusedBy * maxCe / pump.density;
+      result = bolusInfusedBy * maxCe / pump.concentration;
     } else if (model.target == Target.Plasma) {
       result = (-15.693 +
               sqrt(pow(15.693, 2) +
@@ -286,7 +286,7 @@ class Simulation {
 
     //find max Pump Infusion Rate
     double maxPumpInfusionRate =
-        (pump.density * pump.maxPumpRate).toDouble(); // mg per hr
+        (pump.concentration * pump.maxPumpRate).toDouble(); // mg per hr
 
     // Calculate eBIS
     double baselineBIS = variables.baselineBIS;
@@ -388,7 +388,7 @@ class Simulation {
           ? pumpInf * timeStep / 3600
           : cumulativeInfusedDosages.last + pumpInf * timeStep / 3600;
 
-      double cumulativeInfusedVolume = cumulativeInfusedDosage / pump.density;
+      double cumulativeInfusedVolume = cumulativeInfusedDosage / pump.concentration;
 
       double BISEstimate = concentrationEffect > ce50
           ? baselineBIS *
@@ -552,7 +552,7 @@ class Simulation {
   //This was designed for calculate hand push bolus, but may not be required any more
   double get bolus {
     if (model.target == Target.EffectSite) {
-      return pump.target / maxCe * pump.density;
+      return pump.target / maxCe * pump.concentration;
     } else if (model.target == Target.Plasma) {
       double V1 = variables.V1;
       return pump.target * V1;
@@ -564,7 +564,7 @@ class Simulation {
   //This was hand push bolus, not pump infused bolus, and may not be required any more
   Duration get pushBolusDuration {
     double infusionInSecs =
-        bolus / (pump.density * kMaxHumanlyPossiblePushRate / 3600);
+        bolus / (pump.concentration * kMaxHumanlyPossiblePushRate / 3600);
     double timeStepInSecs = pump.timeStep.inMilliseconds / 1000;
 
     int infusionInTimeStep = (infusionInSecs / timeStepInSecs).floor();

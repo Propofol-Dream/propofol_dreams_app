@@ -11,7 +11,7 @@ import 'dart:math';
 import 'dart:collection';
 
 void main() {
-  Model model = Model.Eleveld;
+  Model model = Model.EleveldPropofol;
   int weight = 87;
   int age = 62;
   int height = 183;

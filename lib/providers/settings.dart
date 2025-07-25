@@ -68,8 +68,8 @@ class Settings with ChangeNotifier {
   
   // NEW: Drug-specific concentration system
   Map<Drug, double> _drugConcentrations = {
-    Drug.propofol: 10.0, // User can select 10 or 20
-    Drug.remifentanilMinto: 50.0, // Fixed
+    Drug.propofol10mg: 10.0, // Default propofol
+    Drug.remifentanil50mcg: 50.0, // Default remifentanil
     Drug.dexmedetomidine: 4.0, // Fixed (mcg/mL)
     Drug.remimazolam: 1.0, // Fixed
   };
@@ -77,13 +77,31 @@ class Settings with ChangeNotifier {
   // LEGACY BRIDGE: Keep for backward compatibility
   int get density {
     // Return propofol concentration for backward compatibility
-    final propofolConcentration = _drugConcentrations[Drug.propofol]!;
-    return propofolConcentration.round();
+    // Check both propofol variants to determine current concentration
+    if (_drugConcentrations.containsKey(Drug.propofol20mg)) {
+      return 20;
+    } else if (_drugConcentrations.containsKey(Drug.propofol10mg)) {
+      return 10;
+    } else {
+      return 10; // Default to 10mg
+    }
+  }
+
+  // NEW: concentration getter (returns double for pump compatibility)
+  double get concentration {
+    return density.toDouble();
   }
 
   set density(int i) {
     // Update propofol concentration
-    _drugConcentrations[Drug.propofol] = i.toDouble();
+    // Update appropriate propofol concentration based on value
+    if (i == 20) {
+      _drugConcentrations.remove(Drug.propofol10mg);
+      _drugConcentrations[Drug.propofol20mg] = 20.0;
+    } else {
+      _drugConcentrations.remove(Drug.propofol20mg);
+      _drugConcentrations[Drug.propofol10mg] = 10.0;
+    }
     setString('drugConcentrations', jsonEncode(_drugConcentrations.map(
       (key, value) => MapEntry(key.toString(), value)
     )));
@@ -96,27 +114,65 @@ class Settings with ChangeNotifier {
   }
 
   void setDrugConcentration(Drug drug, double concentration) {
+    // Handle drug variant switching - remove conflicting variants
+    switch (drug.displayName) {
+      case 'Propofol':
+        // Remove other propofol variants
+        _drugConcentrations.removeWhere((key, value) => 
+          key.displayName == 'Propofol' && key != drug);
+        break;
+      case 'Remifentanil':
+        // Remove other remifentanil variants
+        _drugConcentrations.removeWhere((key, value) => 
+          key.displayName == 'Remifentanil' && key != drug);
+        break;
+      // Other drugs (dexmedetomidine, remimazolam) only have one variant
+    }
+    
+    // Set the new drug concentration
     _drugConcentrations[drug] = concentration;
+    
+    // Check if this drug change affects the current TCI drug
+    if (_tciDrug.displayName == drug.displayName) {
+      _tciDrug = drug;
+      setString('tciDrug', drug.name);
+    }
+    
     setString('drugConcentrations', jsonEncode(_drugConcentrations.map(
       (key, value) => MapEntry(key.toString(), value)
     )));
     notifyListeners();
   }
 
-  // Get available concentration options for a drug
-  List<double> getAvailableConcentrations(Drug drug) {
-    switch (drug) {
-      case Drug.propofol:
-        return [10.0, 20.0]; // User can choose
-      case Drug.remifentanilMinto:
-        return [50.0]; // Fixed
-      case Drug.dexmedetomidine:
-        return [4.0]; // Fixed
-      case Drug.remimazolam:
-        return [1.0]; // Fixed
-      case Drug.remifentanilEleveld:
-        return [50.0]; // Keep for backward compatibility but not shown in UI
+  // Get available concentration options for a drug type
+  List<Drug> getAvailableDrugVariants(String drugType) {
+    switch (drugType) {
+      case 'Propofol':
+        return [Drug.propofol10mg, Drug.propofol20mg];
+      case 'Remifentanil':
+        return [Drug.remifentanil20mcg, Drug.remifentanil40mcg, Drug.remifentanil50mcg];
+      case 'Dexmedetomidine':
+        return [Drug.dexmedetomidine];
+      case 'Remimazolam':
+        return [Drug.remimazolam];
+      default:
+        return [];
     }
+  }
+  
+  // Get the currently active drug variant for a drug type
+  Drug getCurrentDrugVariant(String drugType) {
+    final variants = getAvailableDrugVariants(drugType);
+    
+    // Find which variant is currently in the concentrations map
+    for (final variant in variants) {
+      if (_drugConcentrations.containsKey(variant)) {
+        return variant;
+      }
+    }
+    
+    // Return the first variant as default
+    return variants.isNotEmpty ? variants.first : Drug.propofol10mg;
   }
 
   // REMOVED: selectedDrug system for now - will add back when implementing drug selection
@@ -158,7 +214,7 @@ class Settings with ChangeNotifier {
   }
 
 
-  Model _adultModel = Model.None;
+  Model _adultModel = Model.Eleveld;
   Sex? _adultSex;
   int? _adultAge;
   int? _adultHeight;
@@ -166,13 +222,42 @@ class Settings with ChangeNotifier {
   double? _adultTarget;
   int? _adultDuration;
 
+  // TCI screen model (separate from volume screen)
+  Model _tciModel = Model.Eleveld;
+  Drug _tciDrug = Drug.propofol10mg; // Direct TCI drug storage
+
   Model get adultModel {
     return _adultModel;
   }
 
   set adultModel(Model m) {
     _adultModel = m;
-    setString('adultModel', m.toString());
+    setString('adultModel', m.name);
+    notifyListeners();
+  }
+
+  Model get tciModel {
+    return _tciModel;
+  }
+
+  set tciModel(Model m) {
+    _tciModel = m;
+    setString('tciModel', m.name);
+    notifyListeners();
+  }
+
+  Drug get tciDrug {
+    return _tciDrug;
+  }
+
+  set tciDrug(Drug d) {
+    _tciDrug = d;
+    
+    // Save directly to SharedPreferences
+    setString('tciDrug', d.name);
+    
+    // Also ensure the drug concentration is set in the map
+    setDrugConcentration(d, d.concentration);
     notifyListeners();
   }
 
@@ -254,7 +339,7 @@ class Settings with ChangeNotifier {
 
   set pediatricModel(Model m) {
     _pediatricModel = m;
-    setString('pediatricModel', m.toString());
+    setString('pediatricModel', m.name);
     notifyListeners();
   }
 
@@ -469,7 +554,7 @@ class Settings with ChangeNotifier {
 
   set EMWakeUpModel(Model m) {
     _EMWakeUpModel = m;
-    setString('EMWakeUpModel', m.toString());
+    setString('EMWakeUpModel', m.name);
     notifyListeners();
   }
 
@@ -654,14 +739,16 @@ class Settings with ChangeNotifier {
         (key, value) => MapEntry(key.toString(), value)
       ))),
       _prefs!.setBool('isVolumeTableExpanded', _isVolumeTableExpanded),
-      _prefs!.setString('adultModel', _adultModel.toString()),
+      _prefs!.setString('adultModel', _adultModel.name),
+      _prefs!.setString('tciModel', _tciModel.name),
+      _prefs!.setString('tciDrug', _tciDrug.name),
       _prefs!.setString('adultSex', _adultSex.toString()),
       if (_adultAge != null) _prefs!.setInt('adultAge', _adultAge!),
       if (_adultHeight != null) _prefs!.setInt('adultHeight', _adultHeight!),
       if (_adultWeight != null) _prefs!.setInt('adultWeight', _adultWeight!),
       if (_adultTarget != null) _prefs!.setDouble('adultTarget', _adultTarget!),
       if (_adultDuration != null) _prefs!.setInt('adultDuration', _adultDuration!),
-      _prefs!.setString('pediatricModel', _pediatricModel.toString()),
+      _prefs!.setString('pediatricModel', _pediatricModel.name),
       _prefs!.setString('pediatricSex', _pediatricSex.toString()),
       if (_pediatricAge != null) _prefs!.setInt('pediatricAge', _pediatricAge!),
       if (_pediatricHeight != null) _prefs!.setInt('pediatricHeight', _pediatricHeight!),
@@ -688,7 +775,7 @@ class Settings with ChangeNotifier {
       if (_EMTarget != null) _prefs!.setDouble('EMTarget', _EMTarget!),
       if (_EMDuration != null) _prefs!.setInt('EMDuration', _EMDuration!),
       if (_EMFlow != null) _prefs!.setString('EMFlow', _EMFlow!),
-      _prefs!.setString('EMWakeUpModel', _EMWakeUpModel.toString()),
+      _prefs!.setString('EMWakeUpModel', _EMWakeUpModel.name),
       if (_EMMaintenanceCe != null) _prefs!.setDouble('EMMaintenanceCe', _EMMaintenanceCe!),
       if (_EMMaintenanceSE != null) _prefs!.setInt('EMMaintenanceSE', _EMMaintenanceSE!),
       if (_EMInfusionRate != null) _prefs!.setDouble('EMInfusionRate', _EMInfusionRate!),
@@ -736,14 +823,35 @@ class Settings with ChangeNotifier {
     } else {
       // MIGRATION: Load legacy density for propofol
       final legacyDensity = pref.getInt('density') ?? 10;
-      _drugConcentrations[Drug.propofol] = legacyDensity.toDouble();
+      if (legacyDensity == 20) {
+        _drugConcentrations[Drug.propofol20mg] = 20.0;
+      } else {
+        _drugConcentrations[Drug.propofol10mg] = 10.0;
+      }
     }
     
     // Model-specific targets removed for now
 
     // Adult model settings
     final adultModelString = pref.getString('adultModel');
-    _adultModel = _parseModelFromString(adultModelString) ?? Model.None;
+    _adultModel = _parseModelFromString(adultModelString) ?? Model.Eleveld;
+    
+    // TCI model settings
+    final tciModelString = pref.getString('tciModel');
+    _tciModel = _parseModelFromString(tciModelString) ?? Model.Eleveld;
+    
+    // Load TCI drug from SharedPreferences
+    final tciDrugString = pref.getString('tciDrug');
+    _tciDrug = _parseDrugFromString(tciDrugString) ?? Drug.propofol10mg;
+    
+    // Ensure drug concentrations map is synchronized with loaded TCI drug
+    if (_tciDrug != Drug.propofol10mg) {
+      // Remove conflicting variants of the same drug type
+      _drugConcentrations.removeWhere((key, value) => 
+        key.displayName == _tciDrug.displayName && key != _tciDrug);
+      // Ensure the TCI drug is in the concentrations map
+      _drugConcentrations[_tciDrug] = _tciDrug.concentration;
+    }
     
     final adultSexString = pref.getString('adultSex');
     _adultSex = _parseSexFromString(adultSexString) ?? Sex.Female;
@@ -837,9 +945,31 @@ class Settings with ChangeNotifier {
         return Model.Paedfusor;
       case 'Model.Kataria':
         return Model.Kataria;
+      case 'Model.MarshPropofol':
+        return Model.Marsh;
+      case 'Model.SchniderPropofol':
+        return Model.Schnider;
+      case 'Model.EleveldPropofol':
+        return Model.Eleveld;
+      case 'Model.PaedfusorPropofol':
+        return Model.Paedfusor;
+      case 'Model.KatariaPropofol':
+        return Model.Kataria;
+      case 'Model.MintoRemifentanil':
+        return Model.Minto;
+      case 'Model.EleveldRemifentanil':
+        return Model.Minto;
+      case 'Model.HannivoortDexmedetomidine':
+        return Model.Hannivoort;
+      case 'Model.EleveldRemimazolam':
+        return Model.Eleveld;
+      case 'Model.EleMarsh':
+        return Model.EleMarsh;
+      case 'Model.EleMarshPropofol':
+        return Model.EleMarsh;
       case 'Model.None':
         return Model.None;
-      // Legacy format (from old load() functions)
+      // Direct enum name format (from .name property)
       case 'Marsh':
         return Model.Marsh;
       case 'Schnider':
@@ -850,6 +980,37 @@ class Settings with ChangeNotifier {
         return Model.Paedfusor;
       case 'Kataria':
         return Model.Kataria;
+      case 'Minto':
+        return Model.Minto;
+      case 'Hannivoort':
+        return Model.Hannivoort;
+      case 'EleMarsh':
+        return Model.EleMarsh;
+      case 'None':
+        return Model.None;
+      // Legacy format (from old load() functions)
+      case 'MarshPropofol':
+        return Model.Marsh;
+      case 'SchniderPropofol':
+        return Model.Schnider;
+      case 'EleveldPropofol':
+        return Model.Eleveld;
+      case 'PaedfusorPropofol':
+        return Model.Paedfusor;
+      case 'KatariaPropofol':
+        return Model.Kataria;
+      case 'MintoRemifentanil':
+        return Model.Minto;
+      case 'EleveldRemifentanil':
+        return Model.Minto;
+      case 'HannivoortDexmedetomidine':
+        return Model.Hannivoort;
+      case 'EleveldRemimazolam':
+        return Model.Eleveld;
+      case 'EleMarsh':
+        return Model.EleMarsh;
+      case 'EleMarshPropofol':
+        return Model.EleMarsh;
       default:
         return Model.None;
     }
@@ -874,6 +1035,7 @@ class Settings with ChangeNotifier {
         return Sex.Female; // Default to Female like original code
     }
   }
+
 
   /// Parse InfusionUnit enum from string
   /// Handles both new format ('InfusionUnit.mg_kg_hr') and legacy format ('mg/kg/h')
@@ -914,27 +1076,47 @@ class Settings with ChangeNotifier {
     }
   }
 
-  /// Parse Drug enum from string
+  /// Parse Drug enum from string - updated for new drug constants
   Drug? _parseDrugFromString(String? drugString) {
     if (drugString == null) return null;
     switch (drugString) {
-      case 'Drug.propofol':
-      case 'Propofol':
-        return Drug.propofol;
-      case 'Drug.remifentanilMinto':
-      case 'Remifentanil (Minto)':
-        return Drug.remifentanilMinto;
-      case 'Drug.remifentanilEleveld':
-      case 'Remifentanil (Eleveld)':
-        return Drug.remifentanilEleveld;
+      // New drug constants - full format
+      case 'Drug.propofol10mg':
+      case 'propofol10mg': // Enum name format
+        return Drug.propofol10mg;
+      case 'Drug.propofol20mg':
+      case 'propofol20mg': // Enum name format
+        return Drug.propofol20mg;
+      case 'Drug.remifentanil20mcg':
+      case 'remifentanil20mcg': // Enum name format
+        return Drug.remifentanil20mcg;
+      case 'Drug.remifentanil40mcg':
+      case 'remifentanil40mcg': // Enum name format
+        return Drug.remifentanil40mcg;
+      case 'Drug.remifentanil50mcg':
+      case 'remifentanil50mcg': // Enum name format
+        return Drug.remifentanil50mcg;
       case 'Drug.dexmedetomidine':
-      case 'Dexmedetomidine':
+      case 'dexmedetomidine': // Enum name format
         return Drug.dexmedetomidine;
       case 'Drug.remimazolam':
+      case 'remimazolam': // Enum name format
+        return Drug.remimazolam;
+      // Legacy compatibility
+      case 'Drug.propofol':
+      case 'Propofol':
+        return Drug.propofol10mg; // Default to 10mg
+      case 'Drug.remifentanilMinto':
+      case 'Drug.remifentanilEleveld':
+      case 'Remifentanil (Minto)':
+      case 'Remifentanil (Eleveld)':
+        return Drug.remifentanil50mcg; // Default to 50mcg
+      case 'Dexmedetomidine':
+        return Drug.dexmedetomidine;
       case 'Remimazolam':
         return Drug.remimazolam;
       default:
-        return Drug.propofol; // Default to propofol for backward compatibility
+        return Drug.propofol10mg; // Default to propofol 10mg for backward compatibility
     }
   }
 }

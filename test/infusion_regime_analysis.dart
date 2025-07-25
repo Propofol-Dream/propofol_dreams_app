@@ -27,7 +27,7 @@ void main() {
   
   // Test with Eleveld model
   final simulation = PDSim.Simulation(
-    model: Model.Eleveld,
+    model: Model.EleveldPropofol,
     patient: patient,
     pump: pump,
   );

@@ -276,28 +276,28 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
               Pump pump = Pump(
                   timeStep: Duration(seconds: settings.time_step),
-                  density: settings.density,
+                  concentration: settings.concentration,
                   maxPumpRate: settings.max_pump_rate,
                   target: target,
                   duration: Duration(minutes: duration));
 
               Pump pump1 = Pump(
                   timeStep: Duration(seconds: settings.time_step),
-                  density: settings.density,
+                  concentration: settings.concentration,
                   maxPumpRate: settings.max_pump_rate,
                   target: target - targetInterval,
                   duration: Duration(minutes: duration + 2 * durationInterval));
 
               Pump pump2 = Pump(
                   timeStep: Duration(seconds: settings.time_step),
-                  density: settings.density,
+                  concentration: settings.concentration,
                   maxPumpRate: settings.max_pump_rate,
                   target: target,
                   duration: Duration(minutes: duration + 2 * durationInterval));
 
               Pump pump3 = Pump(
                   timeStep: Duration(seconds: settings.time_step),
-                  density: settings.density,
+                  concentration: settings.concentration,
                   maxPumpRate: settings.max_pump_rate,
                   target: target + targetInterval,
                   duration: Duration(minutes: duration + 2 * durationInterval));
@@ -327,9 +327,14 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
               Duration calculationDuration = finish.difference(start);
 
+              // Get current propofol drug for display
+              final propofolDrug = settings.getCurrentDrugVariant('Propofol');
+              
               print({
                 'screen': 'Volume',
                 'model': model,
+                'drug': propofolDrug.displayName,
+                'drug_unit': '${propofolDrug.concentration.toStringAsFixed(propofolDrug.concentration == propofolDrug.concentration.roundToDouble() ? 0 : 1)} ${propofolDrug.concentrationUnit.displayName}',
                 'patient': patient,
                 'pump': pump,
                 'calcuation time':
@@ -569,7 +574,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
           TextField(
             enabled: true,
             readOnly: true,
-            controller: TextEditingController(text: currentModel?.toString() ?? 'Select Model'),
+            controller: TextEditingController(text: currentModel?.name ?? 'Select Model'),
             style: TextStyle(
               color: hasValidationError 
                 ? Theme.of(context).colorScheme.error
@@ -677,7 +682,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     final settings = context.watch<Settings>();
 
-    int density = settings.density;
+    double density = settings.concentration;
 
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);

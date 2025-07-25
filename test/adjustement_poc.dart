@@ -35,7 +35,7 @@ void main() {
     int bolusBestGuess = -1;
 
     // Set up for baseline model
-    Model baselineModel = Model.Eleveld;
+    Model baselineModel = Model.EleveldPropofol;
     Patient baselinePatient = Patient(weight: weight, age: age, height: height, sex: gender);
     Pump baselinePump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate, target: target, duration: duration);
     // Operation baselineOperation = Operation(target: target, duration: duration);
@@ -53,7 +53,7 @@ void main() {
 
       for (int bolusGuess = minBolusGuess; bolusGuess <= maxBolusGuess; bolusGuess++){
         // Set up for compared model
-        Model comparedModel = Model.Marsh;
+        Model comparedModel = Model.MarshPropofol;
         Patient comparedPatient = baselinePatient.copy();
         comparedPatient.weight = weightGuess;
         // Patient comparedPatient = Patient(weight: weightGuess, age: age, height: height, gender: gender);

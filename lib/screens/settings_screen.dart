@@ -19,6 +19,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final PDSegmentedController propofolController = PDSegmentedController();
+  final PDSegmentedController remifentanilController = PDSegmentedController();
   final PDSegmentedController themeController = PDSegmentedController();
   final TextEditingController pumpController = TextEditingController();
 
@@ -32,7 +33,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _setControllersFromSettings(Settings settings) {
-    propofolController.val = settings.getDrugConcentration(Drug.propofol) == 10.0 ? 0 : 1;
+    // Check which propofol variant is currently set by checking legacy density
+    final currentPropofolConcentration = settings.density; // Use legacy density getter
+    propofolController.val = currentPropofolConcentration == 10 ? 0 : 1;
+    
+    // Check which remifentanil variant is currently set
+    final currentRemifentanilDrug = settings.getCurrentDrugVariant('Remifentanil');
+    if (currentRemifentanilDrug == Drug.remifentanil20mcg) {
+      remifentanilController.val = 0;
+    } else if (currentRemifentanilDrug == Drug.remifentanil40mcg) {
+      remifentanilController.val = 1;
+    } else {
+      remifentanilController.val = 2; // 50mcg default
+    }
+    
     pumpController.text = settings.max_pump_rate.toString();
     themeController.val = settings.themeModeSelection == ThemeMode.light
         ? 0
@@ -42,7 +56,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDrugConcentrationSection(Drug drug, Settings settings, double UIHeight, double screenWidth) {
-    final availableConcentrations = settings.getAvailableConcentrations(drug);
+    // Get available variants for this drug type
+    final availableVariants = settings.getAvailableDrugVariants(drug.displayName);
+    final availableConcentrations = availableVariants.map((variant) => variant.concentration).toList();
     final currentConcentration = settings.getDrugConcentration(drug);
     
     return Column(
@@ -83,11 +99,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               labels: availableConcentrations.map((conc) => 
                 '${conc.toStringAsFixed(conc == conc.roundToDouble() ? 0 : 1)} ${drug.concentrationUnit.displayName}'
               ).toList(),
-              segmentedController: drug == Drug.propofol ? propofolController : PDSegmentedController(),
-              onPressed: availableConcentrations.map((conc) => () {
-                settings.setDrugConcentration(drug, conc);
-                if (drug == Drug.propofol) {
-                  _setControllersFromSettings(settings);
+              segmentedController: drug.displayName == 'Propofol' 
+                  ? propofolController 
+                  : drug.displayName == 'Remifentanil'
+                      ? remifentanilController
+                      : PDSegmentedController(),
+              onPressed: availableVariants.map((variant) => () {
+                // Set the concentration for the appropriate variant
+                settings.setDrugConcentration(variant, variant.concentration);
+                if (drug.displayName == 'Propofol' || drug.displayName == 'Remifentanil') {
+                  setState(() {
+                    _setControllersFromSettings(settings);
+                  });
                 }
               }).toList(),
             ),
@@ -129,26 +152,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final settings = context.watch<Settings>();
 
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      child: Column(children: [
-        AppBar(
-          title:  Text(
-            AppLocalizations.of(context)!.settings,
-          ),
+    return Column(children: [
+      AppBar(
+        title:  Text(
+          AppLocalizations.of(context)!.settings,
         ),
-        const SizedBox(
-          height: 16,
-        ),
-        Container(
-          height: MediaQuery.of(context).size.height - 90 - 96 - 16,
+      ),
+      const SizedBox(
+        height: 16,
+      ),
+      Expanded(
+        child: Container(
           padding: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-          // decoration: BoxDecoration(
-          //   border: Border.all(color: Theme.of(context).colorScheme.primary),
-          // ),
           child: ListView(
             padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,16 +178,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   
                   // Propofol - with selection
                   _buildDrugConcentrationSection(
-                    Drug.propofol, 
+                    Drug.propofol10mg, 
                     settings, 
                     UIHeight, 
                     mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
                   ),
                   const SizedBox(height: 16),
                   
-                  // Remifentanil (Minto) - display only
+                  // Remifentanil - with selection
                   _buildDrugConcentrationSection(
-                    Drug.remifentanilMinto, 
+                    Drug.remifentanil50mcg,
                     settings, 
                     UIHeight, 
                     mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
@@ -293,8 +310,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
-        )
-      ]),
-    );
+        ),
+      ),
+    ]);
   }
 }
