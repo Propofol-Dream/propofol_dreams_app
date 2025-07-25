@@ -683,7 +683,7 @@ class _AnimatedDosageTableState extends State<AnimatedDosageTable>
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Bolus: ${widget.data.totalBolus.toStringAsFixed(1)} mL',
+                  'Bolus: ${widget.data.totalBolus.toStringAsFixed(3)} mL',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.w600,
@@ -796,7 +796,7 @@ class DosageDataTable extends StatelessWidget {
 
     // Determine bolus value - show "-- mL" for models that don't support bolus
     final bolusValue = data.totalBolus > 0.01 
-        ? '${data.totalBolus.toStringAsFixed(1)} mL'
+        ? '${data.totalBolus.toStringAsFixed(3)} mL'
         : '-- mL';
 
     return Container(

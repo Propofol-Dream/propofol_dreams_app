@@ -14,7 +14,7 @@ void main() {
     const int height = 170;
     const int age = 35;
     const double target = 3.0; // mcg/mL for propofol, ng/mL for opioids
-    const int duration = 240; // 4 hours
+    const int duration = 255; // 4 hours and 15 minutes
 
     test('Minto Remifentanil TCI simulation works', () {
       final patient = Patient(

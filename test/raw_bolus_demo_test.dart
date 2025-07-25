@@ -14,7 +14,7 @@ void main() {
       const int height = 170;
       const int age = 35;
       const double target = 3.0;
-      const int duration = 240;
+      const int duration = 255;
 
       final patient = Patient(
         weight: weight,

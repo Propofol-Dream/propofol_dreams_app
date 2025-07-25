@@ -148,7 +148,7 @@ class _TCIScreenState extends State<TCIScreen> {
     heightController.text = settings.adultHeight?.toString() ?? '170';
     weightController.text = settings.adultWeight?.toString() ?? '70';
     targetController.text = settings.adultTarget?.toString() ?? '3.0';
-    durationController.text = '240'; // Hardcoded to 4 hours for modal compatibility
+    durationController.text = '255'; // Hardcoded to 4 hours and 15 minutes for modal compatibility
   }
 
   void _saveToSettings() {
@@ -170,7 +170,7 @@ class _TCIScreenState extends State<TCIScreen> {
     settings.adultHeight = height;
     settings.adultWeight = weight;
     settings.adultTarget = target;
-    // settings.adultDuration removed - duration is hardcoded to 240 minutes
+    // settings.adultDuration removed - duration is hardcoded to 255 minutes
   }
 
   void updateModelOptions(bool inAdultView) {
@@ -200,7 +200,7 @@ class _TCIScreenState extends State<TCIScreen> {
       final finalHeight = int.tryParse(heightController.text) ?? 170;
       final finalWeight = int.tryParse(weightController.text) ?? 70;
       final finalTarget = double.tryParse(targetController.text) ?? 3.0;
-      final finalDuration = 240; // Hardcoded to 4 hours
+      final finalDuration = 255; // Hardcoded to 4 hours and 15 minutes (ensures table shows up to 4:00)
       final sex = sexController.val ? Sex.Female : Sex.Male;
       
       // Get current model
@@ -348,7 +348,7 @@ class _TCIScreenState extends State<TCIScreen> {
         : settings.adultTarget != null
             ? settings.adultTarget.toString()
             : '';
-    durationController.text = '240'; // Hardcoded to 4 hours for modal compatibility
+    durationController.text = '255'; // Hardcoded to 4 hours and 15 minutes for modal compatibility
 
     updateModelOptions(true); // Always adult view
     calculate();

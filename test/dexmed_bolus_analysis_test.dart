@@ -13,7 +13,7 @@ void main() {
       const int weight = 70;
       const int height = 170;
       const int age = 40;
-      const int duration = 240;
+      const int duration = 255;
 
       final patient = Patient(
         weight: weight,
