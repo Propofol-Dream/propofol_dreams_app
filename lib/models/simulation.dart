@@ -37,12 +37,13 @@ class Simulation {
     double k31,
     double ke0
   }) get variables {
-    // Use the new parameter calculation system
+    // Use the new parameter calculation system with drug context
     final params = model.calculatePKParameters(
       sex: patient.sex,
       weight: patient.weight,
       height: patient.height,
       age: patient.age,
+      drug: pump.drug, // Pass drug context for model-drug specific PK parameters
     );
 
     return params.toSimulationRecord();

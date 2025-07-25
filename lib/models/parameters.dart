@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'sex.dart';
 import 'model.dart';
+import 'drug.dart';
 
 /// Pharmacokinetic parameters for a model
 class PKParameters {
@@ -96,6 +97,7 @@ extension PKCalculation on Model {
     required int weight,
     required int height,
     required int age,
+    Drug? drug, // Add drug context for model-drug specific PK parameters
   }) {
     final double weightKg = weight.toDouble();
     final double heightCm = height.toDouble();
@@ -108,16 +110,26 @@ extension PKCalculation on Model {
       case Model.Schnider:
         return _calculateSchniderParameters(sexInt, weightKg, heightCm, ageYr);
       case Model.Eleveld:
-        return _calculateEleveldParameters(sexInt, weightKg, heightCm, ageYr);
+        // Drug-specific routing for Eleveld model
+        if (drug?.isRemifentanil == true) {
+          return _calculateRemifentanilEleveldParameters(sexInt, weightKg, heightCm, ageYr);
+        } else if (drug?.isRemimazolam == true) {
+          return _calculateRemimazolamEleveldParameters(sexInt, weightKg, heightCm, ageYr);
+        } else {
+          // Default to propofol for Eleveld
+          return _calculateEleveldParameters(sexInt, weightKg, heightCm, ageYr);
+        }
       case Model.Paedfusor:
         return _calculatePaedfusorParameters(sexInt, weightKg, heightCm, ageYr);
       case Model.Kataria:
         return _calculateKatariaParameters(sexInt, weightKg, heightCm, ageYr);
       case Model.Minto:
+        // Minto is remifentanil-specific, but verify drug context
         return _calculateMintoParameters(sexInt, weightKg, heightCm, ageYr);
       case Model.EleMarsh:
         return _calculateMarshParameters(sexInt, weightKg, heightCm, ageYr);
       case Model.Hannivoort:
+        // Hannivoort is dexmedetomidine-specific
         return _calculateHannivoortParameters(sexInt, weightKg, heightCm, ageYr);
       default:
         // Return default parameters for unsupported models

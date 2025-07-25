@@ -74,6 +74,19 @@ enum Drug {
   String toString() => displayName;
 }
 
+/// Extension for drug type checking
+extension DrugTypeExtension on Drug {
+  bool get isRemifentanil => this == Drug.remifentanil20mcg || 
+                             this == Drug.remifentanil40mcg || 
+                             this == Drug.remifentanil50mcg;
+  
+  bool get isPropofol => this == Drug.propofol10mg || this == Drug.propofol20mg;
+  
+  bool get isDexmedetomidine => this == Drug.dexmedetomidine;
+  
+  bool get isRemimazolam => this == Drug.remimazolam;
+}
+
 /// Helper class for drug concentration with unit
 class DrugConcentration {
   final double value;

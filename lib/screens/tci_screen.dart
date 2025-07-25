@@ -49,7 +49,7 @@ class PDTableController extends ChangeNotifier {
 
 class _TCIScreenState extends State<TCIScreen> {
   Drug? selectedDrug; // Track selected drug for concentration
-  final PDAdvancedSegmentedController adultModelController =
+  final PDAdvancedSegmentedController tciModelController =
       PDAdvancedSegmentedController();
   final PDAdvancedSegmentedController pediatricModelController =
       PDAdvancedSegmentedController();
@@ -66,6 +66,7 @@ class _TCIScreenState extends State<TCIScreen> {
   Timer timer = Timer(Duration.zero, () {});
   Duration delay = const Duration(milliseconds: 500);
   String? _lastDebugOutput; // Track last debug output to avoid duplicates
+  Drug? _lastSelectedDrug; // Track last selected drug
 
   InfusionRegimeData? infusionRegimeData;
   String result = '';
@@ -79,7 +80,7 @@ class _TCIScreenState extends State<TCIScreen> {
     _setControllersFromSettings(settings);
     
     // Removed automatic listeners - now using event-driven approach
-    // adultModelController.addListener(calculate);
+    // tciModelController.addListener(calculate);
     // pediatricModelController.addListener(calculate);
     // sexController.addListener(calculate);
     ageController.addListener(_onTextFieldChanged);
@@ -123,7 +124,7 @@ class _TCIScreenState extends State<TCIScreen> {
     tableController.val = true; // Always keep table expanded
 
     // Use TCI model (separate from volume screen)
-    adultModelController.selection = settings.tciModel;
+    tciModelController.selection = settings.tciModel;
     // Load selected drug from settings
     selectedDrug = settings.tciDrug;
     
@@ -131,7 +132,7 @@ class _TCIScreenState extends State<TCIScreen> {
     if (selectedDrug == Drug.dexmedetomidine && settings.tciModel != Model.Hannivoort) {
       // Auto-correct the model for Dexmedetomidine - defer to avoid build-time setState
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        adultModelController.selection = Model.Hannivoort;
+        tciModelController.selection = Model.Hannivoort;
         settings.tciModel = Model.Hannivoort;
       });
     } else if (selectedDrug != null && settings.tciModel == Model.None) {
@@ -139,7 +140,7 @@ class _TCIScreenState extends State<TCIScreen> {
       final expectedModel = selectedDrug == Drug.dexmedetomidine ? Model.Hannivoort : Model.Eleveld;
       // Defer to avoid build-time setState
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        adultModelController.selection = expectedModel;
+        tciModelController.selection = expectedModel;
         settings.tciModel = expectedModel;
       });
     }
@@ -164,7 +165,7 @@ class _TCIScreenState extends State<TCIScreen> {
     Sex sex = sexController.val ? Sex.Female : Sex.Male;
 
     // Save TCI model (drug is already saved immediately in onDrugSelected)
-    settings.tciModel = adultModelController.selection;
+    settings.tciModel = tciModelController.selection;
     settings.adultSex = sex;
     settings.adultAge = age;
     settings.adultHeight = height;
@@ -204,7 +205,7 @@ class _TCIScreenState extends State<TCIScreen> {
       final sex = sexController.val ? Sex.Female : Sex.Male;
       
       // Get current model
-      final model = adultModelController.selection;
+      final model = tciModelController.selection;
 
       // Create patient object for debugging (similar to volume screen)
       final patient = Patient(
@@ -212,6 +213,16 @@ class _TCIScreenState extends State<TCIScreen> {
         age: finalAge, 
         height: finalHeight, 
         sex: sex
+      );
+
+      // Create pump configuration (matching volume screen pattern)
+      final pump = Pump(
+        timeStep: Duration(seconds: settings.time_step),
+        concentration: selectedDrug?.concentration ?? settings.propofol_concentration,
+        maxPumpRate: settings.max_pump_rate,
+        target: finalTarget,
+        duration: Duration(minutes: finalDuration),
+        drug: selectedDrug,
       );
 
       // Only calculate if we have a valid model and all required parameters
@@ -223,15 +234,6 @@ class _TCIScreenState extends State<TCIScreen> {
             target: finalTarget,
             duration: finalDuration,
           )) {
-        
-        // Create pump configuration (matching volume screen pattern)
-        final pump = Pump(
-          timeStep: Duration(seconds: settings.time_step),
-          concentration: settings.propofol_concentration,
-          maxPumpRate: settings.max_pump_rate,
-          target: finalTarget,
-          duration: Duration(minutes: finalDuration),
-        );
 
         // Run real pharmacokinetic simulation
         PDSim.Simulation simulation = PDSim.Simulation(
@@ -266,9 +268,14 @@ class _TCIScreenState extends State<TCIScreen> {
       // Create debug output string
       final debugOutput = 'TCI: $model, Patient(${sex.name}, ${finalAge}y, ${finalHeight}cm, ${finalWeight}kg), Target: $finalTarget, Duration: ${finalDuration}min';
       
-      // Only print if output has changed (avoid spam)
-      if (_lastDebugOutput != debugOutput) {
+      // Check if drug has changed or if other parameters have changed
+      final drugChanged = _lastSelectedDrug != selectedDrug;
+      final parametersChanged = _lastDebugOutput != debugOutput;
+      
+      // Only print if output has changed OR drug has changed (avoid spam)
+      if (parametersChanged || drugChanged) {
         _lastDebugOutput = debugOutput;
+        _lastSelectedDrug = selectedDrug;
         
         // Prepare enhanced output with first 15min details
         final outputData = {
@@ -277,6 +284,20 @@ class _TCIScreenState extends State<TCIScreen> {
           'drug': selectedDrug?.displayName ?? 'Unknown',
           'drug_unit': '${selectedDrug?.concentration.toStringAsFixed(selectedDrug?.concentration == selectedDrug?.concentration.roundToDouble() ? 0 : 1)} ${selectedDrug?.concentrationUnit.displayName}',
           'patient': patient,
+          'pump': {
+            'timeStep': '${pump.timeStep}',
+            'concentration': pump.concentration,
+            'concentrationUnit': selectedDrug?.concentrationUnit.displayName ?? 'mg/ml',
+            'maxPumpRate': pump.maxPumpRate,
+            'maxPumpRateUnit': 'ml/hr',
+            'maxInfusionRate': pump.concentration * pump.maxPumpRate,
+            'maxInfusionRateUnit': 'mg/hr',
+            'target': pump.target,
+            'targetUnit': model.targetUnit.displayName,
+            'targetType': model.target.toString(),
+            'duration': '${pump.duration}',
+            'drug': pump.drug?.displayName ?? 'Unknown'
+          },
           'target': finalTarget,
           'duration': finalDuration,
           'calculation time': '${calculationDuration.inMilliseconds.toString()} milliseconds',
@@ -355,7 +376,7 @@ class _TCIScreenState extends State<TCIScreen> {
   }
 
   Widget buildModelSelector(Settings settings, double UIHeight) {
-    final currentModel = adultModelController.selection is Model ? adultModelController.selection as Model : null;
+    final currentModel = tciModelController.selection is Model ? tciModelController.selection as Model : null;
     
     final Sex sex = sexController.val ? Sex.Female : Sex.Male;
     final int age = int.tryParse(ageController.text) ?? 0;
@@ -363,10 +384,10 @@ class _TCIScreenState extends State<TCIScreen> {
     final int weight = int.tryParse(weightController.text) ?? 0;
 
     final hasValidationError = currentModel != null && 
-        adultModelController.hasValidationError(sex: sex, weight: weight, height: height, age: age);
+        tciModelController.hasValidationError(sex: sex, weight: weight, height: height, age: age);
 
     final String? validationErrorText = hasValidationError
-        ? adultModelController.getValidationErrorText(sex: sex, weight: weight, height: height, age: age)
+        ? tciModelController.getValidationErrorText(sex: sex, weight: weight, height: height, age: age)
         : null;
 
     return SizedBox(
@@ -430,7 +451,7 @@ class _TCIScreenState extends State<TCIScreen> {
             child: GestureDetector(
               onTap: () async {
                 await HapticFeedback.lightImpact();
-                adultModelController.showModelSelector(
+                tciModelController.showModelSelector(
                     context: context,
                     inAdultView: true, // Always adult view now
                     sexController: sexController,
@@ -443,7 +464,7 @@ class _TCIScreenState extends State<TCIScreen> {
                     currentDrug: selectedDrug, // Pass current selected drug
                     onModelSelected: (model) {
                       setState(() {
-                        adultModelController.selection = model;
+                        tciModelController.selection = model;
                         settings.tciModel = model;
                       });
                       calculate();
@@ -497,8 +518,8 @@ class _TCIScreenState extends State<TCIScreen> {
     
     final settings = context.watch<Settings>();
     
-    adultModelController.selection = settings.tciModel;
-    Model selectedModel = adultModelController.selection;
+    tciModelController.selection = settings.tciModel;
+    Model selectedModel = tciModelController.selection;
     
     // Check if model is runnable (kept for potential future use)
     // bool modelIsRunnable = selectedModel.isRunnable(
@@ -508,10 +529,10 @@ class _TCIScreenState extends State<TCIScreen> {
     //     target: target,
     //     duration: duration);
     
-    final bool heightTextFieldEnabled = (adultModelController.selection as Model).target != Target.Plasma;
-    final bool sexSwitchControlEnabled = (adultModelController.selection as Model).target != Target.Plasma;
+    final bool heightTextFieldEnabled = (tciModelController.selection as Model).target != Target.Plasma;
+    final bool sexSwitchControlEnabled = (tciModelController.selection as Model).target != Target.Plasma;
 
-    final ageTextFieldEnabled = adultModelController.selection != Model.Marsh;
+    final ageTextFieldEnabled = tciModelController.selection != Model.Marsh;
 
     return Container(
       height: screenHeight,

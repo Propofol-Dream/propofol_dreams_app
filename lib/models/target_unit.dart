@@ -11,7 +11,7 @@ enum TargetUnit {
       case TargetUnit.mcgPerMl:
         return 1.0;
       case TargetUnit.ngPerMl:
-        return 0.001; // 1 ng = 0.001 mcg
+        return 1.0;
     }
   }
   
