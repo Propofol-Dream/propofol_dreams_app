@@ -65,8 +65,6 @@ class _TCIScreenState extends State<TCIScreen> {
   final List<Model> modelOptions = [];
   Timer timer = Timer(Duration.zero, () {});
   Duration delay = const Duration(milliseconds: 500);
-  String? _lastDebugOutput; // Track last debug output to avoid duplicates
-  Drug? _lastSelectedDrug; // Track last selected drug
 
   InfusionRegimeData? infusionRegimeData;
   String result = '';
@@ -265,62 +263,49 @@ class _TCIScreenState extends State<TCIScreen> {
       DateTime finish = DateTime.now();
       Duration calculationDuration = finish.difference(start);
 
-      // Create debug output string
-      final debugOutput = 'TCI: $model, Patient(${sex.name}, ${finalAge}y, ${finalHeight}cm, ${finalWeight}kg), Target: $finalTarget, Duration: ${finalDuration}min';
+      // Prepare enhanced output with first 15min details (same as volume screen - simple direct print)
+      final outputData = {
+        'screen': 'TCI',
+        'model': model,
+        'drug': selectedDrug?.displayName ?? 'Unknown',
+        'drug_unit': '${selectedDrug?.concentration.toStringAsFixed(selectedDrug?.concentration == selectedDrug?.concentration.roundToDouble() ? 0 : 1)} ${selectedDrug?.concentrationUnit.displayName}',
+        'patient': patient,
+        'pump': {
+          'timeStep': '${pump.timeStep}',
+          'concentration': pump.concentration,
+          'concentrationUnit': selectedDrug?.concentrationUnit.displayName ?? 'mg/ml',
+          'maxPumpRate': pump.maxPumpRate,
+          'maxPumpRateUnit': 'ml/hr',
+          'maxInfusionRate': pump.concentration * pump.maxPumpRate,
+          'maxInfusionRateUnit': 'mg/hr',
+          'target': pump.target,
+          'targetUnit': model.targetUnit.displayName,
+          'targetType': model.target.toString(),
+          'duration': '${pump.duration}',
+          'drug': pump.drug?.displayName ?? 'Unknown'
+        },
+        'target': finalTarget,
+        'duration': finalDuration,
+        'calculation time': '${calculationDuration.inMilliseconds.toString()} milliseconds',
+        'total_volume': infusionRegimeData?.totalVolume.toStringAsFixed(1) ?? '0.0',
+        'max_rate': infusionRegimeData?.maxInfusionRate.toStringAsFixed(1) ?? '0.0',
+      };
       
-      // Check if drug has changed or if other parameters have changed
-      final drugChanged = _lastSelectedDrug != selectedDrug;
-      final parametersChanged = _lastDebugOutput != debugOutput;
-      
-      // Only print if output has changed OR drug has changed (avoid spam)
-      if (parametersChanged || drugChanged) {
-        _lastDebugOutput = debugOutput;
-        _lastSelectedDrug = selectedDrug;
-        
-        // Prepare enhanced output with first 15min details
-        final outputData = {
-          'screen': 'TCI',
-          'model': model,
-          'drug': selectedDrug?.displayName ?? 'Unknown',
-          'drug_unit': '${selectedDrug?.concentration.toStringAsFixed(selectedDrug?.concentration == selectedDrug?.concentration.roundToDouble() ? 0 : 1)} ${selectedDrug?.concentrationUnit.displayName}',
-          'patient': patient,
-          'pump': {
-            'timeStep': '${pump.timeStep}',
-            'concentration': pump.concentration,
-            'concentrationUnit': selectedDrug?.concentrationUnit.displayName ?? 'mg/ml',
-            'maxPumpRate': pump.maxPumpRate,
-            'maxPumpRateUnit': 'ml/hr',
-            'maxInfusionRate': pump.concentration * pump.maxPumpRate,
-            'maxInfusionRateUnit': 'mg/hr',
-            'target': pump.target,
-            'targetUnit': model.targetUnit.displayName,
-            'targetType': model.target.toString(),
-            'duration': '${pump.duration}',
-            'drug': pump.drug?.displayName ?? 'Unknown'
-          },
-          'target': finalTarget,
-          'duration': finalDuration,
-          'calculation time': '${calculationDuration.inMilliseconds.toString()} milliseconds',
-          'total_volume': infusionRegimeData?.totalVolume.toStringAsFixed(1) ?? '0.0',
-          'max_rate': infusionRegimeData?.maxInfusionRate.toStringAsFixed(1) ?? '0.0',
-        };
-        
-        // Add first 15 minutes detailed information
-        if (infusionRegimeData != null && infusionRegimeData!.rows.isNotEmpty) {
-          final firstRow = infusionRegimeData!.rows.first;
-          outputData['first_15min_bolus'] = '${firstRow.bolus.toStringAsFixed(2)} mL';
-          outputData['first_15min_bolus_raw'] = firstRow.rawBolus != null ? '${firstRow.rawBolus!.toStringAsFixed(6)} mL' : 'N/A';
-          outputData['first_15min_rate'] = '${firstRow.infusionRate.toStringAsFixed(2)} mL/hr';
-          outputData['first_15min_total'] = '${firstRow.accumulatedVolume.toStringAsFixed(2)} mL';
-        } else {
-          outputData['first_15min_bolus'] = '0.0 mL';
-          outputData['first_15min_bolus_raw'] = 'N/A';
-          outputData['first_15min_rate'] = '0.0 mL/hr';
-          outputData['first_15min_total'] = '0.0 mL';
-        }
-        
-        print(outputData);
+      // Add first 15 minutes detailed information
+      if (infusionRegimeData != null && infusionRegimeData!.rows.isNotEmpty) {
+        final firstRow = infusionRegimeData!.rows.first;
+        outputData['first_15min_bolus'] = '${firstRow.bolus.toStringAsFixed(2)} mL';
+        outputData['first_15min_bolus_raw'] = firstRow.rawBolus != null ? '${firstRow.rawBolus!.toStringAsFixed(6)} mL' : 'N/A';
+        outputData['first_15min_rate'] = '${firstRow.infusionRate.toStringAsFixed(2)} mL/hr';
+        outputData['first_15min_total'] = '${firstRow.accumulatedVolume.toStringAsFixed(2)} mL';
+      } else {
+        outputData['first_15min_bolus'] = '0.0 mL';
+        outputData['first_15min_bolus_raw'] = 'N/A';
+        outputData['first_15min_rate'] = '0.0 mL/hr';
+        outputData['first_15min_total'] = '0.0 mL';
       }
+      
+      print(outputData);
     } catch (e) {
       debugPrint('Calculation error: $e');
     }
