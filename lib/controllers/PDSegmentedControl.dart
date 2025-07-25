@@ -85,6 +85,24 @@ class _PDSegmentedControlState extends State<PDSegmentedControl> {
               bottomRight: Radius.circular(
                   buildIndex == widget.labels.length - 1 ? 5 : 0),
             ),
+          ).copyWith(
+            side: MaterialStateBorderSide.resolveWith((states) {
+              // Only show borders on outer edges and between segments
+              final bool isFirst = buildIndex == 0;
+              final bool isLast = buildIndex == widget.labels.length - 1;
+              
+              if (isFirst || isLast) {
+                // Full border for first and last buttons
+                return BorderSide(
+                  color: widget.onPressed[buildIndex] == null
+                      ? Theme.of(context).disabledColor
+                      : widget.defaultColor,
+                );
+              } else {
+                // Only top and bottom borders for middle buttons
+                return BorderSide.none;
+              }
+            }),
           ),
         ),
         child: Text(

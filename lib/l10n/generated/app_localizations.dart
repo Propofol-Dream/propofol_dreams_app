@@ -159,6 +159,12 @@ abstract class AppLocalizations {
   ///
   ///
   /// In en, this message translates to:
+  /// **'Drug'**
+  String get drug;
+
+  ///
+  ///
+  /// In en, this message translates to:
   /// **'Duration'**
   String get duration;
 
@@ -293,6 +299,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plasma'**
   String get plasma;
+
+  ///
+  ///
+  /// In en, this message translates to:
+  /// **'Plasma Target'**
+  String get plasmaTarget;
 
   ///
   ///

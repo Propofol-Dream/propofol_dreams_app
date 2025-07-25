@@ -9,9 +9,9 @@ enum Target {
   String toLocalizedString(BuildContext context) {
     switch (this) {
       case Target.Plasma:
-        return AppLocalizations.of(context)!.plasma;
+        return AppLocalizations.of(context)!.plasmaTarget;
       case Target.EffectSite:
-        return AppLocalizations.of(context)!.effectSite;
+        return AppLocalizations.of(context)!.effectSiteTarget;
     }
   }
 

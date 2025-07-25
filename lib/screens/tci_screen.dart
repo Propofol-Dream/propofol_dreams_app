@@ -19,6 +19,7 @@ import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 
 import '../constants.dart';
 import '../components/infusion_regime_table.dart';
+import '../utils/text_measurement.dart';
 
 import 'package:propofol_dreams_app/controllers/PDTextField.dart';
 import 'package:propofol_dreams_app/controllers/PDSwitchController.dart';
@@ -112,7 +113,7 @@ class _TCIScreenState extends State<TCIScreen> {
       }
     });
 
-    updateModelOptions(true); // Always adult view
+    // updateModelOptions(true); // Always adult view
     calculate();
   }
 
@@ -153,9 +154,9 @@ class _TCIScreenState extends State<TCIScreen> {
     // settings.adultDuration removed - duration is hardcoded to 255 minutes
   }
 
-  void updateModelOptions(bool inAdultView) {
-    // Update model options based on adult/pediatric view
-  }
+  // void updateModelOptions(bool inAdultView) {
+  //   // Update model options based on adult/pediatric view
+  // }
 
 
   void calculate() {
@@ -176,7 +177,7 @@ class _TCIScreenState extends State<TCIScreen> {
       final sex = sexController.val ? Sex.Female : Sex.Male;
       
       // Get current model
-      final model = tciModelController.selection;
+      final selectedModel = tciModelController.selection;
 
       // Create patient object for debugging (similar to volume screen)
       final patient = Patient(
@@ -197,8 +198,8 @@ class _TCIScreenState extends State<TCIScreen> {
       );
 
       // Only calculate if we have a valid model and all required parameters
-      if (model != Model.None && 
-          model.isRunnable(
+      if (selectedModel != Model.None &&
+          selectedModel.isRunnable(
             age: finalAge,
             height: finalHeight,
             weight: finalWeight,
@@ -208,7 +209,7 @@ class _TCIScreenState extends State<TCIScreen> {
 
         // Run real pharmacokinetic simulation
         PDSim.Simulation simulation = PDSim.Simulation(
-          model: model,
+          model: selectedModel,
           patient: patient,
           pump: pump,
         );
@@ -222,7 +223,7 @@ class _TCIScreenState extends State<TCIScreen> {
             cumulativeInfusedVolumes: results.cumulativeInfusedVolumes,
             density: 10, // LEGACY parameter name: kept for InfusionRegimeData backward compatibility
             totalDuration: Duration(minutes: finalDuration),
-            isEffectSiteTargeting: model.target == Target.EffectSite,
+            isEffectSiteTargeting: selectedModel.target == Target.EffectSite,
             drugConcentrationMgMl: selectedDrug?.concentration ?? 10.0, // Use selected drug concentration or default
           );
         });
@@ -239,7 +240,7 @@ class _TCIScreenState extends State<TCIScreen> {
       // Prepare enhanced output with first 15min details (same as volume screen - simple direct print)
       final outputData = {
         'screen': 'TCI',
-        'model': model,
+        'model': selectedModel,
         'drug': selectedDrug?.displayName ?? 'Unknown',
         'drug_unit': '${selectedDrug?.concentration.toStringAsFixed(selectedDrug?.concentration == selectedDrug?.concentration.roundToDouble() ? 0 : 1)} ${selectedDrug?.concentrationUnit.displayName}',
         'patient': patient,
@@ -252,8 +253,8 @@ class _TCIScreenState extends State<TCIScreen> {
           'maxInfusionRate': pump.concentration * pump.maxPumpRate,
           'maxInfusionRateUnit': 'mg/hr',
           'target': pump.target,
-          'targetUnit': model.targetUnit.displayName,
-          'targetType': model.target.toString(),
+          'targetUnit': selectedModel.targetUnit.displayName,
+          'targetType': selectedModel.target.toString(),
           'duration': '${pump.duration}',
           'drug': pump.drug?.displayName ?? 'Unknown'
         },
@@ -265,18 +266,18 @@ class _TCIScreenState extends State<TCIScreen> {
       };
       
       // Add first 15 minutes detailed information
-      if (infusionRegimeData != null && infusionRegimeData!.rows.isNotEmpty) {
-        final firstRow = infusionRegimeData!.rows.first;
-        outputData['first_15min_bolus'] = '${firstRow.bolus.toStringAsFixed(2)} mL';
-        outputData['first_15min_bolus_raw'] = firstRow.rawBolus != null ? '${firstRow.rawBolus!.toStringAsFixed(6)} mL' : 'N/A';
-        outputData['first_15min_rate'] = '${firstRow.infusionRate.toStringAsFixed(2)} mL/hr';
-        outputData['first_15min_total'] = '${firstRow.accumulatedVolume.toStringAsFixed(2)} mL';
-      } else {
-        outputData['first_15min_bolus'] = '0.0 mL';
-        outputData['first_15min_bolus_raw'] = 'N/A';
-        outputData['first_15min_rate'] = '0.0 mL/hr';
-        outputData['first_15min_total'] = '0.0 mL';
-      }
+      // if (infusionRegimeData != null && infusionRegimeData!.rows.isNotEmpty) {
+      //   final firstRow = infusionRegimeData!.rows.first;
+      //   outputData['first_15min_bolus'] = '${firstRow.bolus.toStringAsFixed(2)} mL';
+      //   outputData['first_15min_bolus_raw'] = firstRow.rawBolus != null ? '${firstRow.rawBolus!.toStringAsFixed(6)} mL' : 'N/A';
+      //   outputData['first_15min_rate'] = '${firstRow.infusionRate.toStringAsFixed(2)} mL/hr';
+      //   outputData['first_15min_total'] = '${firstRow.accumulatedVolume.toStringAsFixed(2)} mL';
+      // } else {
+      //   outputData['first_15min_bolus'] = '0.0 mL';
+      //   outputData['first_15min_bolus_raw'] = 'N/A';
+      //   outputData['first_15min_rate'] = '0.0 mL/hr';
+      //   outputData['first_15min_total'] = '0.0 mL';
+      // }
       
       print(outputData);
     } catch (e) {
@@ -294,7 +295,7 @@ class _TCIScreenState extends State<TCIScreen> {
 
   void updatePDTextEditingController() {
     // Always adult view now, no need to check age
-    updateModelOptions(true);
+    // updateModelOptions(true);
     calculate();
   }
 
@@ -329,7 +330,7 @@ class _TCIScreenState extends State<TCIScreen> {
             : '';
     durationController.text = '255'; // Hardcoded to 4 hours and 15 minutes for modal compatibility
 
-    updateModelOptions(true); // Always adult view
+    // updateModelOptions(true); // Always adult view
     calculate();
   }
 
@@ -348,8 +349,26 @@ class _TCIScreenState extends State<TCIScreen> {
         ? tciModelController.getValidationErrorText(sex: sex, weight: weight, height: height, age: age)
         : null;
 
+    // Calculate dynamic width based on drug names
+    final drugNames = [
+      'Propofol',
+      'Remifentanil', 
+      'Dexmedetomidine', // Longest name
+      'Remimazolam',
+      'Select Drug', // Default text
+    ];
+    
+    // Get the text style used in the TextField
+    final textStyle = Theme.of(context).textTheme.bodyLarge ?? const TextStyle(fontSize: 16);
+    
+    final dynamicWidth = TextMeasurement.calculateDrugSelectorWidth(
+      context: context,
+      drugNames: drugNames,
+      textStyle: textStyle,
+    );
+
     return SizedBox(
-      width: (MediaQuery.of(context).size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2,
+      width: dynamicWidth,
       child: Stack(
         alignment: Alignment.centerRight,
         children: [
@@ -376,9 +395,9 @@ class _TCIScreenState extends State<TCIScreen> {
                 Symbols.graph_4,
                 color: hasValidationError 
                   ? Theme.of(context).colorScheme.error
-                  : Theme.of(context).colorScheme.primary,
+                  : selectedDrug?.color ?? Theme.of(context).colorScheme.primary,
               ),
-              labelText: AppLocalizations.of(context)!.model,
+              labelText: AppLocalizations.of(context)!.drug,
               labelStyle: TextStyle(
                 color: hasValidationError 
                   ? Theme.of(context).colorScheme.error

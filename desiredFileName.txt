@@ -1,13 +1,1 @@
-{
-  "ja": [
-    "effectSiteTarget"
-  ],
-
-  "zh_Hans": [
-    "effectSiteTarget"
-  ],
-
-  "zh_Hant": [
-    "effectSiteTarget"
-  ]
-}
+{}

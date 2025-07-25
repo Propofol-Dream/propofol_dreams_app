@@ -36,6 +36,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dark => 'Dark';
 
   @override
+  String get drug => 'Drug';
+
+  @override
   String get duration => 'Duration';
 
   @override
@@ -103,6 +106,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plasma => 'Plasma';
+
+  @override
+  String get plasmaTarget => 'Plasma Target';
 
   @override
   String get predicted => 'Predicted';

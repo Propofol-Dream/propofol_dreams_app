@@ -36,10 +36,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dark => '暗';
 
   @override
+  String get drug => '麻醉药品';
+
+  @override
   String get duration => '时间';
 
   @override
-  String get effectSite => '效应室靶';
+  String get effectSite => '效应室';
 
   @override
   String get effectSiteTarget => '效应室靶浓度';
@@ -102,7 +105,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paed => '儿童';
 
   @override
-  String get plasma => '血浆靶浓度';
+  String get plasma => '血浆';
+
+  @override
+  String get plasmaTarget => '血浆靶浓度';
 
   @override
   String get predicted => '预测';
@@ -167,10 +173,16 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get dark => '暗';
 
   @override
+  String get drug => '麻醉药品';
+
+  @override
   String get duration => '时间';
 
   @override
-  String get effectSite => '效应室靶浓度';
+  String get effectSite => '效应室';
+
+  @override
+  String get effectSiteTarget => '效应室靶浓度';
 
   @override
   String get emerge => '苏醒';
@@ -230,7 +242,10 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get paed => '儿童';
 
   @override
-  String get plasma => '血浆靶浓度';
+  String get plasma => '血浆';
+
+  @override
+  String get plasmaTarget => '血浆靶浓度';
 
   @override
   String get predicted => '预测';
@@ -295,10 +310,16 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get dark => '暗';
 
   @override
+  String get drug => '麻醉药品';
+
+  @override
   String get duration => '時間';
 
   @override
-  String get effectSite => '效應室靶濃度';
+  String get effectSite => '效應室';
+
+  @override
+  String get effectSiteTarget => '效應室靶濃度';
 
   @override
   String get emerge => '覺醒';
@@ -358,7 +379,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get paed => '兒童';
 
   @override
-  String get plasma => '血漿靶濃度';
+  String get plasma => '血漿';
+
+  @override
+  String get plasmaTarget => '血漿靶濃度';
 
   @override
   String get predicted => '預測';

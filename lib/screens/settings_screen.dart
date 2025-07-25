@@ -122,6 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             width: screenWidth,
             decoration: BoxDecoration(
               border: Border.all(color: Theme.of(context).colorScheme.primary),
+              color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(5),
             ),
             child: Center(
@@ -129,7 +130,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 '${currentConcentration.toStringAsFixed(currentConcentration == currentConcentration.roundToDouble() ? 0 : 1)} ${drug.concentrationUnit.displayName}',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: Theme.of(context).colorScheme.onPrimary,
                   fontWeight: FontWeight.w500,
                 ),
               ),

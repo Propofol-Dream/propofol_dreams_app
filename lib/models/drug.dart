@@ -7,33 +7,33 @@ enum Drug {
     displayName: 'Propofol',
     concentration: 10.0,
     concentrationUnit: DrugUnit.mgPerMl,
-    color: Colors.blue,
+    color: Colors.yellowAccent,
   ),
   propofol20mg(
     displayName: 'Propofol',
     concentration: 20.0,
     concentrationUnit: DrugUnit.mgPerMl,
-    color: Colors.blue,
+    color: Colors.yellowAccent,
   ),
-  
+
   // Remifentanil concentrations
   remifentanil20mcg(
     displayName: 'Remifentanil',
     concentration: 20.0,
     concentrationUnit: DrugUnit.mcgPerMl,
-    color: Colors.red,
+    color: Colors.lightBlue,
   ),
   remifentanil40mcg(
     displayName: 'Remifentanil',
     concentration: 40.0,
     concentrationUnit: DrugUnit.mcgPerMl,
-    color: Colors.red,
+    color: Colors.lightBlue,
   ),
   remifentanil50mcg(
     displayName: 'Remifentanil',
     concentration: 50.0,
     concentrationUnit: DrugUnit.mcgPerMl,
-    color: Colors.red,
+    color: Colors.lightBlue,
   ),
   
   // Other drugs (single concentrations for now)
@@ -41,13 +41,13 @@ enum Drug {
     displayName: 'Dexmedetomidine',
     concentration: 4.0,
     concentrationUnit: DrugUnit.mcgPerMl,
-    color: Colors.green,
+    color: Colors.pink,
   ),
   remimazolam(
     displayName: 'Remimazolam',
     concentration: 1.0,
     concentrationUnit: DrugUnit.mgPerMl,
-    color: Colors.purple,
+    color: Colors.orange,
   );
 
   const Drug({

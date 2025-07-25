@@ -1,6 +1,21 @@
 import 'package:flutter/material.dart';
 import '../models/infusion_regime_data.dart';
 
+/// Helper function to format bolus values with conditional decimal places
+/// Matches the rounding logic from InfusionRegimeData:
+/// - Values < 1.0 mL are rounded to 0.1 mL precision → show 1 decimal place
+/// - Values ≥ 1.0 mL are rounded to integers → show appropriate decimals
+/// Display logic: Single digit (<10): 1dp, Double digit+ (≥10): 0dp
+String formatBolusValue(double bolus) {
+  if (bolus >= 10.0) {
+    // Double digit or more: show no decimal places (values are already integers)
+    return bolus.toStringAsFixed(0);
+  } else {
+    // Single digit: show 1 decimal place (preserves 0.1 mL precision for small values)
+    return bolus.toStringAsFixed(1);
+  }
+}
+
 // Generic table row data structure
 abstract class TableRowData {
   String get timeString;
@@ -21,7 +36,7 @@ class InfusionTableRowData extends TableRowData {
 
   @override
   List<String> get values => [
-    row.bolus.toStringAsFixed(0),
+    formatBolusValue(row.bolus),
     row.infusionRate.toStringAsFixed(0),
     row.accumulatedVolume.toStringAsFixed(1),
   ];
@@ -683,7 +698,7 @@ class _AnimatedDosageTableState extends State<AnimatedDosageTable>
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Bolus: ${widget.data.totalBolus.toStringAsFixed(3)} mL',
+                  'Bolus: ${formatBolusValue(widget.data.totalBolus)} mL',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.w600,
@@ -796,7 +811,7 @@ class DosageDataTable extends StatelessWidget {
 
     // Determine bolus value - show "-- mL" for models that don't support bolus
     final bolusValue = data.totalBolus > 0.01 
-        ? '${data.totalBolus.toStringAsFixed(3)} mL'
+        ? '${formatBolusValue(data.totalBolus)} mL'
         : '-- mL';
 
     return Container(

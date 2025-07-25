@@ -75,18 +75,21 @@ flutter build web --release
 - `lib/models/simulation.dart`: Simulation data structures
 
 ### Screens
-- `lib/screens/home_screen.dart`: Main app with bottom navigation
-- `lib/screens/volume_screen.dart`: Propofol volume calculations
-- `lib/screens/duration_screen.dart`: Duration tracking
-- `lib/screens/elemarsh_screen.dart`: Ele-Marsh model calculations
-- `lib/screens/settings_screen.dart`: App settings
+- `lib/screens/home_screen.dart`: Main app with bottom navigation (5 tabs)
+- `lib/screens/tci_screen.dart`: **PRIMARY** - Multi-drug TCI calculations with dynamic UI
+- `lib/screens/volume_screen.dart`: Volume calculations for different scenarios
+- `lib/screens/duration_screen.dart`: Duration tracking and time-based calculations
+- `lib/screens/elemarsh_screen.dart`: Ele-Marsh model calculations and wake-up estimation
+- `lib/screens/settings_screen.dart`: App settings and preferences
 
 ### Custom Components
+- `lib/components/infusion_regime_table.dart`: **CORE** - Advanced animated tables with conditional formatting
 - `lib/controllers/PDAdvancedSegmentedController.dart`: Controller for model selection with validation
 - `lib/controllers/PDModelSelectorModal.dart`: Modal for enhanced model selection UI
 - `lib/controllers/PDTextField.dart`: Custom text input with validation
 - `lib/controllers/PDSwitchField.dart`: Custom switch component
 - `lib/controllers/`: Other custom form fields and controllers
+- `lib/utils/text_measurement.dart`: **NEW** - Dynamic width calculation utilities
 - `lib/widgets/`: Reusable UI components with PD prefix
 
 ### State Management
@@ -210,3 +213,42 @@ This is a **medical application** for qualified healthcare professionals. All ca
 - **Lint Compliance**: Fixed async context warnings and unnecessary assertions
 - **Type Safety**: Enhanced null safety with proper validation patterns
 - **Documentation**: Updated README.md and CLAUDE.md with latest changes
+
+## Latest Development Session (2024)
+
+### TCI Screen Complete Redesign
+- **Multi-Drug Support**: Full implementation for Propofol, Remifentanil, Dexmedetomidine, Remimazolam
+- **Drug-Model Pairing**: Intelligent automatic model selection based on drug choice
+- **Enhanced Output**: Comprehensive TCI print output with first 15-minute details and raw bolus values
+
+### Advanced UI Enhancements
+- **Dynamic Width Calculation**: `lib/utils/text_measurement.dart` for responsive drug selector sizing
+- **Conditional Bolus Formatting**: Smart decimal places (1dp for <10mL, 0dp for ≥10mL) in tables
+- **Color-Coded Drug Icons**: Drug selector icon dynamically changes color based on selected drug
+- **Duration Fix**: Corrected 255-minute duration to properly display table up to 4:00
+
+### Clinical Algorithm Implementation
+- **Raw Bolus Storage**: Added `rawBolus` field to `InfusionRegimeRow` for unrounded values
+- **MATLAB-Based Optimization**: Implemented clinical optimization algorithms for pump programming
+- **15-Minute Averaging**: Smart averaging with clinical rounding for practical usability
+- **Parameter Analysis**: Comprehensive test coverage for pharmacokinetic parameter validation
+
+### Technical Improvements
+- **Responsive Design**: Dynamic layouts adapt to content width and screen sizes
+- **Enhanced Error Handling**: Comprehensive validation with detailed error messaging  
+- **Test Coverage**: 1,000+ lines of test files for pharmacokinetic calculations
+- **Code Organization**: New `components/` and `utils/` directories for better structure
+
+### Drug Color System
+Current color assignments (as updated by user):
+- **Propofol**: Both concentrations use `Colors.yellowAccent`
+- **Remifentanil**: 20mcg - `Colors.blue`, 40mcg - `Colors.lightBlueAccent`, 50mcg - `Colors.red`
+- **Dexmedetomidine**: `Colors.green`
+- **Remimazolam**: `Colors.purple`
+
+### Key Development Notes
+- TCI screen is now the **PRIMARY** interface (main medical functionality)
+- All drug selector icons change color dynamically based on selection
+- Bolus calculations include both rounded and raw values for clinical analysis
+- Duration and width calculations are responsive and content-aware
+- Comprehensive pharmacokinetic model support with clinical optimization

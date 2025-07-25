@@ -36,13 +36,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dark => 'ダーク';
 
   @override
+  String get drug => '麻酔薬剤';
+
+  @override
   String get duration => '時間';
 
   @override
-  String get effectSite => '効果部位濃度';
+  String get effectSite => '効果部位';
 
   @override
-  String get effectSiteTarget => 'Effect Site Target';
+  String get effectSiteTarget => '効果部位目標濃度';
 
   @override
   String get emerge => '覚醒';
@@ -102,7 +105,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paed => '小児';
 
   @override
-  String get plasma => '血漿靶濃度';
+  String get plasma => '血漿';
+
+  @override
+  String get plasmaTarget => '血漿目標濃度';
 
   @override
   String get predicted => '予測された';

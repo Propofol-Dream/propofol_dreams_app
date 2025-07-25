@@ -44,6 +44,11 @@
         "description": ""
     },
 
+    "drug": "Drug",
+    "@drug": {
+        "description": ""
+    },
+
     "duration": "Duration",
     "@duration": {
         "description": ""
@@ -157,6 +162,11 @@
 
     "plasma": "Plasma",
     "@plasma": {
+        "description": ""
+    },
+
+    "plasmaTarget": "Plasma Target",
+    "@plasmaTarget": {
         "description": ""
     },
 
