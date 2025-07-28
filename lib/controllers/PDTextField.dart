@@ -47,10 +47,12 @@ class PDTextField extends StatefulWidget {
 
 class _PDTextFieldState extends State<PDTextField> {
   // final _textEditingController = TextEditingController();
+  Timer? _localTimer; // Local timer for long press when widget.timer is null
 
   // dispose it when the widget is unmounted
   @override
   void dispose() {
+    _localTimer?.cancel(); // Cancel local timer to prevent memory leaks
     widget.controller.dispose();
     super.dispose();
   }
@@ -193,8 +195,9 @@ class _PDTextFieldState extends State<PDTextField> {
                         : null,
                     onLongPress: widget.enabled
                         ? () {
-                            widget.timer =
-                                Timer.periodic(widget.delay, (t) async {
+                            // Use provided timer or create local timer
+                            final timerToUse = widget.timer != null ? widget.timer! : _localTimer;
+                            final timer = Timer.periodic(widget.delay, (t) async {
                               double? prev =
                                   double.tryParse(widget.controller.text);
                               if (prev != null && prev >= widget.range[0]) {
@@ -209,13 +212,24 @@ class _PDTextFieldState extends State<PDTextField> {
                                 }
                               }
                             });
+                            
+                            // Store timer reference
+                            if (widget.timer != null) {
+                              widget.timer = timer;
+                            } else {
+                              _localTimer = timer;
+                            }
                           }
                         : null,
                     onLongPressEnd: (_) {
+                      // Cancel the appropriate timer
                       if (widget.timer != null) {
                         widget.timer!.cancel();
-                        widget.onPressed();
+                      } else if (_localTimer != null) {
+                        _localTimer!.cancel();
+                        _localTimer = null;
                       }
+                      widget.onPressed();
                     },
                     child: Container(
                       padding: const EdgeInsets.only(top: 2),
@@ -254,8 +268,8 @@ class _PDTextFieldState extends State<PDTextField> {
                         : null,
                     onLongPress: widget.enabled
                         ? () {
-                            widget.timer =
-                                Timer.periodic(widget.delay, (t) async {
+                            // Use provided timer or create local timer
+                            final timer = Timer.periodic(widget.delay, (t) async {
                               double? prev =
                                   double.tryParse(widget.controller.text);
                               if (prev != null && prev <= widget.range[1]) {
@@ -270,13 +284,24 @@ class _PDTextFieldState extends State<PDTextField> {
                                 }
                               }
                             });
+                            
+                            // Store timer reference
+                            if (widget.timer != null) {
+                              widget.timer = timer;
+                            } else {
+                              _localTimer = timer;
+                            }
                           }
                         : null,
                     onLongPressEnd: (_) {
+                      // Cancel the appropriate timer
                       if (widget.timer != null) {
                         widget.timer!.cancel();
-                        widget.onPressed();
+                      } else if (_localTimer != null) {
+                        _localTimer!.cancel();
+                        _localTimer = null;
                       }
+                      widget.onPressed();
                     },
                     child: Container(
                       padding: const EdgeInsets.only(top: 2),

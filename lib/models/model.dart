@@ -5,6 +5,21 @@ import 'target_unit.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+// Record to hold all target properties for drug-model combinations
+class TargetProperties {
+  final double min;
+  final double max; 
+  final double interval;
+  final double defaultValue;
+  
+  const TargetProperties({
+    required this.min,
+    required this.max,
+    required this.interval, 
+    required this.defaultValue,
+  });
+}
+
 class ValidationResult {
   const ValidationResult({
     required this.isValid,
@@ -82,15 +97,15 @@ enum Model {
       targetUnit: TargetUnit.mcgPerMl),
   
   // ADDITIONAL MODELS FOR DIFFERENT DRUGS
-  Minto(
-      minAge: 1,
-      maxAge: 105,
-      minHeight: 50,
-      maxHeight: 210,
-      minWeight: 1,
-      maxWeight: 250,
-      target: Target.EffectSite,
-      targetUnit: TargetUnit.ngPerMl),
+  // Minto(
+  //     minAge: 1,
+  //     maxAge: 105,
+  //     minHeight: 50,
+  //     maxHeight: 210,
+  //     minWeight: 1,
+  //     maxWeight: 250,
+  //     target: Target.EffectSite,
+  //     targetUnit: TargetUnit.ngPerMl),
   Hannivoort(
       minAge: 1,
       maxAge: 105,
@@ -231,6 +246,33 @@ enum Model {
     required this.target,
     required this.targetUnit,
   });
+  
+  /// Get target properties based on model-drug combination
+  TargetProperties getTargetProperties(Drug? drug) {
+    // Propofol models
+    if (this == Model.Marsh || this == Model.Schnider) {
+      return const TargetProperties(min: 0.5, max: 10.0, interval: 0.5, defaultValue: 3.0);
+    }
+    
+    // Eleveld model - multiple drugs
+    if (this == Model.Eleveld) {
+      if (drug?.isPropofol == true) {
+        return const TargetProperties(min: 0.5, max: 10.0, interval: 0.5, defaultValue: 3.0);
+      } else if (drug?.isRemifentanil == true) {
+        return const TargetProperties(min: 0.5, max: 10.0, interval: 0.5, defaultValue: 3.0);
+      } else if (drug?.isRemimazolam == true) {
+        return const TargetProperties(min: 0.1, max: 2.0, interval: 0.1, defaultValue: 1.0);
+      }
+    }
+    
+    // Dexmedetomidine model
+    if (this == Model.Hannivoort) {
+      return const TargetProperties(min: 0.1, max: 3.0, interval: 0.1, defaultValue: 1.0);
+    }
+    
+    // Fallback to Propofol
+    return const TargetProperties(min: 0.5, max: 10.0, interval: 0.5, defaultValue: 3.0);
+  }
   
   /// Get target label for UI display
   String getTargetLabel(BuildContext context) {

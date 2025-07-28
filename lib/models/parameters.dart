@@ -123,9 +123,9 @@ extension PKCalculation on Model {
         return _calculatePaedfusorParameters(sexInt, weightKg, heightCm, ageYr);
       case Model.Kataria:
         return _calculateKatariaParameters(sexInt, weightKg, heightCm, ageYr);
-      case Model.Minto:
-        // Minto is remifentanil-specific, but verify drug context
-        return _calculateMintoParameters(sexInt, weightKg, heightCm, ageYr);
+      // case Model.Minto:
+      //   // Minto is remifentanil-specific, but verify drug context
+      //   return _calculateMintoParameters(sexInt, weightKg, heightCm, ageYr);
       case Model.EleMarsh:
         return _calculateMarshParameters(sexInt, weightKg, heightCm, ageYr);
       case Model.Hannivoort:

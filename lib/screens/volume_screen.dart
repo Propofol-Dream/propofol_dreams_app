@@ -107,7 +107,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
       ageController.text = settings.adultAge?.toString() ?? '';
       heightController.text = settings.adultHeight?.toString() ?? '';
       weightController.text = settings.adultWeight?.toString() ?? '';
-      targetController.text = settings.adultTarget?.toString() ?? '';
+      targetController.text = settings.propofolTarget?.toString() ?? '';
       durationController.text = settings.adultDuration?.toString() ?? '';
     } else {
       pediatricModelController.selection = settings.pediatricModel;
@@ -220,7 +220,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         settings.adultAge = age;
         settings.adultHeight = height;
         settings.adultWeight = weight;
-        settings.adultTarget = target;
+        settings.propofolTarget = target;
         settings.adultDuration = duration;
       } else {
         settings.pediatricModel = pediatricModelController.selection;
@@ -458,8 +458,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
               : '';
       targetController.text = toDefault
           ? 3.0.toString()
-          : settings.adultTarget != null
-              ? settings.adultTarget.toString()
+          : settings.propofolTarget != null
+              ? settings.propofolTarget.toString()
               : '';
       durationController.text = toDefault
           ? 60.toString()

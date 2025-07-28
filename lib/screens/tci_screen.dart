@@ -68,6 +68,7 @@ class _TCIScreenState extends State<TCIScreen> {
   InfusionRegimeData? infusionRegimeData;
   String result = '';
   String emptyResult = '';
+  bool _isCalculating = false;
 
   @override
   void initState() {
@@ -93,7 +94,7 @@ class _TCIScreenState extends State<TCIScreen> {
       Model.Schnider,
       
       // New drug models
-      Model.Minto,
+      // Model.Minto, // Commented out - Eleveld handles Remifentanil
       Model.Hannivoort,
       Model.Eleveld,
     ]);
@@ -128,7 +129,10 @@ class _TCIScreenState extends State<TCIScreen> {
     ageController.text = settings.adultAge?.toString() ?? '40';
     heightController.text = settings.adultHeight?.toString() ?? '170';
     weightController.text = settings.adultWeight?.toString() ?? '70';
-    targetController.text = settings.adultTarget?.toString() ?? '3.0';
+    // Load drug-specific target value
+    final drugTarget = settings.getDrugTarget(selectedDrug);
+    final targetProps = tciModelController.selection.getTargetProperties(selectedDrug);
+    targetController.text = drugTarget?.toString() ?? targetProps.defaultValue.toString();
     durationController.text = '255'; // Hardcoded to 4 hours and 15 minutes for modal compatibility
   }
 
@@ -150,7 +154,8 @@ class _TCIScreenState extends State<TCIScreen> {
     settings.adultAge = age;
     settings.adultHeight = height;
     settings.adultWeight = weight;
-    settings.adultTarget = target;
+    // Save to drug-specific target instead of general adultTarget
+    settings.setDrugTarget(selectedDrug, target);
     // settings.adultDuration removed - duration is hardcoded to 255 minutes
   }
 
@@ -160,6 +165,9 @@ class _TCIScreenState extends State<TCIScreen> {
 
 
   void calculate() {
+    if (_isCalculating) return;
+    _isCalculating = true;
+    
     try {
       // Defer settings updates to avoid build phase conflicts
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -282,6 +290,8 @@ class _TCIScreenState extends State<TCIScreen> {
       print(outputData);
     } catch (e) {
       debugPrint('Calculation error: $e');
+    } finally {
+      _isCalculating = false;
     }
   }
 
@@ -323,11 +333,13 @@ class _TCIScreenState extends State<TCIScreen> {
         : settings.adultWeight != null
             ? settings.adultWeight.toString()
             : '';
+    // Get current model and drug for drug-specific default
+    final currentModel = tciModelController.selection is Model ? tciModelController.selection as Model : Model.Eleveld;
+    final targetProps = currentModel.getTargetProperties(selectedDrug);
+    
     targetController.text = toDefault
-        ? 3.0.toString()
-        : settings.adultTarget != null
-            ? settings.adultTarget.toString()
-            : '';
+        ? targetProps.defaultValue.toString()
+        : settings.getDrugTarget(selectedDrug)?.toString() ?? targetProps.defaultValue.toString();
     durationController.text = '255'; // Hardcoded to 4 hours and 15 minutes for modal compatibility
 
     // updateModelOptions(true); // Always adult view
@@ -441,30 +453,60 @@ class _TCIScreenState extends State<TCIScreen> {
                     currentDrug: selectedDrug, // Pass current selected drug
                     onModelSelected: (model) {
                       // Hard-coded model-drug combinations (no auto-correction)
+                      // Temporarily remove listener to prevent double calculation
+                      targetController.removeListener(calculate);
+                      
                       setState(() {
                         tciModelController.selection = model;
                         settings.tciModel = model;
                         // Keep existing drug selection
+                        
+                        // Update target field with drug-specific value for new model
+                        final drugTarget = settings.getDrugTarget(selectedDrug);
+                        final targetProps = model.getTargetProperties(selectedDrug);
+                        targetController.text = drugTarget?.toString() ?? targetProps.defaultValue.toString();
                       });
+                      
+                      // Re-add listener and calculate once
+                      targetController.addListener(calculate);
                       calculate();
                     },
                     onDrugSelected: (drug) {
+                      // FIRST: Save current target value to current drug before switching
+                      if (selectedDrug != null) {
+                        final currentTarget = double.tryParse(targetController.text);
+                        if (currentTarget != null) {
+                          settings.setDrugTarget(selectedDrug, currentTarget);
+                        }
+                      }
+                      
                       // Hard-coded model-drug combinations (no auto-correction)
                       Model requiredModel;
                       if (drug.isDexmedetomidine) {
                         requiredModel = Model.Hannivoort;
                       } else if (drug.isRemifentanil) {
-                        requiredModel = Model.Eleveld; // or Model.Minto - user can choose
+                        requiredModel = Model.Eleveld; // Eleveld handles Remifentanil
                       } else {
                         requiredModel = Model.Eleveld; // Default for propofol, remimazolam
                       }
+                      
+                      // Temporarily remove listener to prevent double calculation
+                      targetController.removeListener(calculate);
                       
                       setState(() {
                         selectedDrug = drug;
                         settings.tciDrug = drug;
                         tciModelController.selection = requiredModel;
                         settings.tciModel = requiredModel;
+                        
+                        // THEN: Load target value for NEW drug
+                        final newDrugTarget = settings.getDrugTarget(drug);
+                        final targetProps = requiredModel.getTargetProperties(drug);
+                        targetController.text = newDrugTarget?.toString() ?? targetProps.defaultValue.toString();
                       });
+                      
+                      // Re-add listener and calculate once
+                      targetController.addListener(calculate);
                       calculate();
                     },
                   );
@@ -700,10 +742,10 @@ class _TCIScreenState extends State<TCIScreen> {
                   child: PDTextField(
                     prefixIcon: Icons.psychology_alt_outlined,
                     labelText: selectedModel.getTargetLabel(context), // Dynamic unit display
-                    interval: selectedModel.targetUnit == TargetUnit.ngPerMl ? 0.1 : 0.5, // Different intervals for different units
+                    interval: selectedModel.getTargetProperties(selectedDrug).interval, // Dynamic interval based on drug-model combination
                     fractionDigits: 1,
                     controller: targetController,
-                    range: const [kMinTarget, kMaxTarget], // Keep existing range for now
+                    range: [selectedModel.getTargetProperties(selectedDrug).min, selectedModel.getTargetProperties(selectedDrug).max], // Dynamic range based on drug-model combination
                     onPressed: updatePDTextEditingController,
                   ),
                 ),

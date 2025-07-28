@@ -249,6 +249,12 @@ class Settings with ChangeNotifier {
   double? _adultTarget;
   int? _adultDuration;
 
+  // Drug-specific target values
+  double? _propofolTarget;
+  double? _remifentanilTarget;
+  double? _dexmedetomidineTarget; 
+  double? _remimazolamTarget;
+
   // TCI screen model (separate from volume screen)
   Model _tciModel = Model.Eleveld;
   Drug _tciDrug = Drug.propofol10mg; // Direct TCI drug storage
@@ -340,6 +346,66 @@ class Settings with ChangeNotifier {
     _adultTarget = d;
     setDouble('adultTarget', d);
     notifyListeners();
+  }
+
+  double? get propofolTarget => _propofolTarget;
+  set propofolTarget(double? d) {
+    _propofolTarget = d;
+    setDouble('propofolTarget', d);
+    notifyListeners();
+  }
+
+  double? get remifentanilTarget => _remifentanilTarget;
+  set remifentanilTarget(double? d) {
+    _remifentanilTarget = d;
+    setDouble('remifentanilTarget', d);
+    notifyListeners();
+  }
+
+  double? get dexmedetomidineTarget => _dexmedetomidineTarget;
+  set dexmedetomidineTarget(double? d) {
+    _dexmedetomidineTarget = d;
+    setDouble('dexmedetomidineTarget', d);
+    notifyListeners();
+  }
+
+  double? get remimazolamTarget => _remimazolamTarget;
+  set remimazolamTarget(double? d) {
+    _remimazolamTarget = d;
+    setDouble('remimazolamTarget', d);
+    notifyListeners();
+  }
+
+  // Helper method to get drug-specific target value
+  double? getDrugTarget(Drug? drug) {
+    if (drug == null) return null;
+    
+    if (drug.isPropofol) {
+      return _propofolTarget;
+    } else if (drug.isRemifentanil) {
+      return _remifentanilTarget;
+    } else if (drug.isDexmedetomidine) {
+      return _dexmedetomidineTarget;
+    } else if (drug.isRemimazolam) {
+      return _remimazolamTarget;
+    }
+    
+    return null;
+  }
+
+  // Helper method to set drug-specific target value
+  void setDrugTarget(Drug? drug, double? value) {
+    if (drug == null) return;
+    
+    if (drug.isPropofol) {
+      propofolTarget = value;
+    } else if (drug.isRemifentanil) {
+      remifentanilTarget = value;
+    } else if (drug.isDexmedetomidine) {
+      dexmedetomidineTarget = value;
+    } else if (drug.isRemimazolam) {
+      remimazolamTarget = value;
+    }
   }
 
   int? get adultDuration {
@@ -773,6 +839,10 @@ class Settings with ChangeNotifier {
       if (_adultWeight != null) _prefs!.setInt('adultWeight', _adultWeight!),
       if (_adultTarget != null) _prefs!.setDouble('adultTarget', _adultTarget!),
       if (_adultDuration != null) _prefs!.setInt('adultDuration', _adultDuration!),
+      if (_propofolTarget != null) _prefs!.setDouble('propofolTarget', _propofolTarget!),
+      if (_remifentanilTarget != null) _prefs!.setDouble('remifentanilTarget', _remifentanilTarget!),
+      if (_dexmedetomidineTarget != null) _prefs!.setDouble('dexmedetomidineTarget', _dexmedetomidineTarget!),
+      if (_remimazolamTarget != null) _prefs!.setDouble('remimazolamTarget', _remimazolamTarget!),
       _prefs!.setString('pediatricModel', _pediatricModel.name),
       _prefs!.setString('pediatricSex', _pediatricSex.toString()),
       if (_pediatricAge != null) _prefs!.setInt('pediatricAge', _pediatricAge!),
@@ -881,6 +951,12 @@ class Settings with ChangeNotifier {
     _adultTarget = pref.getDouble('adultTarget') ?? 3.0;
     _adultDuration = pref.getInt('adultDuration') ?? 60;
 
+    // Load drug-specific targets
+    _propofolTarget = pref.getDouble('propofolTarget') ?? 3.0;
+    _remifentanilTarget = pref.getDouble('remifentanilTarget') ?? 3.0;
+    _dexmedetomidineTarget = pref.getDouble('dexmedetomidineTarget') ?? 1.0;
+    _remimazolamTarget = pref.getDouble('remimazolamTarget') ?? 1.0;
+
     // Pediatric model settings
     final pediatricModelString = pref.getString('pediatricModel');
     _pediatricModel = _parseModelFromString(pediatricModelString) ?? Model.None;
@@ -974,10 +1050,10 @@ class Settings with ChangeNotifier {
         return Model.Paedfusor;
       case 'Model.KatariaPropofol':
         return Model.Kataria;
-      case 'Model.MintoRemifentanil':
-        return Model.Minto;
+      // case 'Model.MintoRemifentanil':
+      //   return Model.Minto;
       case 'Model.EleveldRemifentanil':
-        return Model.Minto;
+        return Model.Eleveld;
       case 'Model.HannivoortDexmedetomidine':
         return Model.Hannivoort;
       case 'Model.EleveldRemimazolam':
@@ -999,8 +1075,8 @@ class Settings with ChangeNotifier {
         return Model.Paedfusor;
       case 'Kataria':
         return Model.Kataria;
-      case 'Minto':
-        return Model.Minto;
+      // case 'Minto':
+      //   return Model.Minto;
       case 'Hannivoort':
         return Model.Hannivoort;
       case 'EleMarsh':
@@ -1018,10 +1094,10 @@ class Settings with ChangeNotifier {
         return Model.Paedfusor;
       case 'KatariaPropofol':
         return Model.Kataria;
-      case 'MintoRemifentanil':
-        return Model.Minto;
+      // case 'MintoRemifentanil':
+      //   return Model.Minto;
       case 'EleveldRemifentanil':
-        return Model.Minto;
+        return Model.Eleveld;
       case 'HannivoortDexmedetomidine':
         return Model.Hannivoort;
       case 'EleveldRemimazolam':
