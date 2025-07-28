@@ -1,5 +1,5 @@
 enum TargetUnit {
-  mcgPerMl('mcg/mL'),
+  mcgPerMl('μg/mL'),
   ngPerMl('ng/mL');
   
   const TargetUnit(this.displayName);
