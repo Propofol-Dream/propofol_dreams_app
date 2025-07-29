@@ -27,21 +27,24 @@ enum Drug {
     concentration: 20.0,
     concentrationUnit: DrugUnit.mcgPerMl,
     icon: Symbols.medication,
-    color: Colors.blue,
+    lightColor: Colors.blue,
+    darkColor: Colors.lightBlue,
   ),
   remifentanil40mcg(
     displayName: 'Remifentanil',
     concentration: 40.0,
     concentrationUnit: DrugUnit.mcgPerMl,
     icon: Symbols.medication,
-    color: Colors.lightBlueAccent,
+    lightColor: Colors.indigo,
+    darkColor: Colors.lightBlueAccent,
   ),
   remifentanil50mcg(
     displayName: 'Remifentanil',
     concentration: 50.0,
     concentrationUnit: DrugUnit.mcgPerMl,
     icon: Symbols.medication,
-    color: Colors.red,
+    lightColor: Colors.red,
+    darkColor: Colors.redAccent,
   ),
   
   // Other drugs (single concentrations for now)
@@ -50,21 +53,24 @@ enum Drug {
     concentration: 4.0,
     concentrationUnit: DrugUnit.mcgPerMl,
     icon: Symbols.medication,
-    color: Colors.green,
+    lightColor: Colors.green,
+    darkColor: Colors.lightGreen,
   ),
   remimazolam1mg(
     displayName: 'Remimazolam',
     concentration: 1.0,
     concentrationUnit: DrugUnit.mgPerMl,
     icon: Symbols.medication,
-    color: Colors.purple,
+    lightColor: Colors.purple,
+    darkColor: Colors.purpleAccent,
   ),
   remimazolam2mg(
     displayName: 'Remimazolam',
     concentration: 2.0,
     concentrationUnit: DrugUnit.mgPerMl,
     icon: Symbols.medication,
-    color: Colors.purple,
+    lightColor: Colors.purple,
+    darkColor: Colors.purpleAccent,
   );
 
   const Drug({
@@ -72,14 +78,22 @@ enum Drug {
     required this.concentration,
     required this.concentrationUnit,
     required this.icon,
-    required this.color,
+    required this.lightColor,
+    required this.darkColor,
   });
 
   final String displayName;
   final double concentration;
   final DrugUnit concentrationUnit;
   final IconData icon;
-  final Color color;
+  final Color lightColor;
+  final Color darkColor;
+  
+  /// Get the appropriate color based on the current theme brightness
+  Color getColor(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return brightness == Brightness.dark ? darkColor : lightColor;
+  }
   
   /// Get display string with concentration and unit
   String get displayWithConcentration {

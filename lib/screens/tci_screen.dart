@@ -419,7 +419,7 @@ class _TCIScreenState extends State<TCIScreen> {
                 selectedDrug?.icon ?? Symbols.graph_4,
                 color: hasValidationError 
                   ? Theme.of(context).colorScheme.error
-                  : selectedDrug?.color ?? Theme.of(context).colorScheme.primary,
+                  : selectedDrug?.getColor(context) ?? Theme.of(context).colorScheme.primary,
               ),
               labelText: AppLocalizations.of(context)!.drug,
               labelStyle: TextStyle(
