@@ -3,7 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 
 enum Target {
-  Plasma(icon: Symbols.bloodtype),
+  Plasma(icon: Symbols.psychology_alt),
   EffectSite(icon: Symbols.psychology_alt);
 
   const Target({required this.icon});

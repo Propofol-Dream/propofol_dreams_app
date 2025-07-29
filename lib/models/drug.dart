@@ -8,13 +8,17 @@ enum Drug {
     displayName: 'Propofol',
     concentration: 10.0,
     concentrationUnit: DrugUnit.mgPerMl,
-    icon: Symbols.water_drop,
+    icon: Symbols.medication,
+    lightColor: Colors.amber,
+    darkColor: Colors.amberAccent,
   ),
   propofol20mg(
     displayName: 'Propofol',
     concentration: 20.0,
     concentrationUnit: DrugUnit.mgPerMl,
-    icon: Symbols.water_drop,
+    icon: Symbols.medication,
+    lightColor: Colors.amber,
+    darkColor: Colors.amberAccent,
   ),
 
   // Remifentanil concentrations
@@ -23,18 +27,21 @@ enum Drug {
     concentration: 20.0,
     concentrationUnit: DrugUnit.mcgPerMl,
     icon: Symbols.medication,
+    color: Colors.blue,
   ),
   remifentanil40mcg(
     displayName: 'Remifentanil',
     concentration: 40.0,
     concentrationUnit: DrugUnit.mcgPerMl,
     icon: Symbols.medication,
+    color: Colors.lightBlueAccent,
   ),
   remifentanil50mcg(
     displayName: 'Remifentanil',
     concentration: 50.0,
     concentrationUnit: DrugUnit.mcgPerMl,
     icon: Symbols.medication,
+    color: Colors.red,
   ),
   
   // Other drugs (single concentrations for now)
@@ -42,19 +49,22 @@ enum Drug {
     displayName: 'Dexmedetomidine',
     concentration: 4.0,
     concentrationUnit: DrugUnit.mcgPerMl,
-    icon: Symbols.bedtime,
+    icon: Symbols.medication,
+    color: Colors.green,
   ),
   remimazolam1mg(
     displayName: 'Remimazolam',
     concentration: 1.0,
     concentrationUnit: DrugUnit.mgPerMl,
-    icon: Symbols.psychology,
+    icon: Symbols.medication,
+    color: Colors.purple,
   ),
   remimazolam2mg(
     displayName: 'Remimazolam',
     concentration: 2.0,
     concentrationUnit: DrugUnit.mgPerMl,
-    icon: Symbols.psychology,
+    icon: Symbols.medication,
+    color: Colors.purple,
   );
 
   const Drug({
@@ -62,12 +72,14 @@ enum Drug {
     required this.concentration,
     required this.concentrationUnit,
     required this.icon,
+    required this.color,
   });
 
   final String displayName;
   final double concentration;
   final DrugUnit concentrationUnit;
   final IconData icon;
+  final Color color;
   
   /// Get display string with concentration and unit
   String get displayWithConcentration {

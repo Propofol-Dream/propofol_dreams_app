@@ -310,6 +310,17 @@ class _TCIScreenState extends State<TCIScreen> {
     calculate();
   }
 
+  /// Get the appropriate model for the selected drug (hard-coded relationships)
+  Model getModelForDrug(Drug? drug) {
+    if (drug == null) return Model.Eleveld;
+    
+    if (drug.isDexmedetomidine) {
+      return Model.Hannivoort;
+    } else {
+      return Model.Eleveld; // Default for propofol, remifentanil, remimazolam
+    }
+  }
+
   void reset({bool toDefault = false}) {
     final settings = Provider.of<Settings>(context, listen: false);
     
@@ -408,7 +419,7 @@ class _TCIScreenState extends State<TCIScreen> {
                 selectedDrug?.icon ?? Symbols.graph_4,
                 color: hasValidationError 
                   ? Theme.of(context).colorScheme.error
-                  : Theme.of(context).colorScheme.primary,
+                  : selectedDrug?.color ?? Theme.of(context).colorScheme.primary,
               ),
               labelText: AppLocalizations.of(context)!.drug,
               labelStyle: TextStyle(
@@ -681,7 +692,7 @@ class _TCIScreenState extends State<TCIScreen> {
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: ageController,
-                    range: [17, selectedModel == Model.Schnider ? 100 : 105],
+                    range: [getModelForDrug(selectedDrug).minAge, getModelForDrug(selectedDrug).maxAge],
                     onPressed: updatePDTextEditingController,
                     enabled: ageTextFieldEnabled,
                   ),
@@ -704,7 +715,7 @@ class _TCIScreenState extends State<TCIScreen> {
                     interval: 1,
                     fractionDigits: 0,
                     controller: heightController,
-                    range: [selectedModel.minHeight, selectedModel.maxHeight],
+                    range: [getModelForDrug(selectedDrug).minHeight, getModelForDrug(selectedDrug).maxHeight],
                     onPressed: updatePDTextEditingController,
                     enabled: heightTextFieldEnabled,
                   ),
@@ -721,7 +732,7 @@ class _TCIScreenState extends State<TCIScreen> {
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: weightController,
-                    range: [selectedModel.minWeight, selectedModel.maxWeight],
+                    range: [getModelForDrug(selectedDrug).minWeight, getModelForDrug(selectedDrug).maxWeight],
                     onPressed: updatePDTextEditingController,
                   ),
                 ),
@@ -737,12 +748,12 @@ class _TCIScreenState extends State<TCIScreen> {
               children: [
                 Expanded(
                   child: PDTextField(
-                    prefixIcon: selectedModel.target.icon,
-                    labelText: selectedModel.getTargetLabel(context), // Dynamic unit display
-                    interval: selectedModel.getTargetProperties(selectedDrug).interval, // Dynamic interval based on drug-model combination
+                    prefixIcon: getModelForDrug(selectedDrug).target.icon,
+                    labelText: getModelForDrug(selectedDrug).getTargetLabel(context), // Dynamic unit display
+                    interval: getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).interval, // Dynamic interval based on drug-model combination
                     fractionDigits: 1,
                     controller: targetController,
-                    range: [selectedModel.getTargetProperties(selectedDrug).min, selectedModel.getTargetProperties(selectedDrug).max], // Dynamic range based on drug-model combination
+                    range: [getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).min, getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).max], // Dynamic range based on drug-model combination
                     onPressed: updatePDTextEditingController,
                   ),
                 ),

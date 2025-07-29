@@ -127,12 +127,7 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
     final int? duration = int.tryParse(widget.durationController.text);
 
     // Age group check based on inAdultView
-    if (widget.inAdultView && age != null && age < 17) {
-      return const ModelEvaluationResult(
-        availability: ModelAvailability.unavailable,
-        reason: "Patient too young for adult models",
-      );
-    }
+    // Removed age < 17 restriction to allow lower ages for adult models
     if (!widget.inAdultView && age != null && age >= 17) {
       return const ModelEvaluationResult(
         availability: ModelAvailability.unavailable,
@@ -299,25 +294,9 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
               borderRadius: BorderRadius.circular(5), // Match other controls
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                drug.icon,
-                size: 18,
-                color: isSelected
-                    ? Theme.of(context).colorScheme.onPrimary
-                    : isDisabled
-                        ? Theme.of(context).disabledColor
-                        : Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                drug.displayName, // Show drug name only, not concentration
-                textAlign: TextAlign.center,
-              ),
-            ],
+          child: Text(
+            drug.displayName, // Show drug name only, not concentration
+            textAlign: TextAlign.center,
           ),
         ),
         // Error text below button for unavailable models only
