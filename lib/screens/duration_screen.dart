@@ -179,7 +179,7 @@ class _DurationScreenState extends State<DurationScreen> {
       List<DurationRowData> durations = [];
       var height = MediaQuery.of(context).size.height;
       List<int> volumes = height >= screenBreakPoint2
-          ? [100, 90, 80, 70, 60, 50, 40, 30, 20, 10]
+          ? [60, 50, 40, 30, 20, 10]
           : height >= screenBreakPoint1
               ? [60, 50, 40, 30, 20, 10]
               : [50, 20];

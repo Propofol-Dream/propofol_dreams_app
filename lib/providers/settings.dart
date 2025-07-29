@@ -162,7 +162,7 @@ class Settings with ChangeNotifier {
       case 'Dexmedetomidine':
         return [Drug.dexmedetomidine];
       case 'Remimazolam':
-        return [Drug.remimazolam];
+        return [Drug.remimazolam1mg, Drug.remimazolam2mg];
       default:
         return [];
     }
@@ -258,6 +258,18 @@ class Settings with ChangeNotifier {
   // TCI screen model (separate from volume screen)
   Model _tciModel = Model.Eleveld;
   Drug _tciDrug = Drug.propofol10mg; // Direct TCI drug storage
+  
+  // TCI screen specific parameters (separate from volume screen)
+  Sex? _tciSex;
+  int? _tciAge;
+  int? _tciHeight;
+  int? _tciWeight;
+  
+  // TCI screen specific drug targets (separate from volume screen)
+  double? _tciPropofolTarget;
+  double? _tciRemifentanilTarget;
+  double? _tciDexmedetomidineTarget;
+  double? _tciRemimazolamTarget;
 
   Model get adultModel {
     return _adultModel;
@@ -291,6 +303,79 @@ class Settings with ChangeNotifier {
     
     // Also ensure the drug concentration is set in the map
     setDrugConcentration(d, d.concentration);
+    notifyListeners();
+  }
+
+  // TCI screen specific parameter getters/setters
+  Sex? get tciSex {
+    return _tciSex;
+  }
+
+  set tciSex(Sex? s) {
+    _tciSex = s;
+    setString('tciSex', s.toString());
+    notifyListeners();
+  }
+
+  int? get tciAge {
+    return _tciAge;
+  }
+
+  set tciAge(int? i) {
+    _tciAge = i;
+    setInt('tciAge', i);
+    notifyListeners();
+  }
+
+  int? get tciHeight {
+    return _tciHeight;
+  }
+
+  set tciHeight(int? i) {
+    _tciHeight = i;
+    setInt('tciHeight', i);
+    notifyListeners();
+  }
+
+  int? get tciWeight {
+    return _tciWeight;
+  }
+
+  set tciWeight(int? i) {
+    _tciWeight = i;
+    setInt('tciWeight', i);
+    // Also update duration screen weight when TCI weight changes
+    _weight = i;
+    setInt('weight', i);
+    notifyListeners();
+  }
+
+  // TCI screen specific target getters/setters
+  double? get tciPropofolTarget => _tciPropofolTarget;
+  set tciPropofolTarget(double? d) {
+    _tciPropofolTarget = d;
+    setDouble('tciPropofolTarget', d);
+    notifyListeners();
+  }
+
+  double? get tciRemifentanilTarget => _tciRemifentanilTarget;
+  set tciRemifentanilTarget(double? d) {
+    _tciRemifentanilTarget = d;
+    setDouble('tciRemifentanilTarget', d);
+    notifyListeners();
+  }
+
+  double? get tciDexmedetomidineTarget => _tciDexmedetomidineTarget;
+  set tciDexmedetomidineTarget(double? d) {
+    _tciDexmedetomidineTarget = d;
+    setDouble('tciDexmedetomidineTarget', d);
+    notifyListeners();
+  }
+
+  double? get tciRemimazolamTarget => _tciRemimazolamTarget;
+  set tciRemimazolamTarget(double? d) {
+    _tciRemimazolamTarget = d;
+    setDouble('tciRemimazolamTarget', d);
     notifyListeners();
   }
 
@@ -329,13 +414,9 @@ class Settings with ChangeNotifier {
   }
 
   set adultWeight(int? i) {
-    // print(i);
-    // if (_adultWeight != i) {
     _adultWeight = i;
     setInt('adultWeight', i);
-    // print('weight setInt');
     notifyListeners();
-    // }
   }
 
   double? get adultTarget {
@@ -408,6 +489,37 @@ class Settings with ChangeNotifier {
     }
   }
 
+  // TCI screen specific drug target methods (separate from volume screen)
+  double? getTciDrugTarget(Drug? drug) {
+    if (drug == null) return null;
+    
+    if (drug.isPropofol) {
+      return _tciPropofolTarget;
+    } else if (drug.isRemifentanil) {
+      return _tciRemifentanilTarget;
+    } else if (drug.isDexmedetomidine) {
+      return _tciDexmedetomidineTarget;
+    } else if (drug.isRemimazolam) {
+      return _tciRemimazolamTarget;
+    }
+    
+    return null;
+  }
+
+  void setTciDrugTarget(Drug? drug, double? value) {
+    if (drug == null) return;
+    
+    if (drug.isPropofol) {
+      tciPropofolTarget = value;
+    } else if (drug.isRemifentanil) {
+      tciRemifentanilTarget = value;
+    } else if (drug.isDexmedetomidine) {
+      tciDexmedetomidineTarget = value;
+    } else if (drug.isRemimazolam) {
+      tciRemimazolamTarget = value;
+    }
+  }
+
   int? get adultDuration {
     return _adultDuration;
   }
@@ -473,6 +585,9 @@ class Settings with ChangeNotifier {
   set pediatricWeight(int? i) {
     _pediatricWeight = i;
     setInt('pediatricWeight', i);
+    // Also update duration screen weight when pediatric weight changes
+    _weight = i;
+    setInt('weight', i);
     notifyListeners();
   }
 
@@ -833,6 +948,14 @@ class Settings with ChangeNotifier {
       _prefs!.setString('adultModel', _adultModel.name),
       _prefs!.setString('tciModel', _tciModel.name),
       _prefs!.setString('tciDrug', _tciDrug.name),
+      if (_tciSex != null) _prefs!.setString('tciSex', _tciSex.toString()),
+      if (_tciAge != null) _prefs!.setInt('tciAge', _tciAge!),
+      if (_tciHeight != null) _prefs!.setInt('tciHeight', _tciHeight!),
+      if (_tciWeight != null) _prefs!.setInt('tciWeight', _tciWeight!),
+      if (_tciPropofolTarget != null) _prefs!.setDouble('tciPropofolTarget', _tciPropofolTarget!),
+      if (_tciRemifentanilTarget != null) _prefs!.setDouble('tciRemifentanilTarget', _tciRemifentanilTarget!),
+      if (_tciDexmedetomidineTarget != null) _prefs!.setDouble('tciDexmedetomidineTarget', _tciDexmedetomidineTarget!),
+      if (_tciRemimazolamTarget != null) _prefs!.setDouble('tciRemimazolamTarget', _tciRemimazolamTarget!),
       _prefs!.setString('adultSex', _adultSex.toString()),
       if (_adultAge != null) _prefs!.setInt('adultAge', _adultAge!),
       if (_adultHeight != null) _prefs!.setInt('adultHeight', _adultHeight!),
@@ -941,6 +1064,19 @@ class Settings with ChangeNotifier {
       // Update the appropriate concentration to match the TCI drug
       setDrugConcentration(_tciDrug, _tciDrug.concentration);
     }
+    
+    // Load TCI specific parameters
+    final tciSexString = pref.getString('tciSex');
+    _tciSex = _parseSexFromString(tciSexString) ?? Sex.Female;
+    _tciAge = pref.getInt('tciAge') ?? 40;
+    _tciHeight = pref.getInt('tciHeight') ?? 170;
+    _tciWeight = pref.getInt('tciWeight') ?? 70;
+    
+    // Load TCI specific drug targets
+    _tciPropofolTarget = pref.getDouble('tciPropofolTarget') ?? 3.0;
+    _tciRemifentanilTarget = pref.getDouble('tciRemifentanilTarget') ?? 3.0;
+    _tciDexmedetomidineTarget = pref.getDouble('tciDexmedetomidineTarget') ?? 1.0;
+    _tciRemimazolamTarget = pref.getDouble('tciRemimazolamTarget') ?? 1.0;
     
     final adultSexString = pref.getString('adultSex');
     _adultSex = _parseSexFromString(adultSexString) ?? Sex.Female;
@@ -1196,7 +1332,7 @@ class Settings with ChangeNotifier {
         return Drug.dexmedetomidine;
       case 'Drug.remimazolam':
       case 'remimazolam': // Enum name format
-        return Drug.remimazolam;
+        return Drug.remimazolam1mg;
       // Legacy compatibility
       case 'Drug.propofol':
       case 'Propofol':
@@ -1209,7 +1345,7 @@ class Settings with ChangeNotifier {
       case 'Dexmedetomidine':
         return Drug.dexmedetomidine;
       case 'Remimazolam':
-        return Drug.remimazolam;
+        return Drug.remimazolam1mg;
       default:
         return Drug.propofol10mg; // Default to propofol 10mg for backward compatibility
     }

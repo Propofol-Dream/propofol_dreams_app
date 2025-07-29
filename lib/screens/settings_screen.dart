@@ -20,6 +20,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final PDSegmentedController propofolController = PDSegmentedController();
   final PDSegmentedController remifentanilController = PDSegmentedController();
+  final PDSegmentedController remimazolamController = PDSegmentedController();
   final PDSegmentedController themeController = PDSegmentedController();
   final TextEditingController pumpController = TextEditingController();
 
@@ -47,6 +48,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       remifentanilController.val = 2; // 50mcg default
     }
     
+    // Check which remimazolam variant is currently set
+    final currentRemimazolamDrug = settings.getCurrentDrugVariant('Remimazolam');
+    if (currentRemimazolamDrug == Drug.remimazolam1mg) {
+      remimazolamController.val = 0;
+    } else {
+      remimazolamController.val = 1; // 2mg
+    }
+    
     pumpController.text = settings.max_pump_rate.toString();
     themeController.val = settings.themeModeSelection == ThemeMode.light
         ? 0
@@ -64,16 +73,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Drug name with color indicator
+        // Drug name with icon indicator
         Row(
           children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: drug.color,
-                shape: BoxShape.circle,
-              ),
+            Icon(
+              drug.icon,
+              size: 18,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 8),
             Text(
@@ -103,11 +109,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ? propofolController 
                   : drug.displayName == 'Remifentanil'
                       ? remifentanilController
-                      : PDSegmentedController(),
+                      : drug.displayName == 'Remimazolam'
+                          ? remimazolamController
+                          : PDSegmentedController(),
               onPressed: availableVariants.map((variant) => () {
                 // Set the concentration for the appropriate variant
                 settings.setDrugConcentration(variant, variant.concentration);
-                if (drug.displayName == 'Propofol' || drug.displayName == 'Remifentanil') {
+                if (drug.displayName == 'Propofol' || drug.displayName == 'Remifentanil' || drug.displayName == 'Remimazolam') {
                   setState(() {
                     _setControllersFromSettings(settings);
                   });
@@ -204,9 +212,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 16),
                   
-                  // Remimazolam - display only
+                  // Remimazolam - with selection
                   _buildDrugConcentrationSection(
-                    Drug.remimazolam, 
+                    Drug.remimazolam1mg, 
                     settings, 
                     UIHeight, 
                     mediaQuery.size.width - 2 * horizontalSidesPaddingPixel

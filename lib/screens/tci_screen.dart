@@ -15,6 +15,7 @@ import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:propofol_dreams_app/models/target.dart';
 import 'package:propofol_dreams_app/models/target_unit.dart';
+import 'package:propofol_dreams_app/models/InfusionUnit.dart';
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 
 import '../constants.dart';
@@ -81,10 +82,10 @@ class _TCIScreenState extends State<TCIScreen> {
     // tciModelController.addListener(calculate);
     // pediatricModelController.addListener(calculate);
     // sexController.addListener(calculate);
-    ageController.addListener(calculate);
-    heightController.addListener(calculate);
-    weightController.addListener(calculate);
-    targetController.addListener(calculate);
+    // ageController.addListener(calculate);  // Removed - use onPressed events instead
+    // heightController.addListener(calculate); // Removed - use onPressed events  
+    // weightController.addListener(calculate); // Removed - use onPressed events
+    // targetController.addListener(calculate); // Removed - use onPressed events
     // durationController.addListener(_onTextFieldChanged); // Removed - duration is hardcoded
 
     modelOptions.addAll([
@@ -125,12 +126,12 @@ class _TCIScreenState extends State<TCIScreen> {
     tciModelController.selection = settings.tciModel;
     // Load selected drug from settings
     selectedDrug = settings.tciDrug;
-    sexController.val = settings.adultSex == Sex.Female ? true : false;
-    ageController.text = settings.adultAge?.toString() ?? '40';
-    heightController.text = settings.adultHeight?.toString() ?? '170';
-    weightController.text = settings.adultWeight?.toString() ?? '70';
+    sexController.val = settings.tciSex == Sex.Female ? true : false;
+    ageController.text = settings.tciAge?.toString() ?? '40';
+    heightController.text = settings.tciHeight?.toString() ?? '170';
+    weightController.text = settings.tciWeight?.toString() ?? '70';
     // Load drug-specific target value
-    final drugTarget = settings.getDrugTarget(selectedDrug);
+    final drugTarget = settings.getTciDrugTarget(selectedDrug);
     final targetProps = tciModelController.selection.getTargetProperties(selectedDrug);
     targetController.text = drugTarget?.toString() ?? targetProps.defaultValue.toString();
     durationController.text = '255'; // Hardcoded to 4 hours and 15 minutes for modal compatibility
@@ -150,12 +151,12 @@ class _TCIScreenState extends State<TCIScreen> {
 
     // TCI model and drug are saved immediately in onModelSelected/onDrugSelected
     // No need to save them here to avoid duplicate settings updates
-    settings.adultSex = sex;
-    settings.adultAge = age;
-    settings.adultHeight = height;
-    settings.adultWeight = weight;
-    // Save to drug-specific target instead of general adultTarget
-    settings.setDrugTarget(selectedDrug, target);
+    settings.tciSex = sex;
+    settings.tciAge = age;
+    settings.tciHeight = height;
+    settings.tciWeight = weight;
+    // Save to TCI-specific drug target (separate from volume screen)
+    settings.setTciDrugTarget(selectedDrug, target);
     // settings.adultDuration removed - duration is hardcoded to 255 minutes
   }
 
@@ -312,26 +313,26 @@ class _TCIScreenState extends State<TCIScreen> {
   void reset({bool toDefault = false}) {
     final settings = Provider.of<Settings>(context, listen: false);
     
-    // Always use adult defaults and settings
+    // Always use TCI defaults and settings
     sexController.val = toDefault
         ? true
-        : settings.adultSex == Sex.Female
+        : settings.tciSex == Sex.Female
             ? true
             : false;
     ageController.text = toDefault
         ? 40.toString()
-        : settings.adultAge != null
-            ? settings.adultAge.toString()
+        : settings.tciAge != null
+            ? settings.tciAge.toString()
             : '';
     heightController.text = toDefault
         ? 170.toString()
-        : settings.adultHeight != null
-            ? settings.adultHeight.toString()
+        : settings.tciHeight != null
+            ? settings.tciHeight.toString()
             : '';
     weightController.text = toDefault
         ? 70.toString()
-        : settings.adultWeight != null
-            ? settings.adultWeight.toString()
+        : settings.tciWeight != null
+            ? settings.tciWeight.toString()
             : '';
     // Get current model and drug for drug-specific default
     final currentModel = tciModelController.selection is Model ? tciModelController.selection as Model : Model.Eleveld;
@@ -339,7 +340,7 @@ class _TCIScreenState extends State<TCIScreen> {
     
     targetController.text = toDefault
         ? targetProps.defaultValue.toString()
-        : settings.getDrugTarget(selectedDrug)?.toString() ?? targetProps.defaultValue.toString();
+        : settings.getTciDrugTarget(selectedDrug)?.toString() ?? targetProps.defaultValue.toString();
     durationController.text = '255'; // Hardcoded to 4 hours and 15 minutes for modal compatibility
 
     // updateModelOptions(true); // Always adult view
@@ -404,10 +405,10 @@ class _TCIScreenState extends State<TCIScreen> {
                 fontSize: 10,
               ),
               prefixIcon: Icon(
-                Symbols.graph_4,
+                selectedDrug?.icon ?? Symbols.graph_4,
                 color: hasValidationError 
                   ? Theme.of(context).colorScheme.error
-                  : selectedDrug?.color ?? Theme.of(context).colorScheme.primary,
+                  : Theme.of(context).colorScheme.primary,
               ),
               labelText: AppLocalizations.of(context)!.drug,
               labelStyle: TextStyle(
@@ -453,22 +454,18 @@ class _TCIScreenState extends State<TCIScreen> {
                     currentDrug: selectedDrug, // Pass current selected drug
                     onModelSelected: (model) {
                       // Hard-coded model-drug combinations (no auto-correction)
-                      // Temporarily remove listener to prevent double calculation
-                      targetController.removeListener(calculate);
-                      
                       setState(() {
                         tciModelController.selection = model;
                         settings.tciModel = model;
                         // Keep existing drug selection
                         
                         // Update target field with drug-specific value for new model
-                        final drugTarget = settings.getDrugTarget(selectedDrug);
+                        final drugTarget = settings.getTciDrugTarget(selectedDrug);
                         final targetProps = model.getTargetProperties(selectedDrug);
                         targetController.text = drugTarget?.toString() ?? targetProps.defaultValue.toString();
                       });
                       
-                      // Re-add listener and calculate once
-                      targetController.addListener(calculate);
+                      // Calculate once after model change
                       calculate();
                     },
                     onDrugSelected: (drug) {
@@ -476,7 +473,7 @@ class _TCIScreenState extends State<TCIScreen> {
                       if (selectedDrug != null) {
                         final currentTarget = double.tryParse(targetController.text);
                         if (currentTarget != null) {
-                          settings.setDrugTarget(selectedDrug, currentTarget);
+                          settings.setTciDrugTarget(selectedDrug, currentTarget);
                         }
                       }
                       
@@ -490,9 +487,6 @@ class _TCIScreenState extends State<TCIScreen> {
                         requiredModel = Model.Eleveld; // Default for propofol, remimazolam
                       }
                       
-                      // Temporarily remove listener to prevent double calculation
-                      targetController.removeListener(calculate);
-                      
                       setState(() {
                         selectedDrug = drug;
                         settings.tciDrug = drug;
@@ -500,13 +494,12 @@ class _TCIScreenState extends State<TCIScreen> {
                         settings.tciModel = requiredModel;
                         
                         // THEN: Load target value for NEW drug
-                        final newDrugTarget = settings.getDrugTarget(drug);
+                        final newDrugTarget = settings.getTciDrugTarget(drug);
                         final targetProps = requiredModel.getTargetProperties(drug);
                         targetController.text = newDrugTarget?.toString() ?? targetProps.defaultValue.toString();
                       });
                       
-                      // Re-add listener and calculate once
-                      targetController.addListener(calculate);
+                      // Calculate once after drug change
                       calculate();
                     },
                   );
@@ -562,7 +555,8 @@ class _TCIScreenState extends State<TCIScreen> {
     final bool heightTextFieldEnabled = (tciModelController.selection as Model).target != Target.Plasma;
     final bool sexSwitchControlEnabled = (tciModelController.selection as Model).target != Target.Plasma;
 
-    final ageTextFieldEnabled = tciModelController.selection != Model.Marsh;
+    final ageTextFieldEnabled = tciModelController.selection != Model.Marsh && 
+                                selectedDrug?.isDexmedetomidine != true;
 
     return Container(
       height: screenHeight,
@@ -591,32 +585,35 @@ class _TCIScreenState extends State<TCIScreen> {
             ),
           ),
           // Infusion regime table (fixed position above inputs)
-          mediaQuery.size.height >= screenBreakPoint1
-              ? Container(
-                  child: infusionRegimeData != null
-                    ? Consumer<Settings>(
-                        builder: (context, settings, child) {
-                          return DosageDataTable(
-                            data: infusionRegimeData!,
-                            maxVisibleRows: 5,
-                            selectedRowIndex: settings.selectedDosageTableRow,
-                            onRowTap: (index) {
-                              // Toggle selection: if same row is tapped, deselect it
-                              if (settings.selectedDosageTableRow == index) {
-                                settings.selectedDosageTableRow = null;
-                              } else {
-                                settings.selectedDosageTableRow = index;
-                              }
-                            },
-                            scrollController: tableScrollController,
-                          );
-                        },
-                      )
-                    : Container(),
+          Container(
+            child: infusionRegimeData != null
+              ? Consumer<Settings>(
+                  builder: (context, settings, child) {
+                    return DosageDataTable(
+                      data: infusionRegimeData!,
+                      maxVisibleRows: mediaQuery.size.height >= screenBreakPoint1 ? 5 : 3,
+                      selectedRowIndex: settings.selectedDosageTableRow,
+                      onRowTap: (index) {
+                        // Toggle selection: if same row is tapped, deselect it
+                        if (settings.selectedDosageTableRow == index) {
+                          settings.selectedDosageTableRow = null;
+                        } else {
+                          settings.selectedDosageTableRow = index;
+                          
+                          // Sync selected row's infusion rate to duration screen
+                          if (infusionRegimeData != null && index < infusionRegimeData!.rows.length) {
+                            final selectedRow = infusionRegimeData!.rows[index];
+                            settings.infusionUnit = InfusionUnit.mL_hr;
+                            settings.infusionRate = selectedRow.infusionRate;
+                          }
+                        }
+                      },
+                      scrollController: tableScrollController,
+                    );
+                  },
                 )
-              : const SizedBox(
-                  height: 0,
-                ),
+              : Container(),
+          ),
           const SizedBox(height: 16),
           // Bottom half - Fixed input area (doesn't move when table expands)
           SizedBox(
@@ -740,7 +737,7 @@ class _TCIScreenState extends State<TCIScreen> {
               children: [
                 Expanded(
                   child: PDTextField(
-                    prefixIcon: Icons.psychology_alt_outlined,
+                    prefixIcon: selectedModel.target.icon,
                     labelText: selectedModel.getTargetLabel(context), // Dynamic unit display
                     interval: selectedModel.getTargetProperties(selectedDrug).interval, // Dynamic interval based on drug-model combination
                     fractionDigits: 1,

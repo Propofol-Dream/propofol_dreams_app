@@ -299,9 +299,25 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
               borderRadius: BorderRadius.circular(5), // Match other controls
             ),
           ),
-          child: Text(
-            drug.displayName, // Show drug name only, not concentration
-            textAlign: TextAlign.center,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                drug.icon,
+                size: 18,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.onPrimary
+                    : isDisabled
+                        ? Theme.of(context).disabledColor
+                        : Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                drug.displayName, // Show drug name only, not concentration
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
         // Error text below button for unavailable models only

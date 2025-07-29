@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'drug_unit.dart';
 
 enum Drug {
@@ -7,13 +8,13 @@ enum Drug {
     displayName: 'Propofol',
     concentration: 10.0,
     concentrationUnit: DrugUnit.mgPerMl,
-    color: Colors.yellowAccent,
+    icon: Symbols.water_drop,
   ),
   propofol20mg(
     displayName: 'Propofol',
     concentration: 20.0,
     concentrationUnit: DrugUnit.mgPerMl,
-    color: Colors.yellowAccent,
+    icon: Symbols.water_drop,
   ),
 
   // Remifentanil concentrations
@@ -21,19 +22,19 @@ enum Drug {
     displayName: 'Remifentanil',
     concentration: 20.0,
     concentrationUnit: DrugUnit.mcgPerMl,
-    color: Colors.lightBlue,
+    icon: Symbols.medication,
   ),
   remifentanil40mcg(
     displayName: 'Remifentanil',
     concentration: 40.0,
     concentrationUnit: DrugUnit.mcgPerMl,
-    color: Colors.lightBlue,
+    icon: Symbols.medication,
   ),
   remifentanil50mcg(
     displayName: 'Remifentanil',
     concentration: 50.0,
     concentrationUnit: DrugUnit.mcgPerMl,
-    color: Colors.lightBlue,
+    icon: Symbols.medication,
   ),
   
   // Other drugs (single concentrations for now)
@@ -41,26 +42,32 @@ enum Drug {
     displayName: 'Dexmedetomidine',
     concentration: 4.0,
     concentrationUnit: DrugUnit.mcgPerMl,
-    color: Colors.pink,
+    icon: Symbols.bedtime,
   ),
-  remimazolam(
+  remimazolam1mg(
     displayName: 'Remimazolam',
     concentration: 1.0,
     concentrationUnit: DrugUnit.mgPerMl,
-    color: Colors.orange,
+    icon: Symbols.psychology,
+  ),
+  remimazolam2mg(
+    displayName: 'Remimazolam',
+    concentration: 2.0,
+    concentrationUnit: DrugUnit.mgPerMl,
+    icon: Symbols.psychology,
   );
 
   const Drug({
     required this.displayName,
     required this.concentration,
     required this.concentrationUnit,
-    required this.color,
+    required this.icon,
   });
 
   final String displayName;
   final double concentration;
   final DrugUnit concentrationUnit;
-  final Color color;
+  final IconData icon;
   
   /// Get display string with concentration and unit
   String get displayWithConcentration {
@@ -84,7 +91,7 @@ extension DrugTypeExtension on Drug {
   
   bool get isDexmedetomidine => this == Drug.dexmedetomidine;
   
-  bool get isRemimazolam => this == Drug.remimazolam;
+  bool get isRemimazolam => this == Drug.remimazolam1mg || this == Drug.remimazolam2mg;
 }
 
 /// Helper class for drug concentration with unit

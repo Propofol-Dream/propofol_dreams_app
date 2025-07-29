@@ -238,6 +238,7 @@ This is a **medical application** for qualified healthcare professionals. All ca
 - **Enhanced Error Handling**: Comprehensive validation with detailed error messaging  
 - **Test Coverage**: 1,000+ lines of test files for pharmacokinetic calculations
 - **Code Organization**: New `components/` and `utils/` directories for better structure
+- **Event-Driven Architecture**: Migrated from `addListener` to `onPressed` pattern for predictable calculation timing
 
 ### Drug Color System
 Current color assignments (as updated by user):
@@ -252,3 +253,23 @@ Current color assignments (as updated by user):
 - Bolus calculations include both rounded and raw values for clinical analysis
 - Duration and width calculations are responsive and content-aware
 - Comprehensive pharmacokinetic model support with clinical optimization
+
+## Event-Driven vs Listener Architecture
+
+### Current Pattern: onPressed (Event-Driven)
+**Used in:** Both TCI and Volume screens
+- **Triggers:** Only on explicit user actions (button presses, model/drug selection)
+- **Advantages:** Predictable timing, no duplicate calculations, better performance
+- **Use Case:** Medical apps where calculations should only happen on deliberate user input
+
+### Deprecated Pattern: addListener (Reactive)
+**Previously used in:** TCI screen (now removed)
+- **Triggers:** Any text controller change (typing, programmatic updates)
+- **Problems:** Caused duplicate print outputs, unexpected calculations during drug switching
+- **Why Removed:** When `controller.text = newValue` occurred (e.g., drug switching), listeners fired causing double calculations
+
+### Implementation Details
+- **PDTextField Components:** Use `onPressed` callback for +/- button interactions
+- **Text Field Listeners:** Removed from `initState()` to prevent automatic triggering
+- **Model/Drug Selection:** Direct `calculate()` calls after state changes, no listener manipulation
+- **Pattern Consistency:** Both TCI and Volume screens now follow identical event-driven architecture

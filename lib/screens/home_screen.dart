@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const BottomNavigationBarItem(
                 icon: Icon(Icons.hub_outlined), label: 'EleMarsh'),
             const BottomNavigationBarItem(
-                icon: Icon(Icons.local_pharmacy_outlined), label: 'TCI'), // Moved to position 1 and renamed
+                icon: Icon(Icons.ssid_chart), label: 'TCI'), // Moved to position 1 and renamed
             BottomNavigationBarItem(
                 icon: const Icon(Icons.science_outlined),
                 label: AppLocalizations.of(context)!.volume),

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 
 enum Target {
-  Plasma(),
-  EffectSite();
+  Plasma(icon: Symbols.bloodtype),
+  EffectSite(icon: Symbols.psychology_alt);
+
+  const Target({required this.icon});
+  final IconData icon;
 
   // Updated toString method to call localizedString
   String toLocalizedString(BuildContext context) {

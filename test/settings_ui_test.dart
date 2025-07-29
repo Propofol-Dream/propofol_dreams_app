@@ -7,17 +7,17 @@ void main() {
     test('Settings only shows 4 drugs after removal', () {
       final settings = Settings();
       
-      // Verify that only 4 drugs are configured (removed Eleveld Remifentanil)
-      final propofol = settings.getAvailableConcentrations(Drug.propofol);
-      final minto = settings.getAvailableConcentrations(Drug.remifentanilMinto);
-      final dex = settings.getAvailableConcentrations(Drug.dexmedetomidine);
-      final remi = settings.getAvailableConcentrations(Drug.remimazolam);
+      // Verify drug variants using drug type strings
+      final propofolVariants = settings.getAvailableDrugVariants('Propofol');
+      final remifentanilVariants = settings.getAvailableDrugVariants('Remifentanil');
+      final dexVariants = settings.getAvailableDrugVariants('Dexmedetomidine');
+      final remiVariants = settings.getAvailableDrugVariants('Remimazolam');
       
       // Verify concentrations are available
-      expect(propofol, equals([10.0, 20.0]));
-      expect(minto, equals([50.0]));
-      expect(dex, equals([4.0]));
-      expect(remi, equals([1.0]));
+      expect(propofolVariants.length, equals(2)); // 10mg, 20mg
+      expect(remifentanilVariants.length, equals(3)); // 20mcg, 40mcg, 50mcg
+      expect(dexVariants.length, equals(1)); // 4mcg
+      expect(remiVariants.length, equals(2)); // 1mg, 2mg
       
       print('✓ 4 drugs properly configured in settings');
     });
@@ -26,29 +26,39 @@ void main() {
       final settings = Settings();
       
       // Test propofol concentration selection
-      expect(settings.getDrugConcentration(Drug.propofol), equals(10.0));
+      expect(settings.getDrugConcentration(Drug.propofol10mg), equals(10.0));
       
-      settings.setDrugConcentration(Drug.propofol, 20.0);
-      expect(settings.getDrugConcentration(Drug.propofol), equals(20.0));
+      settings.setDrugConcentration(Drug.propofol20mg, 20.0);
+      expect(settings.getDrugConcentration(Drug.propofol20mg), equals(20.0));
       
       // Test that density getter still works for backward compatibility
       expect(settings.density, equals(20));
       
-      // Test other drugs have fixed concentrations
-      expect(settings.getDrugConcentration(Drug.remifentanilMinto), equals(50.0));
+      // Test other drugs have their default concentrations
+      expect(settings.getDrugConcentration(Drug.remifentanil50mcg), equals(50.0));
       expect(settings.getDrugConcentration(Drug.dexmedetomidine), equals(4.0));
-      expect(settings.getDrugConcentration(Drug.remimazolam), equals(1.0));
+      expect(settings.getDrugConcentration(Drug.remimazolam1mg), equals(1.0));
+      expect(settings.getDrugConcentration(Drug.remimazolam2mg), equals(2.0));
       
       print('✓ Drug concentration system working correctly');
     });
 
-    test('Removed model not in TCI screen models but parameters still work', () {
-      // Verify EleveldRemifentanil can still calculate parameters for backward compatibility
-      // but is not shown in UI
-      final availableConcentrations = Settings().getAvailableConcentrations(Drug.remifentanilEleveld);
-      expect(availableConcentrations, equals([50.0]));
+    test('Remimazolam concentration variants work correctly', () {
+      final settings = Settings();
       
-      print('✓ Removed model maintains parameter compatibility');
+      // Test that we can switch between remimazolam concentrations
+      final currentRemi = settings.getCurrentDrugVariant('Remimazolam');
+      expect(currentRemi, equals(Drug.remimazolam1mg)); // Default should be 1mg
+      
+      // Test switching to 2mg concentration
+      settings.setDrugConcentration(Drug.remimazolam2mg, 2.0);
+      expect(settings.remimazolam_concentration, equals(2.0));
+      
+      // Verify the current variant updates
+      final newCurrentRemi = settings.getCurrentDrugVariant('Remimazolam');
+      expect(newCurrentRemi, equals(Drug.remimazolam2mg));
+      
+      print('✓ Remimazolam concentration switching working correctly');
     });
   });
 }

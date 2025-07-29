@@ -16,6 +16,13 @@ String formatBolusValue(double bolus) {
   }
 }
 
+String formatDurationAsHoursMinutes(double durationMinutes) {
+  final int totalMinutes = durationMinutes.round();
+  final int hours = totalMinutes ~/ 60;
+  final int minutes = totalMinutes % 60;
+  return '$hours:${minutes.toString().padLeft(2, '0')}';
+}
+
 // Generic table row data structure
 abstract class TableRowData {
   String get timeString;
@@ -1130,7 +1137,7 @@ class DurationDataTable extends StatelessWidget {
             Expanded(
               flex: 60,
               child: Text(
-                '${row.duration.toStringAsFixed(0)} mins',
+                formatDurationAsHoursMinutes(row.duration),
                 style: bodyStyle?.copyWith(
                   fontWeight: row.isHighlighted ? FontWeight.bold : FontWeight.normal,
                   fontFeatures: const [FontFeature.tabularFigures()],

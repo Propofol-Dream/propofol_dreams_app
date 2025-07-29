@@ -434,7 +434,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                   width:
                       mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                   child: PDTextField(
-                    prefixIcon: Icons.psychology_alt_outlined,
+                    prefixIcon: Model.Eleveld.target.icon,
                     labelText:
                         'Maintenance Ce',
                     interval: 0.1,
@@ -460,7 +460,7 @@ Zhong G., Xu, X. General purpose propofol target-controlled infusion using the M
                   width:
                       mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                   child: PDTextField(
-                    prefixIcon: Icons.psychology_alt_outlined,
+                    prefixIcon: Model.Eleveld.target.icon,
                     labelText: 'Observed State Entropy',
                     interval: 1,
                     fractionDigits: 1,

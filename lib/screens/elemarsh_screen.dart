@@ -18,6 +18,7 @@ import 'package:propofol_dreams_app/providers/settings.dart';
 import 'package:propofol_dreams_app/models/patient.dart';
 import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/model.dart';
+import 'package:propofol_dreams_app/models/target.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
 
 import 'package:propofol_dreams_app/controllers/PDSwitchController.dart';
@@ -1201,7 +1202,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                 : showWakeAlertDialog(context);
                           },
                           child:
-                              Center(child: Icon(Icons.info_outline_rounded)),
+                              Center(child: Icon(Symbols.help_center)),
                         )),
                     SizedBox(
                       width: 8,
@@ -1405,7 +1406,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                   Container(
                     width: UIWidth * 2 + 8,
                     child: PDTextField(
-                      prefixIcon: Icons.psychology_alt_outlined,
+                      prefixIcon: Target.EffectSite.icon,
                       labelText:
                           '${AppLocalizations.of(context)!.effectSiteTarget} (μg/mL)',
                       interval: 0.5,
@@ -1431,7 +1432,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                     width:
                         mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
                     child: PDTextField(
-                      prefixIcon: Icons.psychology_alt_outlined,
+                      prefixIcon: settings.EMWakeUpModel.target.icon,
                       labelText: settings.EMWakeUpModel == Model.Eleveld
                           ? AppLocalizations.of(context)!.maintenanceCe
                           : AppLocalizations.of(context)!.maintenanceCp,

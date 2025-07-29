@@ -970,7 +970,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                 SizedBox(
                   width: UIWidth,
                   child: PDTextField(
-                    prefixIcon: Icons.psychology_alt_outlined,
+                    prefixIcon: selectedModel.target.icon,
                     labelText: selectedModel.target.toLocalizedString(context),
                     // helperText: '',
                     interval: 0.5,
