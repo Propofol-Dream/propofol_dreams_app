@@ -48,8 +48,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 150,
-      target: Target.Plasma,
-      targetUnit: TargetUnit.mcgPerMl),
+      target: Target.Plasma),
   Schnider(
       minAge: 17,
       maxAge: 100,
@@ -57,8 +56,7 @@ enum Model {
       maxHeight: 210,
       minWeight: 0,
       maxWeight: 165,
-      target: Target.EffectSite,
-      targetUnit: TargetUnit.mcgPerMl),
+      target: Target.EffectSite),
   Eleveld(
       minAge: 1,
       maxAge: 105,
@@ -66,8 +64,7 @@ enum Model {
       maxHeight: 210,
       minWeight: 1,
       maxWeight: 250,
-      target: Target.EffectSite,
-      targetUnit: TargetUnit.mcgPerMl),
+      target: Target.EffectSite),
   Paedfusor(
       minAge: 1,
       maxAge: 16,
@@ -75,8 +72,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 5,
       maxWeight: 61,
-      target: Target.Plasma,
-      targetUnit: TargetUnit.mcgPerMl),
+      target: Target.Plasma),
   Kataria(
       minAge: 3,
       maxAge: 16,
@@ -84,8 +80,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 15,
       maxWeight: 61,
-      target: Target.Plasma,
-      targetUnit: TargetUnit.mcgPerMl),
+      target: Target.Plasma),
   EleMarsh(
       minAge: 5,
       maxAge: 105,
@@ -93,8 +88,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 999,
-      target: Target.Plasma,
-      targetUnit: TargetUnit.mcgPerMl),
+      target: Target.Plasma),
   
   // ADDITIONAL MODELS FOR DIFFERENT DRUGS
   // Minto(
@@ -114,8 +108,7 @@ enum Model {
       maxHeight: 210,
       minWeight: 1,
       maxWeight: 250,
-      target: Target.Plasma,
-      targetUnit: TargetUnit.ngPerMl),
+      target: Target.Plasma),
   
   // KEEP NONE FOR COMPATIBILITY
   None(
@@ -125,8 +118,7 @@ enum Model {
       maxHeight: 999,
       minWeight: 0,
       maxWeight: 999,
-      target: Target.EffectSite,
-      targetUnit: TargetUnit.mcgPerMl);
+      target: Target.EffectSite);
 
   @override
   String toString() {
@@ -235,7 +227,6 @@ enum Model {
   final int minWeight;
   final int maxWeight;
   final Target target;
-  final TargetUnit targetUnit;
 
   const Model({
     required this.minAge,
@@ -245,7 +236,6 @@ enum Model {
     required this.minWeight,
     required this.maxWeight,
     required this.target,
-    required this.targetUnit,
   });
   
   /// Get target properties based on model-drug combination
@@ -262,7 +252,7 @@ enum Model {
       } else if (drug?.isRemifentanil == true) {
         return const TargetProperties(min: 0.5, max: 10.0, interval: 0.5, defaultValue: 3.0);
       } else if (drug?.isRemimazolam == true) {
-        return const TargetProperties(min: 0.1, max: 2.0, interval: 0.1, defaultValue: 1.0);
+        return const TargetProperties(min: 0.1, max: 2.0, interval: 0.1, defaultValue: 0.7);
       }
     }
     
@@ -276,7 +266,8 @@ enum Model {
   }
   
   /// Get target label for UI display
-  String getTargetLabel(BuildContext context) {
+  String getTargetLabel(BuildContext context, Drug? drug) {
+    final targetUnit = drug?.targetUnit ?? TargetUnit.mcgPerMl; // Default fallback
     return '${target.toLocalizedString(context)} (${targetUnit.displayName})';
   }
 }

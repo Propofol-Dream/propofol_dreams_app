@@ -3,9 +3,9 @@ import '../models/infusion_regime_data.dart';
 
 /// Helper function to format bolus values with conditional decimal places
 /// Matches the rounding logic from InfusionRegimeData:
-/// - Values < 1.0 mL are rounded to 0.1 mL precision → show 1 decimal place
-/// - Values ≥ 1.0 mL are rounded to integers → show appropriate decimals
-/// Display logic: Single digit (<10): 1dp, Double digit+ (≥10): 0dp
+/// - Values < 10.0 mL are rounded to 0.1 mL precision → show 1 decimal place
+/// - Values ≥ 10.0 mL are rounded to integers → show 0 decimal places
+/// Display logic: Values <10mL: 1dp, Values ≥10mL: 0dp
 String formatBolusValue(double bolus) {
   if (bolus >= 10.0) {
     // Double digit or more: show no decimal places (values are already integers)
@@ -13,6 +13,20 @@ String formatBolusValue(double bolus) {
   } else {
     // Single digit: show 1 decimal place (preserves 0.1 mL precision for small values)
     return bolus.toStringAsFixed(1);
+  }
+}
+
+/// Helper function to format infusion rate values with conditional decimal places
+/// Matches the same logic as formatBolusValue for consistency
+/// - Values < 10.0 mL/hr are rounded to 0.1 mL/hr precision → show 1 decimal place
+/// - Values ≥ 10.0 mL/hr are rounded to integers → show 0 decimal places
+String formatInfusionRateValue(double infusionRate) {
+  if (infusionRate >= 10.0) {
+    // Double digit or more: show no decimal places (values are already integers)
+    return infusionRate.toStringAsFixed(0);
+  } else {
+    // Single digit: show 1 decimal place (preserves 0.1 mL/hr precision for small values)
+    return infusionRate.toStringAsFixed(1);
   }
 }
 
@@ -44,7 +58,7 @@ class InfusionTableRowData extends TableRowData {
   @override
   List<String> get values => [
     formatBolusValue(row.bolus),
-    row.infusionRate.toStringAsFixed(0),
+    formatInfusionRateValue(row.infusionRate),
     row.accumulatedVolume.toStringAsFixed(1),
   ];
 

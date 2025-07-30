@@ -77,7 +77,7 @@ void main() {
         );
 
         print('${model.name} - ${testCase['drug']} (${concentration}mg/mL or mcg/mL)');
-        print('  Target: $target ${model.targetUnit.displayName}');
+        print('  Target: $target μg/mL'); // Fixed unit since test uses propofol
         print('  Description: $description');
         
         // Old format (1 decimal place)

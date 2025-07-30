@@ -141,10 +141,11 @@ void main() {
 
         expect(isRunnable, true, reason: '$model should be runnable with test parameters');
 
-        // Verify model has proper target unit configuration
-        expect(model.targetUnit, isNotNull, reason: '$model should have target unit');
+        // Models no longer have targetUnit - it's now on Drug
+        // Just verify model has proper target configuration
+        expect(model.target, isNotNull, reason: '$model should have target');
         
-        print('✓ $model - Target: ${model.target.name} (${model.targetUnit.displayName})');
+        print('✓ $model - Target: ${model.target.name} (target unit now on Drug)');
       }
     });
   });

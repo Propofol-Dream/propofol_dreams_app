@@ -13,10 +13,10 @@ This medical calculator app provides anesthetists with tools to:
 ## Features
 
 - **Multi-Drug TCI Calculations**: Target-Controlled Infusion for multiple drug types:
-  - Propofol (10mg/mL, 20mg/mL) - Yellow Accent coded
-  - Remifentanil (20, 40 mcg/mL - Light Blue, 50 mcg/mL - Red) - Color coded by concentration  
-  - Dexmedetomidine (4 mcg/mL) - Green coded
-  - Remimazolam (1 mg/mL) - Purple coded
+  - Propofol (10mg/mL, 20mg/mL) - Yellow/Yellow Accent (Light/Dark mode)
+  - Remifentanil (20, 40, 50 mcg/mL) - Light Blue/Light Blue Accent
+  - Dexmedetomidine (4 mcg/mL) - Pink/Pink Accent  
+  - Remimazolam (1mg/mL, 2mg/mL) - Orange/Orange Accent
 - **Advanced Pharmacokinetic Models**: Supports 8+ models with intelligent drug-model pairing
   - **Propofol**: Marsh (Plasma), Schnider (Effect-site), Eleveld (Universal)
   - **Remifentanil**: Minto, Eleveld models
@@ -28,9 +28,12 @@ This medical calculator app provides anesthetists with tools to:
   - Conditional decimal formatting (1dp for <10mL, 0dp for ≥10mL)
 - **Enhanced User Interface**:
   - Dynamic width drug selector (adapts to longest drug name)
-  - Color-coded drug icons for instant visual identification
+  - Dual-theme color system for drug identification (Light/Dark mode adaptive)
+  - Generic medication icons with theme-appropriate colors
+  - Unified target icons (psychology_alt) across all models
   - Real-time validation with detailed error messaging
   - Responsive design for all screen sizes
+  - Independent parameter sets for TCI vs Volume screens
 - **Comprehensive Testing**: 1,100+ lines of test coverage for pharmacokinetic calculations
 - **Multi-language Support**: Available in English, Japanese, and Chinese
 - **Cross-platform**: Runs on iOS, Android, web, macOS, Linux, and Windows
@@ -129,12 +132,14 @@ Current version: 2.2.21 (Build 108)
 
 ### TCI Screen Enhancements
 - **Multi-Drug Support**: Full TCI implementation for Propofol, Remifentanil, Dexmedetomidine, Remimazolam
-- **Dynamic UI Width**: Drug selector automatically resizes to prevent text truncation
-- **Color-Coded Icons**: Drug selector icon changes color based on selected drug
-- **Duration Fix**: Table now properly displays up to 4:00 (255-minute duration)
+- **Dual-Theme Color System**: Drug colors adapt automatically to Light/Dark mode
+- **Dynamic Model-Based Validation**: Min/max ranges based on hard-coded drug-model relationships
+- **Independent Parameter Management**: Separate TCI parameters (age, sex, weight, height, targets)
+- **Cross-Screen Weight Sync**: TCI weight changes flow to duration screen calculations
+- **Row Selection Integration**: Selected TCI table rows sync infusion rate to duration screen
+- **Removed Age Restrictions**: Allows patient ages below 17 for flexible clinical use
+- **Duration Formatting**: Enhanced XX:YY time format display in duration tables
 - **Smart Bolus Formatting**: Conditional decimal places (1dp for <10mL, 0dp for ≥10mL)
-- **Raw Bolus Access**: Unrounded bolus values available for debugging/research
-- **Clinical Optimization**: MATLAB-based algorithms for practical pump programming
 
 ### Advanced Pharmacokinetics  
 - **8+ PK Models**: Comprehensive model support with drug-specific pairing
@@ -143,10 +148,22 @@ Current version: 2.2.21 (Build 108)
 - **Test Coverage**: Comprehensive test suite for all pharmacokinetic calculations
 
 ### UI/UX Improvements
-- **Responsive Design**: Dynamic layouts adapt to content and screen size
-- **Visual Feedback**: Immediate color-coded drug identification
-- **Enhanced Tables**: Animated infusion regime tables with bolus precision control
+- **Responsive Design**: Dynamic layouts adapt to content and screen size (3-row tables on smaller screens)
+- **Theme-Adaptive Colors**: Drug icons automatically adjust colors for Light/Dark modes
+- **Streamlined Drug Selection**: Removed medical icons from bottom sheet for cleaner interface
+- **Unified Target Icons**: Consistent psychology_alt icons across all target types
+- **Enhanced Tables**: Animated infusion regime tables with XX:YY duration formatting
+- **Model-Based Ranges**: Input validation now uses actual pharmacokinetic model constraints
 - **Error Handling**: Comprehensive validation with detailed error messaging
+
+### Latest Features (Current Session)
+- **Screen Parameter Decoupling**: TCI and Volume screens now maintain independent parameter sets
+- **Drug-Specific Model Validation**: Age, weight, height ranges based on Eleveld vs Hannivoort models
+- **Enhanced Weight Synchronization**: TCI weight flows to duration screen while maintaining independence
+- **TCI-Duration Integration**: Selected TCI table rows automatically sync infusion rates to duration screen
+- **Dual-Color Drug System**: Light/Dark mode adaptive colors for optimal visibility in all themes
+- **Simplified Drug Selection**: Clean, icon-free drug list in bottom sheet modal
+- **Flexible Age Validation**: Removed restrictive age limits for broader clinical applicability
 
 ## License
 

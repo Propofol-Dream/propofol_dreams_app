@@ -56,7 +56,7 @@ void main() {
           
           // Print detailed parameter output
           print('Model: ${model.name} | Drug: ${drug.displayName} (${drug.concentration}${drug.concentrationUnit.displayName})');
-          print('  Target: ${model.target.name} targeting (${model.targetUnit.displayName})');
+          print('  Target: ${model.target.name} targeting (${drug.targetUnit.displayName})');
           print('  Patient: ${sex.name}, ${age}y, ${height}cm, ${weight}kg');
           print('  VOLUMES (L):');
           print('    V1 = ${params.V1.toStringAsFixed(4)}');
@@ -152,7 +152,7 @@ void main() {
 
           // Print simulation results
           print('Model: ${model.name} | Drug: ${drug.displayName} (${drug.concentration}${drug.concentrationUnit.displayName})');
-          print('  Target: $testTarget ${model.targetUnit.displayName} (${model.target.name})');
+          print('  Target: $testTarget ${testDrug.targetUnit.displayName} (${model.target.name})');
           print('  Total bolus: ${infusionRegimeData.totalBolus.toStringAsFixed(2)} mL');
           print('  Total volume: ${infusionRegimeData.totalVolume.toStringAsFixed(2)} mL');
           print('  Max rate: ${infusionRegimeData.maxInfusionRate.toStringAsFixed(2)} mL/hr');
@@ -193,7 +193,7 @@ void main() {
         print('  Age range: ${model.minAge}-${model.maxAge} years');
         print('  Height range: ${model.minHeight}-${model.maxHeight} cm');
         print('  Weight range: ${model.minWeight}-${model.maxWeight} kg');
-        print('  Target: ${model.target.name} (${model.targetUnit.displayName})');
+        print('  Target: ${model.target.name} (μg/mL)'); // Default since no drug context
         
         // Check if model is enabled with test parameters
         final isEnabled = model.isEnable(age: age, height: height, weight: weight);

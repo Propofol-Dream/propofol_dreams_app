@@ -58,7 +58,7 @@ void main() {
       "maxInfusionRate": ${pump.concentration * pump.maxPumpRate},
       "maxInfusionRateUnit": "mg/hr",
       "target": ${pump.target},
-      "targetUnit": "${simulation.model.targetUnit.displayName}",
+      "targetUnit": "${pump.drug?.targetUnit.displayName ?? 'μg/mL'}",
       "targetType": "${simulation.model.target}",
       "duration": "${pump.duration}",
       "drug": "${pump.drug?.displayName ?? "Unknown"}"

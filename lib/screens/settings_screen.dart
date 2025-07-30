@@ -79,7 +79,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Icon(
               drug.icon,
               size: 18,
-              color: Theme.of(context).colorScheme.primary,
+              color: drug.getColor(context),
             ),
             const SizedBox(width: 8),
             Text(

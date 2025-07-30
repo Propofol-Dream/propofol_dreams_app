@@ -58,7 +58,7 @@ void main() {
           // Print model info
           print('${model.name} (${model.drug.displayName})');
           print('  Drug Concentration: ${model.drug.concentration} ${model.drug.concentrationUnit.displayName}');
-          print('  Target: ${model.target.name} (${model.targetUnit.displayName})');
+          print('  Target: ${model.target.name} (${model.drug.targetUnit.displayName})');
           print('  ');
           print('  VOLUMES (L):');
           print('    V1 (Central): ${params.V1.toStringAsFixed(4)}');

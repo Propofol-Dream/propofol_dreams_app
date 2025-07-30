@@ -46,7 +46,7 @@ void main() {
           
           print('${model.name} (${model.drug.displayName})');
           print('  Concentration: ${model.drug.concentration} ${model.drug.concentrationUnit.displayName}');
-          print('  Target: ${model.target.name} (${model.targetUnit.displayName})');
+          print('  Target: ${model.target.name} (${model.drug.targetUnit.displayName})');
           print('  V1=${params.V1.toStringAsFixed(3)}L, V2=${params.V2.toStringAsFixed(3)}L, V3=${params.V3.toStringAsFixed(3)}L');
           print('  Cl1=${params.Cl1.toStringAsFixed(4)}L/min, Cl2=${params.Cl2.toStringAsFixed(4)}L/min, Cl3=${params.Cl3.toStringAsFixed(4)}L/min');
           print('  k10=${params.k10.toStringAsFixed(4)}/min, ke0=${params.ke0.toStringAsFixed(4)}/min');

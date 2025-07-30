@@ -75,7 +75,7 @@ void main() {
         print('Concentration: ${config.drug.concentration} ${config.drug.concentrationUnit.displayName}');
         print('Patient: ${config.sex.name}, ${config.age}yo, ${config.height}cm, ${config.weight}kg');
         print('BMI: ${patient.bmi.toStringAsFixed(1)}');
-        print('Target: ${config.target} ${config.model.targetUnit.displayName} (${config.model.target})');
+        print('Target: ${config.target} ${config.drug.targetUnit.displayName} (${config.model.target})');
         print('Duration: ${config.durationMinutes} minutes');
         print('Time Step: ${config.timeStepSeconds} seconds');
         print('Max Pump Rate: ${config.maxPumpRate} ml/hr');
@@ -96,7 +96,7 @@ void main() {
         print('k13: ${pkParams.k13.toStringAsFixed(4)} min⁻¹');
         print('k31: ${pkParams.k31.toStringAsFixed(4)} min⁻¹');
         print('ke0: ${pkParams.ke0.toStringAsFixed(4)} min⁻¹');
-        if (pkParams.ce50 != null) print('ce50: ${pkParams.ce50!.toStringAsFixed(2)} ${config.model.targetUnit.displayName}');
+        if (pkParams.ce50 != null) print('ce50: ${pkParams.ce50!.toStringAsFixed(2)} ${config.drug.targetUnit.displayName}');
         if (pkParams.baselineBIS != null) print('baselineBIS: ${pkParams.baselineBIS!.toStringAsFixed(1)}');
 
         // Get simulation results
@@ -104,8 +104,8 @@ void main() {
         
         print('\nSIMULATION RESULTS:');
         print('Total Steps: ${results.steps.length}');
-        print('Final Plasma Concentration: ${results.concentrations.last.toStringAsFixed(3)} ${config.model.targetUnit.displayName}');
-        print('Final Effect Concentration: ${results.concentrationsEffect.last.toStringAsFixed(3)} ${config.model.targetUnit.displayName}');
+        print('Final Plasma Concentration: ${results.concentrations.last.toStringAsFixed(3)} ${config.drug.targetUnit.displayName}');
+        print('Final Effect Concentration: ${results.concentrationsEffect.last.toStringAsFixed(3)} ${config.drug.targetUnit.displayName}');
         print('Final Cumulative Dose: ${results.cumulativeInfusedDosages.last.toStringAsFixed(3)} mg (pump units)');
         print('Final Cumulative Volume: ${results.cumulativeInfusedVolumes.last.toStringAsFixed(3)} ml');
         print('Average Pump Rate: ${(results.pumpInfs.reduce((a, b) => a + b) / results.pumpInfs.length).toStringAsFixed(2)} mg/hr (pump units)');
@@ -117,7 +117,7 @@ void main() {
         
         // Print first few rows for verification
         print('\n=== FIRST 10 TIME POINTS (VERIFICATION) ===');
-        print('Time(s)\tPump(mg/hr)\tCe(${config.model.targetUnit.displayName})\tCp(${config.model.targetUnit.displayName})\tCumVol(ml)');
+        print('Time(s)\tPump(mg/hr)\tCe(${config.drug.targetUnit.displayName})\tCp(${config.drug.targetUnit.displayName})\tCumVol(ml)');
         for (int i = 0; i < 10 && i < results.steps.length; i++) {
           final timeSeconds = results.times[i].inSeconds;
           final pumpRate = results.pumpInfs[i];

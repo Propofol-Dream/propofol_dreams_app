@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'drug_unit.dart';
+import 'target_unit.dart';
 
 enum Drug {
   // Propofol concentrations
@@ -8,17 +9,19 @@ enum Drug {
     displayName: 'Propofol',
     concentration: 10.0,
     concentrationUnit: DrugUnit.mgPerMl,
+    targetUnit: TargetUnit.mcgPerMl,
     icon: Symbols.medication,
-    lightColor: Colors.amber,
-    darkColor: Colors.amberAccent,
+    lightColor: Colors.yellow,
+    darkColor: Colors.yellowAccent,
   ),
   propofol20mg(
     displayName: 'Propofol',
     concentration: 20.0,
     concentrationUnit: DrugUnit.mgPerMl,
+    targetUnit: TargetUnit.mcgPerMl,
     icon: Symbols.medication,
-    lightColor: Colors.amber,
-    darkColor: Colors.amberAccent,
+    lightColor: Colors.yellow,
+    darkColor: Colors.yellowAccent,
   ),
 
   // Remifentanil concentrations
@@ -26,25 +29,28 @@ enum Drug {
     displayName: 'Remifentanil',
     concentration: 20.0,
     concentrationUnit: DrugUnit.mcgPerMl,
+    targetUnit: TargetUnit.ngPerMl,
     icon: Symbols.medication,
-    lightColor: Colors.blue,
-    darkColor: Colors.lightBlue,
+    lightColor: Colors.lightBlue,
+    darkColor: Colors.lightBlueAccent,
   ),
   remifentanil40mcg(
     displayName: 'Remifentanil',
     concentration: 40.0,
     concentrationUnit: DrugUnit.mcgPerMl,
+    targetUnit: TargetUnit.ngPerMl,
     icon: Symbols.medication,
-    lightColor: Colors.indigo,
+    lightColor: Colors.lightBlue,
     darkColor: Colors.lightBlueAccent,
   ),
   remifentanil50mcg(
     displayName: 'Remifentanil',
     concentration: 50.0,
     concentrationUnit: DrugUnit.mcgPerMl,
+    targetUnit: TargetUnit.ngPerMl,
     icon: Symbols.medication,
-    lightColor: Colors.red,
-    darkColor: Colors.redAccent,
+    lightColor: Colors.lightBlue,
+    darkColor: Colors.lightBlueAccent,
   ),
   
   // Other drugs (single concentrations for now)
@@ -52,31 +58,35 @@ enum Drug {
     displayName: 'Dexmedetomidine',
     concentration: 4.0,
     concentrationUnit: DrugUnit.mcgPerMl,
+    targetUnit: TargetUnit.ngPerMl,
     icon: Symbols.medication,
-    lightColor: Colors.green,
-    darkColor: Colors.lightGreen,
+    lightColor: Colors.pink,
+    darkColor: Colors.pinkAccent,
   ),
   remimazolam1mg(
     displayName: 'Remimazolam',
     concentration: 1.0,
     concentrationUnit: DrugUnit.mgPerMl,
+    targetUnit: TargetUnit.mcgPerMl,
     icon: Symbols.medication,
-    lightColor: Colors.purple,
-    darkColor: Colors.purpleAccent,
+    lightColor: Colors.orange,
+    darkColor: Colors.orangeAccent,
   ),
   remimazolam2mg(
     displayName: 'Remimazolam',
     concentration: 2.0,
     concentrationUnit: DrugUnit.mgPerMl,
+    targetUnit: TargetUnit.mcgPerMl,
     icon: Symbols.medication,
-    lightColor: Colors.purple,
-    darkColor: Colors.purpleAccent,
+    lightColor: Colors.orange,
+    darkColor: Colors.orangeAccent,
   );
 
   const Drug({
     required this.displayName,
     required this.concentration,
     required this.concentrationUnit,
+    required this.targetUnit,
     required this.icon,
     required this.lightColor,
     required this.darkColor,
@@ -85,6 +95,7 @@ enum Drug {
   final String displayName;
   final double concentration;
   final DrugUnit concentrationUnit;
+  final TargetUnit targetUnit;
   final IconData icon;
   final Color lightColor;
   final Color darkColor;

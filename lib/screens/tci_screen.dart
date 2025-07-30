@@ -262,7 +262,7 @@ class _TCIScreenState extends State<TCIScreen> {
           'maxInfusionRate': pump.concentration * pump.maxPumpRate,
           'maxInfusionRateUnit': 'mg/hr',
           'target': pump.target,
-          'targetUnit': selectedModel.targetUnit.displayName,
+          'targetUnit': selectedDrug?.targetUnit.displayName ?? 'μg/mL',
           'targetType': selectedModel.target.toString(),
           'duration': '${pump.duration}',
           'drug': pump.drug?.displayName ?? 'Unknown'
@@ -363,6 +363,7 @@ class _TCIScreenState extends State<TCIScreen> {
     
     final Sex sex = sexController.val ? Sex.Female : Sex.Male;
     final int age = int.tryParse(ageController.text) ?? 0;
+    final bool isAdult = age >= 17;
     final int height = int.tryParse(heightController.text) ?? 0;
     final int weight = int.tryParse(weightController.text) ?? 0;
 
@@ -555,6 +556,10 @@ class _TCIScreenState extends State<TCIScreen> {
     // No need to sync from settings here since we use hard-coded combinations
     Model selectedModel = tciModelController.selection;
     
+    // Add age-based logic for girl/boy display
+    final int age = int.tryParse(ageController.text) ?? 0;
+    final bool isAdult = age >= 17;
+    
     // Check if model is runnable (kept for potential future use)
     // bool modelIsRunnable = selectedModel.isRunnable(
     //     age: age,
@@ -669,11 +674,21 @@ class _TCIScreenState extends State<TCIScreen> {
                   width: UIWidth,
                   child: PDSwitchField(
                     labelText: AppLocalizations.of(context)!.sex,
-                    prefixIcon: sexController.val == true ? Icons.woman : Icons.man,
+                    prefixIcon: sexController.val == true 
+                        ? isAdult 
+                            ? Icons.woman 
+                            : Icons.girl 
+                        : isAdult 
+                            ? Icons.man 
+                            : Icons.boy,
                     controller: sexController,
                     switchTexts: {
-                      true: Sex.Female.toLocalizedString(context),
-                      false: Sex.Male.toLocalizedString(context)
+                      true: isAdult 
+                          ? Sex.Female.toLocalizedString(context)
+                          : Sex.Girl.toLocalizedString(context),
+                      false: isAdult 
+                          ? Sex.Male.toLocalizedString(context)
+                          : Sex.Boy.toLocalizedString(context)
                     },
                     onChanged: calculate,
                     height: UIHeight,
@@ -749,7 +764,7 @@ class _TCIScreenState extends State<TCIScreen> {
                 Expanded(
                   child: PDTextField(
                     prefixIcon: getModelForDrug(selectedDrug).target.icon,
-                    labelText: getModelForDrug(selectedDrug).getTargetLabel(context), // Dynamic unit display
+                    labelText: getModelForDrug(selectedDrug).getTargetLabel(context, selectedDrug), // Dynamic unit display
                     interval: getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).interval, // Dynamic interval based on drug-model combination
                     fractionDigits: 1,
                     controller: targetController,
