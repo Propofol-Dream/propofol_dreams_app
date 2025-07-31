@@ -48,7 +48,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get effectSiteTarget => 'Effect Site Target';
 
   @override
-  String get emerge => 'Emerge';
+  String get emerge => 'Wake';
 
   @override
   String get female => 'Female';

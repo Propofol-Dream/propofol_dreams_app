@@ -65,7 +65,7 @@
     },
 
 
-    "emerge": "Emerge",
+    "emerge": "Wake",
     "@emerge": {
         "description": ""
     },

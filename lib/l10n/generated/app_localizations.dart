@@ -183,7 +183,7 @@ abstract class AppLocalizations {
   ///
   ///
   /// In en, this message translates to:
-  /// **'Emerge'**
+  /// **'Wake'**
   String get emerge;
 
   ///
