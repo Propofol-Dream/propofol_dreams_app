@@ -325,11 +325,11 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     final mediaQuery = MediaQuery.of(context);
 
-    final double UIHeight = mediaQuery.size.aspectRatio >= 0.455
+    final double UIHeight = (mediaQuery.size.aspectRatio >= 0.455
         ? mediaQuery.size.height >= screenBreakPoint1
             ? 56
             : 48
-        : 48;
+        : 48) + (Platform.isAndroid ? 4 : 0);
     final double UIWidth =
         (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
 

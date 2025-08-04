@@ -536,11 +536,11 @@ class _TCIScreenState extends State<TCIScreen> {
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final double UIHeight = mediaQuery.size.aspectRatio >= 0.455
+    final double UIHeight = (mediaQuery.size.aspectRatio >= 0.455
         ? mediaQuery.size.height >= screenBreakPoint1
             ? 56
             : 48
-        : 48;
+        : 48) + (Platform.isAndroid ? 4 : 0);
     final double UIWidth =
         (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
     final double screenHeight = mediaQuery.size.height -
@@ -639,27 +639,31 @@ class _TCIScreenState extends State<TCIScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 buildModelSelector(settings, UIHeight),
-                SizedBox(
-                    height: UIHeight,
-                    width: UIHeight,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.all(0),
-                        backgroundColor: Theme.of(context).colorScheme.onPrimary,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                              strokeAlign: BorderSide.strokeAlignOutside,
-                            ),
-                            borderRadius: const BorderRadius.all(Radius.circular(5))),
-                      ),
-                      onPressed: () async {
-                        await HapticFeedback.mediumImpact();
-                        reset(toDefault: true);
-                      },
-                      child: const Icon(Icons.restart_alt_outlined),
-                    )),
+                Row(
+                  children: [
+                    Container(
+                        height: UIHeight,
+                        width: UIHeight,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.all(0),
+                            backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  strokeAlign: BorderSide.strokeAlignOutside,
+                                ),
+                                borderRadius: const BorderRadius.all(Radius.circular(5))),
+                          ),
+                          onPressed: () async {
+                            await HapticFeedback.mediumImpact();
+                            reset(toDefault: true);
+                          },
+                          child: Icon(Icons.restart_alt_outlined),
+                        )),
+                  ],
+                ),
               ],
             ),
           ),
