@@ -1202,7 +1202,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                 : showWakeAlertDialog(context);
                           },
                           child:
-                              Center(child: Icon(Symbols.help_center)),
+                              Center(child: Icon(Symbols.question_mark)),
                         )),
                     SizedBox(
                       width: 8,
