@@ -135,6 +135,12 @@ abstract class AppLocalizations {
   ///
   ///
   /// In en, this message translates to:
+  /// **'Bolus'**
+  String get bolus;
+
+  ///
+  ///
+  /// In en, this message translates to:
   /// **'Boy'**
   String get boy;
 
@@ -161,6 +167,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drug'**
   String get drug;
+
+  ///
+  ///
+  /// In en, this message translates to:
+  /// **'Drug Concentration'**
+  String get drugConcentration;
 
   ///
   ///
@@ -315,6 +327,42 @@ abstract class AppLocalizations {
   ///
   ///
   /// In en, this message translates to:
+  /// **'Propofol'**
+  String get propofol;
+
+  ///
+  ///
+  /// In en, this message translates to:
+  /// **'Remifentanil'**
+  String get remifentanil;
+
+  ///
+  ///
+  /// In en, this message translates to:
+  /// **'Dexmedetomidine'**
+  String get dexmedetomidine;
+
+  ///
+  ///
+  /// In en, this message translates to:
+  /// **'Remimazolam'**
+  String get remimazolam;
+
+  ///
+  ///
+  /// In en, this message translates to:
+  /// **'Rate'**
+  String get rate;
+
+  ///
+  ///
+  /// In en, this message translates to:
+  /// **'Select Drug'**
+  String get selectDrug;
+
+  ///
+  ///
+  /// In en, this message translates to:
   /// **'Propofol Formulation'**
   String get propofolFormulation;
 
@@ -341,6 +389,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Target'**
   String get target;
+
+  ///
+  ///
+  /// In en, this message translates to:
+  /// **'TCI'**
+  String get tci;
+
+  ///
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get time;
 
   ///
   ///

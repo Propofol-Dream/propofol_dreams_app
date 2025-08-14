@@ -380,7 +380,7 @@ class _TCIScreenState extends State<TCIScreen> {
       'Remifentanil', 
       'Dexmedetomidine', // Longest name
       'Remimazolam',
-      'Select Drug', // Default text
+      AppLocalizations.of(context)!.selectDrug, // Default text
     ];
     
     // Get the text style used in the TextField
@@ -400,7 +400,7 @@ class _TCIScreenState extends State<TCIScreen> {
           TextField(
             enabled: true,
             readOnly: true,
-            controller: TextEditingController(text: selectedDrug?.displayName ?? 'Select Drug'),
+            controller: TextEditingController(text: selectedDrug?.toLocalizedString(context) ?? AppLocalizations.of(context)!.selectDrug),
             style: TextStyle(
               color: hasValidationError 
                 ? Theme.of(context).colorScheme.error

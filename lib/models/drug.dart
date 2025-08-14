@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'drug_unit.dart';
 import 'target_unit.dart';
+import '../l10n/generated/app_localizations.dart';
 
 enum Drug {
   // Propofol concentrations
@@ -129,6 +130,29 @@ extension DrugTypeExtension on Drug {
   bool get isDexmedetomidine => this == Drug.dexmedetomidine;
   
   bool get isRemimazolam => this == Drug.remimazolam1mg || this == Drug.remimazolam2mg;
+}
+
+/// Extension for drug localization
+extension DrugLocalizationExtension on Drug {
+  /// Get localized drug name from ARB files
+  String toLocalizedString(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    
+    switch (this) {
+      case Drug.propofol10mg:
+      case Drug.propofol20mg:
+        return localizations.propofol;
+      case Drug.remifentanil20mcg:
+      case Drug.remifentanil40mcg:
+      case Drug.remifentanil50mcg:
+        return localizations.remifentanil;
+      case Drug.dexmedetomidine:
+        return localizations.dexmedetomidine;
+      case Drug.remimazolam1mg:
+      case Drug.remimazolam2mg:
+        return localizations.remimazolam;
+    }
+  }
 }
 
 /// Helper class for drug concentration with unit

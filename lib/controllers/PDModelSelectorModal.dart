@@ -5,6 +5,7 @@ import '../models/model.dart';
 import '../models/drug.dart';
 import '../models/sex.dart';
 import '../providers/settings.dart';
+import '../l10n/generated/app_localizations.dart';
 import 'PDAdvancedSegmentedController.dart';
 import 'PDSwitchController.dart';
 
@@ -295,7 +296,7 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
             ),
           ),
           child: Text(
-            drug.displayName, // Show drug name only, not concentration
+            drug.toLocalizedString(context), // Show localized drug name
             textAlign: TextAlign.center,
           ),
         ),
@@ -356,7 +357,7 @@ class _PDModelSelectorModalState extends State<PDModelSelectorModal> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      widget.isTCIScreen ? 'Select Drug' : 'Select Model',
+                      widget.isTCIScreen ? AppLocalizations.of(context)!.selectDrug : 'Select Model',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),

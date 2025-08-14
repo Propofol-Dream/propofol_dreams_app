@@ -24,6 +24,11 @@
         "description": ""
     },
 
+    "bolus": "Bolus",
+    "@bolus": {
+        "description": ""
+    },
+
     "boy": "Boy",
     "@boy": {
         "description": ""
@@ -46,6 +51,11 @@
 
     "drug": "Drug",
     "@drug": {
+        "description": ""
+    },
+
+    "drugConcentration": "Drug Concentration",
+    "@drugConcentration": {
         "description": ""
     },
 
@@ -175,6 +185,36 @@
         "description": ""
     },
 
+    "propofol": "Propofol",
+    "@propofol": {
+        "description": ""
+    },
+
+    "remifentanil": "Remifentanil",
+    "@remifentanil": {
+        "description": ""
+    },
+
+    "dexmedetomidine": "Dexmedetomidine",
+    "@dexmedetomidine": {
+        "description": ""
+    },
+
+    "remimazolam": "Remimazolam",
+    "@remimazolam": {
+        "description": ""
+    },
+
+    "rate": "Rate",
+    "@rate": {
+        "description": ""
+    },
+
+    "selectDrug": "Select Drug",
+    "@selectDrug": {
+        "description": ""
+    },
+
     "propofolFormulation": "Propofol Formulation",
     "@propofolFormulation": {
         "description": ""
@@ -197,6 +237,16 @@
 
     "target": "Target",
     "@target": {
+        "description": ""
+    },
+
+    "tci": "TCI",
+    "@tci": {
+        "description": ""
+    },
+
+    "time": "Time",
+    "@time": {
         "description": ""
     },
 

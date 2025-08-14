@@ -24,6 +24,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get auto => '自动';
 
   @override
+  String get bolus => '推注';
+
+  @override
   String get boy => '男孩';
 
   @override
@@ -36,7 +39,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dark => '暗';
 
   @override
-  String get drug => '麻醉药品';
+  String get drug => '麻醉药物';
+
+  @override
+  String get drugConcentration => '药物浓度';
 
   @override
   String get duration => '时间';
@@ -114,6 +120,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get predicted => '预测';
 
   @override
+  String get propofol => '丙泊酚';
+
+  @override
+  String get remifentanil => '瑞芬';
+
+  @override
+  String get dexmedetomidine => '右美';
+
+  @override
+  String get remimazolam => '瑞美唑仑';
+
+  @override
+  String get rate => '泵速';
+
+  @override
+  String get selectDrug => '选择药物';
+
+  @override
   String get propofolFormulation => '丙泊酚浓度';
 
   @override
@@ -127,6 +151,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get target => '目标';
+
+  @override
+  String get tci => '靶控';
+
+  @override
+  String get time => '时间';
 
   @override
   String get volume => '容量';
@@ -161,6 +191,9 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get auto => '自动';
 
   @override
+  String get bolus => '推注';
+
+  @override
   String get boy => '男孩';
 
   @override
@@ -173,7 +206,10 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get dark => '暗';
 
   @override
-  String get drug => '麻醉药品';
+  String get drug => '麻醉药物';
+
+  @override
+  String get drugConcentration => '药物浓度';
 
   @override
   String get duration => '时间';
@@ -251,6 +287,24 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get predicted => '预测';
 
   @override
+  String get propofol => '丙泊酚';
+
+  @override
+  String get remifentanil => '瑞芬';
+
+  @override
+  String get dexmedetomidine => '右美';
+
+  @override
+  String get remimazolam => '瑞美唑仑';
+
+  @override
+  String get rate => '泵速';
+
+  @override
+  String get selectDrug => '选择药物';
+
+  @override
   String get propofolFormulation => '丙泊酚浓度';
 
   @override
@@ -264,6 +318,12 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get target => '目标';
+
+  @override
+  String get tci => '靶控';
+
+  @override
+  String get time => '时间';
 
   @override
   String get volume => '容量';
@@ -298,6 +358,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get auto => '自動';
 
   @override
+  String get bolus => '推注';
+
+  @override
   String get boy => '男孩';
 
   @override
@@ -310,7 +373,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get dark => '暗';
 
   @override
-  String get drug => '麻醉药品';
+  String get drug => '麻醉藥物';
+
+  @override
+  String get drugConcentration => '藥物濃度';
 
   @override
   String get duration => '時間';
@@ -388,6 +454,24 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get predicted => '預測';
 
   @override
+  String get propofol => '丙泊酚';
+
+  @override
+  String get remifentanil => '瑞芬';
+
+  @override
+  String get dexmedetomidine => '右美';
+
+  @override
+  String get remimazolam => '瑞美唑侖';
+
+  @override
+  String get rate => '泵速';
+
+  @override
+  String get selectDrug => '選擇藥物';
+
+  @override
   String get propofolFormulation => '丙泊酚濃度';
 
   @override
@@ -401,6 +485,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get target => '目標';
+
+  @override
+  String get tci => '靶控';
+
+  @override
+  String get time => '時間';
 
   @override
   String get volume => '容量';

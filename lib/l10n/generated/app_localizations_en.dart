@@ -24,6 +24,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get auto => 'Auto';
 
   @override
+  String get bolus => 'Bolus';
+
+  @override
   String get boy => 'Boy';
 
   @override
@@ -37,6 +40,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get drug => 'Drug';
+
+  @override
+  String get drugConcentration => 'Drug Concentration';
 
   @override
   String get duration => 'Duration';
@@ -114,6 +120,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get predicted => 'Predicted';
 
   @override
+  String get propofol => 'Propofol';
+
+  @override
+  String get remifentanil => 'Remifentanil';
+
+  @override
+  String get dexmedetomidine => 'Dexmedetomidine';
+
+  @override
+  String get remimazolam => 'Remimazolam';
+
+  @override
+  String get rate => 'Rate';
+
+  @override
+  String get selectDrug => 'Select Drug';
+
+  @override
   String get propofolFormulation => 'Propofol Formulation';
 
   @override
@@ -127,6 +151,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get target => 'Target';
+
+  @override
+  String get tci => 'TCI';
+
+  @override
+  String get time => 'Time';
 
   @override
   String get volume => 'Volume';

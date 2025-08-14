@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 import '../models/model.dart';
 import '../models/drug.dart';
 import '../models/sex.dart';
@@ -99,7 +100,10 @@ class PDAdvancedSegmentedController extends ChangeNotifier {
       useSafeArea: true,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+          bottom: max(
+            MediaQuery.of(context).viewInsets.bottom,
+            MediaQuery.of(context).viewPadding.bottom,
+          ),
         ),
         child: PDModelSelectorModal(
           controller: this,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/infusion_regime_data.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// Helper function to format bolus values with conditional decimal places
 /// Matches the rounding logic from InfusionRegimeData:
@@ -372,7 +373,11 @@ class _AnimatedInfusionRegimeTableState extends State<AnimatedInfusionRegimeTabl
             scale: Tween<double>(begin: 0.95, end: 1.0).animate(_contentAnimation),
             child: DataTable(
               data: tableData,
-              headers: const ['Bolus (mL)', 'Rate (mL/hr)', 'Total (mL)'],
+              headers: [
+                '${AppLocalizations.of(context)!.bolus} (mL)', 
+                '${AppLocalizations.of(context)!.rate} (mL/hr)', 
+                'Total (mL)'
+              ],
               maxVisibleRows: widget.maxVisibleRows,
               selectedRowIndex: widget.selectedRowIndex,
               onRowTap: widget.onRowTap,
@@ -481,7 +486,7 @@ class DataTable extends StatelessWidget {
           // Time column (20%)
           Expanded(
             flex: 20,
-            child: Text('Time', style: headerStyle),
+            child: Text(AppLocalizations.of(context)!.time, style: headerStyle),
           ),
           // Data columns - dynamically generate based on headers
           ...headers.asMap().entries.map((entry) {
@@ -603,7 +608,11 @@ class InfusionRegimeTableCompact extends StatelessWidget {
 
     return DataTable(
       data: tableData,
-      headers: const ['Bolus (mL)', 'Rate (mL/hr)', 'Total (mL)'],
+      headers: [
+        '${AppLocalizations.of(context)!.bolus} (mL)', 
+        '${AppLocalizations.of(context)!.rate} (mL/hr)', 
+        'Total (mL)'
+      ],
       maxVisibleRows: maxRows,
     );
   }
@@ -852,7 +861,7 @@ class DosageDataTable extends StatelessWidget {
           // Bolus label (30%)
           Expanded(
             flex: 30,
-            child: Text('Bolus', style: headerStyle),
+            child: Text(AppLocalizations.of(context)!.bolus, style: headerStyle),
           ),
           // Bolus value (70%) - matches time value styling
           Expanded(
@@ -888,13 +897,13 @@ class DosageDataTable extends StatelessWidget {
           // Time column (30%)
           Expanded(
             flex: 30,
-            child: Text('Time', style: headerStyle),
+            child: Text(AppLocalizations.of(context)!.time, style: headerStyle),
           ),
           // Rate column (70%)
           Expanded(
             flex: 70,
             child: Text(
-              'Rate (mL/hr)', 
+              '${AppLocalizations.of(context)!.rate} (mL/hr)', 
               style: headerStyle, 
               textAlign: TextAlign.center,
             ),

@@ -24,6 +24,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get auto => '自動';
 
   @override
+  String get bolus => 'ボーラス';
+
+  @override
   String get boy => '男の子';
 
   @override
@@ -39,13 +42,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drug => '麻酔薬剤';
 
   @override
+  String get drugConcentration => '薬物濃度';
+
+  @override
   String get duration => '時間';
 
   @override
   String get effectSite => '効果部位';
 
   @override
-  String get effectSiteTarget => '効果部位目標濃度';
+  String get effectSiteTarget => '効果部位濃度の目標値';
 
   @override
   String get emerge => '覚醒';
@@ -108,10 +114,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String get plasma => '血漿';
 
   @override
-  String get plasmaTarget => '血漿目標濃度';
+  String get plasmaTarget => '血中濃度の目標値';
 
   @override
   String get predicted => '予測された';
+
+  @override
+  String get propofol => 'プロポフォール';
+
+  @override
+  String get remifentanil => 'レミフェン';
+
+  @override
+  String get dexmedetomidine => 'デクス';
+
+  @override
+  String get remimazolam => 'レミマゾラム';
+
+  @override
+  String get rate => 'ポンプ速度';
+
+  @override
+  String get selectDrug => '薬剤を選択';
 
   @override
   String get propofolFormulation => 'プロポフォール製剤';
@@ -127,6 +151,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get target => 'ターゲット';
+
+  @override
+  String get tci => 'TCI';
+
+  @override
+  String get time => '時間';
 
   @override
   String get volume => '容積';
