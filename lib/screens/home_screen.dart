@@ -8,7 +8,7 @@ import '../providers/settings.dart';
 import 'volume_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
-import 'tci_screen.dart';
+import 'tci_screen_new.dart'; // Using new TCI screen temporarily
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,7 +19,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int currenIndex = 1;
+  int currenIndex = 1; // Start with TCI screen (index 1)
   final screens = [
     EleMarshScreen(),
     const TCIScreen(), // Moved to position 1 (TCI screen)
