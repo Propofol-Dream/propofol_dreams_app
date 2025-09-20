@@ -8,7 +8,7 @@ import '../providers/settings.dart';
 import 'volume_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
-import 'tci_screen_new.dart'; // Using new TCI screen temporarily
+import 'tci_screen.dart'; // Using original TCI screen
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {

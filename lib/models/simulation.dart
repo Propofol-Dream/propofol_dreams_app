@@ -95,6 +95,20 @@ class Simulation {
     return ce.reduce(max);
   }
 
+  Duration? getVolumeTime(double targetVolume) {
+    var estimate = this.estimate;
+    for (int i = 0; i < estimate.cumulativeInfusedVolumes.length; i++) {
+      if (estimate.cumulativeInfusedVolumes[i] >= targetVolume) {
+        return estimate.times[i];
+      }
+    }
+    return null; // Volume threshold never reached
+  }
+
+  // Convenience methods for standard propofol vial sizes
+  Duration? get vial20mlTime => getVolumeTime(20.0);
+  Duration? get vial50mlTime => getVolumeTime(50.0);
+
   ({
     List<double> A1s,
     List<double> A2s,
@@ -587,45 +601,6 @@ class Simulation {
     }
     return cumSums;
   }
-
-  // TODO: depreciate toCsv, new version implemented
-  // String toCsv(Map<String, dynamic> map) {
-  //   String csv = '';
-  //   int length = 0;
-  //
-  //   for (var key in map.keys) {
-  //     csv = '$csv$key, ';
-  //     length = map[key].length;
-  //   }
-  //   csv = '${csv.substring(0, csv.length - 2)}\n';
-  //
-  //   for (int i = 0; i < length; i++) {
-  //     // print(i.toString() + ' : ' + (length-1).toString());
-  //     for (var key in map.keys) {
-  //       csv = '$csv${map[key][i]}, ';
-  //     }
-  //     csv = '${csv.substring(0, csv.length - 2)}\n';
-  //   }
-  //   return csv;
-  // }
-
-  // TODO: depreciate toJson, new version implemented
-  // Map<String, String> toJson(Map<String, dynamic> map) {
-  //   Map<String, String> json = {};
-  //
-  //   for (var key in map.keys) {
-  //     if (!json.containsKey(key)) {
-  //       String values = '[';
-  //       for (var val in map[key]) {
-  //         values = '$values\'$val\', ';
-  //       }
-  //       values = '${values.substring(0, values.length - 2)}]';
-  //       // print(values);
-  //       json['\'${key.toString()}\''] = values;
-  //     }
-  //   }
-  //   return (json);
-  // }
 
   String toCsv() {
     var estimate = this.estimate;

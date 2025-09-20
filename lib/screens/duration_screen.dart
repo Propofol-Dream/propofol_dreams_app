@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -252,13 +253,20 @@ class _DurationScreenState extends State<DurationScreen> {
             ? false
             : true;
 
-    return Container(
-      height: screenHeight,
-      padding:
-          const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+        final availableHeight = constraints.maxHeight - keyboardHeight;
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.only(bottom: keyboardHeight),
+          child: Container(
+            height: math.max(availableHeight, screenHeight),
+            padding:
+                const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
           // Top spacer to push content to bottom
           Expanded(child: Container()),
           // Duration table with consistent styling
@@ -346,8 +354,11 @@ class _DurationScreenState extends State<DurationScreen> {
           const SizedBox(
             height: 32,
           )
-        ],
-      ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

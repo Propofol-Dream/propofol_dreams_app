@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' show Platform;
+import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -59,6 +60,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   String BMI = "--";
   String predictedBIS = "--";
   String range = "--";
+  String vial20mlTime = "--";
+  String vial50mlTime = "--";
 
   @override
   void initState() {
@@ -228,6 +231,17 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           predictedBIS = resultInduction.predictedBIS.toStringAsFixed(0);
           BMI = patient.bmi.toStringAsFixed(1);
 
+          // Format vial times
+          String formatDuration(Duration? duration) {
+            if (duration == null) return "--";
+            int minutes = duration.inMinutes;
+            int seconds = duration.inSeconds % 60;
+            return "${minutes}:${seconds.toString().padLeft(2, '0')}";
+          }
+
+          vial20mlTime = formatDuration(resultInduction.vial20mlTime);
+          vial50mlTime = formatDuration(resultInduction.vial50mlTime);
+
           String lower = resultWakeUp.lower.toStringAsFixed(2);
           String upper = resultWakeUp.upper.toStringAsFixed(2);
 
@@ -252,6 +266,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           inductionCPTarget = "--";
           manualBolus = "--";
           range = "--";
+          vial20mlTime = "--";
+          vial50mlTime = "--";
         });
       }
     } else {
@@ -261,6 +277,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         inductionCPTarget = "--";
         manualBolus = "--";
         range = "--";
+        vial20mlTime = "--";
+        vial50mlTime = "--";
       });
     }
   }
@@ -790,13 +808,20 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
       }
     }
 
-    return Container(
-      height: screenHeight,
-      margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+        final availableHeight = constraints.maxHeight - keyboardHeight;
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.only(bottom: keyboardHeight),
+          child: Container(
+            height: math.max(availableHeight, screenHeight),
+            margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
           Expanded(child: Container()),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -845,7 +870,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                 Opacity(
                   opacity: flowController.val == 0 ? 1 : 0,
                   child: Container(
-                    height: flowController.val == 0 ? rowHeight * 3 : 0,
+                    height: flowController.val == 0 ? rowHeight * 4 : 0,
                     child: Column(
                       children: [
                         Container(
@@ -1012,6 +1037,83 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "20ml Vial",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          ),
+                                        ),
+                                        SizedBox(width: 8.0),
+                                        Text(
+                                          vial20mlTime,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "50ml Vial",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          ),
+                                        ),
+                                        SizedBox(width: 8.0),
+                                        Text(
+                                          vial50mlTime,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(left: 16.0),
+                                child: Divider(
+                                  height: 1.0,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        Container(
+                          height: rowHeight,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Divider(
+                                height: 0.0,
+                                color: Colors.transparent,
+                              ),
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
                                     Container(
                                       child: Row(
                                         children: [
@@ -1019,6 +1121,9 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                             "${AppLocalizations.of(context)!.predicted} BIS",
                                             style: TextStyle(
                                               fontSize: 16,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
                                             ),
                                           ),
                                           SizedBox(
@@ -1041,7 +1146,12 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                       children: [
                                         Text(
                                           "BMI",
-                                          style: TextStyle(fontSize: 16),
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          ),
                                         ),
                                         SizedBox(
                                           width: 8.0,
@@ -1051,8 +1161,12 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                             Text(
                                               "$BMI",
                                               style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold),
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -1450,8 +1564,11 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           const SizedBox(
             height: 8,
           ),
-        ],
-      ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

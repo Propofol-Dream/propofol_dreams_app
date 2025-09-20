@@ -5,6 +5,8 @@
         android:icon="@mipmap/ic_launcher"
         android:label="Propofol Dreams"
         android:roundIcon="@mipmap/ic_launcher_round">
+
+        <!-- Support for 16 KB memory page sizes (Google Play requirement) -->
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"

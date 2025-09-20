@@ -17,6 +17,11 @@ class EleMarsh {
     double inductionCPTarget,
     double manualBolus,
     double predictedBIS,
+    Simulation goldSimulationBest,
+    Simulation marshSimulationBest,
+    Simulation guessSimulationBest,
+    Duration? vial20mlTime,
+    Duration? vial50mlTime,
   }) estimate({required double weightBound, required double bolusBound}) {
     // Set up results
     List<int> weightGuesses = [];
@@ -128,6 +133,11 @@ class EleMarsh {
     inductionCPTarget = marshSimTargetIncEstimates[guessIndex];
     double adjustmentBolus = bolusBestGuess / 4;
 
+    // Extract the optimal simulation objects using the best guess index
+    Simulation goldSimulationBest = goldSimulations[guessIndex];
+    Simulation marshSimulationBest = marshSimulations[guessIndex];
+    Simulation guessSimulationBest = guessSimulations[guessIndex];
+
     // Getting manualBolus
     Simulation marshBestSim = marshSimulations[guessIndex];
     double V1 = marshBestSim.variables.V1;
@@ -137,13 +147,22 @@ class EleMarsh {
         age: goldSimulation.patient.age,
         target: goldSimulation.pump.target);
 
+    // Calculate vial preparation times from guess simulation
+    Duration? vial20mlTime = guessSimulationBest.vial20mlTime;
+    Duration? vial50mlTime = guessSimulationBest.vial50mlTime;
+
     return (
       weightBestGuess: weightBestGuess,
       bolusBestGuess: bolusBestGuess,
       adjustmentBolus: adjustmentBolus,
       inductionCPTarget: inductionCPTarget,
-      manualBolus:manualBolus,
-      predictedBIS: predictedBIS
+      manualBolus: manualBolus,
+      predictedBIS: predictedBIS,
+      goldSimulationBest: goldSimulationBest,
+      marshSimulationBest: marshSimulationBest,
+      guessSimulationBest: guessSimulationBest,
+      vial20mlTime: vial20mlTime,
+      vial50mlTime: vial50mlTime
     );
   }
 

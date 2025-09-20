@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -574,13 +575,20 @@ class _TCIScreenState extends State<TCIScreen> {
     final ageTextFieldEnabled = tciModelController.selection != Model.Marsh && 
                                 selectedDrug?.isDexmedetomidine != true;
 
-    return Container(
-      height: screenHeight,
-      margin: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+        final availableHeight = constraints.maxHeight - keyboardHeight;
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.only(bottom: keyboardHeight),
+          child: Container(
+            height: math.max(availableHeight, screenHeight),
+            margin: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
           // Top half - Results area
           Expanded(
             child: Column(
@@ -780,8 +788,11 @@ class _TCIScreenState extends State<TCIScreen> {
             ),
           ),
           const SizedBox(height: 8),
-        ],
-      ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

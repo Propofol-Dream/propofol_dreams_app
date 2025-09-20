@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:io' show Platform;
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -715,13 +716,20 @@ class _VolumeScreenState extends State<VolumeScreen> {
     final ageTextFieldEnabled = !(settings.inAdultView &&
         adultModelController.selection == Model.Marsh);
 
-    return Container(
-      height: screenHeight,
-      margin: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+        final availableHeight = constraints.maxHeight - keyboardHeight;
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.only(bottom: keyboardHeight),
+          child: Container(
+            height: math.max(availableHeight, screenHeight),
+            margin: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
           Expanded(
             child: Column(
               children: [
@@ -1014,8 +1022,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
           const SizedBox(
             height: 8,
           ),
-        ],
-      ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
