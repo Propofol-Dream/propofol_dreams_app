@@ -12,57 +12,57 @@ app.propofoldreams.org {
     file_server
 
     # Enable compression for better performance
-    encode {
-        gzip 6
-        zstd
-        minimum_length 1024
-    }
+    # encode {
+    #     gzip 6
+    #     zstd
+    #     minimum_length 1024
+    # }
 
-    # Security headers for web applications
-    header {
-        # Prevent MIME type sniffing
-        X-Content-Type-Options nosniff
+    # # Security headers for web applications
+    # header {
+    #     # Prevent MIME type sniffing
+    #     X-Content-Type-Options nosniff
 
-        # Prevent clickjacking attacks
-        X-Frame-Options DENY
+    #     # Prevent clickjacking attacks
+    #     X-Frame-Options DENY
 
-        # Control referrer information
-        Referrer-Policy strict-origin-when-cross-origin
+    #     # Control referrer information
+    #     Referrer-Policy strict-origin-when-cross-origin
 
-        # Enable XSS protection
-        X-XSS-Protection "1; mode=block"
+    #     # Enable XSS protection
+    #     X-XSS-Protection "1; mode=block"
 
-        # Content Security Policy (adjust as needed for your app)
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';"
-    }
+    #     # Content Security Policy (adjust as needed for your app)
+    #     Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';"
+    # }
 
-    # Cache static assets for better performance
-    @static {
-        file
-        path *.js *.css *.woff *.woff2 *.ttf *.eot *.ico *.png *.jpg *.jpeg *.gif *.svg *.webp
-    }
-    header @static {
-        Cache-Control "public, max-age=31536000, immutable"
-    }
+    # # Cache static assets for better performance
+    # @static {
+    #     file
+    #     path *.js *.css *.woff *.woff2 *.ttf *.eot *.ico *.png *.jpg *.jpeg *.gif *.svg *.webp
+    # }
+    # header @static {
+    #     Cache-Control "public, max-age=31536000, immutable"
+    # }
 
-    # Cache HTML files for shorter duration
-    @html {
-        file
-        path *.html
-    }
-    header @html {
-        Cache-Control "public, max-age=3600"
-    }
+    # # Cache HTML files for shorter duration
+    # @html {
+    #     file
+    #     path *.html
+    # }
+    # header @html {
+    #     Cache-Control "public, max-age=3600"
+    # }
 
-    # Handle Flutter routing - serve index.html for all routes
-    # This is essential for Flutter web apps with client-side routing
-    try_files {path} /index.html
+    # # Handle Flutter routing - serve index.html for all routes
+    # # This is essential for Flutter web apps with client-side routing
+    # try_files {path} /index.html
 
-    # Optional: Add basic logging
-    log {
-        output file /var/log/caddy/propofol-dreams.log
-        format json
-    }
+    # # Optional: Add basic logging
+    # log {
+    #     output file /var/log/caddy/propofol-dreams.log
+    #     format json
+    # }
 
     # Optional: Rate limiting to prevent abuse
     # rate_limit {
