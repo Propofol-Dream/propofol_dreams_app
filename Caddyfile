@@ -3,7 +3,7 @@
 
 # Replace 'your-domain.com' with your actual domain
 # For local testing, you can use 'localhost' or 'localhost:8080'
-your-domain.com {
+app.propofoldreams.org {
     # Serve static files from the Docker volume
     # This path should match the volume mount in your Caddy container
     root * /srv
