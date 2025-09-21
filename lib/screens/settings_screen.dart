@@ -181,91 +181,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    AppLocalizations.of(context)!.drugConcentration,
-                    style: const TextStyle(fontSize: 18,),
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  // Propofol - with selection
-                  _buildDrugConcentrationSection(
-                    Drug.propofol10mg, 
-                    settings, 
-                    UIHeight, 
-                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  // Remifentanil - with selection
-                  _buildDrugConcentrationSection(
-                    Drug.remifentanil50mcg,
-                    settings, 
-                    UIHeight, 
-                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  // Dexmedetomidine - display only
-                  _buildDrugConcentrationSection(
-                    Drug.dexmedetomidine, 
-                    settings, 
-                    UIHeight, 
-                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  // Remimazolam - with selection
-                  _buildDrugConcentrationSection(
-                    Drug.remimazolam1mg, 
-                    settings, 
-                    UIHeight, 
-                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   Text(
-                    AppLocalizations.of(context)!.maximumPumpRate,
-                     style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  SizedBox(
-                    height: UIHeight + 24,
-                    child: PDTextField(
-                        prefixIcon: Icons.settings_input_component_outlined,
-                        labelText: '${AppLocalizations.of(context)!.pumpRate} (mL/hr)',
-                        interval: 50,
-                        fractionDigits: 0,
-                        controller: pumpController,
-                        onPressed: () {
-                          int? pumpRate = int.tryParse(pumpController.text);
-                          if (pumpRate != null) {
-                            settings.max_pump_rate = pumpRate;
-                          }
-                        },
-                        range: const [0, 1500]),
-                  )
-                ],
-              ),
-              // Divider(
-              //   color: Theme.of(context).colorScheme.primary,
-              // ),
-              const SizedBox(
-                height: 16,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
                    Text(
                     AppLocalizations.of(context)!.appearance,
                      style: const TextStyle(fontSize: 18),
@@ -311,6 +226,94 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   //     },
                   //     child: Text('Clear'))
                 ],
+              ),
+              const SizedBox(
+                height: 24,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.drugConcentration,
+                    style: const TextStyle(fontSize: 18,),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Propofol - with selection
+                  _buildDrugConcentrationSection(
+                    Drug.propofol10mg,
+                    settings,
+                    UIHeight,
+                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Remifentanil - with selection
+                  _buildDrugConcentrationSection(
+                    Drug.remifentanil50mcg,
+                    settings,
+                    UIHeight,
+                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Dexmedetomidine - display only
+                  _buildDrugConcentrationSection(
+                    Drug.dexmedetomidine,
+                    settings,
+                    UIHeight,
+                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Remimazolam - with selection
+                  _buildDrugConcentrationSection(
+                    Drug.remimazolam1mg,
+                    settings,
+                    UIHeight,
+                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 24,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   Text(
+                    AppLocalizations.of(context)!.maximumPumpRate,
+                     style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  SizedBox(
+                    height: UIHeight + 24,
+                    child: PDTextField(
+                        prefixIcon: Icons.settings_input_component_outlined,
+                        labelText: '${AppLocalizations.of(context)!.pumpRate} (mL/hr)',
+                        interval: 50,
+                        fractionDigits: 0,
+                        controller: pumpController,
+                        onPressed: () {
+                          int? pumpRate = int.tryParse(pumpController.text);
+                          if (pumpRate != null) {
+                            settings.max_pump_rate = pumpRate;
+                          }
+                        },
+                        range: const [0, 1500]),
+                  )
+                ],
+              ),
+              // Divider(
+              //   color: Theme.of(context).colorScheme.primary,
+              // ),
+              const SizedBox(
+                height: 16,
               ),
             ],
           ),

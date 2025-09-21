@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +12,8 @@ import 'package:propofol_dreams_app/models/elemarsh.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
+import '../utils/responsive_helper.dart';
+import '../utils/text_measurement.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 import 'package:propofol_dreams_app/providers/settings.dart';
@@ -79,15 +80,15 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
   void _setControllersFromSettings(Settings settings) {
     sexController.val = settings.EMSex == Sex.Female ? true : false;
-    ageController.text = settings.EMAge?.toString() ?? '';
-    heightController.text = settings.EMHeight?.toString() ?? '';
-    weightController.text = settings.EMWeight?.toString() ?? '';
-    targetController.text = settings.EMTarget?.toString() ?? '';
+    ageController.text = settings.EMAge?.toString() ?? '40';
+    heightController.text = settings.EMHeight?.toString() ?? '170';
+    weightController.text = settings.EMWeight?.toString() ?? '70';
+    targetController.text = settings.EMTarget?.toString() ?? '3.0';
 
-    flowController.val = settings.EMFlow == 'induce' ? 0 : 1;
+    flowController.val = settings.EMFlow == 'wake' ? 1 : 0;
     modelController.val = settings.EMWakeUpModel == Model.Eleveld ? true : false;
-    maintenanceCeController.text = settings.EMMaintenanceCe?.toString() ?? '';
-    maintenanceSEController.text = settings.EMMaintenanceSE?.toString() ?? '';
+    maintenanceCeController.text = settings.EMMaintenanceCe?.toString() ?? '3.0';
+    maintenanceSEController.text = settings.EMMaintenanceSE?.toString() ?? '40';
     infusionRateController.text = settings.EMInfusionRate?.toString() ?? '';
     run(initState: true);
   }
@@ -347,14 +348,14 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         ? mediaQuery.size.height >= screenBreakPoint1
             ? 56
             : 48
-        : 48) + (Platform.isAndroid ? 4 : 0);
+        : 48) + (ResponsiveHelper.isAndroid() ? 4 : 0);
     final double UIWidth =
         (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
 
     final double rowHeight = 20 + 34 + 2 + 4;
 
     final double screenHeight = mediaQuery.size.height -
-        (Platform.isAndroid
+        (ResponsiveHelper.isAndroid()
             ? 48
             : mediaQuery.size.height >= screenBreakPoint1
                 ? 88
@@ -810,19 +811,22 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-        final availableHeight = constraints.maxHeight - keyboardHeight;
-
-        return SingleChildScrollView(
-          padding: EdgeInsets.only(bottom: keyboardHeight),
-          child: Container(
-            height: math.max(availableHeight, screenHeight),
-            margin: EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-          Expanded(child: Container()),
+        return Container(
+          padding: EdgeInsets.only(
+            left: horizontalSidesPaddingPixel,
+            right: horizontalSidesPaddingPixel,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            reverse: true,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight - MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: IntrinsicHeight(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -1037,54 +1041,79 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "20ml Vial",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            "eBIS",
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Theme.of(context).brightness == Brightness.light
+                                                  ? Color(0xFF2D2D2D)
+                                                  : Color(0xFFFAFAFA),
+                                            ),
                                           ),
-                                        ),
-                                        SizedBox(width: 8.0),
-                                        Text(
-                                          vial20mlTime,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
+                                          SizedBox(
+                                            width: 8.0,
                                           ),
-                                        ),
-                                      ],
+                                          Text(
+                                            "$predictedBIS",
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context).brightness == Brightness.light
+                                                  ? Color(0xFF2D2D2D)
+                                                  : Color(0xFFFAFAFA),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                     Row(
                                       children: [
                                         Text(
-                                          "50ml Vial",
+                                          "BMI",
                                           style: TextStyle(
                                             fontSize: 16,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
+                                            color: Theme.of(context).brightness == Brightness.light
+                                                ? Color(0xFF2D2D2D)
+                                                : Color(0xFFFAFAFA),
                                           ),
                                         ),
-                                        SizedBox(width: 8.0),
-                                        Text(
-                                          vial50mlTime,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
-                                          ),
+                                        SizedBox(
+                                          width: 8.0,
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "$BMI",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Theme.of(context).brightness == Brightness.light
+                                                    ? Color(0xFF2D2D2D)
+                                                    : Color(0xFFFAFAFA),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
+                                    // Row(
+                                    //   children: [
+                                    //     Text(
+                                    //       "MaxAPE",
+                                    //       style: TextStyle(fontSize: 14),
+                                    //     ),
+                                    //     SizedBox(
+                                    //       width: 8.0,
+                                    //     ),
+                                    //     Text(
+                                    //       "$MaxAPE %",
+                                    //       style: TextStyle(fontSize: 14),
+                                    //     ),
+                                    //   ],
+                                    // ),
                                   ],
                                 ),
                               ),
@@ -1114,79 +1143,54 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            "${AppLocalizations.of(context)!.predicted} BIS",
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                            ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "20ml",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Theme.of(context).brightness == Brightness.light
+                                                ? Color(0xFF2D2D2D)
+                                                : Color(0xFFFAFAFA),
                                           ),
-                                          SizedBox(
-                                            width: 8.0,
+                                        ),
+                                        SizedBox(width: 8.0),
+                                        Text(
+                                          vial20mlTime,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context).brightness == Brightness.light
+                                                ? Color(0xFF2D2D2D)
+                                                : Color(0xFFFAFAFA),
                                           ),
-                                          Text(
-                                            "$predictedBIS",
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                     Row(
                                       children: [
                                         Text(
-                                          "BMI",
+                                          "50ml",
                                           style: TextStyle(
                                             fontSize: 16,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
+                                            color: Theme.of(context).brightness == Brightness.light
+                                                ? Color(0xFF2D2D2D)
+                                                : Color(0xFFFAFAFA),
                                           ),
                                         ),
-                                        SizedBox(
-                                          width: 8.0,
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "$BMI",
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                              ),
-                                            ),
-                                          ],
+                                        SizedBox(width: 8.0),
+                                        Text(
+                                          vial50mlTime,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context).brightness == Brightness.light
+                                                ? Color(0xFF2D2D2D)
+                                                : Color(0xFFFAFAFA),
+                                          ),
                                         ),
                                       ],
                                     ),
-                                    // Row(
-                                    //   children: [
-                                    //     Text(
-                                    //       "MaxAPE",
-                                    //       style: TextStyle(fontSize: 14),
-                                    //     ),
-                                    //     SizedBox(
-                                    //       width: 8.0,
-                                    //     ),
-                                    //     Text(
-                                    //       "$MaxAPE %",
-                                    //       style: TextStyle(fontSize: 14),
-                                    //     ),
-                                    //   ],
-                                    // ),
                                   ],
                                 ),
                               ),
@@ -1262,14 +1266,19 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           const SizedBox(
             height: 24,
           ),
-          Container(
-            width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
-            child: Row(
+          Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2,
+                  width: TextMeasurement.calculateSegmentedControlWidth(
+                    context: context,
+                    segmentLabels: [
+                      AppLocalizations.of(context)!.induce,
+                      AppLocalizations.of(context)!.emerge
+                    ],
+                    textStyle: Theme.of(context).textTheme.bodyLarge ?? const TextStyle(fontSize: 14),
+                  ),
                   child: PDTextFieldSegmentedControl(
                       height: UIHeight,
                       fontSize: 14,
@@ -1347,7 +1356,6 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                   ],
                 ),
               ],
-            ),
           ),
           const SizedBox(
             height: 25,
@@ -1359,8 +1367,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
-                    width: UIWidth,
+                  Expanded(
                     child: PDSwitchField(
                       labelText: AppLocalizations.of(context)!.sex,
                       prefixIcon: sexController.val == true
@@ -1387,8 +1394,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                     width: 8,
                     height: 0,
                   ),
-                  Container(
-                    width: UIWidth,
+                  Expanded(
                     child: PDTextField(
                       prefixIcon: Icons.calendar_month,
                       labelText: AppLocalizations.of(context)!.age,
@@ -1412,9 +1418,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
-                    width:
-                        mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                  Expanded(
                     child: PDSwitchField(
                       labelText: AppLocalizations.of(context)!.model,
                       // labelText: "Model",
@@ -1444,8 +1448,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: UIWidth,
+                  Expanded(
                     child: PDTextField(
                       prefixIcon: Icons.straighten,
                       labelText: '${AppLocalizations.of(context)!.height} (cm)',
@@ -1461,8 +1464,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                     width: 8,
                     height: 0,
                   ),
-                  Container(
-                    width: UIWidth,
+                  Expanded(
                     child: PDTextField(
                       prefixIcon: Icons.monitor_weight_outlined,
                       labelText: '${AppLocalizations.of(context)!.weight} (kg)',
@@ -1485,9 +1487,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width:
-                        mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                  Expanded(
                     child: PDTextField(
                       prefixIcon: Icons.monitor_heart_outlined,
                       labelText:
@@ -1517,8 +1517,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    width: UIWidth * 2 + 8,
+                  Expanded(
                     child: PDTextField(
                       prefixIcon: Target.EffectSite.icon,
                       labelText:
@@ -1542,9 +1541,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    width:
-                        mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                  Expanded(
                     child: PDTextField(
                       prefixIcon: settings.EMWakeUpModel.target.icon,
                       labelText: settings.EMWakeUpModel == Model.Eleveld
@@ -1561,10 +1558,11 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
               ),
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
-              ],
+                  // Bottom padding for scrolling
+                  SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
+                  ],
+                ),
+              ),
             ),
           ),
         );

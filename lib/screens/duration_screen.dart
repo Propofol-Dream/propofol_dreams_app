@@ -1,9 +1,9 @@
-import 'dart:io' show Platform;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
+import '../utils/responsive_helper.dart';
 
 import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/controllers/PDTextField.dart';
@@ -239,7 +239,7 @@ class _DurationScreenState extends State<DurationScreen> {
         : 48;
 
     final double screenHeight = mediaQuery.size.height -
-        (Platform.isAndroid
+        (ResponsiveHelper.isAndroid()
             ? 48
             : mediaQuery.size.height >= screenBreakPoint1
                 ? 88
@@ -255,23 +255,25 @@ class _DurationScreenState extends State<DurationScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-        final availableHeight = constraints.maxHeight - keyboardHeight;
-
-        return SingleChildScrollView(
-          padding: EdgeInsets.only(bottom: keyboardHeight),
-          child: Container(
-            height: math.max(availableHeight, screenHeight),
-            padding:
-                const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-          // Top spacer to push content to bottom
-          Expanded(child: Container()),
-          // Duration table with consistent styling
-          mediaQuery.size.height >= screenBreakPoint1
-              ? DurationDataTable(
+        return Container(
+          padding: EdgeInsets.only(
+            left: horizontalSidesPaddingPixel,
+            right: horizontalSidesPaddingPixel,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            reverse: true,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight - MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: IntrinsicHeight(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+              // Duration table with consistent styling
+              if (mediaQuery.size.height >= screenBreakPoint1)
+                DurationDataTable(
                   rows: durationRows,
                   maxVisibleRows: 6,
                   scrollController: tableScrollController,
@@ -284,77 +286,79 @@ class _DurationScreenState extends State<DurationScreen> {
                       settings.selectedDurationTableRow = index;
                     }
                   },
-                )
-              : Container(),
-          const SizedBox(
-            height: 16,
-          ),
-          Container(
-            alignment: Alignment.topCenter,
-            height: UIHeight + 24,
-            child: PDTextField(
-              prefixIcon: Icons.monitor_weight_outlined,
-              labelText: '${AppLocalizations.of(context)!.weight} (kg)',
-              controller: weightController,
-              fractionDigits: 0,
-              interval: 1,
-              onPressed: updateWeight,
-              enabled: weightTextFieldEnabled,
-              range: const [0, 250],
-            ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Container(
-            alignment: Alignment.topCenter,
-            height: UIHeight + 24,
-            child: PDTextField(
-              prefixIcon: Icons.water_drop_outlined,
-              labelText: '${AppLocalizations.of(context)!.infusionRate} (${[
-                InfusionUnit.mg_kg_hr.toString(),
-                InfusionUnit.mcg_kg_min.toString(),
-                InfusionUnit.mL_hr.toString()
-              ][infusionUnitController.val]})',
-              controller: infusionRateController,
-              fractionDigits: infusionRateDecimal,
-              // helperText: '',
-              interval: infusionUnits[infusionUnitController.val] ==
-                      InfusionUnit.mg_kg_hr
-                  ? 0.5
-                  : infusionUnits[infusionUnitController.val] ==
-                          InfusionUnit.mcg_kg_min
-                      ? 10
-                      : 1,
-              onPressed: updateInfusionRate,
-              range: const [1, 9999],
-            ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          SizedBox(
-            height: UIHeight,
-            width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
-            child: PDSegmentedControl(
-              fitWidth: true,
-              fitHeight: true,
-              fontSize: 14,
-              defaultColor: Theme.of(context).colorScheme.primary,
-              defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-              labels: [...infusionUnits.map((e) => e.toString())],
-              segmentedController: infusionUnitController,
-              onPressed: [
-                updateInfusionUnit,
-                updateInfusionUnit,
-                updateInfusionUnit
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 32,
-          )
-              ],
+                ),
+
+              if (mediaQuery.size.height >= screenBreakPoint1)
+                const SizedBox(height: 16),
+
+              // Weight input field
+              SizedBox(
+                height: UIHeight + 24,
+                child: PDTextField(
+                  prefixIcon: Icons.monitor_weight_outlined,
+                  labelText: '${AppLocalizations.of(context)!.weight} (kg)',
+                  controller: weightController,
+                  fractionDigits: 0,
+                  interval: 1,
+                  onPressed: updateWeight,
+                  enabled: weightTextFieldEnabled,
+                  range: const [0, 250],
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // Infusion rate input field
+              SizedBox(
+                height: UIHeight + 24,
+                child: PDTextField(
+                  prefixIcon: Icons.water_drop_outlined,
+                  labelText: '${AppLocalizations.of(context)!.infusionRate} (${[
+                    InfusionUnit.mg_kg_hr.toString(),
+                    InfusionUnit.mcg_kg_min.toString(),
+                    InfusionUnit.mL_hr.toString()
+                  ][infusionUnitController.val]})',
+                  controller: infusionRateController,
+                  fractionDigits: infusionRateDecimal,
+                  interval: infusionUnits[infusionUnitController.val] ==
+                          InfusionUnit.mg_kg_hr
+                      ? 0.5
+                      : infusionUnits[infusionUnitController.val] ==
+                              InfusionUnit.mcg_kg_min
+                          ? 10
+                          : 1,
+                  onPressed: updateInfusionRate,
+                  range: const [1, 9999],
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // Infusion unit segmented control
+              SizedBox(
+                height: UIHeight,
+                width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                child: PDSegmentedControl(
+                  fitWidth: true,
+                  fitHeight: true,
+                  fontSize: 14,
+                  defaultColor: Theme.of(context).colorScheme.primary,
+                  defaultOnColor: Theme.of(context).colorScheme.onPrimary,
+                  labels: [...infusionUnits.map((e) => e.toString())],
+                  segmentedController: infusionUnitController,
+                  onPressed: [
+                    updateInfusionUnit,
+                    updateInfusionUnit,
+                    updateInfusionUnit
+                  ],
+                ),
+              ),
+
+                  // Bottom safe area padding
+                  SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
+                  ],
+                ),
+              ),
             ),
           ),
         );

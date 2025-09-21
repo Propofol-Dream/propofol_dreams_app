@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:io' show Platform;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
+import '../utils/responsive_helper.dart';
+import '../utils/text_measurement.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 import 'package:propofol_dreams_app/providers/settings.dart';
@@ -567,8 +568,27 @@ class _VolumeScreenState extends State<VolumeScreen> {
             .getValidationErrorText(sex: sex, weight: weight, height: height, age: age)
         : null;
 
+    // Calculate dynamic width based on possible model names
+    final modelNames = [
+      'Marsh',
+      'Schnider',
+      'Eleveld',
+      'Paedfusor',
+      'Kataria',
+      'Select Model', // Default text
+    ];
+
+    // Get the text style used in the TextField
+    final textStyle = Theme.of(context).textTheme.bodyLarge ?? const TextStyle(fontSize: 16);
+
+    final dynamicWidth = TextMeasurement.calculateDrugSelectorWidth(
+      context: context,
+      drugNames: modelNames,
+      textStyle: textStyle,
+    );
+
     return SizedBox(
-      width: (MediaQuery.of(context).size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2,
+      width: dynamicWidth,
       child: Stack(
         alignment: Alignment.centerRight,
         children: [
@@ -664,26 +684,20 @@ class _VolumeScreenState extends State<VolumeScreen> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
 
-    // print(mediaQuery.size.height);
-
     final double UIHeight = (mediaQuery.size.aspectRatio >= 0.455
         ? mediaQuery.size.height >= screenBreakPoint1
             ? 56
             : 48
-        : 48) + (Platform.isAndroid ? 4 : 0);
-    final double UIWidth =
-        (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
+        : 48) + (ResponsiveHelper.isAndroid() ? 4 : 0);
 
     final double screenHeight = mediaQuery.size.height -
-        (Platform.isAndroid
+        (ResponsiveHelper.isAndroid()
             ? 48
             : mediaQuery.size.height >= screenBreakPoint1
                 ? 88
                 : 56);
 
     final settings = context.watch<Settings>();
-
-    double concentration = settings.propofol_concentration;
 
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
@@ -718,311 +732,280 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-        final availableHeight = constraints.maxHeight - keyboardHeight;
-
-        return SingleChildScrollView(
-          padding: EdgeInsets.only(bottom: keyboardHeight),
-          child: Container(
-            height: math.max(availableHeight, screenHeight),
-            margin: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Container(),
-                ),
-                Row(
+        return Container(
+          padding: EdgeInsets.only(
+            left: horizontalSidesPaddingPixel,
+            right: horizontalSidesPaddingPixel,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            reverse: true,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight - MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: IntrinsicHeight(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    GestureDetector(
-                      onTap: () async {
-                        await HapticFeedback.mediumImpact();
-                        if (settings.inAdultView) {
-                          ageController.text = settings.pediatricAge != null
-                              ? settings.pediatricAge.toString()
-                              : '';
-                        } else {
-                          ageController.text = settings.adultAge != null
-                              ? settings.adultAge.toString()
-                              : '';
-                        }
-                        settings.inAdultView = !settings.inAdultView;
-                        reset();
-                      },
-                      child: Chip(
-                        avatar: settings.inAdultView
-                            ? Icon(
-                                Icons.face,
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              )
-                            : Icon(
-                                Icons.child_care_outlined,
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              ),
-                        label: Text(
-                          settings.inAdultView ? AppLocalizations.of(context)!.adult : AppLocalizations.of(context)!.paed,
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimary),
+
+                  // Adult/Pediatric toggle
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: () async {
+                          await HapticFeedback.mediumImpact();
+                          if (settings.inAdultView) {
+                            ageController.text = settings.pediatricAge != null
+                                ? settings.pediatricAge.toString()
+                                : '';
+                          } else {
+                            ageController.text = settings.adultAge != null
+                                ? settings.adultAge.toString()
+                                : '';
+                          }
+                          settings.inAdultView = !settings.inAdultView;
+                          reset();
+                        },
+                        child: Chip(
+                          avatar: settings.inAdultView
+                              ? Icon(
+                                  Icons.face,
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                )
+                              : Icon(
+                                  Icons.child_care_outlined,
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                ),
+                          label: Text(
+                            settings.inAdultView ? AppLocalizations.of(context)!.adult : AppLocalizations.of(context)!.paed,
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimary),
+                          ),
+                          backgroundColor: Theme.of(context).colorScheme.primary,
                         ),
-                        backgroundColor: Theme.of(context).colorScheme.primary,
                       ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    mediaQuery.size.height >= screenBreakPoint1
-                        ? IconButton(
+                    ],
+                  ),
+
+                  // Result display and expand button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      mediaQuery.size.height >= screenBreakPoint1
+                          ? IconButton(
+                              onPressed: () async {
+                                await HapticFeedback.mediumImpact();
+                                updatePDTableController(tableController);
+                              },
+                              icon: tableController.val
+                                  ? const Icon(Icons.expand_more)
+                                  : const Icon(Icons.expand_less))
+                          : Container(),
+                      AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.fastOutSlowIn,
+                        style: TextStyle(
+                          fontSize: tableController.val ? 34 : 60,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        child: Text(
+                          modelIsRunnable ? result : emptyResult,
+                        ),
+                      )
+                    ],
+                  ),
+
+                  // Data table
+                  mediaQuery.size.height >= screenBreakPoint1
+                      ? Consumer<Settings>(
+                          builder: (context, settings, child) {
+                            return AnimatedDataTable(
+                              isExpanded: tableController.val,
+                              data: _buildConfidenceIntervalData(modelIsRunnable),
+                              headers: modelIsRunnable
+                                  ? [
+                                      (target! - targetInterval) >= 0
+                                          ? 'Target ${(target - targetInterval).toStringAsFixed(1)}'
+                                          : 'Target ${0.toStringAsFixed(1)}',
+                                      'Target ${target.toStringAsFixed(1)}',
+                                      'Target ${(target + targetInterval).toStringAsFixed(1)}'
+                                    ]
+                                  : ['Target --', 'Target --', 'Target --'],
+                              maxVisibleRows: tableController.val ? _calculateOptimalRowCount(screenHeight, true) : 0,
+                              selectedRowIndex: settings.selectedVolumeTableRow,
+                               onRowTap: (index) {
+                                 // Toggle selection: if same row is tapped, deselect it
+                                 if (settings.selectedVolumeTableRow == index) {
+                                   settings.selectedVolumeTableRow = null;
+                                 } else {
+                                   settings.selectedVolumeTableRow = index;
+                                 }
+                                },
+                                scrollController: tableScrollController,
+                                animate: _shouldAnimateTableExpansion,
+                              );
+                          },
+                        )
+                      : const SizedBox(height: 0),
+
+                  const SizedBox(height: 16),
+
+                  // Model selector and reset button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      buildModelSelector(settings, UIHeight),
+                      Container(
+                          height: UIHeight,
+                          width: UIHeight,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.all(0),
+                              backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                  borderRadius: const BorderRadius.all(Radius.circular(5))),
+                            ),
                             onPressed: () async {
                               await HapticFeedback.mediumImpact();
-                              updatePDTableController(tableController);
+                              reset(toDefault: true);
                             },
-                            icon: tableController.val
-                                ? const Icon(Icons.expand_more)
-                                : const Icon(Icons.expand_less))
-                        : Container(),
-                    AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.fastOutSlowIn,
-                      style: TextStyle(
-                        fontSize: tableController.val ? 34 : 60,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      child: Text(
-                        modelIsRunnable ? result : emptyResult,
-                      ),
-                    )
-                  ],
-                ),
-              ],
-            ),
-          ),
-          mediaQuery.size.height >= screenBreakPoint1
-              ? Consumer<Settings>(
-                  builder: (context, settings, child) {
-                    return AnimatedDataTable(
-                      isExpanded: tableController.val,
-                      data: _buildConfidenceIntervalData(modelIsRunnable),
-                      headers: modelIsRunnable
-                          ? [
-                              (target! - targetInterval) >= 0
-                                  ? 'Target ${(target - targetInterval).toStringAsFixed(1)}'
-                                  : 'Target ${0.toStringAsFixed(1)}',
-                              'Target ${target.toStringAsFixed(1)}',
-                              'Target ${(target + targetInterval).toStringAsFixed(1)}'
-                            ]
-                          : ['Target --', 'Target --', 'Target --'],
-                      maxVisibleRows: tableController.val ? _calculateOptimalRowCount(screenHeight, true) : 0,
-                      selectedRowIndex: settings.selectedVolumeTableRow,
-                       onRowTap: (index) {
-                         // Toggle selection: if same row is tapped, deselect it
-                         if (settings.selectedVolumeTableRow == index) {
-                           settings.selectedVolumeTableRow = null;
-                         } else {
-                           settings.selectedVolumeTableRow = index;
-                         }
-                        },
-                        scrollController: tableScrollController,
-                        animate: _shouldAnimateTableExpansion,
-                      );                  },
-                )
-              : const SizedBox(
-                  height: 0,
-                ),
-          const SizedBox(
-            height: 16,
-          ),
-          SizedBox(
-            width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                buildModelSelector(settings, UIHeight),
-                Row(
-                  children: [
-                    Container(
-                        height: UIHeight,
-                        width: UIHeight,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.all(0),
-                            backgroundColor: Theme.of(context).colorScheme.onPrimary,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  // strokeAlign: StrokeAlign.outside, //depreicated in flutter 3.7
-                                  strokeAlign: BorderSide.strokeAlignOutside,
-                                ),
-                                borderRadius: const BorderRadius.all(Radius.circular(5))),
+                            child: Icon(Icons.restart_alt_outlined),
+                          )),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Sex and Age row
+                  SizedBox(
+                    height: UIHeight + 24,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: PDSwitchField(
+                            labelText: AppLocalizations.of(context)!.sex,
+                            prefixIcon: sexController.val == true ?
+                            settings.inAdultView ? Icons.woman : Icons.girl :
+                            settings.inAdultView ? Icons.man : Icons.boy,
+                            controller: sexController,
+                            switchTexts: {
+                              true: settings.inAdultView ? Sex.Female.toLocalizedString(context): Sex.Girl.toLocalizedString(context),
+                              false: settings.inAdultView ? Sex.Male.toLocalizedString(context): Sex.Boy.toLocalizedString(context)
+                            },
+                            onChanged: run,
+                            height: UIHeight,
+                            enabled: sexSwitchControlEnabled,
                           ),
-                          onPressed: () async {
-                            await HapticFeedback.mediumImpact();
-                            reset(toDefault: true);
-                          },
-                          child: Icon(Icons.restart_alt_outlined),
-                        )),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: PDTextField(
+                            prefixIcon: Icons.calendar_month,
+                            labelText: AppLocalizations.of(context)!.age,
+                            interval: 1.0,
+                            fractionDigits: 0,
+                            controller: ageController,
+                            range: age != null
+                                ? age >= 17
+                                    ? [17, selectedModel == Model.Schnider ? 100 : 105]
+                                    : [1, 16]
+                                : [1, 16],
+                            onPressed: updatePDTextEditingController,
+                            enabled: ageTextFieldEnabled,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Height and Weight row
+                  SizedBox(
+                    height: UIHeight + 24,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: PDTextField(
+                            prefixIcon: Icons.straighten,
+                            labelText: '${AppLocalizations.of(context)!.height} (cm)',
+                            interval: 1,
+                            fractionDigits: 0,
+                            controller: heightController,
+                            range: [selectedModel.minHeight, selectedModel.maxHeight],
+                            onPressed: updatePDTextEditingController,
+                            enabled: heightTextFieldEnabled,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: PDTextField(
+                            prefixIcon: Icons.monitor_weight_outlined,
+                            labelText: '${AppLocalizations.of(context)!.weight} (kg)',
+                            interval: 1.0,
+                            fractionDigits: 0,
+                            controller: weightController,
+                            range: [selectedModel.minWeight, selectedModel.maxWeight],
+                            onPressed: updatePDTextEditingController,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Target and Duration row
+                  SizedBox(
+                    height: UIHeight + 24,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: PDTextField(
+                            prefixIcon: selectedModel.target.icon,
+                            labelText: selectedModel.target.toLocalizedString(context),
+                            interval: 0.5,
+                            fractionDigits: 1,
+                            controller: targetController,
+                            range: const [kMinTarget, kMaxTarget],
+                            onPressed: updatePDTextEditingController,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: PDTextField(
+                            prefixIcon: Icons.schedule,
+                            labelText: '${AppLocalizations.of(context)!.duration} (${AppLocalizations.of(context)!.min})',
+                            interval: double.tryParse(durationController.text) != null
+                                ? double.parse(durationController.text) >= 60
+                                    ? 10
+                                    : 5
+                                : 1,
+                            fractionDigits: 0,
+                            controller: durationController,
+                            range: const [kMinDuration, kMaxDuration],
+                            onPressed: updatePDTextEditingController,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Bottom safe area padding
+                  SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          SizedBox(
-            height: UIHeight + 24,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: UIWidth,
-                  child: PDSwitchField(
-                    labelText: AppLocalizations.of(context)!.sex,
-                    prefixIcon: sexController.val == true ?
-                    settings.inAdultView ? Icons.woman : Icons.girl :
-                    settings.inAdultView ? Icons.man : Icons.boy,
-                    controller: sexController,
-                    switchTexts: {
-                      true: settings.inAdultView ? Sex.Female.toLocalizedString(context): Sex.Girl.toLocalizedString(context),
-                      false: settings.inAdultView ? Sex.Male.toLocalizedString(context): Sex.Boy.toLocalizedString(context)
-                    },
-                    // helperText: '',
-                    onChanged: run,
-                    height: UIHeight,
-                    enabled: sexSwitchControlEnabled,
-                  ),
-                ),
-                const SizedBox(
-                  width: 8,
-                  height: 0,
-                ),
-                SizedBox(
-                  width: UIWidth,
-                  child: PDTextField(
-                    prefixIcon: Icons.calendar_month,
-                    labelText: AppLocalizations.of(context)!.age,
-                    // helperText: '',
-                    interval: 1.0,
-                    fractionDigits: 0,
-                    controller: ageController,
-                    range: age != null
-                        ? age >= 17
-                            ? [17, selectedModel == Model.Schnider ? 100 : 105]
-                            : [1, 16]
-                        : [1, 16],
-                    onPressed: updatePDTextEditingController,
-                    enabled: ageTextFieldEnabled,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          SizedBox(
-            height: UIHeight + 24,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: UIWidth,
-                  child: PDTextField(
-                    prefixIcon: Icons.straighten,
-                    labelText: '${AppLocalizations.of(context)!.height} (cm)',
-                    // helperText: '',
-                    interval: 1,
-                    fractionDigits: 0,
-                    controller: heightController,
-                    range: [selectedModel.minHeight, selectedModel.maxHeight],
-                    onPressed: updatePDTextEditingController,
-                    enabled: heightTextFieldEnabled,
-                  ),
-                ),
-                const SizedBox(
-                  width: 8,
-                  height: 0,
-                ),
-                SizedBox(
-                  width: UIWidth,
-                  child: PDTextField(
-                    prefixIcon: Icons.monitor_weight_outlined,
-                    labelText: '${AppLocalizations.of(context)!.weight} (kg)',
-                    // helperText: '',
-                    interval: 1.0,
-                    fractionDigits: 0,
-                    controller: weightController,
-                    range: [selectedModel.minWeight, selectedModel.maxWeight],
-                    onPressed: updatePDTextEditingController,
-                    // onChanged: restart,
-                    // onLongPressedStart: onLongPressStartUpdatePDTextEditingController,
-                    // onLongPressedEnd: onLongPressCancelledPDTextEditingController,
-                    // timer: timer,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          SizedBox(
-            height: UIHeight + 24,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: UIWidth,
-                  child: PDTextField(
-                    prefixIcon: selectedModel.target.icon,
-                    labelText: selectedModel.target.toLocalizedString(context),
-                    // helperText: '',
-                    interval: 0.5,
-                    fractionDigits: 1,
-                    controller: targetController,
-                    range: const [kMinTarget, kMaxTarget],
-                    onPressed: updatePDTextEditingController,
-                    // onChanged: restart,
-                  ),
-                ),
-                const SizedBox(
-                  width: 8,
-                  height: 0,
-                ),
-                SizedBox(
-                  width: UIWidth,
-                  child: PDTextField(
-                    prefixIcon: Icons.schedule,
-                    // labelText: 'Duration in minutes',
-                    labelText: '${AppLocalizations.of(context)!.duration} (${AppLocalizations.of(context)!.min})',
-                    // helperText: '',
-                    interval: double.tryParse(durationController.text) != null
-                        ? double.parse(durationController.text) >= 60
-                            ? 10
-                            : 5
-                        : 1,
-                    fractionDigits: 0,
-                    controller: durationController,
-                    range: const [kMinDuration, kMaxDuration],
-                    onPressed: updatePDTextEditingController,
-                    // onChanged: restart,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-              ],
+              ),
             ),
           ),
         );

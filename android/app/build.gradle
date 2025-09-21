@@ -42,7 +42,7 @@ android {
 
     compileSdkVersion localProperties.getProperty('flutter.compileSdkVersion').toInteger()
 
-    ndkVersion = "26.1.10909125"
+    ndkVersion = "28.0.12433566"
 
     compileOptions {
 //        sourceCompatibility JavaVersion.VERSION_1_8

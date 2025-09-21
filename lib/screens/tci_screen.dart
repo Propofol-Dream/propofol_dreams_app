@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import '../utils/responsive_helper.dart';
 
 import 'package:propofol_dreams_app/models/infusion_regime_data.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
@@ -541,11 +541,11 @@ class _TCIScreenState extends State<TCIScreen> {
         ? mediaQuery.size.height >= screenBreakPoint1
             ? 56
             : 48
-        : 48) + (Platform.isAndroid ? 4 : 0);
+        : 48) + (ResponsiveHelper.isAndroid() ? 4 : 0);
     final double UIWidth =
         (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
     final double screenHeight = mediaQuery.size.height -
-        (Platform.isAndroid
+        (ResponsiveHelper.isAndroid()
             ? 48
             : mediaQuery.size.height >= screenBreakPoint1
                 ? 88
@@ -577,218 +577,196 @@ class _TCIScreenState extends State<TCIScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-        final availableHeight = constraints.maxHeight - keyboardHeight;
+        return Container(
+          padding: EdgeInsets.only(
+            left: horizontalSidesPaddingPixel,
+            right: horizontalSidesPaddingPixel,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            reverse: true,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight - MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: IntrinsicHeight(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
 
-        return SingleChildScrollView(
-          padding: EdgeInsets.only(bottom: keyboardHeight),
-          child: Container(
-            height: math.max(availableHeight, screenHeight),
-            margin: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-          // Top half - Results area
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Container(),
-                ),
-                // Removed adult/paed toggle
-                // Expand button and result text
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(), // Removed expand/collapse button
-                    Container(), // Removed text display
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Infusion regime table (fixed position above inputs)
-          Container(
-            child: infusionRegimeData != null
-              ? Consumer<Settings>(
-                  builder: (context, settings, child) {
-                    return DosageDataTable(
-                      data: infusionRegimeData!,
-                      maxVisibleRows: mediaQuery.size.height >= screenBreakPoint1 ? 5 : 3,
-                      selectedRowIndex: settings.selectedDosageTableRow,
-                      onRowTap: (index) {
-                        // Toggle selection: if same row is tapped, deselect it
-                        if (settings.selectedDosageTableRow == index) {
-                          settings.selectedDosageTableRow = null;
-                        } else {
-                          settings.selectedDosageTableRow = index;
-                          
-                          // Sync selected row's infusion rate to duration screen
-                          if (infusionRegimeData != null && index < infusionRegimeData!.rows.length) {
-                            final selectedRow = infusionRegimeData!.rows[index];
-                            settings.infusionUnit = InfusionUnit.mL_hr;
-                            settings.infusionRate = selectedRow.infusionRate;
-                          }
-                        }
-                      },
-                      scrollController: tableScrollController,
-                    );
-                  },
-                )
-              : Container(),
-          ),
-          const SizedBox(height: 16),
-          // Bottom half - Fixed input area (doesn't move when table expands)
-          SizedBox(
-            width: mediaQuery.size.width - horizontalSidesPaddingPixel * 2,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                buildModelSelector(settings, UIHeight),
-                Row(
-                  children: [
-                    Container(
-                        height: UIHeight,
-                        width: UIHeight,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.all(0),
-                            backgroundColor: Theme.of(context).colorScheme.onPrimary,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  strokeAlign: BorderSide.strokeAlignOutside,
-                                ),
-                                borderRadius: const BorderRadius.all(Radius.circular(5))),
+                  // Infusion regime table (fixed position above inputs)
+                  infusionRegimeData != null
+                    ? Consumer<Settings>(
+                        builder: (context, settings, child) {
+                          return DosageDataTable(
+                            data: infusionRegimeData!,
+                            maxVisibleRows: mediaQuery.size.height >= screenBreakPoint1 ? 5 : 3,
+                            selectedRowIndex: settings.selectedDosageTableRow,
+                            onRowTap: (index) {
+                              // Toggle selection: if same row is tapped, deselect it
+                              if (settings.selectedDosageTableRow == index) {
+                                settings.selectedDosageTableRow = null;
+                              } else {
+                                settings.selectedDosageTableRow = index;
+
+                                // Sync selected row's infusion rate to duration screen
+                                if (infusionRegimeData != null && index < infusionRegimeData!.rows.length) {
+                                  final selectedRow = infusionRegimeData!.rows[index];
+                                  settings.infusionUnit = InfusionUnit.mL_hr;
+                                  settings.infusionRate = selectedRow.infusionRate;
+                                }
+                              }
+                            },
+                            scrollController: tableScrollController,
+                          );
+                        },
+                      )
+                    : Container(),
+
+                  const SizedBox(height: 16),
+
+                  // Model selector and reset button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      buildModelSelector(settings, UIHeight),
+                      Container(
+                          height: UIHeight,
+                          width: UIHeight,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.all(0),
+                              backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                  borderRadius: const BorderRadius.all(Radius.circular(5))),
+                            ),
+                            onPressed: () async {
+                              await HapticFeedback.mediumImpact();
+                              reset(toDefault: true);
+                            },
+                            child: Icon(Icons.restart_alt_outlined),
+                          )),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Sex and Age row
+                  SizedBox(
+                    height: UIHeight + 24,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: PDSwitchField(
+                            labelText: AppLocalizations.of(context)!.sex,
+                            prefixIcon: sexController.val == true
+                                ? isAdult
+                                    ? Icons.woman
+                                    : Icons.girl
+                                : isAdult
+                                    ? Icons.man
+                                    : Icons.boy,
+                            controller: sexController,
+                            switchTexts: {
+                              true: isAdult
+                                  ? Sex.Female.toLocalizedString(context)
+                                  : Sex.Girl.toLocalizedString(context),
+                              false: isAdult
+                                  ? Sex.Male.toLocalizedString(context)
+                                  : Sex.Boy.toLocalizedString(context)
+                            },
+                            onChanged: calculate,
+                            height: UIHeight,
+                            enabled: sexSwitchControlEnabled,
                           ),
-                          onPressed: () async {
-                            await HapticFeedback.mediumImpact();
-                            reset(toDefault: true);
-                          },
-                          child: Icon(Icons.restart_alt_outlined),
-                        )),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: PDTextField(
+                            prefixIcon: Icons.calendar_month,
+                            labelText: AppLocalizations.of(context)!.age,
+                            interval: 1.0,
+                            fractionDigits: 0,
+                            controller: ageController,
+                            range: [getModelForDrug(selectedDrug).minAge, getModelForDrug(selectedDrug).maxAge],
+                            onPressed: updatePDTextEditingController,
+                            enabled: ageTextFieldEnabled,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Height and Weight row
+                  SizedBox(
+                    height: UIHeight + 24,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: PDTextField(
+                            prefixIcon: Icons.straighten,
+                            labelText: '${AppLocalizations.of(context)!.height} (cm)',
+                            interval: 1,
+                            fractionDigits: 0,
+                            controller: heightController,
+                            range: [getModelForDrug(selectedDrug).minHeight, getModelForDrug(selectedDrug).maxHeight],
+                            onPressed: updatePDTextEditingController,
+                            enabled: heightTextFieldEnabled,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: PDTextField(
+                            prefixIcon: Icons.monitor_weight_outlined,
+                            labelText: '${AppLocalizations.of(context)!.weight} (kg)',
+                            interval: 1.0,
+                            fractionDigits: 0,
+                            controller: weightController,
+                            range: [getModelForDrug(selectedDrug).minWeight, getModelForDrug(selectedDrug).maxWeight],
+                            onPressed: updatePDTextEditingController,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Target row (now full width)
+                  SizedBox(
+                    height: UIHeight + 24,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: PDTextField(
+                            prefixIcon: getModelForDrug(selectedDrug).target.icon,
+                            labelText: getModelForDrug(selectedDrug).getTargetLabel(context, selectedDrug), // Dynamic unit display
+                            interval: getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).interval, // Dynamic interval based on drug-model combination
+                            fractionDigits: 1,
+                            controller: targetController,
+                            range: [getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).min, getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).max], // Dynamic range based on drug-model combination
+                            onPressed: updatePDTextEditingController,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Bottom padding for scrolling
+                  SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Sex and Age row
-          SizedBox(
-            height: UIHeight + 24,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: UIWidth,
-                  child: PDSwitchField(
-                    labelText: AppLocalizations.of(context)!.sex,
-                    prefixIcon: sexController.val == true 
-                        ? isAdult 
-                            ? Icons.woman 
-                            : Icons.girl 
-                        : isAdult 
-                            ? Icons.man 
-                            : Icons.boy,
-                    controller: sexController,
-                    switchTexts: {
-                      true: isAdult 
-                          ? Sex.Female.toLocalizedString(context)
-                          : Sex.Girl.toLocalizedString(context),
-                      false: isAdult 
-                          ? Sex.Male.toLocalizedString(context)
-                          : Sex.Boy.toLocalizedString(context)
-                    },
-                    onChanged: calculate,
-                    height: UIHeight,
-                    enabled: sexSwitchControlEnabled,
-                  ),
-                ),
-                const SizedBox(
-                  width: 8,
-                  height: 0,
-                ),
-                SizedBox(
-                  width: UIWidth,
-                  child: PDTextField(
-                    prefixIcon: Icons.calendar_month,
-                    labelText: AppLocalizations.of(context)!.age,
-                    interval: 1.0,
-                    fractionDigits: 0,
-                    controller: ageController,
-                    range: [getModelForDrug(selectedDrug).minAge, getModelForDrug(selectedDrug).maxAge],
-                    onPressed: updatePDTextEditingController,
-                    enabled: ageTextFieldEnabled,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Height and Weight row
-          SizedBox(
-            height: UIHeight + 24,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: UIWidth,
-                  child: PDTextField(
-                    prefixIcon: Icons.straighten,
-                    labelText: '${AppLocalizations.of(context)!.height} (cm)',
-                    interval: 1,
-                    fractionDigits: 0,
-                    controller: heightController,
-                    range: [getModelForDrug(selectedDrug).minHeight, getModelForDrug(selectedDrug).maxHeight],
-                    onPressed: updatePDTextEditingController,
-                    enabled: heightTextFieldEnabled,
-                  ),
-                ),
-                const SizedBox(
-                  width: 8,
-                  height: 0,
-                ),
-                SizedBox(
-                  width: UIWidth,
-                  child: PDTextField(
-                    prefixIcon: Icons.monitor_weight_outlined,
-                    labelText: '${AppLocalizations.of(context)!.weight} (kg)',
-                    interval: 1.0,
-                    fractionDigits: 0,
-                    controller: weightController,
-                    range: [getModelForDrug(selectedDrug).minWeight, getModelForDrug(selectedDrug).maxWeight],
-                    onPressed: updatePDTextEditingController,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Target row (now full width)
-          SizedBox(
-            height: UIHeight + 24,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: PDTextField(
-                    prefixIcon: getModelForDrug(selectedDrug).target.icon,
-                    labelText: getModelForDrug(selectedDrug).getTargetLabel(context, selectedDrug), // Dynamic unit display
-                    interval: getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).interval, // Dynamic interval based on drug-model combination
-                    fractionDigits: 1,
-                    controller: targetController,
-                    range: [getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).min, getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).max], // Dynamic range based on drug-model combination
-                    onPressed: updatePDTextEditingController,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-              ],
+              ),
             ),
           ),
         );

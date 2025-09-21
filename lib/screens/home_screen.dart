@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 
 import '../providers/settings.dart';
+import '../utils/responsive_helper.dart';
 import 'volume_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
@@ -50,6 +51,16 @@ class _HomeScreenState extends State<HomeScreen> {
         ? SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light)
         : SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
 
+    // Use mobile layout for small screens, web layout for larger screens
+    if (ResponsiveHelper.shouldUseMobileLayout(context)) {
+      return _buildMobileLayout(settings);
+    } else {
+      return _buildWebLayout(settings);
+    }
+  }
+
+  /// Build the original mobile layout with bottom navigation
+  Widget _buildMobileLayout(Settings settings) {
     return Scaffold(
       // body: SingleChildScrollView(
       // physics: MediaQuery
@@ -95,6 +106,56 @@ class _HomeScreenState extends State<HomeScreen> {
             //     icon:  Icon(Icons.science),
             //     label: 'Test'),
           ]),
+    );
+  }
+
+  /// Build the web/tablet layout with side navigation
+  Widget _buildWebLayout(Settings settings) {
+    return Scaffold(
+      body: Row(
+        children: [
+          // Side navigation rail
+          NavigationRail(
+            selectedIndex: currenIndex,
+            onDestinationSelected: (index) async {
+              await HapticFeedback.lightImpact();
+              setState(() {
+                currenIndex = settings.currentScreenIndex = index;
+              });
+            },
+            labelType: NavigationRailLabelType.all,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            destinations: [
+              const NavigationRailDestination(
+                icon: Icon(Icons.hub_outlined),
+                label: Text('EleMarsh'),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.ssid_chart),
+                label: Text(AppLocalizations.of(context)!.tci),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.science_outlined),
+                label: Text(AppLocalizations.of(context)!.volume),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.schedule),
+                label: Text(AppLocalizations.of(context)!.duration),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.settings),
+                label: Text(AppLocalizations.of(context)!.settings),
+              ),
+            ],
+          ),
+          // Vertical divider
+          const VerticalDivider(thickness: 1, width: 1),
+          // Main content area
+          Expanded(
+            child: screens[currenIndex],
+          ),
+        ],
+      ),
     );
   }
 }
