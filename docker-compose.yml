@@ -48,7 +48,7 @@ services:
       propofol-dreams-web:
         condition: service_healthy
     # Temporary command - replace with your Caddyfile
-    command: caddy file-server --listen :80 --root /srv
+    # command: caddy file-server --listen :80 --root /srv
 
 # Shared volume for Flutter web files
 volumes:
