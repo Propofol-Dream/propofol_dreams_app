@@ -271,25 +271,23 @@ class _DurationScreenState extends State<DurationScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-              // Duration table with consistent styling
-              if (mediaQuery.size.height >= screenBreakPoint1)
-                DurationDataTable(
-                  rows: durationRows,
-                  maxVisibleRows: 6,
-                  scrollController: tableScrollController,
-                  selectedRowIndex: settings.selectedDurationTableRow,
-                  onRowTap: (index) {
-                    // Toggle selection: if same row is tapped, deselect it
-                    if (settings.selectedDurationTableRow == index) {
-                      settings.selectedDurationTableRow = null;
-                    } else {
-                      settings.selectedDurationTableRow = index;
-                    }
-                  },
-                ),
+              // Duration table with consistent styling - always visible with adaptive row count
+              DurationDataTable(
+                rows: durationRows,
+                maxVisibleRows: mediaQuery.size.height >= screenBreakPoint1 ? 6 : 2,
+                scrollController: tableScrollController,
+                selectedRowIndex: settings.selectedDurationTableRow,
+                onRowTap: (index) {
+                  // Toggle selection: if same row is tapped, deselect it
+                  if (settings.selectedDurationTableRow == index) {
+                    settings.selectedDurationTableRow = null;
+                  } else {
+                    settings.selectedDurationTableRow = index;
+                  }
+                },
+              ),
 
-              if (mediaQuery.size.height >= screenBreakPoint1)
-                const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Weight input field
               SizedBox(

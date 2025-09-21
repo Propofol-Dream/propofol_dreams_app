@@ -1107,7 +1107,7 @@ class Settings with ChangeNotifier {
     _pediatricDuration = pref.getInt('pediatricDuration') ?? 60;
 
     // Duration screen settings
-    _weight = pref.getInt('weight');
+    _weight = pref.getInt('weight') ?? 70;
     _infusionRate = pref.getDouble('infusionRate') ?? 10;
     
     final infusionUnitString = pref.getString('infusionUnit');

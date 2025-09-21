@@ -95,19 +95,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // Multiple options - show segmented control
           SizedBox(
             height: UIHeight,
-            width: availableConcentrations.length == 2 ? screenWidth : null, // Full width only for 2 options
+            width: screenWidth, // Always use full width for all configurations
             child: Center(
               child: PDSegmentedControl(
-              fitWidth: availableConcentrations.length == 2, // Only fit width for 2 options
+              fitWidth: true, // Always fit to full width
               fitHeight: true,
-              fontSize: availableConcentrations.length > 2 ? 14 : 16, // Smaller font for 3+ options
+              fontSize: 15, // Consistent font size that works for all configurations
               defaultColor: Theme.of(context).colorScheme.primary,
               defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-              labels: availableConcentrations.map((conc) => 
+              labels: availableConcentrations.map((conc) =>
                 '${conc.toStringAsFixed(conc == conc.roundToDouble() ? 0 : 1)} ${drug.concentrationUnit.displayName}'
               ).toList(),
-              segmentedController: drug.displayName == 'Propofol' 
-                  ? propofolController 
+              segmentedController: drug.displayName == 'Propofol'
+                  ? propofolController
                   : drug.displayName == 'Remifentanil'
                       ? remifentanilController
                       : drug.displayName == 'Remimazolam'

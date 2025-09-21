@@ -134,7 +134,7 @@ class _TCIScreenState extends State<TCIScreen> {
     // Load drug-specific target value
     final drugTarget = settings.getTciDrugTarget(selectedDrug);
     final targetProps = tciModelController.selection.getTargetProperties(selectedDrug);
-    targetController.text = drugTarget?.toString() ?? targetProps.defaultValue.toString();
+    targetController.text = drugTarget?.toStringAsFixed(1) ?? targetProps.defaultValue.toStringAsFixed(1);
     durationController.text = '255'; // Hardcoded to 4 hours and 15 minutes for modal compatibility
   }
 
@@ -351,8 +351,8 @@ class _TCIScreenState extends State<TCIScreen> {
     final targetProps = currentModel.getTargetProperties(selectedDrug);
     
     targetController.text = toDefault
-        ? targetProps.defaultValue.toString()
-        : settings.getTciDrugTarget(selectedDrug)?.toString() ?? targetProps.defaultValue.toString();
+        ? targetProps.defaultValue.toStringAsFixed(1)
+        : settings.getTciDrugTarget(selectedDrug)?.toStringAsFixed(1) ?? targetProps.defaultValue.toStringAsFixed(1);
     durationController.text = '255'; // Hardcoded to 4 hours and 15 minutes for modal compatibility
 
     // updateModelOptions(true); // Always adult view
@@ -475,7 +475,7 @@ class _TCIScreenState extends State<TCIScreen> {
                         // Update target field with drug-specific value for new model
                         final drugTarget = settings.getTciDrugTarget(selectedDrug);
                         final targetProps = model.getTargetProperties(selectedDrug);
-                        targetController.text = drugTarget?.toString() ?? targetProps.defaultValue.toString();
+                        targetController.text = drugTarget?.toStringAsFixed(1) ?? targetProps.defaultValue.toStringAsFixed(1);
                       });
                       
                       // Calculate once after model change
@@ -509,7 +509,7 @@ class _TCIScreenState extends State<TCIScreen> {
                         // THEN: Load target value for NEW drug
                         final newDrugTarget = settings.getTciDrugTarget(drug);
                         final targetProps = requiredModel.getTargetProperties(drug);
-                        targetController.text = newDrugTarget?.toString() ?? targetProps.defaultValue.toString();
+                        targetController.text = newDrugTarget?.toStringAsFixed(1) ?? targetProps.defaultValue.toStringAsFixed(1);
                       });
                       
                       // Calculate once after drug change

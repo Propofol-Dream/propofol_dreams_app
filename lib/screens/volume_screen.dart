@@ -109,7 +109,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
       ageController.text = settings.adultAge?.toString() ?? '';
       heightController.text = settings.adultHeight?.toString() ?? '';
       weightController.text = settings.adultWeight?.toString() ?? '';
-      targetController.text = settings.propofolTarget?.toString() ?? '';
+      targetController.text = settings.propofolTarget?.toStringAsFixed(1) ?? '';
       durationController.text = settings.adultDuration?.toString() ?? '';
     } else {
       pediatricModelController.selection = settings.pediatricModel;
@@ -117,7 +117,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
       ageController.text = settings.pediatricAge?.toString() ?? '';
       heightController.text = settings.pediatricHeight?.toString() ?? '';
       weightController.text = settings.pediatricWeight?.toString() ?? '';
-      targetController.text = settings.pediatricTarget?.toString() ?? '';
+      targetController.text = settings.pediatricTarget?.toStringAsFixed(1) ?? '';
       durationController.text = settings.pediatricDuration?.toString() ?? '';
     }
   }
@@ -459,9 +459,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ? settings.adultWeight.toString()
               : '';
       targetController.text = toDefault
-          ? 3.0.toString()
+          ? 3.0.toStringAsFixed(1)
           : settings.propofolTarget != null
-              ? settings.propofolTarget.toString()
+              ? settings.propofolTarget!.toStringAsFixed(1)
               : '';
       durationController.text = toDefault
           ? 60.toString()
@@ -490,9 +490,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ? settings.pediatricWeight.toString()
               : '';
       targetController.text = toDefault
-          ? 3.0.toString()
+          ? 3.0.toStringAsFixed(1)
           : settings.pediatricTarget != null
-              ? settings.pediatricTarget.toString()
+              ? settings.pediatricTarget!.toStringAsFixed(1)
               : '';
       durationController.text = toDefault
           ? 60.toString()
