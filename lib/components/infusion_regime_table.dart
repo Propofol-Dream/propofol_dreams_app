@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/infusion_regime_data.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -1026,32 +1027,28 @@ class DurationDataTable extends StatelessWidget {
         border: Border.all(color: theme.colorScheme.primary, width: 1),
         borderRadius: BorderRadius.circular(5),
       ),
-      child: IntrinsicHeight(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: maxVisibleRows * 41.0),
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: rows.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final row = entry.value;
-                      final isSelected = selectedRowIndex == index;
-                      return _buildDataRow(context, row, isSelected, index);
-                    }).toList(),
-                  ),
-                ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildHeader(context),
+          Container(
+            height: math.min(rows.length, maxVisibleRows) * 41.0,
+            child: SingleChildScrollView(
+              controller: scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: rows.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final row = entry.value;
+                  final isSelected = selectedRowIndex == index;
+                  return _buildDataRow(context, row, isSelected, index);
+                }).toList(),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
