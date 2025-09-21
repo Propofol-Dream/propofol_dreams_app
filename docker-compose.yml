@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Flutter Web App Builder and Static File Provider
   propofol-dreams-web:
