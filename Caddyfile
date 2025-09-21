@@ -65,13 +65,13 @@ app.propofoldreams.org {
     }
 
     # Optional: Rate limiting to prevent abuse
-    rate_limit {
-        zone static {
-            key {remote_host}
-            events 100
-            window 1m
-        }
-    }
+    # rate_limit {
+    #     zone static {
+    #         key {remote_host}
+    #         events 100
+    #         window 1m
+    #     }
+    # }
 }
 
 # Alternative configuration for local development/testing
