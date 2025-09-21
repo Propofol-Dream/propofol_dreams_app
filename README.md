@@ -114,6 +114,138 @@ flutter build ios --release
 flutter build web --release
 ```
 
+## Docker Deployment
+
+The application includes comprehensive Docker support for containerized web deployment with Caddy reverse proxy integration.
+
+### Quick Start with Docker
+
+1. **Build and deploy using the automated script:**
+```bash
+./scripts/build.sh
+```
+
+2. **Or manually with Docker Compose:**
+```bash
+# Build and start the services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+### Docker Architecture
+
+The Docker setup uses a **volume-based architecture** where:
+- Flutter web app builds to static files in a shared Docker volume
+- Caddy serves these files directly from the shared volume
+- No web server container needed - Caddy handles everything
+
+**Key Components:**
+- `Dockerfile`: Multi-stage Flutter build → static file output
+- `docker-compose.yml`: Service orchestration with shared volumes
+- `scripts/build.sh`: Automated build and deployment script
+- `.dockerignore`: Optimized build context
+
+### Caddy Integration
+
+The Docker setup is designed to work seamlessly with Caddy:
+
+```caddyfile
+# Example Caddyfile for your domain
+your-domain.com {
+    root * /srv
+    file_server
+
+    # Enable compression
+    encode gzip zstd
+
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+
+    # Handle Flutter routing
+    try_files {path} /index.html
+}
+```
+
+### Volume Configuration
+
+The Flutter web files are accessible at:
+- **Docker Volume**: `web-files`
+- **Container Path**: `/var/www/html` (Flutter app container)
+- **Caddy Mount Point**: `/srv` (in your Caddy container)
+
+### Environment Variables
+
+Available environment variables for customization:
+```yaml
+environment:
+  - FLUTTER_WEB_USE_SKIA=true
+  - FLUTTER_WEB_AUTO_DETECT=true
+```
+
+### Development vs Production
+
+**Development:**
+```bash
+# Run with hot reload (traditional Flutter)
+flutter run -d chrome
+
+# Or use Docker for testing deployment
+docker-compose up --build
+```
+
+**Production:**
+```bash
+# Automated production build
+./scripts/build.sh
+
+# Manual production build
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+### Deployment Commands
+
+```bash
+# Build optimized production container
+docker-compose build --no-cache
+
+# Deploy to production
+docker-compose up -d
+
+# Update application (rebuild and redeploy)
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+
+# Health check
+docker-compose exec propofol-dreams-web test -f /var/www/html/index.html
+
+# View container logs
+docker-compose logs propofol-dreams-web
+
+# Clean up everything
+docker-compose down --volumes --remove-orphans
+```
+
+### Directory Structure
+```
+├── Dockerfile              # Multi-stage Flutter build
+├── docker-compose.yml      # Service orchestration
+├── .dockerignore           # Build optimization
+├── scripts/
+│   └── build.sh            # Automated deployment
+└── build/web/              # Flutter build output (local)
+```
+
 ## Medical Disclaimer
 
 This application is designed as a clinical tool for qualified medical professionals. Users are responsible for verifying all calculations and maintaining appropriate medical standards. Always follow institutional protocols and guidelines when administering anesthesia.

@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # Flutter Web App Builder and Static File Provider
+  propofol-dreams-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: propofol-dreams-web
+    restart: unless-stopped
+    volumes:
+      # Shared volume where Caddy will serve static files from
+      - web-files:/var/www/html:ro
+    healthcheck:
+      test: ["CMD", "test", "-f", "/var/www/html/index.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - caddy-network
+    # Environment variables for potential customization
+    environment:
+      - FLUTTER_WEB_USE_SKIA=true
+      - FLUTTER_WEB_AUTO_DETECT=true
+
+  # Example Caddy service (you can replace this with your own Caddy setup)
+  # Remove this service if you're managing Caddy separately
+  caddy-example:
+    # image: caddy:2.7-alpine
+    image: caddy:latest
+    container_name: propofol-dreams-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Mount the same volume to serve Flutter files
+      - web-files:/srv:ro
+      # Mount your Caddyfile (you'll create this)
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Caddy data for automatic HTTPS certificates
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - caddy-network
+    depends_on:
+      propofol-dreams-web:
+        condition: service_healthy
+    # Temporary command - replace with your Caddyfile
+    command: caddy file-server --listen :80 --root /srv
+
+# Shared volume for Flutter web files
+volumes:
+  web-files:
+    driver: local
+  caddy-data:
+    driver: local
+  caddy-config:
+    driver: local
+
+# Network for service communication
+networks:
+  caddy-network:
+    driver: bridge

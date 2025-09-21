@@ -232,12 +232,18 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           predictedBIS = resultInduction.predictedBIS.toStringAsFixed(0);
           BMI = patient.bmi.toStringAsFixed(1);
 
-          // Format vial times
+          // Format vial times with rounding to nearest minute
           String formatDuration(Duration? duration) {
             if (duration == null) return "--";
             int minutes = duration.inMinutes;
             int seconds = duration.inSeconds % 60;
-            return "${minutes}:${seconds.toString().padLeft(2, '0')}";
+
+            // Round to nearest minute: ≤30 seconds rounds down, >30 seconds rounds up
+            if (seconds > 30) {
+              minutes += 1;
+            }
+
+            return "${minutes} min";
           }
 
           vial20mlTime = formatDuration(resultInduction.vial20mlTime);
@@ -913,6 +919,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                         Text(" kg",
                                             style: TextStyle(
                                                 fontSize: 24,
+                                                fontWeight: FontWeight.w600,
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .primary)),
@@ -983,6 +990,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                                 " mg",
                                                 style: TextStyle(
                                                   fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
                                                   color: Theme.of(context)
                                                       .colorScheme
                                                       .tertiary,
@@ -1006,6 +1014,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                                                 " μg/mL",
                                                 style: TextStyle(
                                                     fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
                                                     color: Theme.of(context)
                                                         .colorScheme
                                                         .primary),

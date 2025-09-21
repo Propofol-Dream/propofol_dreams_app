@@ -273,3 +273,42 @@ Current color assignments (as updated by user):
 - **Text Field Listeners:** Removed from `initState()` to prevent automatic triggering
 - **Model/Drug Selection:** Direct `calculate()` calls after state changes, no listener manipulation
 - **Pattern Consistency:** Both TCI and Volume screens now follow identical event-driven architecture
+
+## Docker Deployment
+
+### Architecture
+- **Volume-based deployment**: Flutter builds to shared Docker volume
+- **Caddy integration**: Designed to work seamlessly with Caddy reverse proxy
+- **No web server container**: Caddy serves static files directly from shared volume
+- **Production-ready**: Multi-stage builds with optimized images
+
+### Files
+- `Dockerfile`: Multi-stage Flutter build → Alpine runtime
+- `docker-compose.yml`: Service orchestration with shared volumes
+- `.dockerignore`: Build context optimization
+- `scripts/build.sh`: Automated deployment script
+
+### Quick Commands
+```bash
+# Build and deploy
+./scripts/build.sh
+
+# Manual commands
+docker-compose up -d              # Start services
+docker-compose logs -f            # View logs
+docker-compose down               # Stop services
+docker-compose down --volumes     # Clean up volumes
+```
+
+### Caddy Integration
+Flutter web files available at `/srv` path in Caddy containers via shared `web-files` volume.
+
+Example Caddyfile:
+```caddyfile
+your-domain.com {
+    root * /srv
+    file_server
+    encode gzip zstd
+    try_files {path} /index.html
+}
+```

@@ -1,0 +1,93 @@
+# .dockerignore - Optimize Docker builds by excluding unnecessary files
+
+# Build outputs
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation (include in image but not needed for build context optimization)
+README.md
+CLAUDE.md
+UI_REDESIGN_PLAN.md
+docs/
+
+# Test files
+test/
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Node modules (if any)
+node_modules/
+
+# Python cache (if any)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Docker files (don't need these in the build context)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Scripts (included separately if needed)
+scripts/
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Backup files
+*.bak
+*.backup
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Large binary files that aren't needed
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+
+# Development database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Local configuration files
+local.properties
