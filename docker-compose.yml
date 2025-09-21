@@ -26,7 +26,7 @@ services:
 
   # Example Caddy service (you can replace this with your own Caddy setup)
   # Remove this service if you're managing Caddy separately
-  caddy-example:
+  caddy:
     # image: caddy:2.7-alpine
     image: caddy:latest
     container_name: propofol-dreams-caddy

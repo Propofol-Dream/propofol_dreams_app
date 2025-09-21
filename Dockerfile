@@ -3,7 +3,7 @@
 # Caddy will serve these files directly from a shared volume
 
 # Build stage: Compile Flutter web app
-FROM cirrusci/flutter:3.32.7 as build
+FROM ghcr.io/cirruslabs/flutter:stable as build
 
 # Set working directory
 WORKDIR /app
