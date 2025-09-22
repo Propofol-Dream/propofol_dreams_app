@@ -1012,32 +1012,46 @@ class DurationDataTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (rows.isEmpty) {
-      return const Center(
-        child: Text(
-          'No data available',
-          style: TextStyle(color: Colors.grey),
+      return Container(
+        padding: const EdgeInsets.all(16),
+        child: const Center(
+          child: Text(
+            'DEBUG: No data available for table',
+            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          ),
         ),
       );
     }
 
     final theme = Theme.of(context);
+    final calculatedHeight = math.max(
+      math.min(rows.length, maxVisibleRows) * 41.0,
+      2 * 41.0, // Minimum height for 2 rows (50ml and 20ml)
+    );
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: theme.colorScheme.primary, width: 1),
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildHeader(context),
-          Container(
-            height: math.max(
-              math.min(rows.length, maxVisibleRows) * 41.0,
-              2 * 41.0, // Minimum height for 2 rows (50ml and 20ml)
-            ),
-            child: SingleChildScrollView(
+    return Column(
+      children: [
+        // DEBUG: Show table calculation details
+        Container(
+          padding: const EdgeInsets.all(8),
+          child: Text(
+            'DEBUG: Table Height: ${calculatedHeight}px, Rows: ${rows.length}, MaxVisible: $maxVisibleRows',
+            style: const TextStyle(fontSize: 12, color: Colors.orange),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.colorScheme.primary, width: 1),
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(context),
+              Container(
+                height: calculatedHeight,
+                child: SingleChildScrollView(
               controller: scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
@@ -1053,6 +1067,8 @@ class DurationDataTable extends StatelessWidget {
           ),
         ],
       ),
+      ),
+      ],
     );
   }
 
