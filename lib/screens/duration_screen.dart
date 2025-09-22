@@ -274,7 +274,9 @@ class _DurationScreenState extends State<DurationScreen> {
               // Duration table with consistent styling - always visible with adaptive row count
               DurationDataTable(
                 rows: durationRows,
-                maxVisibleRows: mediaQuery.size.height >= screenBreakPoint1 ? 6 : 2,
+                maxVisibleRows: mediaQuery.size.height >= screenBreakPoint1
+                    ? 6
+                    : 2, // Always show at least 2 rows for 50ml and 20ml
                 scrollController: tableScrollController,
                 selectedRowIndex: settings.selectedDurationTableRow,
                 onRowTap: (index) {

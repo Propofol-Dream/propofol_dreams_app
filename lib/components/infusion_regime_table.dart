@@ -1033,7 +1033,10 @@ class DurationDataTable extends StatelessWidget {
         children: [
           _buildHeader(context),
           Container(
-            height: math.min(rows.length, maxVisibleRows) * 41.0,
+            height: math.max(
+              math.min(rows.length, maxVisibleRows) * 41.0,
+              2 * 41.0, // Minimum height for 2 rows (50ml and 20ml)
+            ),
             child: SingleChildScrollView(
               controller: scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
