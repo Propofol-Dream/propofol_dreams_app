@@ -8,6 +8,19 @@ app.propofoldreams.org {
     # This path should match the volume mount in your Caddy container
     root * /srv
 
+    # TEMPORARY: Disable caching for debugging Safari iOS issue
+    header {
+        Cache-Control "no-cache, no-store, must-revalidate"
+        Pragma "no-cache"
+        Expires "0"
+        # Add build timestamp for cache busting
+        X-Build-Time "2024-09-22-debug"
+    }
+
+    # Handle Flutter routing - serve index.html for all routes
+    # This is essential for Flutter web apps with client-side routing
+    try_files {path} /index.html
+
     # Enable file server for static assets
     file_server
 

@@ -18,8 +18,11 @@ RUN flutter config --enable-web && \
 # Copy source code
 COPY . .
 
-# Build web app for production
-RUN flutter build web --release --no-tree-shake-icons
+# Force complete clean build to avoid any caching issues
+RUN flutter clean && \
+    rm -rf build/ .dart_tool/ && \
+    flutter pub get && \
+    flutter build web --release --no-tree-shake-icons
 
 # Runtime stage: Copy built files to output volume
 FROM alpine:3.18
