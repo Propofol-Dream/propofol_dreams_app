@@ -1012,15 +1012,7 @@ class DurationDataTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (rows.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        child: const Center(
-          child: Text(
-            'DEBUG: No data available for table',
-            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-          ),
-        ),
-      );
+      return const SizedBox.shrink();
     }
 
     final theme = Theme.of(context);
@@ -1031,14 +1023,6 @@ class DurationDataTable extends StatelessWidget {
 
     return Column(
       children: [
-        // DEBUG: Show table calculation details
-        Container(
-          padding: const EdgeInsets.all(8),
-          child: Text(
-            'DEBUG: Table Height: ${calculatedHeight}px, Rows: ${rows.length}, MaxVisible: $maxVisibleRows',
-            style: const TextStyle(fontSize: 12, color: Colors.orange),
-          ),
-        ),
         Container(
           decoration: BoxDecoration(
             border: Border.all(color: theme.colorScheme.primary, width: 1),

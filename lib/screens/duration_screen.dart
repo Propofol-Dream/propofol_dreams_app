@@ -271,20 +271,6 @@ class _DurationScreenState extends State<DurationScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-              // DEBUG: Test title for Safari iOS debugging
-              Container(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'DEBUG: Duration Table (Rows: ${durationRows.length}, Height: ${mediaQuery.size.height.toInt()}px)',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-
               // Duration table with consistent styling - always visible with adaptive row count
               DurationDataTable(
                 rows: durationRows,
