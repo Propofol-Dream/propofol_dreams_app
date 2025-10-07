@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../models/model.dart';
-import '../models/drug.dart';
-import '../models/sex.dart';
-import '../providers/settings.dart';
-import '../l10n/generated/app_localizations.dart';
+import '../../models/model.dart';
+import '../../models/drug.dart';
+import '../../models/sex.dart';
+import '../../providers/settings.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'PDAdvancedSegmentedController.dart';
 import 'PDSwitchController.dart';
 

@@ -20,10 +20,10 @@ import '../components/collapsible_input_card.dart';
 import '../components/input_summary_display.dart';
 import '../utils/text_measurement.dart';
 
-import 'package:propofol_dreams_app/controllers/PDTextField.dart';
-import 'package:propofol_dreams_app/controllers/PDSwitchController.dart';
-import 'package:propofol_dreams_app/controllers/PDSwitchField.dart';
-import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedController.dart';
+import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
+import 'package:propofol_dreams_app/components/legacy/PDSwitchController.dart';
+import 'package:propofol_dreams_app/components/legacy/PDSwitchField.dart';
+import 'package:propofol_dreams_app/components/legacy/PDAdvancedSegmentedController.dart';
 
 class TCIScreen extends StatefulWidget {
   const TCIScreen({super.key});

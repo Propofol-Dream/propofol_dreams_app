@@ -23,13 +23,13 @@ import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/target.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
 
-import 'package:propofol_dreams_app/controllers/PDSwitchController.dart';
-import 'package:propofol_dreams_app/controllers/PDSwitchField.dart';
-import 'package:propofol_dreams_app/controllers/PDTextField.dart';
+import 'package:propofol_dreams_app/components/legacy/PDSwitchController.dart';
+import 'package:propofol_dreams_app/components/legacy/PDSwitchField.dart';
+import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
 
-import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
-import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart';
-import 'package:propofol_dreams_app/controllers/PDTextFieldSegmentedControl.dart';
+import 'package:propofol_dreams_app/components/legacy/PDSegmentedController.dart';
+import 'package:propofol_dreams_app/components/legacy/PDSegmentedControl.dart';
+import 'package:propofol_dreams_app/components/legacy/PDTextFieldSegmentedControl.dart';
 
 import '../constants.dart';
 

@@ -274,6 +274,104 @@ Current color assignments (as updated by user):
 - **Model/Drug Selection:** Direct `calculate()` calls after state changes, no listener manipulation
 - **Pattern Consistency:** Both TCI and Volume screens now follow identical event-driven architecture
 
+## Material 3 Component Migration (September 2024)
+
+### Component Architecture Redesign
+- **Theme Wrapper Pattern**: Implemented M3 components using enhanced legacy components with Theme wrappers
+- **Responsive Height System**: Added device-aware height calculation (Mobile: 56px, Tablet: 60px, Desktop: 64px)
+- **Accessibility Support**: Text scaling from 1.0x to 1.5x for enhanced accessibility
+- **Consistent Border Radius**: Standardized all components to 8px border radius across all states
+
+### Enhanced PDTextField Foundation
+- **lib/components/legacy/PDTextField.dart**:
+  - Added `_getResponsiveHeight()` method for device-aware sizing
+  - Made height parameter nullable for automatic responsive calculation
+  - Removed conflicting border properties to allow Theme wrapper control
+  - Fixed TextEditingController lifecycle management
+- **Key Features**: Plus/minus buttons, validation states, haptic feedback, long-press support
+
+### Material 3 Text Field Implementation
+- **lib/components/material3/m3_text_field.dart**:
+  - Theme wrapper approach using enhanced PDTextField as foundation
+  - Material 3 design tokens: `surfaceContainerHighest`, `outline`, `primary`
+  - Consistent 8px border radius for all input states (normal, focused, error, disabled)
+  - Surface elevation and color theming matching M3 specifications
+
+### Adaptive Dropdown System
+- **lib/components/adaptive_dropdown.dart**:
+  - Feature flag-based switching between M3 and legacy implementations
+  - **lib/components/material3/m3_dropdown_menu.dart**: Full Material 3 DropdownMenu with searchability
+  - Legacy wrapper maintains consistent visual styling with text fields
+  - Responsive height calculation and 8px border radius consistency
+
+### Enhanced Test Environment
+- **lib/screens/m3_test_screen_simple.dart**:
+  - Side-by-side component comparison system with toggle switch
+  - Material 3 SegmentedButton implementation for drug selection
+  - Responsive height integration across all components
+  - Enhanced status cards with contextual information
+
+### Technical Implementation Details
+
+#### Responsive Height Algorithm
+```dart
+double _getResponsiveHeight() {
+  final screenWidth = MediaQuery.of(context).size.width;
+  final textScale = MediaQuery.of(context).textScaler.scale(1.0);
+
+  double baseHeight = 56.0;  // Mobile
+  if (screenWidth > 1200) {
+    baseHeight = 64.0;       // Desktop
+  } else if (screenWidth > 600) {
+    baseHeight = 60.0;       // Tablet
+  }
+
+  baseHeight = baseHeight * textScale.clamp(1.0, 1.5);
+  return baseHeight.clamp(56.0, 88.0);
+}
+```
+
+#### Theme Wrapper Pattern
+```dart
+return Theme(
+  data: Theme.of(context).copyWith(
+    inputDecorationTheme: Theme.of(context).inputDecorationTheme.copyWith(
+      filled: true,
+      fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1.0),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2.0),
+      ),
+    ),
+  ),
+  child: PDTextField(/* enhanced legacy component */),
+);
+```
+
+### Flutter Compatibility & Deprecation Fixes
+- **Flutter Version Management**: Successfully resolved 3.35.4 compatibility issues, downgraded to stable 3.32.7
+- **l10n.yaml**: Removed deprecated `synthetic-package: false` configuration
+- **web/index.html**: Updated deprecated Flutter web loader API
+- **Service Worker**: Fixed deprecated `serviceWorkerVersion` configuration
+
+### Problem Resolution Timeline
+1. **Initial Issue**: Background color inconsistency between text fields (white) and dropdowns (transparent)
+2. **Controller Lifecycle**: Fixed TextEditingController disposal issues causing state management problems
+3. **Height Alignment**: Resolved text field height misalignment due to helper text differences
+4. **Border Radius Consistency**: Eliminated "jumping" border radius on focus by removing conflicting properties
+5. **Responsive Design**: Implemented device-aware sizing for mobile, tablet, and desktop platforms
+6. **Flutter Version**: Resolved connection issues caused by Flutter 3.35.4 update through downgrade
+
+### Key Design Decisions
+- **Single Source of Truth**: Enhanced PDTextField once for use across all M3 components
+- **Theme Override Priority**: Leveraged Flutter's InputDecoration vs Theme priority system
+- **Progressive Enhancement**: Maintained legacy component functionality while adding M3 styling
+- **Accessibility First**: Implemented text scaling and minimum touch target requirements
+
 ## Docker Deployment
 
 ### Architecture

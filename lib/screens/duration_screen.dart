@@ -6,9 +6,9 @@ import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 import '../utils/responsive_helper.dart';
 
 import 'package:propofol_dreams_app/constants.dart';
-import 'package:propofol_dreams_app/controllers/PDTextField.dart';
-import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
-import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart';
+import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
+import 'package:propofol_dreams_app/components/legacy/PDSegmentedController.dart';
+import 'package:propofol_dreams_app/components/legacy/PDSegmentedControl.dart';
 import 'package:propofol_dreams_app/models/InfusionUnit.dart';
 import 'package:propofol_dreams_app/components/infusion_regime_table.dart';
 

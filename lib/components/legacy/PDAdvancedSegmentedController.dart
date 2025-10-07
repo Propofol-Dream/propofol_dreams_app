@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import '../models/model.dart';
-import '../models/drug.dart';
-import '../models/sex.dart';
+import '../../models/model.dart';
+import '../../models/drug.dart';
+import '../../models/sex.dart';
 import 'PDModelSelectorModal.dart';
 import 'PDSwitchController.dart';
 

@@ -11,6 +11,7 @@ import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
 import 'tci_screen.dart'; // Using original TCI screen
 import 'settings_screen.dart';
+import 'm3_test_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const VolumeScreen(),
     const DurationScreen(),
     const SettingsScreen(),
-    // TestScreen()
+    const M3TestScreen(), // Material 3 test lab
   ];
 
   @override
@@ -102,9 +103,9 @@ class _HomeScreenState extends State<HomeScreen> {
             BottomNavigationBarItem(
                 icon: const Icon(Icons.settings),
                 label: AppLocalizations.of(context)!.settings),
-            // BottomNavigationBarItem(
-            //     icon:  Icon(Icons.science),
-            //     label: 'Test'),
+            const BottomNavigationBarItem(
+                icon: Icon(Icons.science),
+                label: 'M3 Lab'),
           ]),
     );
   }
@@ -145,6 +146,10 @@ class _HomeScreenState extends State<HomeScreen> {
               NavigationRailDestination(
                 icon: const Icon(Icons.settings),
                 label: Text(AppLocalizations.of(context)!.settings),
+              ),
+              const NavigationRailDestination(
+                icon: Icon(Icons.science),
+                label: Text('M3 Lab'),
               ),
             ],
           ),

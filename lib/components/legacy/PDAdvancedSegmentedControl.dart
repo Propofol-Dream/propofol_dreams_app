@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 
 import 'package:propofol_dreams_app/models/sex.dart';
 
-import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedController.dart';
+import 'package:propofol_dreams_app/components/legacy/PDAdvancedSegmentedController.dart';
 
-import '../constants.dart';
+import '../../constants.dart';
 
 class PDAdvancedSegmentedControl extends StatefulWidget {
   const PDAdvancedSegmentedControl({

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/settings.dart';
+import '../../providers/settings.dart';
 
 class PDTextField extends StatefulWidget {
   PDTextField({
@@ -20,7 +20,7 @@ class PDTextField extends StatefulWidget {
     required this.range,
     this.timer,
     this.enabled = true,
-    this.height = 56,
+    this.height, // Now nullable for responsive calculation
   });
 
   final String labelText;
@@ -53,17 +53,48 @@ class _PDTextFieldState extends State<PDTextField> {
   @override
   void dispose() {
     _localTimer?.cancel(); // Cancel local timer to prevent memory leaks
-    widget.controller.dispose();
+    // DO NOT dispose the controller - it's shared with other components
+    // widget.controller.dispose();
     super.dispose();
+  }
+
+  double _getResponsiveHeight() {
+    if (widget.height != null) return widget.height!;
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScale = MediaQuery.of(context).textScaler.scale(1.0);
+
+    // Base height calculation with responsive scaling
+    double baseHeight = 56.0;
+
+    // Adjust for screen width (mobile vs tablet vs desktop)
+    if (screenWidth > 1200) {
+      // Desktop: Larger touch targets
+      baseHeight = 64.0;
+    } else if (screenWidth > 600) {
+      // Tablet: Medium touch targets
+      baseHeight = 60.0;
+    } else {
+      // Mobile: Standard size but scale with text
+      baseHeight = 56.0;
+    }
+
+    // Scale with accessibility text size
+    baseHeight = baseHeight * textScale.clamp(1.0, 1.5);
+
+    // Ensure minimum usable height for accessibility
+    return baseHeight.clamp(56.0, 88.0);
   }
 
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<Settings>();
 
+    final responsiveHeight = _getResponsiveHeight();
+
     //this controls size of the plus & minus buttons
     double suffixIconConstraintsWidth = 84;
-    double suffixIconConstraintsHeight = widget.height ?? 56;
+    double suffixIconConstraintsHeight = responsiveHeight;
 
     var val = widget.fractionDigits > 0
         ? double.tryParse(widget.controller.text)
@@ -150,19 +181,8 @@ class _PDTextFieldState extends State<PDTextField> {
                         : Theme.of(context).colorScheme.primary
                 : Theme.of(context).disabledColor,
           ),
-          border: const OutlineInputBorder(),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-                color: isWarning
-                    ? Theme.of(context).colorScheme.tertiary
-                    : Theme.of(context).colorScheme.primary),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-                color: widget.enabled
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).disabledColor),
-          ),
+          // Border styling handled by theme - removed explicit border definitions
+          // to allow M3 theme wrapper to control all border states consistently
         ),
       ),
       widget.controller.text.isNotEmpty

@@ -6,9 +6,9 @@ import 'package:propofol_dreams_app/providers/settings.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 import 'package:propofol_dreams_app/models/drug.dart';
 
-import 'package:propofol_dreams_app/controllers/PDTextField.dart';
-import 'package:propofol_dreams_app/controllers/PDSegmentedController.dart';
-import 'package:propofol_dreams_app/controllers/PDSegmentedControl.dart';
+import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
+import 'package:propofol_dreams_app/components/legacy/PDSegmentedController.dart';
+import 'package:propofol_dreams_app/components/legacy/PDSegmentedControl.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

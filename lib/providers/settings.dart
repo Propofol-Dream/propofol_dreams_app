@@ -344,9 +344,6 @@ class Settings with ChangeNotifier {
   set tciWeight(int? i) {
     _tciWeight = i;
     setInt('tciWeight', i);
-    // Also update duration screen weight when TCI weight changes
-    _weight = i;
-    setInt('weight', i);
     notifyListeners();
   }
 

@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:propofol_dreams_app/providers/settings.dart';
 
-import 'package:propofol_dreams_app/controllers/PDTextField.dart';
+import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
 
 
 

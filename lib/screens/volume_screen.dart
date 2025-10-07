@@ -20,11 +20,11 @@ import 'package:propofol_dreams_app/models/target.dart';
 import '../constants.dart';
 import '../components/infusion_regime_table.dart';
 
-import 'package:propofol_dreams_app/controllers/PDTextField.dart';
-import 'package:propofol_dreams_app/controllers/PDSwitchController.dart';
-import 'package:propofol_dreams_app/controllers/PDSwitchField.dart';
-import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedController.dart';
-import 'package:propofol_dreams_app/controllers/PDAdvancedSegmentedControl.dart';
+import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
+import 'package:propofol_dreams_app/components/legacy/PDSwitchController.dart';
+import 'package:propofol_dreams_app/components/legacy/PDSwitchField.dart';
+import 'package:propofol_dreams_app/components/legacy/PDAdvancedSegmentedController.dart';
+import 'package:propofol_dreams_app/components/legacy/PDAdvancedSegmentedControl.dart';
 
 
 class _VolumeScreenState extends State<VolumeScreen> {
