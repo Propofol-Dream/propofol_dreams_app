@@ -6,6 +6,7 @@ import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:propofol_dreams_app/models/drug.dart';
 import 'package:propofol_dreams_app/models/target_unit.dart';
+import 'package:propofol_dreams_app/models/volume_mode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -608,6 +609,205 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
+  // Volume mode selector (Volume vs Volume Plus)
+  VolumeMode _volumeMode = VolumeMode.Volume;
+
+  VolumeMode get volumeMode {
+    return _volumeMode;
+  }
+
+  set volumeMode(VolumeMode mode) {
+    _volumeMode = mode;
+    setString('volumeMode', mode.toString());
+    notifyListeners();
+  }
+
+  // Volume Plus screen-specific parameters (separate from Volume screen)
+  Model _volumePlusAdultModel = Model.Eleveld;
+  Sex? _volumePlusAdultSex;
+  int? _volumePlusAdultAge;
+  int? _volumePlusAdultHeight;
+  int? _volumePlusAdultWeight;
+  double? _volumePlusAdultTarget;
+  int? _volumePlusAdultDuration;
+
+  Model _volumePlusPediatricModel = Model.None;
+  Sex? _volumePlusPediatricSex;
+  int? _volumePlusPediatricAge;
+  int? _volumePlusPediatricHeight;
+  int? _volumePlusPediatricWeight;
+  double? _volumePlusPediatricTarget;
+  int? _volumePlusPediatricDuration;
+
+  bool _volumePlusInAdultView = true;
+  bool _isVolumePlusTableExpanded = false;
+  int? _selectedVolumePlusTableRow;
+  double? _volumePlusTableScrollPosition;
+
+  // Drug-specific target values for Volume Plus
+  double? _volumePlusPropofolTarget;
+  double? _volumePlusRemifentanilTarget;
+  double? _volumePlusDexmedetomidineTarget;
+  double? _volumePlusRemimazolamTarget;
+
+  // Volume Plus Adult Model getters/setters
+  Model get volumePlusAdultModel => _volumePlusAdultModel;
+  set volumePlusAdultModel(Model m) {
+    _volumePlusAdultModel = m;
+    setString('volumePlusAdultModel', m.name);
+    notifyListeners();
+  }
+
+  Sex? get volumePlusAdultSex => _volumePlusAdultSex;
+  set volumePlusAdultSex(Sex? s) {
+    _volumePlusAdultSex = s;
+    setString('volumePlusAdultSex', s.toString());
+    notifyListeners();
+  }
+
+  int? get volumePlusAdultAge => _volumePlusAdultAge;
+  set volumePlusAdultAge(int? i) {
+    _volumePlusAdultAge = i;
+    setInt('volumePlusAdultAge', i);
+    notifyListeners();
+  }
+
+  int? get volumePlusAdultHeight => _volumePlusAdultHeight;
+  set volumePlusAdultHeight(int? i) {
+    _volumePlusAdultHeight = i;
+    setInt('volumePlusAdultHeight', i);
+    notifyListeners();
+  }
+
+  int? get volumePlusAdultWeight => _volumePlusAdultWeight;
+  set volumePlusAdultWeight(int? i) {
+    _volumePlusAdultWeight = i;
+    setInt('volumePlusAdultWeight', i);
+    notifyListeners();
+  }
+
+  double? get volumePlusAdultTarget => _volumePlusAdultTarget;
+  set volumePlusAdultTarget(double? d) {
+    _volumePlusAdultTarget = d;
+    setDouble('volumePlusAdultTarget', d);
+    notifyListeners();
+  }
+
+  int? get volumePlusAdultDuration => _volumePlusAdultDuration;
+  set volumePlusAdultDuration(int? i) {
+    _volumePlusAdultDuration = i;
+    setInt('volumePlusAdultDuration', i);
+    notifyListeners();
+  }
+
+  // Volume Plus Pediatric Model getters/setters
+  Model get volumePlusPediatricModel => _volumePlusPediatricModel;
+  set volumePlusPediatricModel(Model m) {
+    _volumePlusPediatricModel = m;
+    setString('volumePlusPediatricModel', m.name);
+    notifyListeners();
+  }
+
+  Sex? get volumePlusPediatricSex => _volumePlusPediatricSex;
+  set volumePlusPediatricSex(Sex? s) {
+    _volumePlusPediatricSex = s;
+    setString('volumePlusPediatricSex', s.toString());
+    notifyListeners();
+  }
+
+  int? get volumePlusPediatricAge => _volumePlusPediatricAge;
+  set volumePlusPediatricAge(int? i) {
+    _volumePlusPediatricAge = i;
+    setInt('volumePlusPediatricAge', i);
+    notifyListeners();
+  }
+
+  int? get volumePlusPediatricHeight => _volumePlusPediatricHeight;
+  set volumePlusPediatricHeight(int? i) {
+    _volumePlusPediatricHeight = i;
+    setInt('volumePlusPediatricHeight', i);
+    notifyListeners();
+  }
+
+  int? get volumePlusPediatricWeight => _volumePlusPediatricWeight;
+  set volumePlusPediatricWeight(int? i) {
+    _volumePlusPediatricWeight = i;
+    setInt('volumePlusPediatricWeight', i);
+    notifyListeners();
+  }
+
+  double? get volumePlusPediatricTarget => _volumePlusPediatricTarget;
+  set volumePlusPediatricTarget(double? d) {
+    _volumePlusPediatricTarget = d;
+    setDouble('volumePlusPediatricTarget', d);
+    notifyListeners();
+  }
+
+  int? get volumePlusPediatricDuration => _volumePlusPediatricDuration;
+  set volumePlusPediatricDuration(int? i) {
+    _volumePlusPediatricDuration = i;
+    setInt('volumePlusPediatricDuration', i);
+    notifyListeners();
+  }
+
+  // Volume Plus UI state getters/setters
+  bool get volumePlusInAdultView => _volumePlusInAdultView;
+  set volumePlusInAdultView(bool b) {
+    _volumePlusInAdultView = b;
+    setBool('volumePlusInAdultView', b);
+    notifyListeners();
+  }
+
+  bool get isVolumePlusTableExpanded => _isVolumePlusTableExpanded;
+  set isVolumePlusTableExpanded(bool b) {
+    _isVolumePlusTableExpanded = b;
+    setBool('isVolumePlusTableExpanded', b);
+    notifyListeners();
+  }
+
+  int? get selectedVolumePlusTableRow => _selectedVolumePlusTableRow;
+  set selectedVolumePlusTableRow(int? i) {
+    _selectedVolumePlusTableRow = i;
+    setInt('selectedVolumePlusTableRow', i);
+    notifyListeners();
+  }
+
+  double? get volumePlusTableScrollPosition => _volumePlusTableScrollPosition;
+  set volumePlusTableScrollPosition(double? position) {
+    _volumePlusTableScrollPosition = position;
+    setDouble('volumePlusTableScrollPosition', position);
+    notifyListeners();
+  }
+
+  // Volume Plus drug-specific targets
+  double? get volumePlusPropofolTarget => _volumePlusPropofolTarget;
+  set volumePlusPropofolTarget(double? d) {
+    _volumePlusPropofolTarget = d;
+    setDouble('volumePlusPropofolTarget', d);
+    notifyListeners();
+  }
+
+  double? get volumePlusRemifentanilTarget => _volumePlusRemifentanilTarget;
+  set volumePlusRemifentanilTarget(double? d) {
+    _volumePlusRemifentanilTarget = d;
+    setDouble('volumePlusRemifentanilTarget', d);
+    notifyListeners();
+  }
+
+  double? get volumePlusDexmedetomidineTarget => _volumePlusDexmedetomidineTarget;
+  set volumePlusDexmedetomidineTarget(double? d) {
+    _volumePlusDexmedetomidineTarget = d;
+    setDouble('volumePlusDexmedetomidineTarget', d);
+    notifyListeners();
+  }
+
+  double? get volumePlusRemimazolamTarget => _volumePlusRemimazolamTarget;
+  set volumePlusRemimazolamTarget(double? d) {
+    _volumePlusRemimazolamTarget = d;
+    setDouble('volumePlusRemimazolamTarget', d);
+    notifyListeners();
+  }
+
   bool _inAdultView = true;
 
   bool get inAdultView {
@@ -981,7 +1181,34 @@ class Settings with ChangeNotifier {
       if (_selectedDurationTableRow != null) _prefs!.setInt('selectedDurationTableRow', _selectedDurationTableRow!),
       if (_dosageTableScrollPosition != null) _prefs!.setDouble('dosageTableScrollPosition', _dosageTableScrollPosition!),
       if (_volumeTableScrollPosition != null) _prefs!.setDouble('volumeTableScrollPosition', _volumeTableScrollPosition!),
-      
+
+      // Volume mode setting
+      _prefs!.setString('volumeMode', _volumeMode.toString()),
+
+      // Volume Plus screen settings
+      _prefs!.setString('volumePlusAdultModel', _volumePlusAdultModel.name),
+      if (_volumePlusAdultSex != null) _prefs!.setString('volumePlusAdultSex', _volumePlusAdultSex.toString()),
+      if (_volumePlusAdultAge != null) _prefs!.setInt('volumePlusAdultAge', _volumePlusAdultAge!),
+      if (_volumePlusAdultHeight != null) _prefs!.setInt('volumePlusAdultHeight', _volumePlusAdultHeight!),
+      if (_volumePlusAdultWeight != null) _prefs!.setInt('volumePlusAdultWeight', _volumePlusAdultWeight!),
+      if (_volumePlusAdultTarget != null) _prefs!.setDouble('volumePlusAdultTarget', _volumePlusAdultTarget!),
+      if (_volumePlusAdultDuration != null) _prefs!.setInt('volumePlusAdultDuration', _volumePlusAdultDuration!),
+      _prefs!.setString('volumePlusPediatricModel', _volumePlusPediatricModel.name),
+      if (_volumePlusPediatricSex != null) _prefs!.setString('volumePlusPediatricSex', _volumePlusPediatricSex.toString()),
+      if (_volumePlusPediatricAge != null) _prefs!.setInt('volumePlusPediatricAge', _volumePlusPediatricAge!),
+      if (_volumePlusPediatricHeight != null) _prefs!.setInt('volumePlusPediatricHeight', _volumePlusPediatricHeight!),
+      if (_volumePlusPediatricWeight != null) _prefs!.setInt('volumePlusPediatricWeight', _volumePlusPediatricWeight!),
+      if (_volumePlusPediatricTarget != null) _prefs!.setDouble('volumePlusPediatricTarget', _volumePlusPediatricTarget!),
+      if (_volumePlusPediatricDuration != null) _prefs!.setInt('volumePlusPediatricDuration', _volumePlusPediatricDuration!),
+      _prefs!.setBool('volumePlusInAdultView', _volumePlusInAdultView),
+      _prefs!.setBool('isVolumePlusTableExpanded', _isVolumePlusTableExpanded),
+      if (_selectedVolumePlusTableRow != null) _prefs!.setInt('selectedVolumePlusTableRow', _selectedVolumePlusTableRow!),
+      if (_volumePlusTableScrollPosition != null) _prefs!.setDouble('volumePlusTableScrollPosition', _volumePlusTableScrollPosition!),
+      if (_volumePlusPropofolTarget != null) _prefs!.setDouble('volumePlusPropofolTarget', _volumePlusPropofolTarget!),
+      if (_volumePlusRemifentanilTarget != null) _prefs!.setDouble('volumePlusRemifentanilTarget', _volumePlusRemifentanilTarget!),
+      if (_volumePlusDexmedetomidineTarget != null) _prefs!.setDouble('volumePlusDexmedetomidineTarget', _volumePlusDexmedetomidineTarget!),
+      if (_volumePlusRemimazolamTarget != null) _prefs!.setDouble('volumePlusRemimazolamTarget', _volumePlusRemimazolamTarget!),
+
       // EleMarsh screen settings
       if (_EMSex != null) _prefs!.setString('EMSex', _EMSex.toString()),
       if (_EMAge != null) _prefs!.setInt('EMAge', _EMAge!),
@@ -1106,9 +1333,51 @@ class Settings with ChangeNotifier {
     // Duration screen settings
     _weight = pref.getInt('weight') ?? 70;
     _infusionRate = pref.getDouble('infusionRate') ?? 10;
-    
+
     final infusionUnitString = pref.getString('infusionUnit');
     _infusinUnit = _parseInfusionUnitFromString(infusionUnitString) ?? InfusionUnit.mg_kg_hr;
+
+    // Volume mode settings
+    final volumeModeString = pref.getString('volumeMode');
+    _volumeMode = _parseVolumeModeFromString(volumeModeString) ?? VolumeMode.Volume;
+
+    // Volume Plus adult settings
+    final volumePlusAdultModelString = pref.getString('volumePlusAdultModel');
+    _volumePlusAdultModel = _parseModelFromString(volumePlusAdultModelString) ?? Model.Eleveld;
+
+    final volumePlusAdultSexString = pref.getString('volumePlusAdultSex');
+    _volumePlusAdultSex = _parseSexFromString(volumePlusAdultSexString) ?? Sex.Female;
+
+    _volumePlusAdultAge = pref.getInt('volumePlusAdultAge') ?? 40;
+    _volumePlusAdultHeight = pref.getInt('volumePlusAdultHeight') ?? 170;
+    _volumePlusAdultWeight = pref.getInt('volumePlusAdultWeight') ?? 70;
+    _volumePlusAdultTarget = pref.getDouble('volumePlusAdultTarget') ?? 3.0;
+    _volumePlusAdultDuration = pref.getInt('volumePlusAdultDuration') ?? 60;
+
+    // Volume Plus pediatric settings
+    final volumePlusPediatricModelString = pref.getString('volumePlusPediatricModel');
+    _volumePlusPediatricModel = _parseModelFromString(volumePlusPediatricModelString) ?? Model.None;
+
+    final volumePlusPediatricSexString = pref.getString('volumePlusPediatricSex');
+    _volumePlusPediatricSex = _parseSexFromString(volumePlusPediatricSexString) ?? Sex.Female;
+
+    _volumePlusPediatricAge = pref.getInt('volumePlusPediatricAge') ?? 8;
+    _volumePlusPediatricHeight = pref.getInt('volumePlusPediatricHeight') ?? 130;
+    _volumePlusPediatricWeight = pref.getInt('volumePlusPediatricWeight') ?? 26;
+    _volumePlusPediatricTarget = pref.getDouble('volumePlusPediatricTarget') ?? 3.0;
+    _volumePlusPediatricDuration = pref.getInt('volumePlusPediatricDuration') ?? 60;
+
+    // Volume Plus UI state
+    _volumePlusInAdultView = pref.getBool('volumePlusInAdultView') ?? true;
+    _isVolumePlusTableExpanded = pref.getBool('isVolumePlusTableExpanded') ?? false;
+    _selectedVolumePlusTableRow = pref.getInt('selectedVolumePlusTableRow');
+    _volumePlusTableScrollPosition = pref.getDouble('volumePlusTableScrollPosition');
+
+    // Volume Plus drug-specific targets
+    _volumePlusPropofolTarget = pref.getDouble('volumePlusPropofolTarget') ?? 3.0;
+    _volumePlusRemifentanilTarget = pref.getDouble('volumePlusRemifentanilTarget') ?? 3.0;
+    _volumePlusDexmedetomidineTarget = pref.getDouble('volumePlusDexmedetomidineTarget') ?? 1.0;
+    _volumePlusRemimazolamTarget = pref.getDouble('volumePlusRemimazolamTarget') ?? 1.0;
 
     // EleMarsh screen settings
     final emSexString = pref.getString('EMSex');
@@ -1345,6 +1614,21 @@ class Settings with ChangeNotifier {
         return Drug.remimazolam1mg;
       default:
         return Drug.propofol10mg; // Default to propofol 10mg for backward compatibility
+    }
+  }
+
+  /// Parse VolumeMode enum from string
+  VolumeMode? _parseVolumeModeFromString(String? modeString) {
+    if (modeString == null) return null;
+    switch (modeString) {
+      case 'VolumeMode.Volume':
+      case 'Volume':
+        return VolumeMode.Volume;
+      case 'VolumeMode.VolumePlus':
+      case 'VolumePlus':
+        return VolumeMode.VolumePlus;
+      default:
+        return VolumeMode.Volume; // Default to Volume
     }
   }
 }

@@ -5,6 +5,7 @@ import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 import 'package:propofol_dreams_app/models/drug.dart';
+import 'package:propofol_dreams_app/models/volume_mode.dart';
 
 import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
 import 'package:propofol_dreams_app/components/legacy/PDSegmentedController.dart';
@@ -22,6 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final PDSegmentedController remifentanilController = PDSegmentedController();
   final PDSegmentedController remimazolamController = PDSegmentedController();
   final PDSegmentedController themeController = PDSegmentedController();
+  final PDSegmentedController volumeModeController = PDSegmentedController();
   final TextEditingController pumpController = TextEditingController();
 
   @override
@@ -62,6 +64,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         : settings.themeModeSelection == ThemeMode.dark
             ? 1
             : 2;
+    volumeModeController.val = settings.volumeMode == VolumeMode.Volume ? 0 : 1;
   }
 
   Widget _buildDrugConcentrationSection(Drug drug, Settings settings, double UIHeight, double screenWidth) {
@@ -307,6 +310,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         },
                         range: const [0, 1500]),
                   )
+                ],
+              ),
+              const SizedBox(
+                height: 24,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Volume Mode',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  SizedBox(
+                    height: UIHeight,
+                    width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
+                    child: PDSegmentedControl(
+                      fitWidth: true,
+                      fitHeight: true,
+                      fontSize: 16,
+                      defaultColor: Theme.of(context).colorScheme.primary,
+                      defaultOnColor: Theme.of(context).colorScheme.onPrimary,
+                      labels: [
+                        VolumeMode.Volume.displayName,
+                        VolumeMode.VolumePlus.displayName,
+                      ],
+                      segmentedController: volumeModeController,
+                      onPressed: [
+                        () {
+                          settings.volumeMode = VolumeMode.Volume;
+                        },
+                        () {
+                          settings.volumeMode = VolumeMode.VolumePlus;
+                        },
+                      ],
+                    ),
+                  ),
                 ],
               ),
               // Divider(

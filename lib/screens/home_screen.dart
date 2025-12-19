@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 
 import '../providers/settings.dart';
 import '../utils/responsive_helper.dart';
+import '../models/volume_mode.dart';
 import 'volume_screen.dart';
+import 'volume_plus_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
 import 'tci_screen.dart'; // Using original TCI screen
@@ -22,14 +23,19 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int currenIndex = 1; // Start with TCI screen (index 1)
-  final screens = [
-    EleMarshScreen(),
-    const TCIScreen(), // Moved to position 1 (TCI screen)
-    const VolumeScreen(),
-    const DurationScreen(),
-    const SettingsScreen(),
-    const M3TestScreen(), // Material 3 test lab
-  ];
+
+  List<Widget> _getScreens(Settings settings) {
+    return [
+      EleMarshScreen(),
+      const TCIScreen(), // Moved to position 1 (TCI screen)
+      settings.volumeMode == VolumeMode.Volume
+          ? const VolumeScreen()
+          : const VolumePlusScreen(),
+      const DurationScreen(),
+      const SettingsScreen(),
+      const M3TestScreen(), // Material 3 test lab
+    ];
+  }
 
   @override
   void initState() {
@@ -48,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final settings = context.watch<Settings>();
     //this is to set status bar text color
-    settings.isDarkTheme!
+    settings.isDarkTheme == true
         ? SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light)
         : SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
 
@@ -62,6 +68,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Build the original mobile layout with bottom navigation
   Widget _buildMobileLayout(Settings settings) {
+    final screens = _getScreens(settings);
+
     return Scaffold(
       // body: SingleChildScrollView(
       // physics: MediaQuery
@@ -112,6 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Build the web/tablet layout with side navigation
   Widget _buildWebLayout(Settings settings) {
+    final screens = _getScreens(settings);
+
     return Scaffold(
       body: Row(
         children: [
