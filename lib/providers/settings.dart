@@ -1,5 +1,5 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 import 'package:propofol_dreams_app/models/InfusionUnit.dart';
 import 'package:propofol_dreams_app/models/model.dart';
@@ -37,7 +37,7 @@ class Settings with ChangeNotifier {
 
       case ThemeMode.system:
         {
-          var brightness = SchedulerBinding.instance.window.platformBrightness;
+          var brightness = PlatformDispatcher.instance.platformBrightness;
           isDarkTheme = brightness == Brightness.dark ? true : false;
         }
         break;

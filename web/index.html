@@ -36,6 +36,8 @@
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer=""></script>
+  <!-- Flutter 3.41+ bootstrap sets buildConfig and auto-loads -->
+  <script src="flutter_bootstrap.js" defer=""></script>
   <link rel="stylesheet" type="text/css" href="splash/style.css">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
   <script src="splash/splash.js"></script>
@@ -44,21 +46,32 @@
       <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
       <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
       <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
-  </picture>  
+  </picture>
   <script>
-    window.addEventListener('load', function(ev) {
-      // Download main.dart.js
-      _flutter.loader.load({
-        serviceWorkerSettings: {
-          serviceWorkerVersion: serviceWorkerVersion,
+    // Watch for Flutter to add elements to the DOM and remove splash
+    var _splashObserver = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.addedNodes.length) {
+          for (var i = 0; i < mutation.addedNodes.length; i++) {
+            var node = mutation.addedNodes[i];
+            if (node.tagName === 'FLT-TEXT-EDITING-HOST' ||
+               (node.tagName === 'CANVAS' && node.classList.contains('flutter-canvas')) ||
+               (node.querySelector && node.querySelector('.flutter-view'))) {
+              removeSplashFromWeb();
+              _splashObserver.disconnect();
+              return;
+            }
+          }
         }
-      }).then(function(engineInitializer) {
-        return engineInitializer.initializeEngine();
-      }).then(function(appRunner) {
-        return appRunner.runApp();
       });
     });
+    _splashObserver.observe(document.body, { childList: true, subtree: true });
+    // Fallback timeout
+    setTimeout(function() {
+      if (document.getElementById('splash')) {
+        removeSplashFromWeb();
+        _splashObserver.disconnect();
+      }
+    }, 15000);
   </script>
-
-
 </body></html>

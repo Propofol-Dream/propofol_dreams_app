@@ -766,6 +766,7 @@ class DosageDataTable extends StatelessWidget {
   final int? selectedRowIndex;
   final Function(int)? onRowTap;
   final ScrollController? scrollController;
+  final TimeOfDay? startTime;
 
   const DosageDataTable({
     super.key,
@@ -774,6 +775,7 @@ class DosageDataTable extends StatelessWidget {
     this.selectedRowIndex,
     this.onRowTap,
     this.scrollController,
+    this.startTime,
   });
 
   @override
@@ -885,6 +887,8 @@ class DosageDataTable extends StatelessWidget {
       color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
     );
 
+    final timeLabel = startTime != null ? 'Time' : 'Duration';
+
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.8),
@@ -895,12 +899,10 @@ class DosageDataTable extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       child: Row(
         children: [
-          // Time column (30%)
           Expanded(
             flex: 30,
-            child: Text(AppLocalizations.of(context)!.time, style: headerStyle),
+            child: Text(timeLabel, style: headerStyle),
           ),
-          // Rate column (70%)
           Expanded(
             flex: 70,
             child: Text(
@@ -920,15 +922,25 @@ class DosageDataTable extends StatelessWidget {
       color: theme.colorScheme.onSurface,
     );
     
-    // Highlight selected row
     final backgroundColor = isSelected 
         ? theme.colorScheme.primary.withValues(alpha: 0.1)
         : Colors.transparent;
 
-    // Format infusion rate - always show as integer
     final rateText = row.infusionRate < 0.1 
-        ? '—'
+        ? '\u2014'
         : row.infusionRate.round().toString();
+
+    String timeText;
+    if (startTime != null) {
+      final elapsedMinutes = row.time.inMinutes;
+      final totalMinutes = startTime!.hour * 60 + startTime!.minute + elapsedMinutes;
+      final clockMinutes = totalMinutes % (24 * 60);
+      final h = clockMinutes ~/ 60;
+      final m = clockMinutes % 60;
+      timeText = '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}';
+    } else {
+      timeText = row.timeString;
+    }
 
     return GestureDetector(
       onTap: () {
@@ -949,18 +961,16 @@ class DosageDataTable extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
         child: Row(
           children: [
-            // Time column (30%)
             Expanded(
               flex: 30,
               child: Text(
-                row.timeString,
+                timeText,
                 style: bodyStyle?.copyWith(
                   fontWeight: isFirstRow ? FontWeight.w600 : FontWeight.w500,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ),
-            // Rate column (70%)
             Expanded(
               flex: 70,
               child: Text(

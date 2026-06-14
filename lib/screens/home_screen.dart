@@ -11,6 +11,7 @@ import 'volume_plus_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
 import 'tci_screen.dart'; // Using original TCI screen
+import 'realtime_screen.dart';
 import 'settings_screen.dart';
 import 'm3_test_screen.dart';
 
@@ -34,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
       const DurationScreen(),
       const SettingsScreen(),
       const M3TestScreen(), // Material 3 test lab
+      const RealtimeScreen(), // Real-time TCI with clock time
     ];
   }
 
@@ -114,6 +116,9 @@ class _HomeScreenState extends State<HomeScreen> {
             const BottomNavigationBarItem(
                 icon: Icon(Icons.science),
                 label: 'M3 Lab'),
+            const BottomNavigationBarItem(
+                icon: Icon(Icons.access_time),
+                label: 'Real-Time'),
           ]),
     );
   }
@@ -160,6 +165,10 @@ class _HomeScreenState extends State<HomeScreen> {
               const NavigationRailDestination(
                 icon: Icon(Icons.science),
                 label: Text('M3 Lab'),
+              ),
+              const NavigationRailDestination(
+                icon: Icon(Icons.access_time),
+                label: Text('Real-Time'),
               ),
             ],
           ),
