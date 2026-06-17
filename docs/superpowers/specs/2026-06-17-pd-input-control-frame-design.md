@@ -172,7 +172,9 @@ class PDCalculatorSelectorRow extends StatelessWidget {
 }
 ```
 
-The row uses `PDInputControlFrame` internally for the selector side. The reset side uses a fixed-width spacer below the reset button so the status lane under the selector never extends under the reset button.
+The row uses `PDInputControlFrame` internally for the selector side when `UIConfig.useInputControlFrame` is enabled. The reset side uses a fixed-width spacer below the reset button so the status lane under the selector never extends under the reset button.
+
+When `UIConfig.useInputControlFrame` is disabled, `PDCalculatorSelectorRow` renders the old-compatible selector/reset row without a status lane and ignores `selectorStatusText`. This gives the central rollback flag a complete visual rollback path for migrated selector rows.
 
 ## Error And Status Routing
 
@@ -203,6 +205,14 @@ Status text rules:
 
 `PDTextField` keeps its existing public name and current constructor parameters. The only permitted public API change is adding optional parameters that preserve every existing call site without modification.
 
+Add this optional constructor parameter:
+
+```dart
+final bool useInputControlFrame;
+```
+
+Default value: `false`.
+
 Required behavior to preserve:
 
 - Numeric text editing.
@@ -231,6 +241,14 @@ Layout change:
 
 `PDSwitchField` keeps its existing public name and current constructor parameters. The only permitted public API change is adding optional parameters that preserve every existing call site without modification.
 
+Add this optional constructor parameter:
+
+```dart
+final bool useInputControlFrame;
+```
+
+Default value: `false`.
+
 Required behavior to preserve:
 
 - Two-state toggle.
@@ -254,16 +272,21 @@ Layout change:
 Add this centralized migration flag to `UIConfig`:
 
 ```dart
-static const bool useInputControlFrame = true;
+static const bool useInputControlFrame = false;
+
+static bool shouldUseInputControlFrame({required bool optIn}) =>
+    !_emergencyFallback && useInputControlFrame && optIn;
 ```
 
-The implementation slice starts with this flag set to `true` while testing the migrated screens. Rolling back means changing this flag to `false`, which must restore the old rendering paths without changing screen logic.
+`getMigrationStatus()` must include `inputControlFrame: useInputControlFrame` in the `components` map so the active layout system is visible during debugging.
+
+The implementation slice turns the central flag to `true` only while testing migrated screens. Individual call sites still opt in with `useInputControlFrame: true`, so Volume can migrate before TCI without changing every existing `PDTextField` and `PDSwitchField` in the app. Rolling back means changing the central flag to `false`, which must restore the old rendering paths without changing screen logic.
 
 When enabled:
 
-- `PDTextField` renders through `PDInputControlFrame`.
-- `PDSwitchField` renders through `PDInputControlFrame`.
-- `PDCalculatorSelectorRow` uses `PDInputControlFrame` for selector status.
+- `PDTextField` renders through `PDInputControlFrame` only when its call site opts in.
+- `PDSwitchField` renders through `PDInputControlFrame` only when its call site opts in.
+- `PDCalculatorSelectorRow` uses `PDInputControlFrame` for selector status only when the central flag is enabled.
 
 When disabled:
 
@@ -283,11 +306,12 @@ Rollback constraints:
 2. Add `PDCalculatorSelectorRow`.
 3. Add the `UIConfig.useInputControlFrame` rollback flag.
 4. Adapt `PDTextField` and `PDSwitchField` internally behind the flag.
-5. Migrate the Volume selector/reset row first.
-6. Migrate the TCI selector/reset row second.
-7. Verify screenshots and runtime logs.
-8. Migrate remaining screens after Volume and TCI are stable.
-9. Remove old rendering branches and helper-text workarounds only after all calculator screens are stable.
+5. Set `UIConfig.useInputControlFrame = true` for local testing.
+6. Migrate the Volume selector/reset row first and opt in Volume's affected `PDTextField`/`PDSwitchField` call sites.
+7. Migrate the TCI selector/reset row second and opt in TCI's affected `PDTextField`/`PDSwitchField` call sites.
+8. Verify screenshots and runtime logs.
+9. Migrate remaining screens after Volume and TCI are stable.
+10. Remove old rendering branches and helper-text workarounds only after all calculator screens are stable.
 
 ## Verification Plan
 
