@@ -60,6 +60,7 @@ Responsibilities:
 
 - Reserve `controlHeight` for the actual control.
 - Reserve `statusHeight` for compact status text.
+- Expose a total frame height of `controlHeight + statusHeight`.
 - Render status text with consistent styling.
 - Truncate long status text with ellipsis.
 - Keep status width constrained to the frame width.
@@ -101,10 +102,11 @@ class PDInputControlFrame extends StatelessWidget {
 Status lane behavior:
 
 - The lane is always reserved.
-- If there is no status text, the lane is visually empty.
-- If status text exists, the lane shows an icon plus one-line text.
+- If `statusText` is `null`, empty, or `statusType == PDInputStatusType.none`, the lane is visually empty.
+- If `statusText` is non-empty and `statusType != PDInputStatusType.none`, the lane shows an icon plus one-line text.
 - Text uses `TextOverflow.ellipsis`.
 - Status lane height remains fixed.
+- Parent rows must allocate `controlHeight + statusHeight` for framed inputs instead of relying on `InputDecoration` helper/error height.
 
 ## Component: PDCalculatorSelectorRow
 
@@ -180,12 +182,12 @@ Status text rules:
 - Use short messages in status lanes.
 - Use one line only.
 - Truncate with ellipsis.
-- Keep full explanations in model/drug/concentration selector modals or details when needed.
+- Keep full explanations in model/drug/concentration selector modals or details when the compact status text cannot fully identify the cause.
 - Do not rely on color alone; include an icon for error/warning states.
 
 ## PDTextField Redesign
 
-`PDTextField` keeps its existing public name and current constructor parameters. The implementation may add optional parameters only when they preserve existing call sites without modification.
+`PDTextField` keeps its existing public name and current constructor parameters. The only permitted public API change is adding optional parameters that preserve every existing call site without modification.
 
 Required behavior to preserve:
 
@@ -200,17 +202,18 @@ Required behavior to preserve:
 - Existing controller ownership behavior.
 - Existing `onPressed` callback timing.
 - Existing haptic behavior.
-- Existing responsive control height behavior unless explicitly overridden.
+- Existing responsive control height behavior, with the existing `height` parameter continuing to override the control height.
 
 Layout change:
 
 - The visible text-field control is rendered in the `controlHeight` area.
 - Field error/status text moves to `PDInputControlFrame`'s status lane.
-- The implementation should not depend on `InputDecoration.helperText: ''` to reserve height.
+- The framed implementation must not use `InputDecoration.helperText` or `InputDecoration.errorText` to create vertical space.
+- The framed implementation must keep any `InputDecoration.helperText` and `InputDecoration.errorText` values `null`; status text is rendered only by `PDInputControlFrame`.
 
 ## PDSwitchField Redesign
 
-`PDSwitchField` keeps its existing public name and current constructor parameters. The implementation may add optional parameters only when they preserve existing call sites without modification.
+`PDSwitchField` keeps its existing public name and current constructor parameters. The only permitted public API change is adding optional parameters that preserve every existing call site without modification.
 
 Required behavior to preserve:
 
@@ -221,13 +224,13 @@ Required behavior to preserve:
 - Existing controller integration.
 - Existing callback timing.
 - Existing haptic behavior.
-- Existing control height behavior unless explicitly overridden.
+- Existing control height behavior, with the existing `height` parameter continuing to override the control height.
 
 Layout change:
 
 - The visible switch field is rendered in the `controlHeight` area.
 - Switch status text uses `PDInputControlFrame`'s status lane.
-- The implementation should not depend on helper text for geometry.
+- The framed implementation must not use helper text for geometry.
 
 ## Rollback Strategy
 
