@@ -185,7 +185,7 @@ Status text rules:
 
 ## PDTextField Redesign
 
-`PDTextField` keeps its existing public name and public API where possible.
+`PDTextField` keeps its existing public name and current constructor parameters. The implementation may add optional parameters only when they preserve existing call sites without modification.
 
 Required behavior to preserve:
 
@@ -210,7 +210,7 @@ Layout change:
 
 ## PDSwitchField Redesign
 
-`PDSwitchField` keeps its existing public name and public API where possible.
+`PDSwitchField` keeps its existing public name and current constructor parameters. The implementation may add optional parameters only when they preserve existing call sites without modification.
 
 Required behavior to preserve:
 
@@ -231,13 +231,13 @@ Layout change:
 
 ## Rollback Strategy
 
-Add a centralized migration flag to `UIConfig`, for example:
+Add this centralized migration flag to `UIConfig`:
 
 ```dart
 static const bool useInputControlFrame = true;
 ```
 
-The implementation slice may set this to `true` while testing the migrated screens. Rolling back means changing this flag to `false`, which must restore the old rendering paths without changing screen logic.
+The implementation slice starts with this flag set to `true` while testing the migrated screens. Rolling back means changing this flag to `false`, which must restore the old rendering paths without changing screen logic.
 
 When enabled:
 
@@ -307,7 +307,7 @@ Cleanup tasks:
 - Remove obsolete old rendering branches.
 - Remove `helperText: ''` geometry workarounds.
 - Remove unused helper/error styling that moved into `PDInputControlFrame`.
-- Simplify `UIConfig` flags if the new frame system becomes permanent.
+- After all calculator screens are migrated and verified, remove `UIConfig.useInputControlFrame` and the old rendering branches in the same cleanup phase.
 - Update docs to mark `PDInputControlFrame` as the canonical input geometry system.
 
 ## Success Criteria
