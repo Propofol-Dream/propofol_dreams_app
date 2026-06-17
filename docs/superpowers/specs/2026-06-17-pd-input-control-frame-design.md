@@ -49,6 +49,10 @@ The desired behavior is zero layout shift when selector-level, field-level, or s
 
 `PDInputControlFrame` provides the shared geometry contract for input-like controls.
 
+File path:
+
+- `lib/components/PDInputControlFrame.dart`
+
 It renders:
 
 ```text
@@ -86,7 +90,7 @@ class PDInputControlFrame extends StatelessWidget {
     this.statusText,
     this.statusType = PDInputStatusType.none,
     this.controlHeight = 56,
-    this.statusHeight = 18,
+    this.statusHeight = 24,
     this.statusIcon,
   });
 
@@ -106,11 +110,18 @@ Status lane behavior:
 - If `statusText` is non-empty and `statusType != PDInputStatusType.none`, the lane shows an icon plus one-line text.
 - Text uses `TextOverflow.ellipsis`.
 - Status lane height remains fixed.
+- The default `statusHeight` is `24` to match the existing `UIHeight + 24` row pattern used around PD input fields.
 - Parent rows must allocate `controlHeight + statusHeight` for framed inputs instead of relying on `InputDecoration` helper/error height.
+- Default status icons are `Icons.error_outline` for `error`, `Icons.warning_amber_outlined` for `warning`, and `Icons.info_outline` for `info`. A supplied `statusIcon` overrides the default icon.
+- Status colors come from the active theme: `colorScheme.error` for `error`, `colorScheme.tertiary` for `warning`, and `colorScheme.primary` for `info`.
 
 ## Component: PDCalculatorSelectorRow
 
 `PDCalculatorSelectorRow` provides the shared selector plus reset row.
+
+File path:
+
+- `lib/components/PDCalculatorSelectorRow.dart`
 
 It renders:
 
@@ -122,6 +133,7 @@ It renders:
 Responsibilities:
 
 - Place selector inside `Expanded` so it only uses the width available after reset button and spacing.
+- Treat `selector` as a control-only widget. The selector child must not include its own status/helper/error lane.
 - Keep reset button fixed square: `height x height`.
 - Keep reset button top-aligned with the selector control area.
 - Put selector status text under the selector only.
@@ -159,6 +171,8 @@ class PDCalculatorSelectorRow extends StatelessWidget {
   final double spacing;
 }
 ```
+
+The row uses `PDInputControlFrame` internally for the selector side. The reset side uses a fixed-width spacer below the reset button so the status lane under the selector never extends under the reset button.
 
 ## Error And Status Routing
 
@@ -210,6 +224,8 @@ Layout change:
 - Field error/status text moves to `PDInputControlFrame`'s status lane.
 - The framed implementation must not use `InputDecoration.helperText` or `InputDecoration.errorText` to create vertical space.
 - The framed implementation must keep any `InputDecoration.helperText` and `InputDecoration.errorText` values `null`; status text is rendered only by `PDInputControlFrame`.
+- Existing `helperText` values are mapped to `PDInputControlFrame.statusText` with `PDInputStatusType.info` when there is no validation error.
+- Existing validation errors are mapped to `PDInputControlFrame.statusText` with `PDInputStatusType.error`.
 
 ## PDSwitchField Redesign
 
@@ -231,6 +247,7 @@ Layout change:
 - The visible switch field is rendered in the `controlHeight` area.
 - Switch status text uses `PDInputControlFrame`'s status lane.
 - The framed implementation must not use helper text for geometry.
+- New optional switch status/helper parameters are mapped to `PDInputControlFrame.statusText` instead of `InputDecoration.helperText`.
 
 ## Rollback Strategy
 
@@ -251,6 +268,7 @@ When enabled:
 When disabled:
 
 - Old widget rendering paths remain available.
+- Existing `helperText`, `errorText`, field height, and selector/reset row behavior must match the current implementation exactly in the old rendering path.
 
 Rollback constraints:
 
