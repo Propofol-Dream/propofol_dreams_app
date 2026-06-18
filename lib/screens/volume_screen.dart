@@ -1,13 +1,11 @@
 import 'dart:async';
-import 'dart:math' as math;
-import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 import '../utils/responsive_helper.dart';
-import '../utils/text_measurement.dart';
+import '../utils/intents.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 import 'package:propofol_dreams_app/providers/settings.dart';
@@ -17,27 +15,22 @@ import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:propofol_dreams_app/models/target.dart';
 
+import '../config/design_tokens.dart';
 import '../constants.dart';
 import '../components/infusion_regime_table.dart';
-
-import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
-import 'package:propofol_dreams_app/components/legacy/PDSwitchController.dart';
-import 'package:propofol_dreams_app/components/legacy/PDSwitchField.dart';
-import 'package:propofol_dreams_app/components/legacy/PDAdvancedSegmentedController.dart';
-import 'package:propofol_dreams_app/components/legacy/PDAdvancedSegmentedControl.dart';
+import '../components/pk_field.dart';
+import '../components/switch_field.dart';
+import '../components/selector_row.dart';
 
 
 class _VolumeScreenState extends State<VolumeScreen> {
-  final PDAdvancedSegmentedController adultModelController =
-      PDAdvancedSegmentedController();
-  final PDAdvancedSegmentedController pediatricModelController =
-      PDAdvancedSegmentedController();
-  PDSwitchController sexController = PDSwitchController();
   TextEditingController ageController = TextEditingController();
   TextEditingController heightController = TextEditingController();
   TextEditingController weightController = TextEditingController();
   TextEditingController targetController = TextEditingController();
   TextEditingController durationController = TextEditingController();
+  Model _selectedModel = Model.Marsh;
+  bool _sexValue = false; // false=Male, true=Female
   final PDTableController tableController = PDTableController();
   final ScrollController scrollController = ScrollController();
   final ScrollController tableScrollController = ScrollController();
@@ -76,18 +69,19 @@ class _VolumeScreenState extends State<VolumeScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Settings are already loaded - initialize controllers with final values
     final settings = context.read<Settings>();
     _setControllersFromSettings(settings);
-    
+
     // Restore table scroll position
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (settings.volumeTableScrollPosition != null && tableScrollController.hasClients) {
+      if (settings.volumeTableScrollPosition != null &&
+          tableScrollController.hasClients) {
         tableScrollController.jumpTo(settings.volumeTableScrollPosition!);
       }
     });
-    
+
     // Add scroll listener to save position
     tableScrollController.addListener(() {
       if (tableScrollController.hasClients) {
@@ -95,29 +89,30 @@ class _VolumeScreenState extends State<VolumeScreen> {
         settings.volumeTableScrollPosition = tableScrollController.offset;
       }
     });
-    
+
     updateModelOptions(settings.inAdultView);
     run(initState: true);
   }
 
   void _setControllersFromSettings(Settings settings) {
     tableController.val = settings.isVolumeTableExpanded;
+    _selectedModel = settings.inAdultView ? settings.adultModel : settings.pediatricModel;
+    _sexValue = settings.inAdultView
+        ? settings.adultSex == Sex.Female
+        : settings.pediatricSex == Sex.Female;
 
     if (settings.inAdultView) {
-      adultModelController.selection = settings.adultModel;
-      sexController.val = settings.adultSex == Sex.Female ? true : false;
       ageController.text = settings.adultAge?.toString() ?? '';
       heightController.text = settings.adultHeight?.toString() ?? '';
       weightController.text = settings.adultWeight?.toString() ?? '';
       targetController.text = settings.propofolTarget?.toStringAsFixed(1) ?? '';
       durationController.text = settings.adultDuration?.toString() ?? '';
     } else {
-      pediatricModelController.selection = settings.pediatricModel;
-      sexController.val = settings.pediatricSex == Sex.Female ? true : false;
       ageController.text = settings.pediatricAge?.toString() ?? '';
       heightController.text = settings.pediatricHeight?.toString() ?? '';
       weightController.text = settings.pediatricWeight?.toString() ?? '';
-      targetController.text = settings.pediatricTarget?.toStringAsFixed(1) ?? '';
+      targetController.text =
+          settings.pediatricTarget?.toStringAsFixed(1) ?? '';
       durationController.text = settings.pediatricDuration?.toString() ?? '';
     }
   }
@@ -128,7 +123,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
     tableScrollController.dispose();
     super.dispose();
   }
-
 
   void updateRowsAndResult({cols, times}) {
     List col1 = cols[0];
@@ -158,7 +152,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
       final duration = durations[index] as Duration;
       final hours = duration.inHours;
       final minutes = duration.inMinutes.remainder(60);
-      final timeString = '${hours.toString().padLeft(1, '0')}:${minutes.toString().padLeft(2, '0')}';
+      final timeString =
+          '${hours.toString().padLeft(1, '0')}:${minutes.toString().padLeft(2, '0')}';
       resultDuration.add(timeString);
       resultsCol1.add('${col1[index].toStringAsFixed(numOfDigits)} mL');
       resultsCol2.add('${col2[index].toStringAsFixed(numOfDigits)} mL');
@@ -182,8 +177,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
       final duration = durations[index] as Duration;
       final hours = duration.inHours;
       final minutes = duration.inMinutes.remainder(60);
-      final timeString = '${hours.toString().padLeft(1, '0')}:${minutes.toString().padLeft(2, '0')}';
-      
+      final timeString =
+          '${hours.toString().padLeft(1, '0')}:${minutes.toString().padLeft(2, '0')}';
+
       if (!resultDuration.contains(timeString)) {
         resultDuration.add(timeString);
         resultsCol1.add('${col1[index].toStringAsFixed(numOfDigits)} mL');
@@ -205,19 +201,26 @@ class _VolumeScreenState extends State<VolumeScreen> {
     PDTableRows = resultRows;
   }
 
-  void run({initState = false}) {
+  void run({initState = false, bool collapseInput = false}) {
     final settings = Provider.of<Settings>(context, listen: false);
+    if (initState) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        settings.statusBarInfo = null;
+      });
+    } else {
+      settings.statusBarInfo = null;
+    }
 
     int? age = int.tryParse(ageController.text);
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
     double? target = double.tryParse(targetController.text);
     int? duration = int.tryParse(durationController.text);
-    Sex sex = sexController.val ? Sex.Female : Sex.Male;
+    Sex sex = _sexValue ? Sex.Female : Sex.Male;
 
     if (initState == false) {
       if (settings.inAdultView) {
-        settings.adultModel = adultModelController.selection;
+        settings.adultModel = _selectedModel;
         settings.adultSex = sex;
         settings.adultAge = age;
         settings.adultHeight = height;
@@ -225,7 +228,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         settings.propofolTarget = target;
         settings.adultDuration = duration;
       } else {
-        settings.pediatricModel = pediatricModelController.selection;
+        settings.pediatricModel = _selectedModel;
         settings.pediatricSex = sex;
         settings.pediatricAge = age;
         settings.pediatricHeight = height;
@@ -273,8 +276,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
               DateTime start = DateTime.now();
 
-              Patient patient = Patient(
-                  weight: weight, age: age, height: height, sex: sex);
+              Patient patient =
+                  Patient(weight: weight, age: age, height: height, sex: sex);
 
               Pump pump = Pump(
                   timeStep: Duration(seconds: settings.time_step),
@@ -304,20 +307,14 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   target: target + targetInterval,
                   duration: Duration(minutes: duration + 2 * durationInterval));
 
-              PDSim.Simulation sim1 = PDSim.Simulation(
-                  model: model,
-                  patient: patient,
-                  pump: pump1);
+              PDSim.Simulation sim1 =
+                  PDSim.Simulation(model: model, patient: patient, pump: pump1);
 
-              PDSim.Simulation sim2 = PDSim.Simulation(
-                  model: model,
-                  patient: patient,
-                  pump: pump2);
+              PDSim.Simulation sim2 =
+                  PDSim.Simulation(model: model, patient: patient, pump: pump2);
 
-              PDSim.Simulation sim3 = PDSim.Simulation(
-                  model: model,
-                  patient: patient,
-                  pump: pump3);
+              PDSim.Simulation sim3 =
+                  PDSim.Simulation(model: model, patient: patient, pump: pump3);
 
               var results1 = sim1.estimate;
 
@@ -331,12 +328,13 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
               // Get current propofol drug for display
               final propofolDrug = settings.getCurrentDrugVariant('Propofol');
-              
+
               print({
                 'screen': 'Volume',
                 'model': model,
                 'drug': propofolDrug.displayName,
-                'drug_unit': '${propofolDrug.concentration.toStringAsFixed(propofolDrug.concentration == propofolDrug.concentration.roundToDouble() ? 0 : 1)} ${propofolDrug.concentrationUnit.displayName}',
+                'drug_unit':
+                    '${propofolDrug.concentration.toStringAsFixed(propofolDrug.concentration == propofolDrug.concentration.roundToDouble() ? 0 : 1)} ${propofolDrug.concentrationUnit.displayName}',
                 'patient': patient,
                 'pump': pump,
                 'calcuation time':
@@ -350,6 +348,15 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   results3.cumulativeInfusedVolumes
                 ], times: results2.times);
               });
+              final statusInfo =
+                  'Pump: ${pump.maxPumpRate} mL/hr · Duration: ${pump.duration.inMinutes}min';
+              if (initState) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) settings.statusBarInfo = statusInfo;
+                });
+              } else {
+                settings.statusBarInfo = statusInfo;
+              }
             } else {
               // print('Model does not meet its constraint');
 
@@ -410,7 +417,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
       _shouldAnimateTableExpansion = true; // Enable animation for button tap
       controller.val = settings.isVolumeTableExpanded;
     });
-    
+
     // Reset animation flag after a short delay to ensure it's used for this update only
     Future.delayed(const Duration(milliseconds: 50), () {
       if (mounted) {
@@ -438,11 +445,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
     final settings = Provider.of<Settings>(context, listen: false);
 
     if (settings.inAdultView) {
-      sexController.val = toDefault
+      _sexValue = toDefault
           ? true
-          : settings.adultSex == Sex.Female
-              ? true
-              : false;
+          : settings.adultSex == Sex.Female;
       ageController.text = toDefault
           ? 40.toString()
           : settings.adultAge != null
@@ -469,11 +474,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ? settings.adultDuration.toString()
               : '';
     } else {
-      sexController.val = toDefault
+      _sexValue = toDefault
           ? true
-          : settings.pediatricSex == Sex.Female
-              ? true
-              : false;
+          : settings.pediatricSex == Sex.Female;
       ageController.text = toDefault
           ? 8.toString()
           : settings.pediatricAge != null
@@ -505,190 +508,627 @@ class _VolumeScreenState extends State<VolumeScreen> {
     run();
   }
 
-  void updatePDSegmentedController(dynamic s) {
-    run();
-  }
-
-  void updatePDTextEditingController() {
+  void _handleAgeChange() {
     final settings = Provider.of<Settings>(context, listen: false);
-    int? age = int.tryParse(ageController.text);
-    if (age != null) {
-      settings.inAdultView = age >= 17 ? true : false;
+    final age = int.tryParse(ageController.text);
+    if (age != null && age >= 1) {
+      if (age >= 17 != settings.inAdultView) {
+        if (settings.inAdultView) {
+          settings.pediatricAge = age;
+        } else {
+          settings.adultAge = age;
+        }
+        settings.inAdultView = age >= 17;
+        if (age < 17) {
+          _selectedModel = settings.pediatricModel;
+        } else {
+          _selectedModel = settings.adultModel;
+        }
+      }
     }
     updateModelOptions(settings.inAdultView);
     run();
   }
 
-  void restart() {
-    final settings = Provider.of<Settings>(context, listen: false);
-    updateModelOptions(settings.inAdultView);
-    run();
+  List<String> _validate(Settings settings) {
+    final errors = <String>[];
+    final age = int.tryParse(ageController.text);
+    final height = int.tryParse(heightController.text);
+    final weight = int.tryParse(weightController.text);
+    final duration = int.tryParse(durationController.text);
+
+    final model = settings.inAdultView
+        ? settings.adultModel
+        : settings.pediatricModel;
+
+    if (model == Model.None) {
+      errors.add('No model selected');
+      return errors;
+    }
+
+    final bool hasNulls = age == null || weight == null || duration == null;
+    final bool targetNull =
+        double.tryParse(targetController.text) == null;
+    final bool hasMissingFields = hasNulls || targetNull ||
+        (model.target != Target.Plasma && height == null);
+
+    if (hasMissingFields) {
+      errors.add('Fill in all required fields');
+    }
+
+    if (age != null && !model.withinAge(age)) {
+      errors.add('Age ${model.minAge}-${model.maxAge} for ${model.name}');
+    }
+    if (weight != null && !model.withinWeight(weight)) {
+      errors.add('Weight ${model.minWeight}-${model.maxWeight} kg for ${model.name}');
+    }
+    if (height != null && !model.withinHeight(height)) {
+      errors.add('Height ${model.minHeight}-${model.maxHeight} cm for ${model.name}');
+    }
+
+    return errors;
   }
 
-  List<ConfidenceIntervalRowData> _buildConfidenceIntervalData(bool modelIsRunnable) {
+  Widget _buildErrorPanel(List<String> errors) {
+    return SizedBox(
+      height: 48,
+      child: errors.isEmpty
+          ? const SizedBox.shrink()
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: kSp16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    errors.first,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                  ),
+                  if (errors.length > 1)
+                    Text(
+                      '+${errors.length - 1} more',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                    ),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildInputFields(Settings settings) {
+    final theme = Theme.of(context);
+    final age = int.tryParse(ageController.text);
+    final model = settings.inAdultView ? settings.adultModel : settings.pediatricModel;
+    final errors = _validate(settings);
+    final sexSwitchEnabled = model.target != Target.Plasma;
+    final heightEnabled = model.target != Target.Plasma;
+    final ageEnabled = !(settings.inAdultView && model == Model.Marsh);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildErrorPanel(errors),
+        const SizedBox(height: kSp12),
+        // Model selector, adult/paed toggle, and reset button
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SelectorRow(
+                          selectedModel: _selectedModel,
+                          models: modelOptions,
+                          onModelSelected: (m) {
+                            setState(() {
+                              _selectedModel = m;
+                              if (settings.inAdultView) {
+                                settings.adultModel = m;
+                              } else {
+                                settings.pediatricModel = m;
+                              }
+                            });
+                            run();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          border: Border.all(color: theme.colorScheme.outline),
+                          borderRadius: BorderRadius.circular(kRadius),
+                        ),
+                        padding: const EdgeInsets.only(left: 12, right: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              settings.inAdultView ? Icons.face : Icons.child_care_outlined,
+                              size: 18,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              settings.inAdultView
+                                  ? AppLocalizations.of(context)!.adult
+                                  : AppLocalizations.of(context)!.paed,
+                              style: theme.textTheme.labelMedium,
+                            ),
+                            const SizedBox(width: 2),
+                            Switch(
+                              value: settings.inAdultView,
+                              activeThumbColor: theme.colorScheme.primary,
+                              activeTrackColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                              inactiveThumbColor: theme.colorScheme.onSurfaceVariant,
+                              inactiveTrackColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+                              onChanged: (v) {
+                                HapticFeedback.lightImpact();
+                                if (v != settings.inAdultView) {
+                                  if (settings.inAdultView) {
+                                    settings.adultAge = int.tryParse(ageController.text);
+                                    settings.adultHeight = int.tryParse(heightController.text);
+                                    settings.adultWeight = int.tryParse(weightController.text);
+                                    settings.propofolTarget = double.tryParse(targetController.text);
+                                    settings.adultDuration = int.tryParse(durationController.text);
+                                    settings.adultSex = _sexValue ? Sex.Female : Sex.Male;
+                                  } else {
+                                    settings.pediatricAge = int.tryParse(ageController.text);
+                                    settings.pediatricHeight = int.tryParse(heightController.text);
+                                    settings.pediatricWeight = int.tryParse(weightController.text);
+                                    settings.pediatricTarget = double.tryParse(targetController.text);
+                                    settings.pediatricDuration = int.tryParse(durationController.text);
+                                    settings.pediatricSex = _sexValue ? Sex.Female : Sex.Male;
+                                  }
+                                  settings.inAdultView = v;
+                                  ageController.text = settings.inAdultView
+                                      ? (settings.adultAge?.toString() ?? '')
+                                      : (settings.pediatricAge?.toString() ?? '');
+                                  heightController.text = settings.inAdultView
+                                      ? (settings.adultHeight?.toString() ?? '')
+                                      : (settings.pediatricHeight?.toString() ?? '');
+                                  weightController.text = settings.inAdultView
+                                      ? (settings.adultWeight?.toString() ?? '')
+                                      : (settings.pediatricWeight?.toString() ?? '');
+                                  targetController.text = settings.inAdultView
+                                      ? (settings.propofolTarget?.toStringAsFixed(1) ?? '')
+                                      : (settings.pediatricTarget?.toStringAsFixed(1) ?? '');
+                                  durationController.text = settings.inAdultView
+                                      ? (settings.adultDuration?.toString() ?? '')
+                                      : (settings.pediatricDuration?.toString() ?? '');
+                                  _sexValue = settings.inAdultView
+                                      ? settings.adultSex == Sex.Female
+                                      : settings.pediatricSex == Sex.Female;
+                                  _selectedModel = settings.inAdultView
+                                      ? settings.adultModel
+                                      : settings.pediatricModel;
+                                  updateModelOptions(settings.inAdultView);
+                                  run();
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                height: 48,
+                width: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    foregroundColor: theme.colorScheme.onSurfaceVariant,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(color: theme.colorScheme.outline),
+                      borderRadius: BorderRadius.circular(kRadius),
+                    ),
+                  ),
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    reset(toDefault: true);
+                  },
+                  child: const Icon(Icons.restart_alt_outlined),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: kSp12),
+        // Sex and Age row
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          child: Row(
+            children: [
+              Expanded(
+                child: SwitchField(
+                  labelText: AppLocalizations.of(context)!.sex,
+                  prefixIcon: _sexValue
+                      ? (settings.inAdultView ? Icons.woman : Icons.girl)
+                      : (settings.inAdultView ? Icons.man : Icons.boy),
+                  value: _sexValue,
+                  switchLabels: {
+                    true: settings.inAdultView
+                        ? Sex.Female.toLocalizedString(context)
+                        : Sex.Girl.toLocalizedString(context),
+                    false: settings.inAdultView
+                        ? Sex.Male.toLocalizedString(context)
+                        : Sex.Boy.toLocalizedString(context),
+                  },
+                  onChanged: (v) {
+                    setState(() => _sexValue = v);
+                    if (settings.inAdultView) {
+                      settings.adultSex = v ? Sex.Female : Sex.Male;
+                    } else {
+                      settings.pediatricSex = v ? Sex.Female : Sex.Male;
+                    }
+                    run();
+                  },
+                  enabled: sexSwitchEnabled,
+                ),
+              ),
+              const SizedBox(width: kSp12),
+              Expanded(
+                child: PKField(
+                  labelText: AppLocalizations.of(context)!.age,
+                  prefixIcon: Icons.calendar_month,
+                  interval: 1.0,
+                  fractionDigits: 0,
+                  controller: ageController,
+                  range: age != null
+                      ? (age >= 17
+                          ? [17, model == Model.Schnider ? 100 : 105]
+                          : [1, 16])
+                      : [1, 16],
+                  onChanged: _handleAgeChange,
+                  enabled: ageEnabled,
+                  hasError: errors.isNotEmpty,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: kSp12),
+        // Height and Weight row
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          child: Row(
+            children: [
+              Expanded(
+                child: PKField(
+                  labelText: '${AppLocalizations.of(context)!.height} (cm)',
+                  prefixIcon: Icons.straighten,
+                  interval: 1,
+                  fractionDigits: 0,
+                  controller: heightController,
+                  range: [model.minHeight, model.maxHeight],
+                  onChanged: () {
+                    final s = Provider.of<Settings>(context, listen: false);
+                    if (settings.inAdultView) {
+                      s.adultHeight = int.tryParse(heightController.text);
+                    } else {
+                      s.pediatricHeight = int.tryParse(heightController.text);
+                    }
+                    run();
+                  },
+                  enabled: heightEnabled,
+                  hasError: errors.isNotEmpty,
+                ),
+              ),
+              const SizedBox(width: kSp12),
+              Expanded(
+                child: PKField(
+                  labelText: '${AppLocalizations.of(context)!.weight} (kg)',
+                  prefixIcon: Icons.monitor_weight_outlined,
+                  interval: 1.0,
+                  fractionDigits: 0,
+                  controller: weightController,
+                  range: [model.minWeight, model.maxWeight],
+                  onChanged: () {
+                    final s = Provider.of<Settings>(context, listen: false);
+                    if (settings.inAdultView) {
+                      s.adultWeight = int.tryParse(weightController.text);
+                    } else {
+                      s.pediatricWeight = int.tryParse(weightController.text);
+                    }
+                    run();
+                  },
+                  hasError: errors.isNotEmpty,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: kSp12),
+        // Target and Duration row
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          child: Row(
+            children: [
+              Expanded(
+                child: PKField(
+                  labelText: model.target.toLocalizedString(context),
+                  prefixIcon: model.target.icon,
+                  interval: 0.5,
+                  fractionDigits: 1,
+                  controller: targetController,
+                  range: const [kMinTarget, kMaxTarget],
+                  onChanged: () {
+                    final s = Provider.of<Settings>(context, listen: false);
+                    final t = double.tryParse(targetController.text);
+                    if (settings.inAdultView) {
+                      s.propofolTarget = t;
+                    } else {
+                      s.pediatricTarget = t;
+                    }
+                    run();
+                  },
+                  hasError: errors.isNotEmpty,
+                ),
+              ),
+              const SizedBox(width: kSp12),
+              Expanded(
+                child: PKField(
+                  labelText: AppLocalizations.of(context)!.duration,
+                  prefixIcon: Icons.schedule,
+                  interval: 5,
+                  fractionDigits: 0,
+                  controller: durationController,
+                  range: const [kMinDuration, kMaxDuration],
+                  onChanged: () {
+                    final d = int.tryParse(durationController.text);
+                    final s = Provider.of<Settings>(context, listen: false);
+                    if (settings.inAdultView) {
+                      s.adultDuration = d;
+                    } else {
+                      s.pediatricDuration = d;
+                    }
+                    run();
+                  },
+                  hasError: errors.isNotEmpty,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: kSp12),
+      ],
+    );
+  }
+
+  Widget _buildInputPanel(Settings settings) {
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(kRadius),
+      ),
+      child: _buildInputFields(settings),
+    );
+  }
+
+  List<ConfidenceIntervalRowData> _buildConfidenceIntervalData(
+      bool modelIsRunnable) {
     final rows = modelIsRunnable ? PDTableRows : EmptyTableRows;
     return rows.map<ConfidenceIntervalRowData>((row) {
       final List<String> rowData = row.cast<String>();
       return ConfidenceIntervalRowData(
-        rowData, 
-        highlightValue: result.contains(rowData.length > 2 ? rowData[2] : '') ? rowData[2] : null,
+        rowData,
+        highlightValue: result.contains(rowData.length > 2 ? rowData[2] : '')
+            ? rowData[2]
+            : null,
       );
     }).toList();
   }
 
   int _calculateOptimalRowCount(double screenHeight, bool isTableExpanded) {
-    // Be more conservative to prevent overflow
     if (screenHeight < 600) {
-      return 3; // Small screens - keep it safe
+      return 3;
     } else if (screenHeight < 800) {
-      return 4; // Medium screens
+      return 4;
     } else if (screenHeight < 1000) {
-      return 5; // Large screens
+      return 5;
     } else {
-      return 6; // Very large screens
+      return 6;
     }
   }
 
-  Widget buildModelSelector(Settings settings, double UIHeight) {
-    final currentModel = settings.inAdultView
-        ? (adultModelController.selection is Model ? adultModelController.selection as Model : null)
-        : (pediatricModelController.selection is Model ? pediatricModelController.selection as Model : null);
-    
-    final Sex sex = sexController.val ? Sex.Female : Sex.Male;
-    final int age = int.tryParse(ageController.text) ?? 0;
-    final int height = int.tryParse(heightController.text) ?? 0;
-    final int weight = int.tryParse(weightController.text) ?? 0;
-
-    final hasValidationError = currentModel != null && 
-        (settings.inAdultView ? adultModelController : pediatricModelController)
-        .hasValidationError(sex: sex, weight: weight, height: height, age: age);
-
-    final String? validationErrorText = hasValidationError
-        ? (settings.inAdultView ? adultModelController : pediatricModelController)
-            .getValidationErrorText(sex: sex, weight: weight, height: height, age: age)
-        : null;
-
-    // Calculate dynamic width based on possible model names
-    final modelNames = [
-      'Marsh',
-      'Schnider',
-      'Eleveld',
-      'Paedfusor',
-      'Kataria',
-      'Select Model', // Default text
-    ];
-
-    // Get the text style used in the TextField
-    final textStyle = Theme.of(context).textTheme.bodyLarge ?? const TextStyle(fontSize: 16);
-
-    final dynamicWidth = TextMeasurement.calculateDrugSelectorWidth(
-      context: context,
-      drugNames: modelNames,
-      textStyle: textStyle,
-    );
-
-    return SizedBox(
-      width: dynamicWidth,
-      child: Stack(
-        alignment: Alignment.centerRight,
-        children: [
-          TextField(
-            enabled: true,
-            readOnly: true,
-            controller: TextEditingController(text: currentModel?.name ?? 'Select Model'),
-            style: TextStyle(
-              color: hasValidationError 
-                ? Theme.of(context).colorScheme.error
-                : Theme.of(context).colorScheme.primary,
-            ),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Theme.of(context).colorScheme.onPrimary,
-              helperText: '', // Reserve space to prevent layout shift
-              helperStyle: const TextStyle(fontSize: 10),
-              errorText: hasValidationError ? validationErrorText : null,
-              errorStyle: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-                fontSize: 10,
-              ),
-              prefixIcon: Icon(
-                Symbols.graph_4,
-                color: hasValidationError
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.primary,
-              ),
-              labelText: AppLocalizations.of(context)!.model,
-              labelStyle: TextStyle(
-                color: hasValidationError 
-                  ? Theme.of(context).colorScheme.error
-                  : Theme.of(context).colorScheme.primary,
-              ),
-              border: const OutlineInputBorder(),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: hasValidationError 
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.error,
-                ),
-              ),
-              suffixIcon: Icon(
-                Icons.arrow_drop_down,
-                color: hasValidationError 
-                  ? Theme.of(context).colorScheme.error
-                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: () async {
-                await HapticFeedback.lightImpact();
-                final controller = settings.inAdultView ? adultModelController : pediatricModelController;
-                controller.showModelSelector(
-                  context: context,
-                  inAdultView: settings.inAdultView,
-                  sexController: sexController,
-                  ageController: ageController,
-                  heightController: heightController,
-                  weightController: weightController,
-                  targetController: targetController,
-                  durationController: durationController,
-                  onModelSelected: (model) {
-                    setState(() {
-                      if (settings.inAdultView) {
-                        adultModelController.selection = model;
-                        settings.adultModel = model;
+  /// Results section: data table only (result label is pinned below).
+  Widget _buildResultsSection(Settings settings, double screenHeight,
+      double? target, bool modelIsRunnable, {bool showTable = true}) {
+    final mediaQuery = MediaQuery.of(context);
+    return Column(
+      children: [
+        // Data table
+        if (showTable)
+          mediaQuery.size.height >= screenBreakPoint1
+              ? Consumer<Settings>(
+                builder: (context, settings, child) {
+                  return AnimatedDataTable(
+                    isExpanded: tableController.val,
+                    data: _buildConfidenceIntervalData(modelIsRunnable),
+                    headers: modelIsRunnable
+                        ? [
+                            (target! - targetInterval) >= 0
+                                ? 'Target ${(target - targetInterval).toStringAsFixed(1)}'
+                                : 'Target ${0.toStringAsFixed(1)}',
+                            'Target ${target.toStringAsFixed(1)}',
+                            'Target ${(target + targetInterval).toStringAsFixed(1)}',
+                          ]
+                        : ['Target --', 'Target --', 'Target --'],
+                    maxVisibleRows: tableController.val
+                        ? _calculateOptimalRowCount(screenHeight, true)
+                        : 0,
+                    selectedRowIndex: settings.selectedVolumeTableRow,
+                    onRowTap: (index) {
+                      if (settings.selectedVolumeTableRow == index) {
+                        settings.selectedVolumeTableRow = null;
                       } else {
-                        pediatricModelController.selection = model;
-                        settings.pediatricModel = model;
+                        settings.selectedVolumeTableRow = index;
                       }
-                    });
-                    controller.selection = model;
-                    updatePDSegmentedController(model);
-                  },
-                );
-              },
+                    },
+                    scrollController: tableScrollController,
+                    animate: _shouldAnimateTableExpansion,
+                  );
+                },
+              )
+            : const SizedBox(height: 0),
+      ],
+    );
+  }
+
+  Widget _buildDesktopResults(Settings settings, double screenHeight,
+      double? target, bool modelIsRunnable) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            modelIsRunnable ? result : emptyResult,
+            style: TextStyle(
+              fontSize: 60,
+              color: Theme.of(context).colorScheme.onSurface,
+              height: 1.0,
             ),
           ),
-        ],
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: Consumer<Settings>(
+            builder: (context, settings, child) {
+              return AnimatedDataTable(
+                isExpanded: true,
+                data: _buildConfidenceIntervalData(modelIsRunnable),
+                headers: modelIsRunnable
+                    ? [
+                        (target! - targetInterval) >= 0
+                            ? 'Target ${(target - targetInterval).toStringAsFixed(1)}'
+                            : 'Target ${0.toStringAsFixed(1)}',
+                        'Target ${target.toStringAsFixed(1)}',
+                        'Target ${(target + targetInterval).toStringAsFixed(1)}',
+                      ]
+                    : ['Target --', 'Target --', 'Target --'],
+                maxVisibleRows: 100,
+                selectedRowIndex: settings.selectedVolumeTableRow,
+                onRowTap: (index) {
+                  if (settings.selectedVolumeTableRow == index) {
+                    settings.selectedVolumeTableRow = null;
+                  } else {
+                    settings.selectedVolumeTableRow = index;
+                  }
+                },
+                scrollController: tableScrollController,
+                animate: false,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabletLayout(Settings settings, double UIHeight,
+      double screenHeight, double? target, bool modelIsRunnable) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(
+          left: horizontalSidesPaddingPixel,
+          right: horizontalSidesPaddingPixel,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: _buildDesktopResults(
+                  settings, screenHeight, target, modelIsRunnable),
+            ),
+            const SizedBox(width: 16),
+            SizedBox(
+              width: 393,
+              child: _buildInputPanel(settings),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout(Settings settings, double UIHeight,
+      double screenHeight, double? target, bool modelIsRunnable) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(
+          left: horizontalSidesPaddingPixel,
+          right: horizontalSidesPaddingPixel,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: _buildDesktopResults(
+                  settings, screenHeight, target, modelIsRunnable),
+            ),
+            const SizedBox(width: 16),
+            SizedBox(
+              width: 393,
+              child: _buildInputPanel(settings),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Wraps [child] in [Shortcuts] + [Actions] for Enter=run() on desktop/web.
+  Widget _wrapWithKeyboardShortcuts(Widget child) {
+    final enable = ResponsiveHelper.isDesktop(context) || kIsWeb;
+    if (!enable) return child;
+    return Shortcuts(
+      shortcuts: const <ShortcutActivator, Intent>{
+        SingleActivator(LogicalKeyboardKey.enter): CalculateIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          CalculateIntent: CallbackAction<CalculateIntent>(
+            onInvoke: (intent) {
+              run();
+              return null;
+            },
+          ),
+        },
+        child: child,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
+    final isDesktopLayout = ResponsiveHelper.isDesktop(context);
+    final isTabletLayout =
+        ResponsiveHelper.isTablet(context) && !isDesktopLayout;
 
+    final mediaQuery = MediaQuery.of(context);
     final double UIHeight = (mediaQuery.size.aspectRatio >= 0.455
-        ? mediaQuery.size.height >= screenBreakPoint1
-            ? 56
-            : 48
-        : 48) + (ResponsiveHelper.isAndroid() ? 4 : 0);
+            ? mediaQuery.size.height >= screenBreakPoint1
+                ? 56
+                : 48
+            : 48) +
+        (ResponsiveHelper.isAndroid() ? 4 : 0);
 
     final double screenHeight = mediaQuery.size.height -
         (ResponsiveHelper.isAndroid()
@@ -705,104 +1145,70 @@ class _VolumeScreenState extends State<VolumeScreen> {
     int? duration = int.tryParse(durationController.text);
     double? target = double.tryParse(targetController.text);
 
-    adultModelController.selection = settings.adultModel;
-    pediatricModelController.selection = settings.pediatricModel;
+    _selectedModel = settings.inAdultView ? settings.adultModel : settings.pediatricModel;
 
-    Model selectedModel = settings.inAdultView
-        ? adultModelController.selection
-        : pediatricModelController.selection;
-
-    bool modelIsRunnable = selectedModel.isRunnable(
+    bool modelIsRunnable = _selectedModel.isRunnable(
         age: age,
         height: height,
         weight: weight,
         target: target,
         duration: duration);
 
-    final bool heightTextFieldEnabled = settings.inAdultView
-        ? (adultModelController.selection as Model).target != Target.Plasma
-        : (pediatricModelController.selection as Model).target != Target.Plasma;
+    if (isDesktopLayout) {
+      return _wrapWithKeyboardShortcuts(
+        _buildDesktopLayout(
+            settings, UIHeight, screenHeight, target, modelIsRunnable),
+      );
+    }
+    if (isTabletLayout) {
+      return _wrapWithKeyboardShortcuts(
+        _buildTabletLayout(
+            settings, UIHeight, screenHeight, target, modelIsRunnable),
+      );
+    }
 
-    final bool sexSwitchControlEnabled = settings.inAdultView
-        ? (adultModelController.selection as Model).target != Target.Plasma
-        : (pediatricModelController.selection as Model).target != Target.Plasma;
-
-    final ageTextFieldEnabled = !(settings.inAdultView &&
-        adultModelController.selection == Model.Marsh);
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Container(
-          padding: EdgeInsets.only(
-            left: horizontalSidesPaddingPixel,
-            right: horizontalSidesPaddingPixel,
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView(
-            reverse: true,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight - MediaQuery.of(context).viewInsets.bottom,
+    // Mobile: fixed-bottom input panel with scrollable results above
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      body: _wrapWithKeyboardShortcuts(
+        Column(
+          children: [
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    padding: EdgeInsets.only(
+                      left: horizontalSidesPaddingPixel,
+                      right: horizontalSidesPaddingPixel,
+                      top: 12,
+                    ),
+                    child: _buildResultsSection(
+                        settings, screenHeight, target, modelIsRunnable, showTable: false),
+                  );
+                },
               ),
-              child: IntrinsicHeight(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-
-                  // Adult/Pediatric toggle
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      GestureDetector(
-                        onTap: () async {
-                          await HapticFeedback.mediumImpact();
-                          if (settings.inAdultView) {
-                            ageController.text = settings.pediatricAge != null
-                                ? settings.pediatricAge.toString()
-                                : '';
-                          } else {
-                            ageController.text = settings.adultAge != null
-                                ? settings.adultAge.toString()
-                                : '';
-                          }
-                          settings.inAdultView = !settings.inAdultView;
-                          reset();
-                        },
-                        child: Chip(
-                          avatar: settings.inAdultView
-                              ? Icon(
-                                  Icons.face,
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                )
-                              : Icon(
-                                  Icons.child_care_outlined,
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                ),
-                          label: Text(
-                            settings.inAdultView ? AppLocalizations.of(context)!.adult : AppLocalizations.of(context)!.paed,
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimary),
-                          ),
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Result display and expand button
-                  Row(
+            ),
+            // Result label + arrow pinned just above input panel
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+              ),
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      mediaQuery.size.height >= screenBreakPoint1
-                          ? IconButton(
-                              onPressed: () async {
-                                await HapticFeedback.mediumImpact();
-                                updatePDTableController(tableController);
-                              },
-                              icon: tableController.val
-                                  ? const Icon(Icons.expand_more)
-                                  : const Icon(Icons.expand_less))
-                          : Container(),
+                      IconButton(
+                        onPressed: () async {
+                          await HapticFeedback.mediumImpact();
+                          updatePDTableController(tableController);
+                        },
+                        icon: tableController.val
+                            ? const Icon(Icons.expand_more)
+                            : const Icon(Icons.expand_less),
+                      ),
                       AnimatedDefaultTextStyle(
                         duration: const Duration(milliseconds: 200),
                         curve: Curves.fastOutSlowIn,
@@ -810,206 +1216,58 @@ class _VolumeScreenState extends State<VolumeScreen> {
                           fontSize: tableController.val ? 34 : 60,
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
-                        child: Text(
-                          modelIsRunnable ? result : emptyResult,
-                        ),
-                      )
+                        child: Text(modelIsRunnable ? result : emptyResult),
+                      ),
                     ],
                   ),
-
-                  // Data table
-                  mediaQuery.size.height >= screenBreakPoint1
-                      ? Consumer<Settings>(
-                          builder: (context, settings, child) {
-                            return AnimatedDataTable(
-                              isExpanded: tableController.val,
-                              data: _buildConfidenceIntervalData(modelIsRunnable),
-                              headers: modelIsRunnable
-                                  ? [
-                                      (target! - targetInterval) >= 0
-                                          ? 'Target ${(target - targetInterval).toStringAsFixed(1)}'
-                                          : 'Target ${0.toStringAsFixed(1)}',
-                                      'Target ${target.toStringAsFixed(1)}',
-                                      'Target ${(target + targetInterval).toStringAsFixed(1)}'
-                                    ]
-                                  : ['Target --', 'Target --', 'Target --'],
-                              maxVisibleRows: tableController.val ? _calculateOptimalRowCount(screenHeight, true) : 0,
-                              selectedRowIndex: settings.selectedVolumeTableRow,
-                               onRowTap: (index) {
-                                 // Toggle selection: if same row is tapped, deselect it
-                                 if (settings.selectedVolumeTableRow == index) {
-                                   settings.selectedVolumeTableRow = null;
-                                 } else {
-                                   settings.selectedVolumeTableRow = index;
-                                 }
-                                },
-                                scrollController: tableScrollController,
-                                animate: _shouldAnimateTableExpansion,
-                              );
-                          },
-                        )
-                      : const SizedBox(height: 0),
-
-                  const SizedBox(height: 16),
-
-                  // Model selector and reset button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      buildModelSelector(settings, UIHeight),
-                      Container(
-                          height: UIHeight,
-                          width: UIHeight,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.all(0),
-                              backgroundColor: Theme.of(context).colorScheme.onPrimary,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                  borderRadius: const BorderRadius.all(Radius.circular(5))),
-                            ),
-                            onPressed: () async {
-                              await HapticFeedback.mediumImpact();
-                              reset(toDefault: true);
-                            },
-                            child: Icon(Icons.restart_alt_outlined),
-                          )),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Sex and Age row
-                  SizedBox(
-                    height: UIHeight + 24,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: PDSwitchField(
-                            labelText: AppLocalizations.of(context)!.sex,
-                            prefixIcon: sexController.val == true ?
-                            settings.inAdultView ? Icons.woman : Icons.girl :
-                            settings.inAdultView ? Icons.man : Icons.boy,
-                            controller: sexController,
-                            switchTexts: {
-                              true: settings.inAdultView ? Sex.Female.toLocalizedString(context): Sex.Girl.toLocalizedString(context),
-                              false: settings.inAdultView ? Sex.Male.toLocalizedString(context): Sex.Boy.toLocalizedString(context)
-                            },
-                            onChanged: run,
-                            height: UIHeight,
-                            enabled: sexSwitchControlEnabled,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: PDTextField(
-                            prefixIcon: Icons.calendar_month,
-                            labelText: AppLocalizations.of(context)!.age,
-                            interval: 1.0,
-                            fractionDigits: 0,
-                            controller: ageController,
-                            range: age != null
-                                ? age >= 17
-                                    ? [17, selectedModel == Model.Schnider ? 100 : 105]
-                                    : [1, 16]
-                                : [1, 16],
-                            onPressed: updatePDTextEditingController,
-                            enabled: ageTextFieldEnabled,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Height and Weight row
-                  SizedBox(
-                    height: UIHeight + 24,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: PDTextField(
-                            prefixIcon: Icons.straighten,
-                            labelText: '${AppLocalizations.of(context)!.height} (cm)',
-                            interval: 1,
-                            fractionDigits: 0,
-                            controller: heightController,
-                            range: [selectedModel.minHeight, selectedModel.maxHeight],
-                            onPressed: updatePDTextEditingController,
-                            enabled: heightTextFieldEnabled,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: PDTextField(
-                            prefixIcon: Icons.monitor_weight_outlined,
-                            labelText: '${AppLocalizations.of(context)!.weight} (kg)',
-                            interval: 1.0,
-                            fractionDigits: 0,
-                            controller: weightController,
-                            range: [selectedModel.minWeight, selectedModel.maxWeight],
-                            onPressed: updatePDTextEditingController,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Target and Duration row
-                  SizedBox(
-                    height: UIHeight + 24,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: PDTextField(
-                            prefixIcon: selectedModel.target.icon,
-                            labelText: selectedModel.target.toLocalizedString(context),
-                            interval: 0.5,
-                            fractionDigits: 1,
-                            controller: targetController,
-                            range: const [kMinTarget, kMaxTarget],
-                            onPressed: updatePDTextEditingController,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: PDTextField(
-                            prefixIcon: Icons.schedule,
-                            labelText: '${AppLocalizations.of(context)!.duration} (${AppLocalizations.of(context)!.min})',
-                            interval: double.tryParse(durationController.text) != null
-                                ? double.parse(durationController.text) >= 60
-                                    ? 10
-                                    : 5
-                                : 1,
-                            fractionDigits: 0,
-                            controller: durationController,
-                            range: const [kMinDuration, kMaxDuration],
-                            onPressed: updatePDTextEditingController,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Bottom safe area padding
-                  SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
-                  ],
                 ),
               ),
             ),
-          ),
-        );
-      },
+            // Data table (expands between result label and input panel)
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.fastOutSlowIn,
+              alignment: Alignment.topCenter,
+              child: tableController.val && mediaQuery.size.height >= screenBreakPoint1
+                  ? Consumer<Settings>(
+                      builder: (context, settings, child) {
+                        return AnimatedDataTable(
+                          isExpanded: true,
+                          data: _buildConfidenceIntervalData(modelIsRunnable),
+                          headers: modelIsRunnable
+                              ? [
+                                  (target! - targetInterval) >= 0
+                                      ? 'Target ${(target - targetInterval).toStringAsFixed(1)}'
+                                      : 'Target ${0.toStringAsFixed(1)}',
+                                  'Target ${target.toStringAsFixed(1)}',
+                                  'Target ${(target + targetInterval).toStringAsFixed(1)}',
+                                ]
+                              : ['Target --', 'Target --', 'Target --'],
+                          maxVisibleRows: _calculateOptimalRowCount(screenHeight, true),
+                          selectedRowIndex: settings.selectedVolumeTableRow,
+                          onRowTap: (index) {
+                            if (settings.selectedVolumeTableRow == index) {
+                              settings.selectedVolumeTableRow = null;
+                            } else {
+                              settings.selectedVolumeTableRow = index;
+                            }
+                          },
+                          scrollController: tableScrollController,
+                          animate: _shouldAnimateTableExpansion,
+                        );
+                      },
+                    )
+                  : const SizedBox.shrink(),
+            ),
+            Container(
+              child: SafeArea(
+                top: false,
+                child: _buildInputPanel(settings),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1035,9 +1293,3 @@ class PDTableController extends ChangeNotifier {
     notifyListeners();
   }
 }
-
-
-
-
-
-

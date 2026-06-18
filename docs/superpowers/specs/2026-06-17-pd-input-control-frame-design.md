@@ -234,7 +234,7 @@ Layout change:
 - Field error/status text moves to `PDInputControlFrame`'s status lane.
 - The framed implementation must not use `InputDecoration.helperText` or `InputDecoration.errorText` to create vertical space.
 - The framed implementation must keep any `InputDecoration.helperText` and `InputDecoration.errorText` values `null`; status text is rendered only by `PDInputControlFrame`.
-- Existing `helperText` values are mapped to `PDInputControlFrame.statusText` with `PDInputStatusType.info` when there is no validation error.
+- Existing `helperText` values are mapped to `PDInputControlFrame.statusText` with `PDInputStatusType.warning` when there is no validation error, matching the current tertiary-color helper styling.
 - Existing validation errors are mapped to `PDInputControlFrame.statusText` with `PDInputStatusType.error`.
 
 ## PDSwitchField Redesign

@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../utils/responsive_helper.dart';
+import '../utils/intents.dart';
 
 import 'package:propofol_dreams_app/models/infusion_regime_data.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
@@ -21,6 +23,8 @@ import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 
 import '../constants.dart';
 import '../components/infusion_regime_table.dart';
+import '../components/collapsible_input_card.dart';
+import '../components/input_summary_display.dart';
 import '../utils/text_measurement.dart';
 
 import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
@@ -71,6 +75,8 @@ class _TCIScreenState extends State<TCIScreen> {
   String result = '';
   String emptyResult = '';
   bool _isCalculating = false;
+  final CollapsibleInputCardController _inputCardController =
+      CollapsibleInputCardController();
 
   @override
   void initState() {
@@ -117,7 +123,9 @@ class _TCIScreenState extends State<TCIScreen> {
     });
 
     // updateModelOptions(true); // Always adult view
-    calculate();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      calculate();
+    });
   }
 
   void _setControllersFromSettings(Settings settings) {
@@ -166,7 +174,7 @@ class _TCIScreenState extends State<TCIScreen> {
   // }
 
 
-  void calculate() {
+  void calculate({bool collapseInput = false}) {
     if (_isCalculating) return;
     _isCalculating = true;
     
@@ -231,12 +239,22 @@ class _TCIScreenState extends State<TCIScreen> {
             times: results.times,
             pumpInfs: results.pumpInfs,
             cumulativeInfusedVolumes: results.cumulativeInfusedVolumes,
-            density: 10, // LEGACY parameter name: kept for InfusionRegimeData backward compatibility
+            density: 10,
             totalDuration: Duration(minutes: finalDuration),
             isEffectSiteTargeting: selectedModel.target == Target.EffectSite,
-            drugConcentrationMgMl: selectedDrug?.concentration ?? 10.0, // Use selected drug concentration or default
+            drugConcentrationMgMl: selectedDrug?.concentration ?? 10.0,
           );
         });
+        if (collapseInput) _inputCardController.collapse();
+
+        // Update status bar
+        final conc = selectedDrug?.concentration ?? 10.0;
+        final concStr = conc == conc.roundToDouble()
+            ? conc.toStringAsFixed(0)
+            : conc.toStringAsFixed(1);
+        final unit = selectedDrug?.concentrationUnit.displayName ?? 'mg/mL';
+        settings.statusBarInfo =
+            'Model: ${selectedModel} · Drug: ${selectedDrug?.displayName ?? '—'} $concStr $unit · Pump: ${settings.max_pump_rate} mL/hr';
       } else {
         // Clear data if model is not runnable
         setState(() {
@@ -393,8 +411,12 @@ class _TCIScreenState extends State<TCIScreen> {
       textStyle: textStyle,
     );
 
-    return SizedBox(
-      width: dynamicWidth,
+    // L8: Constrain the model selector to the maximum of the dynamic width
+    // (for mobile, where there's room) and the available parent width
+    // (for tablet/desktop, where the card is narrow). This prevents the
+    // field from overflowing the input card on tablet/desktop.
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: dynamicWidth),
       child: Stack(
         alignment: Alignment.centerRight,
         children: [
@@ -406,11 +428,12 @@ class _TCIScreenState extends State<TCIScreen> {
               color: hasValidationError 
                 ? Theme.of(context).colorScheme.error
                 : Theme.of(context).colorScheme.primary,
+              overflow: TextOverflow.ellipsis,
             ),
             decoration: InputDecoration(
               filled: true,
               fillColor: Theme.of(context).colorScheme.onPrimary,
-              helperText: '', // Reserve space to prevent layout shift
+              helperText: null,
               helperStyle: const TextStyle(fontSize: 10),
               errorText: hasValidationError ? validationErrorText : null,
               errorStyle: TextStyle(
@@ -534,243 +557,358 @@ class _TCIScreenState extends State<TCIScreen> {
     super.dispose();
   }
 
+  /// Build the input fields widget used as [CollapsibleInputCard] expandedContent.
+  Widget _buildInputFields(double UIHeight, Settings settings) {
+    return Column(
+      children: [
+        // Model selector and reset button
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // L8: Flexible lets the model selector shrink to fit the card
+            // width on tablet/desktop, where the dynamic width can otherwise
+            // exceed the card and clip the reset button.
+            Flexible(
+              flex: 1,
+              fit: FlexFit.loose,
+              child: buildModelSelector(settings, UIHeight),
+            ),
+            const SizedBox(width: 4),
+            Container(
+              height: UIHeight,
+              width: UIHeight,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.all(0),
+                  backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () async {
+                  await HapticFeedback.mediumImpact();
+                  reset(toDefault: true);
+                },
+                child: const Icon(Icons.restart_alt_outlined),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Sex and Age row
+        SizedBox(
+          height: UIHeight + 24,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(child: _buildSexField(UIHeight)),
+              const SizedBox(width: 8),
+              Expanded(child: _buildAgeField(UIHeight)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Height and Weight row
+        SizedBox(
+          height: UIHeight + 24,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(child: _buildHeightField(UIHeight)),
+              const SizedBox(width: 8),
+              Expanded(child: _buildWeightField(UIHeight)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Target row
+        SizedBox(
+          height: UIHeight + 24,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(child: _buildTargetField(UIHeight)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSexField(double UIHeight) {
+    final isAdult = (int.tryParse(ageController.text) ?? 0) >= 17;
+    final sexSwitchEnabled = (tciModelController.selection as Model).target != Target.Plasma;
+    return PDSwitchField(
+      labelText: AppLocalizations.of(context)!.sex,
+      prefixIcon: sexController.val == true
+          ? isAdult ? Icons.woman : Icons.girl
+          : isAdult ? Icons.man : Icons.boy,
+      controller: sexController,
+      switchTexts: {
+        true: isAdult
+            ? Sex.Female.toLocalizedString(context)
+            : Sex.Girl.toLocalizedString(context),
+        false: isAdult
+            ? Sex.Male.toLocalizedString(context)
+            : Sex.Boy.toLocalizedString(context),
+      },
+      onChanged: calculate,
+      height: UIHeight,
+      enabled: sexSwitchEnabled,
+    );
+  }
+
+  Widget _buildAgeField(double UIHeight) {
+    final ageEnabled = tciModelController.selection != Model.Marsh &&
+        selectedDrug?.isDexmedetomidine != true;
+    return PDTextField(
+      prefixIcon: Icons.calendar_month,
+      labelText: AppLocalizations.of(context)!.age,
+      interval: 1.0,
+      fractionDigits: 0,
+      controller: ageController,
+      range: [getModelForDrug(selectedDrug).minAge, getModelForDrug(selectedDrug).maxAge],
+      onPressed: updatePDTextEditingController,
+      enabled: ageEnabled,
+    );
+  }
+
+  Widget _buildHeightField(double UIHeight) {
+    final heightEnabled = (tciModelController.selection as Model).target != Target.Plasma;
+    return PDTextField(
+      prefixIcon: Icons.straighten,
+      labelText: AppLocalizations.of(context)!.height,
+      interval: 1,
+      fractionDigits: 0,
+      controller: heightController,
+      range: [getModelForDrug(selectedDrug).minHeight, getModelForDrug(selectedDrug).maxHeight],
+      onPressed: updatePDTextEditingController,
+      enabled: heightEnabled,
+    );
+  }
+
+  Widget _buildWeightField(double UIHeight) {
+    return PDTextField(
+      prefixIcon: Icons.monitor_weight_outlined,
+      labelText: AppLocalizations.of(context)!.weight,
+      interval: 1.0,
+      fractionDigits: 0,
+      controller: weightController,
+      range: [getModelForDrug(selectedDrug).minWeight, getModelForDrug(selectedDrug).maxWeight],
+      onPressed: updatePDTextEditingController,
+    );
+  }
+
+  Widget _buildTargetField(double UIHeight) {
+    return PDTextField(
+      prefixIcon: getModelForDrug(selectedDrug).target.icon,
+      labelText: getModelForDrug(selectedDrug).getTargetLabel(context, selectedDrug),
+      interval: getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).interval,
+      fractionDigits: 1,
+      controller: targetController,
+      range: [
+        getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).min,
+        getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).max,
+      ],
+      onPressed: updatePDTextEditingController,
+    );
+  }
+
+  /// Collapsible input card wrapping the TCI input fields.
+  Widget _buildInputCard(double UIHeight, Settings settings) {
+    final age = int.tryParse(ageController.text);
+    final weight = int.tryParse(weightController.text);
+    final height = int.tryParse(heightController.text);
+    final target = double.tryParse(targetController.text);
+    final sex = sexController.val ? Sex.Female : Sex.Male;
+
+    return CollapsibleInputCard(
+      title: AppLocalizations.of(context)!.tci,
+      controller: _inputCardController,
+      expandedContent: _buildInputFields(UIHeight, settings),
+      collapsedSummary: InputSummaryDisplay(
+        calculatorType: CalculatorType.tci,
+        age: age,
+        sex: sex,
+        weight: weight,
+        height: height,
+        drug: selectedDrug,
+        model: tciModelController.selection,
+        target: target,
+        duration: 255,
+      ),
+      onCalculate: () => calculate(collapseInput: true),
+      isCalculating: _isCalculating,
+    );
+  }
+
+  /// Results table section, or empty container when no data.
+  Widget _buildResultsTable(Settings settings) {
+    if (infusionRegimeData == null) return Container();
+    return Consumer<Settings>(
+      builder: (context, settings, child) {
+        return DosageDataTable(
+          data: infusionRegimeData!,
+          maxVisibleRows: MediaQuery.of(context).size.height >= screenBreakPoint1 ? 5 : 3,
+          selectedRowIndex: settings.selectedDosageTableRow,
+          onRowTap: (index) {
+            if (settings.selectedDosageTableRow == index) {
+              settings.selectedDosageTableRow = null;
+            } else {
+              settings.selectedDosageTableRow = index;
+              if (infusionRegimeData != null && index < infusionRegimeData!.rows.length) {
+                final selectedRow = infusionRegimeData!.rows[index];
+                settings.infusionUnit = InfusionUnit.mL_hr;
+                settings.infusionRate = selectedRow.infusionRate;
+              }
+            }
+          },
+          scrollController: tableScrollController,
+        );
+      },
+    );
+  }
+
+  /// Tablet 2-column layout: input card on left, results on right.
+  Widget _buildTabletLayout(Settings settings, double UIHeight) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: horizontalSidesPaddingPixel,
+        right: horizontalSidesPaddingPixel,
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 320,
+            child: _buildInputCard(UIHeight, settings),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: SingleChildScrollView(
+              child: _buildResultsTable(settings),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Desktop 2-column layout: input card on left (360px), results on right.
+  Widget _buildDesktopLayout(Settings settings, double UIHeight) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: horizontalSidesPaddingPixel,
+        right: horizontalSidesPaddingPixel,
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 360,
+            child: _buildInputCard(UIHeight, settings),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: SingleChildScrollView(
+              child: _buildResultsTable(settings),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Wraps [child] in a [Shortcuts] + [Actions] pair that catches Enter and
+  /// invokes [calculate] — on desktop (≥ 1024px) and web only. On mobile and
+  /// tablet, the wrapper is skipped (Enter keeps its default behaviour).
+  ///
+  /// Added in L6 (LAYOUT_MIGRATION_SPEC.md). The wrapping `Shortcuts` widget
+  /// intercepts Enter *before* `PDTextField.onSubmitted` handles it, so the
+  /// stepper-increment behaviour is suppressed in favour of calculate.
+  Widget _wrapWithKeyboardShortcuts(Widget child) {
+    final enable = ResponsiveHelper.isDesktop(context) || kIsWeb;
+    if (!enable) return child;
+    return Shortcuts(
+      shortcuts: const <ShortcutActivator, Intent>{
+        SingleActivator(LogicalKeyboardKey.enter): CalculateIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          CalculateIntent: CallbackAction<CalculateIntent>(
+            onInvoke: (intent) {
+              calculate(collapseInput: true);
+              return null;
+            },
+          ),
+        },
+        child: child,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDesktopLayout = ResponsiveHelper.isDesktop(context);
+    final isTabletLayout = ResponsiveHelper.isTablet(context) && !isDesktopLayout;
+
     final mediaQuery = MediaQuery.of(context);
-    final double UIHeight = (mediaQuery.size.aspectRatio >= 0.455
-        ? mediaQuery.size.height >= screenBreakPoint1
-            ? 56
-            : 48
-        : 48) + (ResponsiveHelper.isAndroid() ? 4 : 0);
-    final double UIWidth =
-        (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
-    final double screenHeight = mediaQuery.size.height -
-        (ResponsiveHelper.isAndroid()
-            ? 48
-            : mediaQuery.size.height >= screenBreakPoint1
-                ? 88
-                : 56);
-    
+    final double UIHeight =
+        (mediaQuery.size.aspectRatio >= 0.455
+            ? mediaQuery.size.height >= screenBreakPoint1
+                ? 56
+                : 48
+            : 48) +
+        (ResponsiveHelper.isAndroid() ? 4 : 0);
+
     final settings = context.watch<Settings>();
-    
-    // Controllers are managed directly by onModelSelected/onDrugSelected
-    // No need to sync from settings here since we use hard-coded combinations
-    Model selectedModel = tciModelController.selection;
-    
-    // Add age-based logic for girl/boy display
-    final int age = int.tryParse(ageController.text) ?? 0;
-    final bool isAdult = age >= 17;
-    
-    // Check if model is runnable (kept for potential future use)
-    // bool modelIsRunnable = selectedModel.isRunnable(
-    //     age: age,
-    //     height: height,
-    //     weight: weight,
-    //     target: target,
-    //     duration: duration);
-    
-    final bool heightTextFieldEnabled = (tciModelController.selection as Model).target != Target.Plasma;
-    final bool sexSwitchControlEnabled = (tciModelController.selection as Model).target != Target.Plasma;
 
-    final ageTextFieldEnabled = tciModelController.selection != Model.Marsh && 
-                                selectedDrug?.isDexmedetomidine != true;
+    if (isDesktopLayout) {
+      return _wrapWithKeyboardShortcuts(_buildDesktopLayout(settings, UIHeight));
+    }
+    if (isTabletLayout) {
+      return _wrapWithKeyboardShortcuts(_buildTabletLayout(settings, UIHeight));
+    }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Container(
-          padding: EdgeInsets.only(
-            left: horizontalSidesPaddingPixel,
-            right: horizontalSidesPaddingPixel,
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView(
-            reverse: true,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight - MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: IntrinsicHeight(
+    // Mobile: single-column scrollable layout
+    return _wrapWithKeyboardShortcuts(
+      LayoutBuilder(
+        builder: (context, constraints) {
+          return Container(
+            padding: EdgeInsets.only(
+              left: horizontalSidesPaddingPixel,
+              right: horizontalSidesPaddingPixel,
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: SingleChildScrollView(
+              reverse: true,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - MediaQuery.of(context).viewInsets.bottom,
+                ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-
-                  // Infusion regime table (fixed position above inputs)
-                  infusionRegimeData != null
-                    ? Consumer<Settings>(
-                        builder: (context, settings, child) {
-                          return DosageDataTable(
-                            data: infusionRegimeData!,
-                            maxVisibleRows: mediaQuery.size.height >= screenBreakPoint1 ? 5 : 3,
-                            selectedRowIndex: settings.selectedDosageTableRow,
-                            onRowTap: (index) {
-                              // Toggle selection: if same row is tapped, deselect it
-                              if (settings.selectedDosageTableRow == index) {
-                                settings.selectedDosageTableRow = null;
-                              } else {
-                                settings.selectedDosageTableRow = index;
-
-                                // Sync selected row's infusion rate to duration screen
-                                if (infusionRegimeData != null && index < infusionRegimeData!.rows.length) {
-                                  final selectedRow = infusionRegimeData!.rows[index];
-                                  settings.infusionUnit = InfusionUnit.mL_hr;
-                                  settings.infusionRate = selectedRow.infusionRate;
-                                }
-                              }
-                            },
-                            scrollController: tableScrollController,
-                          );
-                        },
-                      )
-                    : Container(),
-
-                  const SizedBox(height: 16),
-
-                  // Model selector and reset button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      buildModelSelector(settings, UIHeight),
-                      Container(
-                          height: UIHeight,
-                          width: UIHeight,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.all(0),
-                              backgroundColor: Theme.of(context).colorScheme.onPrimary,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                  borderRadius: const BorderRadius.all(Radius.circular(5))),
-                            ),
-                            onPressed: () async {
-                              await HapticFeedback.mediumImpact();
-                              reset(toDefault: true);
-                            },
-                            child: Icon(Icons.restart_alt_outlined),
-                          )),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Sex and Age row
-                  SizedBox(
-                    height: UIHeight + 24,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: PDSwitchField(
-                            labelText: AppLocalizations.of(context)!.sex,
-                            prefixIcon: sexController.val == true
-                                ? isAdult
-                                    ? Icons.woman
-                                    : Icons.girl
-                                : isAdult
-                                    ? Icons.man
-                                    : Icons.boy,
-                            controller: sexController,
-                            switchTexts: {
-                              true: isAdult
-                                  ? Sex.Female.toLocalizedString(context)
-                                  : Sex.Girl.toLocalizedString(context),
-                              false: isAdult
-                                  ? Sex.Male.toLocalizedString(context)
-                                  : Sex.Boy.toLocalizedString(context)
-                            },
-                            onChanged: calculate,
-                            height: UIHeight,
-                            enabled: sexSwitchControlEnabled,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: PDTextField(
-                            prefixIcon: Icons.calendar_month,
-                            labelText: AppLocalizations.of(context)!.age,
-                            interval: 1.0,
-                            fractionDigits: 0,
-                            controller: ageController,
-                            range: [getModelForDrug(selectedDrug).minAge, getModelForDrug(selectedDrug).maxAge],
-                            onPressed: updatePDTextEditingController,
-                            enabled: ageTextFieldEnabled,
-                          ),
-                        ),
-                      ],
+                    _buildResultsTable(settings),
+                    const SizedBox(height: 16),
+                    _buildInputCard(UIHeight, settings),
+                    SizedBox(
+                      height: MediaQuery.of(context).padding.bottom + 24,
                     ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Height and Weight row
-                  SizedBox(
-                    height: UIHeight + 24,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: PDTextField(
-                            prefixIcon: Icons.straighten,
-                            labelText: '${AppLocalizations.of(context)!.height} (cm)',
-                            interval: 1,
-                            fractionDigits: 0,
-                            controller: heightController,
-                            range: [getModelForDrug(selectedDrug).minHeight, getModelForDrug(selectedDrug).maxHeight],
-                            onPressed: updatePDTextEditingController,
-                            enabled: heightTextFieldEnabled,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: PDTextField(
-                            prefixIcon: Icons.monitor_weight_outlined,
-                            labelText: '${AppLocalizations.of(context)!.weight} (kg)',
-                            interval: 1.0,
-                            fractionDigits: 0,
-                            controller: weightController,
-                            range: [getModelForDrug(selectedDrug).minWeight, getModelForDrug(selectedDrug).maxWeight],
-                            onPressed: updatePDTextEditingController,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Target row (now full width)
-                  SizedBox(
-                    height: UIHeight + 24,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: PDTextField(
-                            prefixIcon: getModelForDrug(selectedDrug).target.icon,
-                            labelText: getModelForDrug(selectedDrug).getTargetLabel(context, selectedDrug), // Dynamic unit display
-                            interval: getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).interval, // Dynamic interval based on drug-model combination
-                            fractionDigits: 1,
-                            controller: targetController,
-                            range: [getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).min, getModelForDrug(selectedDrug).getTargetProperties(selectedDrug).max], // Dynamic range based on drug-model combination
-                            onPressed: updatePDTextEditingController,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Bottom padding for scrolling
-                  SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
                   ],
                 ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

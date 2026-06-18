@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:propofol_dreams_app/config/design_tokens.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -313,24 +314,24 @@ class _RealtimeScreenState extends State<RealtimeScreen> {
       children: [
         // Start time
         _buildStartTimeField(context),
-        const SizedBox(height: 12),
+        const SizedBox(height: kSp12),
 
         // Drug + Reset
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(child: _buildDrugSelector(context, settings)),
-            const SizedBox(width: 8),
+            const SizedBox(width: kSp8),
             _buildResetButton(context),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: kSp12),
 
         // Validation error
         if (validationErr != null) ...[
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: kSp8),
             child: Text(
               validationErr,
               style: TextStyle(
@@ -368,7 +369,7 @@ class _RealtimeScreenState extends State<RealtimeScreen> {
                   enabled: sexSwitchControlEnabled,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: kSp8),
               Expanded(
                 child: M3TextField(
                   prefixIcon: Icons.calendar_month,
@@ -387,7 +388,7 @@ class _RealtimeScreenState extends State<RealtimeScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: kSp8),
 
         // Height + Weight
         SizedBox(
@@ -410,7 +411,7 @@ class _RealtimeScreenState extends State<RealtimeScreen> {
                   enabled: heightTextFieldEnabled,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: kSp8),
               Expanded(
                 child: M3TextField(
                   prefixIcon: Icons.monitor_weight_outlined,
@@ -428,7 +429,7 @@ class _RealtimeScreenState extends State<RealtimeScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: kSp8),
 
         // Target
         M3TextField(
@@ -477,7 +478,7 @@ class _RealtimeScreenState extends State<RealtimeScreen> {
           children: [
             Icon(Symbols.schedule, size: 64,
                 color: Theme.of(context).colorScheme.outline),
-            const SizedBox(height: 16),
+            const SizedBox(height: kSp16),
             Text(
               'Enter patient details and tap Calculate',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -491,10 +492,10 @@ class _RealtimeScreenState extends State<RealtimeScreen> {
 
     final data = infusionRegimeData!;
     final isMobile = MediaQuery.of(context).size.width < _kBreakpointWide;
-    const double sectionGap = 8;
+    const double sectionGap = kSp8;
 
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(kSp12),
       child: Column(
         children: [
           _buildPatientChips(context),
@@ -593,10 +594,10 @@ class _RealtimeScreenState extends State<RealtimeScreen> {
       children: [
         _buildStatCard(context, 'Bolus', '$bolusVal mL',
             Icons.medication_liquid, theme.colorScheme.primary, isMobile),
-        const SizedBox(width: 8),
+        const SizedBox(width: kSp8),
         _buildStatCard(context, 'Max Rate', '$maxRateStr mL/hr',
             Icons.speed, theme.colorScheme.tertiary, isMobile),
-        const SizedBox(width: 8),
+        const SizedBox(width: kSp8),
         _buildStatCard(context, 'Total', '${data.totalVolume.toStringAsFixed(1)} mL',
             Icons.water_drop, theme.colorScheme.secondary, isMobile),
       ],
@@ -612,7 +613,7 @@ class _RealtimeScreenState extends State<RealtimeScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 4),
+          padding: const EdgeInsets.only(left: kSp4, bottom: kSp4),
           child: Text(
             'Rate (mL/hr)',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -644,16 +645,16 @@ class _RealtimeScreenState extends State<RealtimeScreen> {
     return Expanded(
       child: Card(
         elevation: 1, margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(kRadius)),
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: isMobile ? 10 : 12, horizontal: 8),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Icon(icon, size: isMobile ? 18 : 22, color: accentColor),
-            const SizedBox(height: 4),
+            const SizedBox(height: kSp4),
             Text(label, style: TextStyle(fontSize: isMobile ? 10 : 11,
                 color: Theme.of(context).colorScheme.outline),
                 maxLines: 1, overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 2),
+            const SizedBox(height: kSp2),
             FittedBox(fit: BoxFit.scaleDown, child: Text(value, style: TextStyle(
                 fontSize: isMobile ? 16 : 20, fontWeight: FontWeight.w700, color: accentColor))),
           ]),
@@ -697,11 +698,11 @@ class _RealtimeScreenState extends State<RealtimeScreen> {
         );
         if (picked != null) setState(() => _startTime = picked);
       },
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(kRadius),
       child: Container(
         height: _kFieldHeight,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(kRadius),
           border: Border.all(color: Theme.of(context).colorScheme.primary, width: 2),
           color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
         ),
@@ -710,7 +711,7 @@ class _RealtimeScreenState extends State<RealtimeScreen> {
           children: [
             Icon(Icons.access_time, size: 20,
                 color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 8),
+            const SizedBox(width: kSp8),
             Text(displayText, style: TextStyle(fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: Theme.of(context).colorScheme.primary)),
@@ -935,7 +936,7 @@ class _InfusionRateChartState extends State<InfusionRateChart> {
         : null;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(kRadius),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         onHover: (event) {

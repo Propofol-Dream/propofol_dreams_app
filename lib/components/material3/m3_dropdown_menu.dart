@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../config/design_tokens.dart';
 import '../../config/ui_config.dart';
 import '../../models/model.dart';
 import '../../models/drug.dart';
@@ -211,21 +212,21 @@ class _M3DropdownMenuState extends State<M3DropdownMenu> {
         filled: true,
         fillColor: theme.colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(kRadius),
           borderSide: BorderSide(
             color: theme.colorScheme.outline,
             width: 1.0,
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(kRadius),
           borderSide: BorderSide(
             color: theme.colorScheme.outline,
             width: 1.0,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(kRadius),
           borderSide: BorderSide(
             color: theme.colorScheme.primary,
             width: 2.0,
@@ -233,13 +234,13 @@ class _M3DropdownMenuState extends State<M3DropdownMenu> {
         ),
       ),
       menuStyle: MenuStyle(
-        elevation: WidgetStateProperty.all(8.0),
+        elevation: WidgetStateProperty.all(kElev8),
         backgroundColor: WidgetStateProperty.all(
           theme.colorScheme.surfaceContainerLow,
         ),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
+            borderRadius: BorderRadius.circular(kRadius),
           ),
         ),
       ),
@@ -312,7 +313,7 @@ class _M3DropdownMenuState extends State<M3DropdownMenu> {
               color: Theme.of(context).colorScheme.onError,
               size: 20,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: kSp8),
             Expanded(
               child: Text(
                 '${model.name}: ${evaluation.reason ?? 'Not available'}',
@@ -326,7 +327,7 @@ class _M3DropdownMenuState extends State<M3DropdownMenu> {
         backgroundColor: Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(kRadius),
         ),
         duration: const Duration(seconds: 3),
       ),

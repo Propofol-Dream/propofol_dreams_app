@@ -426,39 +426,36 @@ class DataTable extends StatelessWidget {
 
     final theme = Theme.of(context);
     final visibleRows = data; // Show all data, let scrolling handle the rest
+    final tableHeight = math.min(visibleRows.length, maxVisibleRows) * 41.0;
 
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: theme.colorScheme.primary, width: 1),
         borderRadius: BorderRadius.circular(5),
       ),
-      child: IntrinsicHeight(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: maxVisibleRows * 41.0), // More precise row height calculation
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: visibleRows.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final row = entry.value;
-                      final isFirstRow = index == 0;
-                      final isSelected = selectedRowIndex == index;
-                      return _buildDataRow(context, row, isFirstRow, isSelected, index);
-                    }).toList(),
-                  ),
-                ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildHeader(context),
+          SizedBox(
+            height: tableHeight,
+            child: SingleChildScrollView(
+              controller: scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: visibleRows.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final row = entry.value;
+                  final isFirstRow = index == 0;
+                  final isSelected = selectedRowIndex == index;
+                  return _buildDataRow(context, row, isFirstRow, isSelected, index);
+                }).toList(),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -789,41 +786,42 @@ class DosageDataTable extends StatelessWidget {
       );
     }
 
+    if (maxVisibleRows == 0) {
+      return const SizedBox.shrink();
+    }
+
     final theme = Theme.of(context);
+    final tableHeight = math.min(data.rows.length, maxVisibleRows) * 41.0;
 
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: theme.colorScheme.primary, width: 1),
         borderRadius: BorderRadius.circular(5),
       ),
-      child: IntrinsicHeight(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildBolusRow(context),
-            _buildHeader(context),
-            Expanded(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: maxVisibleRows * 41.0),
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: data.rows.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final row = entry.value;
-                      final isFirstRow = index == 0;
-                      final isSelected = selectedRowIndex == index;
-                      return _buildDataRow(context, row, isFirstRow, isSelected, index);
-                    }).toList(),
-                  ),
-                ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildBolusRow(context),
+          _buildHeader(context),
+          SizedBox(
+            height: tableHeight,
+            child: SingleChildScrollView(
+              controller: scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: data.rows.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final row = entry.value;
+                  final isFirstRow = index == 0;
+                  final isSelected = selectedRowIndex == index;
+                  return _buildDataRow(context, row, isFirstRow, isSelected, index);
+                }).toList(),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

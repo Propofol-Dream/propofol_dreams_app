@@ -832,6 +832,18 @@ class Settings with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Runtime-only status bar info string (not persisted).
+  /// Set by the active screen (e.g. TCI) to display current model / drug / pump
+  /// info in the desktop status bar. Cleared when navigating away.
+  String? _statusBarInfo;
+
+  String? get statusBarInfo => _statusBarInfo;
+
+  set statusBarInfo(String? v) {
+    _statusBarInfo = v;
+    notifyListeners();
+  }
+
   int? _weight;
 
   int? get weight {
@@ -1033,13 +1045,14 @@ class Settings with ChangeNotifier {
 
 
 
-  int _currentScreenIndex = 0;
+  int _currentScreenIndex = 1;
 
   int get currentScreenIndex {
     return _currentScreenIndex;
   }
 
   set currentScreenIndex(int i) {
+    i = i.clamp(0, 4);
     _currentScreenIndex = i;
     setInt('currentScreenIndex', i);
     notifyListeners();
@@ -1399,7 +1412,7 @@ class Settings with ChangeNotifier {
     _EMRSI = pref.getBool('EMRSI') ?? false;
 
     // Home screen settings
-    _currentScreenIndex = pref.getInt('currentScreenIndex') ?? 0;
+    _currentScreenIndex = (pref.getInt('currentScreenIndex') ?? 1).clamp(0, 4);
 
     // Table row selection and scroll position settings
     _selectedDosageTableRow = pref.getInt('selectedDosageTableRow');

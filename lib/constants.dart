@@ -72,7 +72,20 @@ const int kMaxDuration = 600; //600mins
 const int screenBreakPoint1 = 704; //768 previously
 const int screenBreakPoint2 = 992; //768 previously
 
+// Renamed in L0 to make the unit (height) explicit. See
+// LAYOUT_MIGRATION_SPEC.md Finding 30. The original `screenBreakPoint1/2`
+// constants above are still used by 19 call sites across 6 screen files
+// (`duration_screen.dart`, `volume_screen.dart`, `volume_plus_screen.dart`,
+// `elemarsh_screen.dart`, `tci_screen.dart`) and
+// `lib/utils/responsive_helper.dart`. The new named constants are preferred
+// for *new* code; the 19 existing call sites will be migrated in a follow-up
+// commit. The old names are kept to keep L0 a pure additive change.
+const int kButtonHeightMobileMax = screenBreakPoint1;
+const int kButtonHeightTabletMax = screenBreakPoint2;
+
 const int kMaxHumanlyPossiblePushRate = 2400;
+
+const String appVersion = '3.0.8+130';
 
 
 

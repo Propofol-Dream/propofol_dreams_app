@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../config/ui_config.dart';
+import '../PDInputControlFrame.dart';
 import 'PDSwitchController.dart';
 
 class PDSwitchField extends StatefulWidget {
@@ -14,6 +16,9 @@ class PDSwitchField extends StatefulWidget {
     required this.onChanged,
     required this.height,
     this.enabled = true,
+    this.useInputControlFrame = false,
+    this.statusText,
+    this.statusType = PDInputStatusType.none,
   });
 
   final String labelText;
@@ -25,6 +30,9 @@ class PDSwitchField extends StatefulWidget {
   final Function onChanged;
   bool enabled;
   double height;
+  final bool useInputControlFrame;
+  final String? statusText;
+  final PDInputStatusType statusType;
 
   @override
   State<PDSwitchField> createState() => _PDSwitchFieldState();
@@ -34,7 +42,8 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
   // dispose it when the widget is unmounted
   @override
   void dispose() {
-    widget.controller.dispose();
+    // Controller is owned by the parent screen and can be reused when this
+    // field is rebuilt during responsive layout changes.
     super.dispose();
   }
 
@@ -43,6 +52,25 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
     TextEditingController textEditingController =
         TextEditingController(text: widget.switchTexts[widget.controller.val]!);
 
+    final field = _buildSwitchStack(context, textEditingController);
+
+    if (!UIConfig.shouldUseInputControlFrame(
+        optIn: widget.useInputControlFrame)) {
+      return field;
+    }
+
+    return PDInputControlFrame(
+      controlHeight: widget.height,
+      statusText: widget.statusText,
+      statusType: widget.statusType,
+      child: field,
+    );
+  }
+
+  Widget _buildSwitchStack(
+    BuildContext context,
+    TextEditingController textEditingController,
+  ) {
     return Stack(
       alignment: Alignment.centerRight,
       children: [
@@ -65,7 +93,7 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
                   : Theme.of(context).disabledColor,
             ),
             // prefixIconConstraints: BoxConstraints.tight(const Size(40, 18)),
-            helperText: '',
+            helperText: null,
             helperStyle: const TextStyle(fontSize: 10),
             labelText: widget.labelText,
             labelStyle: TextStyle(
@@ -88,8 +116,9 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
           ),
         ),
         Container(
-          padding: const EdgeInsets.only(right: 4, bottom: 16),
+          padding: const EdgeInsets.only(right: 4),
           height: widget.height,
+          alignment: Alignment.centerRight,
           child: SizedBox(
             height: 24,
             width: 48,
@@ -99,13 +128,17 @@ class _PDSwitchFieldState extends State<PDSwitchField> {
                 activeColor: widget.enabled
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).disabledColor,
-                activeTrackColor:
-                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                activeTrackColor: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.1),
                 inactiveThumbColor: widget.enabled
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).disabledColor,
-                inactiveTrackColor:
-                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                inactiveTrackColor: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.1),
                 value: widget.controller.val,
                 onChanged: widget.enabled
                     ? (val) async {

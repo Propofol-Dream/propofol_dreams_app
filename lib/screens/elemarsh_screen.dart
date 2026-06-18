@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -14,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 import '../utils/responsive_helper.dart';
 import '../utils/text_measurement.dart';
+import '../utils/intents.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
 import 'package:propofol_dreams_app/providers/settings.dart';
@@ -30,8 +32,11 @@ import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
 import 'package:propofol_dreams_app/components/legacy/PDSegmentedController.dart';
 import 'package:propofol_dreams_app/components/legacy/PDSegmentedControl.dart';
 import 'package:propofol_dreams_app/components/legacy/PDTextFieldSegmentedControl.dart';
+import 'package:propofol_dreams_app/components/collapsible_input_card.dart';
+import 'package:propofol_dreams_app/components/input_summary_display.dart';
 
 import '../constants.dart';
+import 'package:propofol_dreams_app/config/design_tokens.dart';
 
 class EleMarshScreen extends StatefulWidget {
   EleMarshScreen({Key? key}) : super(key: key);
@@ -52,6 +57,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   TextEditingController maintenanceCeController = TextEditingController();
   TextEditingController maintenanceSEController = TextEditingController();
   TextEditingController infusionRateController = TextEditingController();
+  final CollapsibleInputCardController _inputCardController =
+      CollapsibleInputCardController();
 
   //Displays
   String weightBestGuess = "--";
@@ -63,6 +70,15 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   String range = "--";
   String vial20mlTime = "--";
   String vial50mlTime = "--";
+
+  /// True when the maintenance SE is outside the validated 21-60 range.
+  /// Used by the help text and the wake-up range display colouring.
+  /// (L3 migration: was a local variable in the old monolithic build method.)
+  bool get isMaintenanceSEOutOfRange {
+    final settings = context.read<Settings>();
+    final se = settings.EMMaintenanceSE ?? 40;
+    return !(se >= 21 && se <= 60);
+  }
 
   @override
   void initState() {
@@ -98,7 +114,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     run();
   }
 
-  run({initState = false}) async {
+  run({initState = false, bool collapseInput = false}) async {
     final settings = Provider.of<Settings>(context, listen: false);
 
     int? age = int.tryParse(ageController.text);
@@ -266,6 +282,17 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                 '${calculationDuration.inMilliseconds.toString()} milliseconds'
           });
         });
+        if (collapseInput) _inputCardController.collapse();
+        final statusInfo = flow == 'induce'
+            ? 'ABW: $weightBestGuess kg · CeT: ${target.toStringAsFixed(1)}μg/mL'
+            : 'Wake-up: $range μg/mL · Model: ${m.toString()}';
+        if (initState) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) settings.statusBarInfo = statusInfo;
+          });
+        } else {
+          settings.statusBarInfo = statusInfo;
+        }
       } else {
         setState(() {
           weightBestGuess = "--";
@@ -276,6 +303,13 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           vial20mlTime = "--";
           vial50mlTime = "--";
         });
+        if (initState) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) settings.statusBarInfo = null;
+          });
+        } else {
+          settings.statusBarInfo = null;
+        }
       }
     } else {
       setState(() {
@@ -287,6 +321,13 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         vial20mlTime = "--";
         vial50mlTime = "--";
       });
+      if (initState) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) settings.statusBarInfo = null;
+        });
+      } else {
+        settings.statusBarInfo = null;
+      }
     }
   }
 
@@ -344,9 +385,650 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   int minHeightEleMarsh = 85;
   int maxHeightEleMarsh = 220;
 
+  /// Input fields widget used as [CollapsibleInputCard] expandedContent.
+  Widget _buildInputFields(Settings settings, double UIHeight) {
+    final induceFlow = flowController.val == 0;
+    final sex = sexController.val ? Sex.Female : Sex.Male;
+    final age = int.tryParse(ageController.text);
+    final isAdult = age == null || age >= 17;
+    final maintenanceCe = double.tryParse(maintenanceCeController.text);
+
+    return Column(
+      children: [
+        // Flow selector + help/reset buttons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: TextMeasurement.calculateSegmentedControlWidth(
+                context: context,
+                segmentLabels: [
+                  AppLocalizations.of(context)!.induce,
+                  AppLocalizations.of(context)!.emerge,
+                ],
+                textStyle: Theme.of(context).textTheme.bodyLarge ??
+                    const TextStyle(fontSize: 14),
+              ),
+              child: PDTextFieldSegmentedControl(
+                height: UIHeight,
+                fontSize: 14,
+                helperText: '',
+                labels: [
+                  AppLocalizations.of(context)!.induce,
+                  AppLocalizations.of(context)!.emerge,
+                ],
+                segmentedController: flowController,
+                onPressed: [
+                  () => settings.EMFlow = 'induce',
+                  () => settings.EMFlow = 'wake',
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                Container(
+                  height: UIHeight,
+                  width: UIHeight,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.all(0),
+                      backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          strokeAlign: BorderSide.strokeAlignOutside,
+                        ),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(5)),
+                      ),
+                    ),
+                    onPressed: () async {
+                      await HapticFeedback.mediumImpact();
+                      flowController.val == 0
+                          ? showInduceAlertDialog(context)
+                          : showWakeAlertDialog(context);
+                    },
+                    child: const Center(child: Icon(Symbols.question_mark)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  height: UIHeight,
+                  width: UIHeight,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.all(0),
+                      backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          strokeAlign: BorderSide.strokeAlignOutside,
+                        ),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(5)),
+                      ),
+                    ),
+                    onPressed: () async {
+                      await HapticFeedback.mediumImpact();
+                      reset(toDefault: true);
+                    },
+                    child: const Icon(Icons.restart_alt_outlined),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Induce: RSI/STD toggle (L8: moved from results chip to input card)
+        Opacity(
+          opacity: induceFlow ? 1 : 0,
+          child: Container(
+            height: induceFlow ? UIHeight : 0,
+            child: SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(
+                  value: false,
+                  label: const Text('STD'),
+                  icon: Icon(Symbols.syringe),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: const Text('RSI'),
+                  icon: Icon(Symbols.front_hand),
+                ),
+              ],
+              selected: {settings.EMRSI},
+              onSelectionChanged: (Set<bool> selected) {
+                if (selected.length == 1) {
+                  settings.EMRSI = selected.first;
+                  run();
+                }
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 25),
+        // Induce: Sex + Age row
+        Opacity(
+          opacity: induceFlow ? 1 : 0,
+          child: Container(
+            height: induceFlow ? UIHeight + 24 : 0,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: PDSwitchField(
+                    labelText: AppLocalizations.of(context)!.sex,
+                    prefixIcon: sexController.val == true
+                        ? isAdult
+                            ? Icons.woman
+                            : Icons.girl
+                        : isAdult
+                            ? Icons.man
+                            : Icons.boy,
+                    controller: sexController,
+                    switchTexts: {
+                      true: isAdult
+                          ? Sex.Female.toLocalizedString(context)
+                          : Sex.Girl.toLocalizedString(context),
+                      false: isAdult
+                          ? Sex.Male.toLocalizedString(context)
+                          : Sex.Boy.toLocalizedString(context),
+                    },
+                    onChanged: run,
+                    height: UIHeight,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: PDTextField(
+                    prefixIcon: Icons.calendar_month,
+                    labelText: AppLocalizations.of(context)!.age,
+                    interval: 1.0,
+                    fractionDigits: 0,
+                    controller: ageController,
+                    range: [Model.EleMarsh.minAge, Model.EleMarsh.maxAge],
+                    onPressed: updatePDTextEditingController,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Emerge: Model row
+        Opacity(
+          opacity: induceFlow ? 0 : 1,
+          child: Container(
+            height: induceFlow ? 0 : UIHeight + 24,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: PDSwitchField(
+                    labelText: AppLocalizations.of(context)!.model,
+                    prefixIcon: modelController.val == true
+                        ? Icons.spoke_outlined
+                        : Icons.hub_outlined,
+                    controller: modelController,
+                    switchTexts: {
+                      true: Model.Eleveld.toString(),
+                      false: Model.EleMarsh.toString(),
+                    },
+                    onChanged: run,
+                    height: UIHeight,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Induce: Height + Weight row
+        Opacity(
+          opacity: induceFlow ? 1 : 0,
+          child: Container(
+            height: induceFlow ? UIHeight + 24 : 0,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: PDTextField(
+                    prefixIcon: Icons.straighten,
+                    labelText: '${AppLocalizations.of(context)!.height} (cm)',
+                    interval: 1,
+                    fractionDigits: 0,
+                    controller: heightController,
+                    range: [minHeightEleMarsh, maxHeightEleMarsh],
+                    onPressed: updatePDTextEditingController,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: PDTextField(
+                    prefixIcon: Icons.monitor_weight_outlined,
+                    labelText: '${AppLocalizations.of(context)!.weight} (kg)',
+                    interval: 1.0,
+                    fractionDigits: 0,
+                    controller: weightController,
+                    range: [minWeightEleMarsh, maxWeightEleMarsh],
+                    onPressed: updatePDTextEditingController,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Emerge: Maintenance SE row
+        Opacity(
+          opacity: induceFlow ? 0 : 1,
+          child: Container(
+            height: induceFlow ? 0 : UIHeight + 24,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: PDTextField(
+                    prefixIcon: Icons.monitor_heart_outlined,
+                    labelText: AppLocalizations.of(context)!
+                        .maintenanceStateEntropy,
+                    helperText: isMaintenanceSEOutOfRange
+                        ? '*Accuracy reduced, min: 21 and max: 60'
+                        : '',
+                    interval: 1,
+                    fractionDigits: 0,
+                    controller: maintenanceSEController,
+                    range: const [1, 99],
+                    onPressed: updatePDTextEditingController,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Induce: Target row
+        Opacity(
+          opacity: induceFlow ? 1 : 0,
+          child: Container(
+            height: induceFlow ? UIHeight + 24 : 0,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: PDTextField(
+                    prefixIcon: Target.EffectSite.icon,
+                    labelText:
+                        '${AppLocalizations.of(context)!.effectSiteTarget} (μg/mL)',
+                    interval: 0.5,
+                    fractionDigits: 1,
+                    controller: targetController,
+                    range: const [0.5, 8],
+                    onPressed: updatePDTextEditingController,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Emerge: Maintenance Ce row
+        Opacity(
+          opacity: induceFlow ? 0 : 1,
+          child: Container(
+            height: induceFlow ? 0 : UIHeight + 24,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: PDTextField(
+                    prefixIcon: settings.EMWakeUpModel.target.icon,
+                    labelText: settings.EMWakeUpModel == Model.Eleveld
+                        ? AppLocalizations.of(context)!.maintenanceCe
+                        : AppLocalizations.of(context)!.maintenanceCp,
+                    interval: 0.5,
+                    fractionDigits: 1,
+                    controller: maintenanceCeController,
+                    range: const [0.5, 8],
+                    onPressed: updatePDTextEditingController,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Collapsible input card wrapping the EleMarsh input fields.
+  Widget _buildInputCard(Settings settings, double UIHeight) {
+    final age = int.tryParse(ageController.text);
+    final weight = int.tryParse(weightController.text);
+    final height = int.tryParse(heightController.text);
+    final target = double.tryParse(targetController.text);
+    final sex = sexController.val ? Sex.Female : Sex.Male;
+    final maintenanceCe = double.tryParse(maintenanceCeController.text);
+    final m = modelController.val ? Model.Eleveld : Model.EleMarsh;
+
+    return CollapsibleInputCard(
+      title: 'EleMarsh',
+      controller: _inputCardController,
+      expandedContent: _buildInputFields(settings, UIHeight),
+      collapsedSummary: InputSummaryDisplay(
+        calculatorType: CalculatorType.elemarsh,
+        age: age,
+        sex: sex,
+        weight: weight,
+        height: height,
+        drug: null,
+        model: m,
+        target: target,
+        maintenanceCe: maintenanceCe,
+        flow: flowController.val == 0 ? 'induce' : 'wake',
+      ),
+      onCalculate: () => run(collapseInput: true),
+      showCalculateButton: false,
+    );
+  }
+
+  /// Results section: the big results display.
+  /// (L8: RSI/STD chip removed — moved to input card as a SegmentedButton.)
+  Widget _buildResultsSection(Settings settings) {
+    final mediaQuery = MediaQuery.of(context);
+    final double rowHeight = 20 + 34 + 2 + 4;
+    final isInduceFlow = flowController.val == 0;
+
+    return Column(
+      children: [
+        ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+          child: Column(
+            children: [
+              // Induce results
+              Opacity(
+                opacity: isInduceFlow ? 1 : 0,
+                child: Container(
+                  height: isInduceFlow ? rowHeight * 4 : 0,
+                  child: Column(
+                    children: [
+                      _buildResultRow(
+                        'EleMarsh ${AppLocalizations.of(context)!.abw}',
+                        Text('$weightBestGuess',
+                            style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                color: Theme.of(context).colorScheme.primary)),
+                        Text(' kg',
+                            style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                color: Theme.of(context).colorScheme.primary)),
+                      ),
+                      _buildResultRow(
+                        settings.EMRSI
+                            ? AppLocalizations.of(context)!.manualBolus
+                            : '${AppLocalizations.of(context)!.induction} CpT',
+                        Text(
+                            settings.EMRSI
+                                ? manualBolus
+                                : inductionCPTarget,
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: settings.EMRSI
+                                    ? Theme.of(context).colorScheme.tertiary
+                                    : Theme.of(context).colorScheme.primary)),
+                        Text(
+                            settings.EMRSI ? ' mg' : ' μg/mL',
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: settings.EMRSI
+                                    ? Theme.of(context).colorScheme.tertiary
+                                    : Theme.of(context).colorScheme.primary)),
+                      ),
+                      _buildResultRow(
+                        'eBIS',
+                        Text(predictedBIS,
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: mediaQuery.platformBrightness ==
+                                        Brightness.light
+                                    ? const Color(0xFF2D2D2D)
+                                    : const Color(0xFFFAFAFA))),
+                        Text(BMI,
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: mediaQuery.platformBrightness ==
+                                        Brightness.light
+                                    ? const Color(0xFF2D2D2D)
+                                    : const Color(0xFFFAFAFA))),
+                        leadingLabel: 'BMI',
+                      ),
+                      _buildResultRow(
+                        '20ml',
+                        Text(vial20mlTime,
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: mediaQuery.platformBrightness ==
+                                        Brightness.light
+                                    ? const Color(0xFF2D2D2D)
+                                    : const Color(0xFFFAFAFA))),
+                        Text(vial50mlTime,
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: mediaQuery.platformBrightness ==
+                                        Brightness.light
+                                    ? const Color(0xFF2D2D2D)
+                                    : const Color(0xFFFAFAFA))),
+                        leadingLabel: '50ml',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Emerge results
+              Opacity(
+                opacity: isInduceFlow ? 0 : 1,
+                child: Container(
+                  height: isInduceFlow ? 0 : 119,
+                  child: Column(
+                    children: [
+                      Container(
+                        color: isMaintenanceSEOutOfRange
+                            ? Theme.of(context).colorScheme.onTertiary
+                            : Theme.of(context).colorScheme.onPrimary,
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const SizedBox(height: 16),
+                            Text(
+                              AppLocalizations.of(context)!.wakeUpRange,
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: isMaintenanceSEOutOfRange
+                                      ? Theme.of(context).colorScheme.tertiary
+                                      : Theme.of(context).colorScheme.primary),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  range,
+                                  style: TextStyle(
+                                      fontSize: 54,
+                                      color: isMaintenanceSEOutOfRange
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .tertiary
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .primary),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Helper: a single result row with a leading label + two value texts.
+  Widget _buildResultRow(
+    String leftLabel,
+    Widget value1,
+    Widget value2, {
+    String? leadingLabel,
+  }) {
+    final mediaQuery = MediaQuery.of(context);
+    return Container(
+      height: 20 + 34 + 2 + 4,
+      color: Theme.of(context).colorScheme.onPrimary,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Divider(height: 0.0, color: Colors.transparent),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  leftLabel,
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                Row(
+                  children: [
+                    value1,
+                    const SizedBox(width: 8),
+                    if (leadingLabel != null)
+                      Text(
+                        leadingLabel,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: mediaQuery.platformBrightness ==
+                                  Brightness.light
+                              ? const Color(0xFF2D2D2D)
+                              : const Color(0xFFFAFAFA),
+                        ),
+                      ),
+                    value2,
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Divider(
+              height: 1.0,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Tablet 2-column layout: input card on left (320px), results on right.
+  Widget _buildTabletLayout(Settings settings, double UIHeight) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: horizontalSidesPaddingPixel,
+        right: horizontalSidesPaddingPixel,
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 320,
+            child: _buildInputCard(settings, UIHeight),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: SingleChildScrollView(
+              child: _buildResultsSection(settings),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Desktop 2-column layout: input card on left (360px), results on right.
+  Widget _buildDesktopLayout(Settings settings, double UIHeight) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: horizontalSidesPaddingPixel,
+        right: horizontalSidesPaddingPixel,
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 360,
+            child: _buildInputCard(settings, UIHeight),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: SingleChildScrollView(
+              child: _buildResultsSection(settings),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Wraps [child] in [Shortcuts] + [Actions] for Enter=run() on desktop/web.
+  Widget _wrapWithKeyboardShortcuts(Widget child) {
+    final enable = ResponsiveHelper.isDesktop(context) || kIsWeb;
+    if (!enable) return child;
+    return Shortcuts(
+      shortcuts: const <ShortcutActivator, Intent>{
+        SingleActivator(LogicalKeyboardKey.enter): CalculateIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          CalculateIntent: CallbackAction<CalculateIntent>(
+            onInvoke: (intent) {
+              run();
+              return null;
+            },
+          ),
+        },
+        child: child,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // print(weightBestGuess);
+    final isDesktopLayout = ResponsiveHelper.isDesktop(context);
+    final isTabletLayout = ResponsiveHelper.isTablet(context) && !isDesktopLayout;
 
     final mediaQuery = MediaQuery.of(context);
 
@@ -355,1227 +1037,482 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             ? 56
             : 48
         : 48) + (ResponsiveHelper.isAndroid() ? 4 : 0);
-    final double UIWidth =
-        (mediaQuery.size.width - 2 * (horizontalSidesPaddingPixel + 4)) / 2;
-
-    final double rowHeight = 20 + 34 + 2 + 4;
-
-    final double screenHeight = mediaQuery.size.height -
-        (ResponsiveHelper.isAndroid()
-            ? 48
-            : mediaQuery.size.height >= screenBreakPoint1
-                ? 88
-                : 56);
 
     final settings = context.watch<Settings>();
 
-    bool isMaintenanceSEOutOfRange = ((settings.EMMaintenanceSE ?? 40) >= 21 &&
-            (settings.EMMaintenanceSE ?? 40) <= 60)
-        ? false
-        : true;
-
-    double concentration = settings.propofol_concentration;
-
-    AlertDialog ja_std_induce_info(BuildContext context) {
-      return AlertDialog(
-        title: Text('EleMarshモデル使用手順 （標準）'),
-        content: SingleChildScrollView(
-          child: Text.rich(
-            TextSpan(children: [
-              TextSpan(
-                  text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: 'Marshモデルを用いて、Eleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n'),
-              TextSpan(
-                  text: '使用方法：\n',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: "（1）患者情報および希望するEleveld効果部位目標濃度を入力する。\n"),
-              TextSpan(text: "（2）EleMarshアルゴリズムが調整体重および導入CpT（目標血漿濃度）を計算する。\n"),
-              TextSpan(text: "（3）TCIポンプのMarshモデルの体重入力には、算出された調整体重を用いる。\n"),
-              TextSpan(
-                  text:
-                      "（4）導入CpTを初期の目標血漿濃度として設定する。ボーラス投与が完了したら、直ちに目標血漿濃度を維持濃度へと下げる。その後、ポンプのMarshモデルはEleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n"),
-              TextSpan(
-                  text: "文献:\n", style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      "Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275."),
-            ]),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
+    if (isDesktopLayout) {
+      return _wrapWithKeyboardShortcuts(
+        _buildDesktopLayout(settings, UIHeight),
+      );
+    }
+    if (isTabletLayout) {
+      return _wrapWithKeyboardShortcuts(
+        _buildTabletLayout(settings, UIHeight),
       );
     }
 
-    AlertDialog ja_rsi_induce_info(BuildContext context) {
-      return AlertDialog(
-        title: Text('EleMarshモデル使用手順 (迅速なシーケンス誘導)'),
-        content: SingleChildScrollView(
-          child: Text.rich(
-            TextSpan(children: [
-              TextSpan(
-                  text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: 'Marshモデルを用いて、Eleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n'),
-              TextSpan(
-                  text: '使用方法：\n',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: '（1）入力患者情報及び希望するEleveld効果部位目標濃度。\n'),
-              TextSpan(text: '（2）EleMarshアルゴリズムが調整体重及び手動ボーラス投与量を算出。\n'),
-              TextSpan(text: '（3）TCIポンプのMarshモデルの体重入力には、算出された調整体重を使用。\n'),
-              TextSpan(
-                  text:
-                      '（4）迅速導入（RSI）時には、まず算出された手動ボーラス投与量を迅速に静脈内投与する。投与終了後、直ちにTCIポンプを開始し、初期の血漿目標濃度を希望する効果部位目標濃度に設定する。維持期に入ると、TCIポンプ上のMarshモデルはEleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n'),
-              TextSpan(
-                  text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      'Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275.'),
-            ]),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
-      );
-    }
-
-    AlertDialog zh_std_induce_info(BuildContext context) {
-      return AlertDialog(
-        title: Text('EleMarsh模型使用指南 (标准）'),
-        content: SingleChildScrollView(
-          child: Text.rich(
-            TextSpan(children: [
-              TextSpan(
-                  text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: '用Marsh模型精准模拟Eleveld模型的输注行为。\n\n'),
-              TextSpan(
-                  text: '使用方法：\n',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: '（1）输入患者信息及期望达到的Eleveld效应室靶浓度。\n'),
-              TextSpan(text: '（2）EleMarsh算法将计算调整体重及诱导CpT(血浆靶浓度)。\n'),
-              TextSpan(text: '（3）在TCI泵的Marsh模型中，将调整体重作为患者体重输入。\n'),
-              TextSpan(
-                  text:
-                      '（4）初始设置血浆靶浓度为诱导CpT。当诱导剂量推注完毕后，立即将血浆靶浓度降低至维持靶浓度。此后，泵上的Marsh模型将精准模拟Eleveld模型的输注行为。\n\n'),
-              TextSpan(
-                  text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      'Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275.'),
-            ]),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
-      );
-    }
-
-    AlertDialog zh_rsi_induce_info(BuildContext context) {
-      return AlertDialog(
-        title: Text('EleMarsh模型使用指南（快速顺序诱导）'),
-        content: SingleChildScrollView(
-          child: Text.rich(
-            TextSpan(children: [
-              TextSpan(
-                  text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: '使Marsh模型精准模拟Eleveld模型的输注行为。\n\n'),
-              TextSpan(
-                  text: '使用方法：\n',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: '（1）输入患者信息及期望达到的Eleveld效应室靶浓度。\n'),
-              TextSpan(text: '（2）EleMarsh算法将计算调整体重及手动推注剂量。\n'),
-              TextSpan(text: '（3）在TCI泵的Marsh模型中，将调整体重作为患者体重输入。\n'),
-              TextSpan(
-                  text:
-                      '（4）在快速顺序诱导时，先快速手动推注计算出的剂量，推注完成后立即启动TCI泵，初始血浆靶浓度设置为期望的效应室靶浓度。进入维持阶段后，泵上的Marsh模型即可精准模拟Eleveld模型的输注行为。\n\n'),
-              TextSpan(
-                  text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      'Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275.'),
-            ]),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
-      );
-    }
-
-    AlertDialog en_std_induce_info(BuildContext context) {
-      return AlertDialog(
-        title: Text('EleMarsh Algorithm (Standard)'),
-        content: SingleChildScrollView(
-          child: Text.rich(
-            TextSpan(children: [
-              TextSpan(
-                  text: "Aim:\n",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      "Accurately mimic the infusion behaviour of Eleveld model using Marsh model.\n\n"),
-              TextSpan(
-                  text: "Usage:\n",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      "(1) Enter patient details and desired Eleveld Ce target\n"),
-              TextSpan(
-                  text:
-                      "(2) EleMarsh calculates the Adjusted Body Weight and Induction CpT\n"),
-              TextSpan(
-                  text:
-                      "(3) Use the Adjusted Body Weight as the input weight for Marsh model on TCI pump\n"),
-              TextSpan(
-                  text:
-                      "(4) Use the Induction CpT as the initial CpT setting. As soon as the bolus is finished, drop CpT down to the desired CeT for maintenance. The Marsh model on your pump will now accurately mimic the Eleveld model.\n\n"),
-              TextSpan(
-                  text: "Reference:\n",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      "Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275."),
-            ]),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
-      );
-    }
-
-    AlertDialog en_rsi_induce_info(BuildContext context) {
-      return AlertDialog(
-        title: Text('EleMarsh Algorithm (RSI)'),
-        content: SingleChildScrollView(
-          child: Text.rich(
-            TextSpan(children: [
-              TextSpan(
-                  text: "Aim:\n",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      "Accurately mimic the infusion behaviour of Eleveld model using Marsh model.\n\n"),
-              TextSpan(
-                  text: "Usage:\n",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      "(1) Enter patient details and desired Eleveld Ce target\n"),
-              TextSpan(
-                  text:
-                      "(2) EleMarsh calculates the Adjusted Body Weight and Manual Bolus\n"),
-              TextSpan(
-                  text:
-                      "(3) Use the Adjusted Body Weight as the input weight for Marsh model on TCI pump\n"),
-              TextSpan(
-                  text:
-                      "(4) During RSI, rapidly inject the Manual Bolus dose and immediately start the TCI pump with initial CpT set to the desired CeT. During maintenance phase, the Marsh model on your pump will accurately mimic the Eleveld model.\n\n"),
-              TextSpan(
-                  text: "Reference:\n",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      "Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275."),
-            ]),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
-      );
-    }
-
-    void showInduceAlertDialog(BuildContext context) {
-      settings.EMRSI
-          ? showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                switch (Localizations.localeOf(context).languageCode) {
-                  case 'ja':
-                    return ja_rsi_induce_info(context);
-                  case 'zh':
-                    return zh_rsi_induce_info(context);
-                  default:
-                    return en_rsi_induce_info(context);
-                }
-              },
-            )
-          : showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                switch (Localizations.localeOf(context).languageCode) {
-                  case 'ja':
-                    return ja_std_induce_info(context);
-                  case 'zh':
-                    return zh_std_induce_info(context);
-                  default:
-                    return en_std_induce_info(context);
-                }
-              },
-            );
-    }
-
-    AlertDialog ja_wake_info(BuildContext context) {
-      return AlertDialog(
-        title: Text('覚醒時血中濃度の推定'),
-        content: SingleChildScrollView(
-          child: Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: '目的：\n',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextSpan(
-                  text: '患者が全身麻酔から覚醒（音声刺激で開眼）する際のプロポフォール血漿中濃度（Cp）を推定する。\n\n',
-                ),
-                TextSpan(
-                  text: '使用方法：\n',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextSpan(
-                  text: '（1）維持期におけるEleMarsh血漿中濃度を入力する（必ず定常状態に達していることを確認する）。\n',
-                ),
-                TextSpan(
-                  text: '（2）その時点での状態エントロピー（State Entropy, SE）の数値を入力する。\n',
-                ),
-                TextSpan(
-                  text:
-                      '（3）アルゴリズムが患者個人のプロポフォール感受性に基づき、麻酔覚醒時の血漿中濃度の範囲を推定する。\n\n',
-                ),
-                TextSpan(
-                  text: '注意事項：\n',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextSpan(
-                  text:
-                      '（a）本アルゴリズムが推定する覚醒時Cpは、最小限の外的刺激を前提としている。実際の覚醒濃度は、刺激の強度、疼痛の程度、筋弛緩薬の使用状況、併用薬剤などによって影響を受ける可能性がある。\n',
-                ),
-                TextSpan(
-                  text:
-                      '（b）本アルゴリズムは手術時間が60分を超える症例で検証されている。手術時間が短い場合、推定結果の精度が低下する可能性がある。\n\n',
-                ),
-                TextSpan(
-                  text: '文献:\n',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextSpan(
-                  text:
-                      'Zhong G., Tung AMS., Xu X. Simple model for predicting the awakening propofol plasma concentration during target-controlled infusion with the Marsh model. BJA. 2025;134(4):1253.',
-                ),
-              ],
+    // Mobile: single-column scrollable layout
+    return _wrapWithKeyboardShortcuts(
+      LayoutBuilder(
+        builder: (context, constraints) {
+          return Container(
+            padding: EdgeInsets.only(
+              left: horizontalSidesPaddingPixel,
+              right: horizontalSidesPaddingPixel,
+              bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
-      );
-    }
-
-    // Chinese wake info dialog
-    AlertDialog zh_wake_info(BuildContext context) {
-      return AlertDialog(
-        title: Text('苏醒浓度估算'),
-        content: SingleChildScrollView(
-          child: Text.rich(
-            TextSpan(children: [
-              TextSpan(
-                  text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: '估算患者从麻醉苏醒时的丙泊酚血浆浓度。\n\n'),
-              TextSpan(
-                  text: '使用方法：\n',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: '（1）输入维持阶段的EleMarsh血浆浓度（请确认已达到稳态）。\n'),
-              TextSpan(text: '（2）输入对应的状态熵（SE）数值。\n'),
-              TextSpan(text: '（3）算法根据患者个体对丙泊酚的敏感性，推算出麻醉苏醒时的血浆浓度范围。\n'),
-              TextSpan(
-                  text: '注意事项：\n',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      '（a）本算法推测的苏醒血浆浓度是假设患者受到最小外界刺激的情形下得出。实际苏醒浓度可能受到刺激强度、疼痛程度、肌松药物使用及辅助用药的影响。\n'),
-              TextSpan(
-                  text: '（b）本算法适用于手术时长超过60分钟的病例；对于手术时间较短者，估算结果可能存在偏差。\n\n'),
-              TextSpan(
-                  text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      'Zhong G., Tung AMS., Xu X. Simple model for predicting the awakening propofol plasma concentration during target-controlled infusion with the Marsh model. BJA. 2025;134(4):1253.'),
-            ]),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
-      );
-    }
-
-    // English wake info dialog
-    AlertDialog en_wake_info(BuildContext context) {
-      return AlertDialog(
-        title: Text('Wake Up Estimation'),
-        content: SingleChildScrollView(
-          child: Text.rich(
-            TextSpan(children: [
-              TextSpan(
-                  text: "Aim:\n",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      "Estimate the propofol Cp at which the patient emerges from general anaesthesia (i.e. eye open to voice).\n\n"),
-              TextSpan(
-                  text: "Usage:\n",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      "(1) Enter the maintenance phase EleMarsh Cp (ensure steady state has been achieved).\n"),
-              TextSpan(
-                  text:
-                      "(2) Enter the corresponding state entropy (SE) observed.\n"),
-              TextSpan(
-                  text:
-                      "(3) The algorithm will derive the Cp range for anaesthesia emergence based on the individual’s propofol sensitivity.\n\n"),
-              TextSpan(
-                  text: "Limitations:\n",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      "(a) Wake up Cp estimate assumes minimal stimulus. Actual wake up Cp will depend on stimulus, pain, paralysis and adjuvants.\n"),
-              TextSpan(
-                  text:
-                      "(b) Validated for surgeries longer than 60 minutes. May be inaccurate for shorter procedures.\n\n"),
-              TextSpan(
-                  text: "Reference:\n",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(
-                  text:
-                      "Zhong G., Tung AMS., Xu X. Simple model for predicting the awakening propofol plasma concentration during target-controlled infusion with the Marsh model. BJA. 2025;134(4):1253."),
-            ]),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
-      );
-    }
-
-    void showWakeAlertDialog(BuildContext context) {
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            switch (Localizations.localeOf(context).languageCode) {
-              case 'ja':
-                return ja_wake_info(context);
-              case 'zh':
-                return zh_wake_info(context);
-              default:
-                return en_wake_info(context);
-            }
-          });
-    }
-
-    int? age = int.tryParse(ageController.text);
-    bool isAdult = true;
-    if (age != null) {
-      if (age < 17) {
-        isAdult = false;
-      } else {
-        isAdult = true;
-      }
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Container(
-          padding: EdgeInsets.only(
-            left: horizontalSidesPaddingPixel,
-            right: horizontalSidesPaddingPixel,
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView(
-            reverse: true,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight - MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: IntrinsicHeight(
+            child: SingleChildScrollView(
+              reverse: true,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight -
+                      MediaQuery.of(context).viewInsets.bottom,
+                ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+                    _buildResultsSection(settings),
+                    const SizedBox(height: 24),
+                    _buildInputCard(settings, UIHeight),
+                    SizedBox(
+                      height: MediaQuery.of(context).padding.bottom + 24,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ─── Info dialogs (EleMarsh Algorithm) ───────────────────
+
+  AlertDialog ja_std_induce_info(BuildContext context) {
+    return AlertDialog(
+      title: Text('EleMarshモデル使用手順 （標準）'),
+      content: SingleChildScrollView(
+        child: Text.rich(
+          TextSpan(children: [
+            TextSpan(
+                text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: 'Marshモデルを用いて、Eleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n'),
+            TextSpan(
+                text: '使用方法：\n',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: "（1）患者情報および希望するEleveld効果部位目標濃度を入力する。\n"),
+            TextSpan(text: "（2）EleMarshアルゴリズムが調整体重および導入CpT（目標血漿濃度）を計算する。\n"),
+            TextSpan(text: "（3）TCIポンプのMarshモデルの体重入力には、算出された調整体重を用いる。\n"),
+            TextSpan(
+                text:
+                    "（4）導入CpTを初期の目標血漿濃度として設定する。ボーラス投与が完了したら、直ちに目標血漿濃度を維持濃度へと下げる。その後、ポンプのMarshモデルはEleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n"),
+            TextSpan(
+                text: "文献:\n", style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    "Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275."),
+          ]),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(AppLocalizations.of(context)!.close),
+        ),
+      ],
+    );
+  }
+
+  AlertDialog ja_rsi_induce_info(BuildContext context) {
+    return AlertDialog(
+      title: Text('EleMarshモデル使用手順 (迅速なシーケンス誘導)'),
+      content: SingleChildScrollView(
+        child: Text.rich(
+          TextSpan(children: [
+            TextSpan(
+                text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: 'Marshモデルを用いて、Eleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n'),
+            TextSpan(
+                text: '使用方法：\n',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: "（1）入力患者情報及び希望するEleveld効果部位目標濃度。\n"),
+            TextSpan(text: "（2）EleMarshアルゴリズムが調整体重及び手動ボーラス投与量を算出。\n"),
+            TextSpan(text: "（3）TCIポンプのMarshモデルの体重入力には、算出された調整体重を使用。\n"),
+            TextSpan(
+                text:
+                    '（4）迅速導入（RSI）時には、まず算出された手動ボーラス投与量を迅速に静脈内投与する。投与終了後、直ちにTCIポンプを開始し、初期の血漿目標濃度を希望する効果部位目標濃度に設定する。維持期に入ると、TCIポンプ上のMarshモデルはEleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n'),
+            TextSpan(
+                text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    'Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275.'),
+          ]),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(AppLocalizations.of(context)!.close),
+        ),
+      ],
+    );
+  }
+
+  AlertDialog zh_std_induce_info(BuildContext context) {
+    return AlertDialog(
+      title: Text('EleMarsh模型使用指南 (标准）'),
+      content: SingleChildScrollView(
+        child: Text.rich(
+          TextSpan(children: [
+            TextSpan(
+                text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: '用Marsh模型精准模拟Eleveld模型的输注行为。\n\n'),
+            TextSpan(
+                text: '使用方法：\n',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: '（1）输入患者信息及期望达到的Eleveld效应室靶浓度。\n'),
+            TextSpan(text: '（2）EleMarsh算法将计算调整体重及诱导CpT(血浆靶浓度)。\n'),
+            TextSpan(text: '（3）在TCI泵的Marsh模型中，将调整体重作为患者体重输入。\n'),
+            TextSpan(
+                text:
+                    '（4）初始设置血浆靶浓度为诱导CpT。当诱导剂量推注完毕后，立即将血浆靶浓度降低至维持靶浓度。此后，泵上的Marsh模型将精准模拟Eleveld模型的输注行为。\n\n'),
+            TextSpan(
+                text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    'Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275.'),
+          ]),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(AppLocalizations.of(context)!.close),
+        ),
+      ],
+    );
+  }
+
+  AlertDialog zh_rsi_induce_info(BuildContext context) {
+    return AlertDialog(
+      title: Text('EleMarsh模型使用指南（快速顺序诱导）'),
+      content: SingleChildScrollView(
+        child: Text.rich(
+          TextSpan(children: [
+            TextSpan(
+                text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: '使Marsh模型精准模拟Eleveld模型的输注行为。\n\n'),
+            TextSpan(
+                text: '使用方法：\n',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: '（1）输入患者信息及期望达到的Eleveld效应室靶浓度。\n'),
+            TextSpan(text: '（2）EleMarsh算法将计算调整体重及手动推注剂量。\n'),
+            TextSpan(text: '（3）在TCI泵的Marsh模型中，将调整体重作为患者体重输入。\n'),
+            TextSpan(
+                text:
+                    '（4）在快速顺序诱导时，先快速手动推注计算出的剂量，推注完成后立即启动TCI泵，初始血浆靶浓度设置为期望的效应室靶浓度。进入维持阶段后，泵上的Marsh模型即可精准模拟Eleveld模型的输注行为。\n\n'),
+            TextSpan(
+                text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    'Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275.'),
+          ]),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(AppLocalizations.of(context)!.close),
+        ),
+      ],
+    );
+  }
+
+  AlertDialog en_std_induce_info(BuildContext context) {
+    return AlertDialog(
+      title: Text('EleMarsh Algorithm (Standard)'),
+      content: SingleChildScrollView(
+        child: Text.rich(
+          TextSpan(children: [
+            TextSpan(
+                text: "Aim:\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    "Accurately mimic the infusion behaviour of Eleveld model using Marsh model.\n\n"),
+            TextSpan(
+                text: "Usage:\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    "(1) Enter patient details and desired Eleveld Ce target\n"),
+            TextSpan(
+                text:
+                    "(2) EleMarsh calculates the Adjusted Body Weight and Induction CpT\n"),
+            TextSpan(
+                text:
+                    "(3) Use the Adjusted Body Weight as the input weight for Marsh model on TCI pump\n"),
+            TextSpan(
+                text:
+                    "(4) Use the Induction CpT as the initial CpT setting. As soon as the bolus is finished, drop CpT down to the desired CeT for maintenance. The Marsh model on your pump will now accurately mimic the Eleveld model.\n\n"),
+            TextSpan(
+                text: "Reference:\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    "Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275."),
+          ]),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(AppLocalizations.of(context)!.close),
+        ),
+      ],
+    );
+  }
+
+  AlertDialog en_rsi_induce_info(BuildContext context) {
+    return AlertDialog(
+      title: Text('EleMarsh Algorithm (RSI)'),
+      content: SingleChildScrollView(
+        child: Text.rich(
+          TextSpan(children: [
+            TextSpan(
+                text: "Aim:\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    "Accurately mimic the infusion behaviour of Eleveld model using Marsh model.\n\n"),
+            TextSpan(
+                text: "Usage:\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    "(1) Enter patient details and desired Eleveld Ce target\n"),
+            TextSpan(
+                text:
+                    "(2) EleMarsh calculates the Adjusted Body Weight and Manual Bolus\n"),
+            TextSpan(
+                text:
+                    "(3) Use the Adjusted Body Weight as the input weight for Marsh model on TCI pump\n"),
+            TextSpan(
+                text:
+                    "(4) During RSI, rapidly inject the Manual Bolus dose and immediately start the TCI pump with initial CpT set to the desired CeT. During maintenance phase, the Marsh model on your pump will accurately mimic the Eleveld model.\n\n"),
+            TextSpan(
+                text: "Reference:\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    "Zhong G., Xu X. General purpose propofol target-controlled infusion using the Marsh model with adjusted body weight. J Anesth. 2024;38(2):275."),
+          ]),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(AppLocalizations.of(context)!.close),
+        ),
+      ],
+    );
+  }
+
+  void showInduceAlertDialog(BuildContext context) {
+    final settings = context.read<Settings>();
+    settings.EMRSI
+        ? showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              switch (Localizations.localeOf(context).languageCode) {
+                case 'ja':
+                  return ja_rsi_induce_info(context);
+                case 'zh':
+                  return zh_rsi_induce_info(context);
+                default:
+                  return en_rsi_induce_info(context);
+              }
+            },
+          )
+        : showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              switch (Localizations.localeOf(context).languageCode) {
+                case 'ja':
+                  return ja_std_induce_info(context);
+                case 'zh':
+                  return zh_std_induce_info(context);
+                default:
+                  return en_std_induce_info(context);
+              }
+            },
+          );
+  }
+
+  AlertDialog ja_wake_info(BuildContext context) {
+    return AlertDialog(
+      title: Text('覚醒時血中濃度の推定'),
+      content: SingleChildScrollView(
+        child: Text.rich(
+          TextSpan(
             children: [
-              flowController.val == 0
-                  ? GestureDetector(
-                      onTap: () async {
-                        await HapticFeedback.mediumImpact();
-                        settings.EMRSI = !settings.EMRSI;
-                        setState(() {
-                          settings.EMRSI;
-                        });
-                      },
-                      child: Chip(
-                        avatar: settings.EMRSI
-                            ? Icon(
-                                Symbols.front_hand,
-                                color: Theme.of(context).colorScheme.onTertiary,
-                              )
-                            : Icon(
-                                Symbols.syringe,
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              ),
-                        label: Text(
-                          settings.EMRSI ? 'RSI' : 'STD',
-                          style: settings.EMRSI
-                              ? TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onTertiary)
-                              : TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary),
-                        ),
-                        backgroundColor: settings.EMRSI
-                            ? Theme.of(context).colorScheme.tertiary
-                            : Theme.of(context).colorScheme.primary,
-                      ),
-                    )
-                  : Container(),
+              TextSpan(
+                text: '目的：\n',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                text: '患者が全身麻酔から覚醒（音声刺激で開眼）する際のプロポフォール血漿中濃度（Cp）を推定する。\n\n',
+              ),
+              TextSpan(
+                text: '使用方法：\n',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                text: '（1）維持期におけるEleMarsh血漿中濃度を入力する（必ず定常状態に達していることを確認する）。\n',
+              ),
+              TextSpan(
+                text: '（2）その時点での状態エントロピー（State Entropy, SE）の数値を入力する。\n',
+              ),
+              TextSpan(
+                text:
+                    '（3）アルゴリズムが患者個人のプロポフォール感受性に基づき、麻酔覚醒時の血漿中濃度の範囲を推定する。\n\n',
+              ),
+              TextSpan(
+                text: '注意事項：\n',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                text:
+                    '（a）本アルゴリズムが推定する覚醒時Cpは、最小限の外的刺激を前提としている。実際の覚醒濃度は、刺激の強度、疼痛の程度、筋弛緩薬の使用状況、併用薬剤などによって影響を受ける可能性がある。\n',
+              ),
+              TextSpan(
+                text:
+                    '（b）本アルゴリズムは手術時間が60分を超える症例で検証されている。手術時間が短い場合、推定結果の精度が低下する可能性がある。\n\n',
+              ),
+              TextSpan(
+                text: '文献:\n',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                text:
+                    'Zhong G., Tung AMS., Xu X. Simple model for predicting the awakening propofol plasma concentration during target-controlled infusion with the Marsh model. BJA. 2025;134(4):1253.',
+              ),
             ],
           ),
-          ClipRRect(
-            borderRadius: BorderRadius.all(Radius.circular(10.0)),
-            child: Column(
-              children: [
-                Opacity(
-                  opacity: flowController.val == 0 ? 1 : 0,
-                  child: Container(
-                    height: flowController.val == 0 ? rowHeight * 4 : 0,
-                    child: Column(
-                      children: [
-                        Container(
-                          height: rowHeight,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Divider(
-                                height: 0.0,
-                                color: Colors.transparent,
-                              ),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "EleMarsh ${AppLocalizations.of(context)!.abw}",
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text("$weightBestGuess",
-                                            style: TextStyle(
-                                                fontSize: 24,
-                                                fontWeight: FontWeight.w600,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary)),
-                                        Text(" kg",
-                                            style: TextStyle(
-                                                fontSize: 24,
-                                                fontWeight: FontWeight.w600,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary)),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.only(left: 16.0),
-                                child: Divider(
-                                  height: 1.0,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        Container(
-                          height: rowHeight,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Divider(
-                                height: 0.0,
-                                color: Colors.transparent,
-                              ),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    settings.EMRSI
-                                        ? Text(
-                                            AppLocalizations.of(context)!
-                                                .manualBolus,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .tertiary,
-                                            ),
-                                          )
-                                        : Text(
-                                            "${AppLocalizations.of(context)!.induction} CpT",
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary),
-                                          ),
-                                    settings.EMRSI
-                                        ? Row(
-                                            children: [
-                                              Text(
-                                                "$manualBolus",
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .tertiary,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                              Text(
-                                                " mg",
-                                                style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .tertiary,
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                        : Row(
-                                            children: [
-                                              Text(
-                                                "$inductionCPTarget",
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .primary,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                              Text(
-                                                " μg/mL",
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .primary),
-                                              ),
-                                            ],
-                                          ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.only(left: 16.0),
-                                child: Divider(
-                                  height: 1.0,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        Container(
-                          height: rowHeight,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Divider(
-                                height: 0.0,
-                                color: Colors.transparent,
-                              ),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            "eBIS",
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              color: Theme.of(context).brightness == Brightness.light
-                                                  ? Color(0xFF2D2D2D)
-                                                  : Color(0xFFFAFAFA),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            width: 8.0,
-                                          ),
-                                          Text(
-                                            "$predictedBIS",
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Theme.of(context).brightness == Brightness.light
-                                                  ? Color(0xFF2D2D2D)
-                                                  : Color(0xFFFAFAFA),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "BMI",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Theme.of(context).brightness == Brightness.light
-                                                ? Color(0xFF2D2D2D)
-                                                : Color(0xFFFAFAFA),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 8.0,
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "$BMI",
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Theme.of(context).brightness == Brightness.light
-                                                    ? Color(0xFF2D2D2D)
-                                                    : Color(0xFFFAFAFA),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    // Row(
-                                    //   children: [
-                                    //     Text(
-                                    //       "MaxAPE",
-                                    //       style: TextStyle(fontSize: 14),
-                                    //     ),
-                                    //     SizedBox(
-                                    //       width: 8.0,
-                                    //     ),
-                                    //     Text(
-                                    //       "$MaxAPE %",
-                                    //       style: TextStyle(fontSize: 14),
-                                    //     ),
-                                    //   ],
-                                    // ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.only(left: 16.0),
-                                child: Divider(
-                                  height: 1.0,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        Container(
-                          height: rowHeight,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Divider(
-                                height: 0.0,
-                                color: Colors.transparent,
-                              ),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "20ml",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Theme.of(context).brightness == Brightness.light
-                                                ? Color(0xFF2D2D2D)
-                                                : Color(0xFFFAFAFA),
-                                          ),
-                                        ),
-                                        SizedBox(width: 8.0),
-                                        Text(
-                                          vial20mlTime,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Theme.of(context).brightness == Brightness.light
-                                                ? Color(0xFF2D2D2D)
-                                                : Color(0xFFFAFAFA),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "50ml",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Theme.of(context).brightness == Brightness.light
-                                                ? Color(0xFF2D2D2D)
-                                                : Color(0xFFFAFAFA),
-                                          ),
-                                        ),
-                                        SizedBox(width: 8.0),
-                                        Text(
-                                          vial50mlTime,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Theme.of(context).brightness == Brightness.light
-                                                ? Color(0xFF2D2D2D)
-                                                : Color(0xFFFAFAFA),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.only(left: 16.0),
-                                child: Divider(
-                                  height: 1.0,
-                                  color: Colors.transparent,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Opacity(
-                  opacity: flowController.val == 1 ? 1 : 0,
-                  child: Container(
-                    height: flowController.val == 1 ? 119 : 0,
-                    child: Column(
-                      children: [
-                        Container(
-                          color: isMaintenanceSEOutOfRange
-                              ? Theme.of(context).colorScheme.onTertiary
-                              : Theme.of(context).colorScheme.onPrimary,
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              SizedBox(
-                                height: 16,
-                              ),
-                              Text(
-                                AppLocalizations.of(context)!.wakeUpRange,
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    color: isMaintenanceSEOutOfRange
-                                        ? Theme.of(context).colorScheme.tertiary
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .primary),
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    range,
-                                    style: TextStyle(
-                                        fontSize: 54,
-                                        color: isMaintenanceSEOutOfRange
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .tertiary
-                                            : Theme.of(context)
-                                                .colorScheme
-                                                .primary),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 24,
-          ),
-          Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: TextMeasurement.calculateSegmentedControlWidth(
-                    context: context,
-                    segmentLabels: [
-                      AppLocalizations.of(context)!.induce,
-                      AppLocalizations.of(context)!.emerge
-                    ],
-                    textStyle: Theme.of(context).textTheme.bodyLarge ?? const TextStyle(fontSize: 14),
-                  ),
-                  child: PDTextFieldSegmentedControl(
-                      height: UIHeight,
-                      fontSize: 14,
-                      helperText: '', // Reserve space for consistent alignment
-                      // labelText: "Flow",
-                      // prefixIcon: Icons.settings_input_component,
-                      labels: [
-                        AppLocalizations.of(context)!.induce,
-                        AppLocalizations.of(context)!.emerge
-                      ],
-                      segmentedController: flowController,
-                      onPressed: [
-                        () {
-                          settings.EMFlow = 'induce';
-                        },
-                        () {
-                          settings.EMFlow = 'wake';
-                        }
-                      ]),
-                ),
-                Row(
-                  children: [
-                    Container(
-                        height: UIHeight,
-                        width: UIHeight,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.all(0),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.onPrimary,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  strokeAlign: BorderSide.strokeAlignOutside,
-                                ),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(5))),
-                          ),
-                          onPressed: () async {
-                            await HapticFeedback.mediumImpact();
-                            flowController.val == 0
-                                ? showInduceAlertDialog(context)
-                                : showWakeAlertDialog(context);
-                          },
-                          child:
-                              Center(child: Icon(Symbols.question_mark)),
-                        )),
-                    SizedBox(
-                      width: 8,
-                    ),
-                    Container(
-                        height: UIHeight,
-                        width: UIHeight,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.all(0),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.onPrimary,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  strokeAlign: BorderSide.strokeAlignOutside,
-                                ),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(5))),
-                          ),
-                          onPressed: () async {
-                            await HapticFeedback.mediumImpact();
-                            reset(toDefault: true);
-                          },
-                          child: Icon(Icons.restart_alt_outlined),
-                        )),
-                  ],
-                ),
-              ],
-          ),
-          const SizedBox(
-            height: 25,
-          ),
-          Opacity(
-            opacity: flowController.val == 0 ? 1 : 0,
-            child: Container(
-              height: flowController.val == 0 ? UIHeight + 24 : 0,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: PDSwitchField(
-                      labelText: AppLocalizations.of(context)!.sex,
-                      prefixIcon: sexController.val == true
-                          ? isAdult
-                              ? Icons.woman
-                              : Icons.girl
-                          : isAdult
-                              ? Icons.man
-                              : Icons.boy,
-                      controller: sexController,
-                      switchTexts: {
-                        true: isAdult
-                            ? Sex.Female.toLocalizedString(context)
-                            : Sex.Girl.toLocalizedString(context),
-                        false: isAdult
-                            ? Sex.Male.toLocalizedString(context)
-                            : Sex.Boy.toLocalizedString(context)
-                      },
-                      onChanged: run,
-                      height: UIHeight,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 8,
-                    height: 0,
-                  ),
-                  Expanded(
-                    child: PDTextField(
-                      prefixIcon: Icons.calendar_month,
-                      labelText: AppLocalizations.of(context)!.age,
-                      // helperText: '',
-                      interval: 1.0,
-                      fractionDigits: 0,
-                      controller: ageController,
-                      range: [Model.EleMarsh.minAge, Model.EleMarsh.maxAge],
-                      onPressed: updatePDTextEditingController,
-                      // onChanged: restart,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Opacity(
-            opacity: flowController.val == 1 ? 1 : 0,
-            child: Container(
-              height: flowController.val == 1 ? UIHeight + 24 : 0,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: PDSwitchField(
-                      labelText: AppLocalizations.of(context)!.model,
-                      // labelText: "Model",
-                      prefixIcon: modelController.val == true
-                          ? Icons.spoke_outlined
-                          : Icons.hub_outlined,
-                      controller: modelController,
-                      switchTexts: {
-                        true: Model.Eleveld.toString(),
-                        false: Model.EleMarsh.toString()
-                      },
-                      onChanged: run,
-                      height: UIHeight,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Opacity(
-            opacity: flowController.val == 0 ? 1 : 0,
-            child: Container(
-              height: flowController.val == 0 ? UIHeight + 24 : 0,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: PDTextField(
-                      prefixIcon: Icons.straighten,
-                      labelText: '${AppLocalizations.of(context)!.height} (cm)',
-                      // helperText: '',
-                      interval: 1,
-                      fractionDigits: 0,
-                      controller: heightController,
-                      range: [minHeightEleMarsh, maxHeightEleMarsh],
-                      onPressed: updatePDTextEditingController,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 8,
-                    height: 0,
-                  ),
-                  Expanded(
-                    child: PDTextField(
-                      prefixIcon: Icons.monitor_weight_outlined,
-                      labelText: '${AppLocalizations.of(context)!.weight} (kg)',
-                      // helperText: '',
-                      interval: 1.0,
-                      fractionDigits: 0,
-                      controller: weightController,
-                      range: [minWeightEleMarsh, maxWeightEleMarsh],
-                      onPressed: updatePDTextEditingController,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Opacity(
-            opacity: flowController.val == 1 ? 1 : 0,
-            child: Container(
-              height: flowController.val == 1 ? UIHeight + 24 : 0,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: PDTextField(
-                      prefixIcon: Icons.monitor_heart_outlined,
-                      labelText:
-                          AppLocalizations.of(context)!.maintenanceStateEntropy,
-                      helperText: isMaintenanceSEOutOfRange
-                          ? '*Accuracy reduced, min: 21 and max: 60'
-                          : '',
-                      interval: 1,
-                      fractionDigits: 0,
-                      controller: maintenanceSEController,
-                      range: [1, 99],
-                      onPressed: updatePDTextEditingController,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Opacity(
-            opacity: flowController.val == 0 ? 1 : 0,
-            child: Container(
-              height: flowController.val == 0 ? UIHeight + 24 : 0,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: PDTextField(
-                      prefixIcon: Target.EffectSite.icon,
-                      labelText:
-                          '${AppLocalizations.of(context)!.effectSiteTarget} (μg/mL)',
-                      interval: 0.5,
-                      fractionDigits: 1,
-                      controller: targetController,
-                      range: [0.5, 8],
-                      onPressed: updatePDTextEditingController,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Opacity(
-            opacity: flowController.val == 1 ? 1 : 0,
-            child: Container(
-              height: flowController.val == 1 ? UIHeight + 24 : 0,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: PDTextField(
-                      prefixIcon: settings.EMWakeUpModel.target.icon,
-                      labelText: settings.EMWakeUpModel == Model.Eleveld
-                          ? AppLocalizations.of(context)!.maintenanceCe
-                          : AppLocalizations.of(context)!.maintenanceCp,
-                      interval: 0.5,
-                      fractionDigits: 1,
-                      controller: maintenanceCeController,
-                      range: [0.5, 8],
-                      onPressed: updatePDTextEditingController,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-                  // Bottom padding for scrolling
-                  SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(AppLocalizations.of(context)!.close),
+        ),
+      ],
     );
+  }
+
+  AlertDialog zh_wake_info(BuildContext context) {
+    return AlertDialog(
+      title: Text('苏醒浓度估算'),
+      content: SingleChildScrollView(
+        child: Text.rich(
+          TextSpan(children: [
+            TextSpan(
+                text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: '估算患者从麻醉苏醒时的丙泊酚血浆浓度。\n\n'),
+            TextSpan(
+                text: '使用方法：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: '（1）输入维持阶段的EleMarsh血浆浓度（请确认已达到稳态）。\n'),
+            TextSpan(text: '（2）输入对应的状态熵（SE）数值。\n'),
+            TextSpan(text: '（3）算法根据患者个体对丙泊酚的敏感性，推算出麻醉苏醒时的血浆浓度范围。\n\n'),
+            TextSpan(
+                text: '注意事项：\n', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    '（a）本算法推测的苏醒血浆浓度是假设患者受到最小外界刺激的情形下得出。实际苏醒浓度可能受到刺激强度、疼痛程度、肌松药物使用及辅助用药的影响。\n'),
+            TextSpan(
+                text:
+                    '（b）本算法适用于手术时长超过60分钟的病例；对于手术时间较短者，估算结果可能存在偏差。\n\n'),
+            TextSpan(
+                text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    'Zhong G., Tung AMS., Xu X. Simple model for predicting the awakening propofol plasma concentration during target-controlled infusion with the Marsh model. BJA. 2025;134(4):1253.'),
+          ]),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(AppLocalizations.of(context)!.close),
+        ),
+      ],
+    );
+  }
+
+  AlertDialog en_wake_info(BuildContext context) {
+    return AlertDialog(
+      title: Text('Wake Up Estimation'),
+      content: SingleChildScrollView(
+        child: Text.rich(
+          TextSpan(children: [
+            TextSpan(
+                text: "Aim:\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    "Estimate the propofol Cp at which the patient emerges from general anaesthesia (i.e. eye open to voice).\n\n"),
+            TextSpan(
+                text: "Usage:\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    "(1) Enter the maintenance phase EleMarsh Cp (ensure steady state has been achieved).\n"),
+            TextSpan(
+                text:
+                    "(2) Enter the corresponding state entropy (SE) observed.\n"),
+            TextSpan(
+                text:
+                    "(3) The algorithm will derive the Cp range for anaesthesia emergence based on the individual’s propofol sensitivity.\n\n"),
+            TextSpan(
+                text: "Limitations:\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    "(a) Wake up Cp estimate assumes minimal stimulus. Actual wake up Cp will depend on stimulus, pain, paralysis and adjuvants.\n"),
+            TextSpan(
+                text:
+                    "(b) Validated for surgeries longer than 60 minutes. May be inaccurate for shorter procedures.\n\n"),
+            TextSpan(
+                text: "Reference:\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    "Zhong G., Tung AMS., Xu X. Simple model for predicting the awakening propofol plasma concentration during target-controlled infusion with the Marsh model. BJA. 2025;134(4):1253."),
+          ]),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(AppLocalizations.of(context)!.close),
+        ),
+      ],
+    );
+  }
+
+  void showWakeAlertDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          switch (Localizations.localeOf(context).languageCode) {
+            case 'ja':
+              return ja_wake_info(context);
+            case 'zh':
+              return zh_wake_info(context);
+            default:
+              return en_wake_info(context);
+          }
+        });
   }
 }

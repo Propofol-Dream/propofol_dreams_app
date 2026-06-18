@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:propofol_dreams_app/config/design_tokens.dart';
 import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
@@ -84,14 +85,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               size: 18,
               color: drug.getColor(context),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: kSp8),
             Text(
               drug.toLocalizedString(context),
               style: const TextStyle(fontSize: 16,),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: kSp12),
         
         // Concentration selector or display
         if (availableConcentrations.length > 1)
@@ -136,7 +137,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             decoration: BoxDecoration(
               border: Border.all(color: Theme.of(context).colorScheme.primary),
               color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(kRadius),
             ),
             child: Center(
               child: Text(
@@ -167,14 +168,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final settings = context.watch<Settings>();
 
     return Column(children: [
-      AppBar(
-        title:  Text(
-          AppLocalizations.of(context)!.settings,
-        ),
-      ),
-      const SizedBox(
-        height: 16,
-      ),
+      const SizedBox(height: kSp16),
       Expanded(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
@@ -188,16 +182,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     AppLocalizations.of(context)!.appearance,
                      style: const TextStyle(fontSize: 18),
                   ),
-                  const SizedBox(
-                    height: 4,
-                  ),
+                  const SizedBox(height: kSp4),
                   // Text(
                   //   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus finibus lorem vitae augue tincidunt, at aliquet mauris condimentum. Donec pellentesque tempus dapibus',
                   //   style: TextStyle(fontSize: 14),
                   // ),
-                  const SizedBox(
-                    height: 16,
-                  ),
+                  const SizedBox(height: kSp16),
                   SizedBox(
                     height: UIHeight,
                     width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
@@ -230,9 +220,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   //     child: Text('Clear'))
                 ],
               ),
-              const SizedBox(
-                height: 24,
-              ),
+              const SizedBox(height: kSp24),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -240,7 +228,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     AppLocalizations.of(context)!.drugConcentration,
                     style: const TextStyle(fontSize: 18,),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: kSp8),
 
                   // Propofol - with selection
                   _buildDrugConcentrationSection(
@@ -249,7 +237,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     UIHeight,
                     mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: kSp8),
 
                   // Remifentanil - with selection
                   _buildDrugConcentrationSection(
@@ -258,7 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     UIHeight,
                     mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: kSp8),
 
                   // Dexmedetomidine - display only
                   _buildDrugConcentrationSection(
@@ -267,7 +255,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     UIHeight,
                     mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: kSp8),
 
                   // Remimazolam - with selection
                   _buildDrugConcentrationSection(
@@ -278,9 +266,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 24,
-              ),
+              const SizedBox(height: kSp24),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -288,12 +274,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     AppLocalizations.of(context)!.maximumPumpRate,
                      style: const TextStyle(fontSize: 18),
                   ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
+                  const SizedBox(height: kSp4),
+                  const SizedBox(height: kSp16),
                   SizedBox(
                     height: UIHeight + 24,
                     child: PDTextField(
@@ -312,9 +294,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   )
                 ],
               ),
-              const SizedBox(
-                height: 24,
-              ),
+              const SizedBox(height: kSp24),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -322,12 +302,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     'Volume Mode',
                     style: const TextStyle(fontSize: 18),
                   ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
+                  const SizedBox(height: kSp4),
+                  const SizedBox(height: kSp16),
                   SizedBox(
                     height: UIHeight,
                     width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
@@ -357,9 +333,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Divider(
               //   color: Theme.of(context).colorScheme.primary,
               // ),
-              const SizedBox(
-                height: 16,
-              ),
+              const SizedBox(height: kSp16),
             ],
           ),
         ),

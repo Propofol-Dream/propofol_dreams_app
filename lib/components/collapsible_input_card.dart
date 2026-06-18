@@ -1,5 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../config/design_tokens.dart';
+import '../config/breakpoints.dart';
+
+/// Controller for programmatic collapse/expand of [CollapsibleInputCard].
+///
+/// Created by the parent widget and passed to [CollapsibleInputCard.controller].
+/// Call [collapse] or [expand] to control the card state from outside.
+class CollapsibleInputCardController {
+  void Function()? _collapse;
+  void Function()? _expand;
+
+  void collapse() => _collapse?.call();
+  void expand() => _expand?.call();
+}
 
 /// A collapsible card that can show a compact summary when collapsed
 /// and full input fields when expanded. Optimized for medical calculator UIs.
@@ -9,6 +23,7 @@ class CollapsibleInputCard extends StatefulWidget {
     required this.title,
     required this.expandedContent,
     required this.collapsedSummary,
+    this.controller,
     this.isInitiallyExpanded = true,
     this.onExpansionChanged,
     this.showCalculateButton = true,
@@ -27,6 +42,9 @@ class CollapsibleInputCard extends StatefulWidget {
 
   /// Compact summary shown when collapsed
   final Widget collapsedSummary;
+
+  /// Optional external controller for programmatic collapse/expand.
+  final CollapsibleInputCardController? controller;
 
   /// Whether the card should be expanded initially
   final bool isInitiallyExpanded;
@@ -60,7 +78,6 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
     with TickerProviderStateMixin {
   late bool _isExpanded;
   late AnimationController _animationController;
-  late Animation<double> _heightFactorAnimation;
   late Animation<double> _iconRotationAnimation;
 
   @override
@@ -69,13 +86,8 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
     _isExpanded = widget.isInitiallyExpanded;
 
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: kAnimNormal,
       vsync: this,
-    );
-
-    _heightFactorAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOutCubic,
     );
 
     _iconRotationAnimation = Tween<double>(
@@ -89,6 +101,14 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
     if (_isExpanded) {
       _animationController.value = 1.0;
     }
+
+    // Wire external controller, if provided.
+    widget.controller?._collapse = () {
+      if (_isExpanded) _setExpanded(false, haptic: false);
+    };
+    widget.controller?._expand = () {
+      if (!_isExpanded) _setExpanded(true, haptic: false);
+    };
   }
 
   @override
@@ -113,8 +133,12 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
   }
 
   void _toggleExpansion() {
+    _setExpanded(!_isExpanded);
+  }
+
+  void _setExpanded(bool expanded, {bool haptic = true}) {
     setState(() {
-      _isExpanded = !_isExpanded;
+      _isExpanded = expanded;
       if (_isExpanded) {
         _animationController.forward();
       } else {
@@ -122,9 +146,7 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
       }
     });
 
-    // Add haptic feedback for better user experience
-    HapticFeedback.selectionClick();
-
+    if (haptic) HapticFeedback.selectionClick();
     widget.onExpansionChanged?.call(_isExpanded);
   }
 
@@ -141,12 +163,12 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
     final colorScheme = theme.colorScheme;
     
     return Card(
-      elevation: _isExpanded ? 3.0 : 1.0,
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      elevation: _isExpanded ? kElev3 : kElev1,
+      margin: const EdgeInsets.symmetric(horizontal: kSp16, vertical: kSp8),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: kAnimFast,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12.0),
+          borderRadius: BorderRadius.circular(kRadiusLg),
           border: widget.hasValidationError
               ? Border.all(color: colorScheme.error, width: 1.5)
               : null,
@@ -157,11 +179,11 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
             InkWell(
               onTap: widget.forceExpanded ? null : _toggleExpansion,
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(12.0),
-                bottom: Radius.circular(12.0),
+                top: Radius.circular(kRadiusLg),
+                bottom: Radius.circular(kRadiusLg),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(kSp16),
                 child: Row(
                   children: [
                     Icon(
@@ -170,7 +192,7 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
                           ? colorScheme.error
                           : colorScheme.primary,
                     ),
-                    const SizedBox(width: 12.0),
+                    const SizedBox(width: kSp12),
                     Expanded(
                       child: Text(
                         widget.title,
@@ -200,7 +222,7 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
             // Collapsible content
             ClipRect(
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
+                duration: kAnimFast,
                 switchInCurve: Curves.easeInOut,
                 switchOutCurve: Curves.easeInOut,
                 child: _isExpanded
@@ -215,20 +237,21 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
   }
 
   Widget _buildExpandedContent() {
-    return Container(
+    return SizedBox(
       key: const ValueKey('expanded'),
       width: double.infinity,
       child: Column(
         children: [
           const Divider(height: 1),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(kSp16),
             child: widget.expandedContent,
           ),
+          const SizedBox.shrink(),
           if (widget.showCalculateButton) ...[
             const Divider(height: 1),
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(kSp16),
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
@@ -249,7 +272,7 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
                         : widget.calculateButtonText,
                   ),
                   style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    padding: const EdgeInsets.symmetric(vertical: kSp16),
                   ),
                 ),
               ),
@@ -261,7 +284,7 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
   }
 
   Widget _buildCollapsedContent() {
-    return Container(
+    return SizedBox(
       key: const ValueKey('collapsed'),
       width: double.infinity,
       child: Column(
@@ -269,8 +292,8 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 12.0,
+              horizontal: kSp16,
+              vertical: kSp12,
             ),
             child: widget.collapsedSummary,
           ),
@@ -283,7 +306,7 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
     widget.onCalculate?.call();
     
     // Auto-collapse after a short delay to allow for calculation completion
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(kDebounce, () {
       if (mounted && !widget.hasValidationError) {
         autoCollapse();
       }
@@ -291,28 +314,34 @@ class _CollapsibleInputCardState extends State<CollapsibleInputCard>
   }
 }
 
-/// Responsive breakpoints for adaptive UI
+/// Responsive breakpoints for the card component.
+///
+/// **Deprecated in L0 (see `LAYOUT_MIGRATION_SPEC.md` Finding 24).** The
+/// constants and methods here are now thin wrappers around the canonical
+/// helpers in `lib/config/breakpoints.dart`. New code should use those
+/// helpers directly. This class is kept for backward compatibility with
+/// any external callers; the duplicate `ResponsiveBreakpoints` class that
+/// used to live in `lib/components/input_summary_display.dart` has been
+/// removed in favour of these wrappers.
 class ResponsiveBreakpoints {
-  static const double mobile = 600;
-  static const double tablet = 840;
-  static const double desktop = 1200;
+  /// Mobile max width. Deprecated; use `kCardMobileMax` from
+  /// `lib/config/breakpoints.dart`.
+  static const double mobile = kCardMobileMax;
 
-  static bool isMobile(BuildContext context) {
-    return MediaQuery.of(context).size.width < mobile;
-  }
+  /// Tablet max width. Deprecated; use `kCardTabletMax` from
+  /// `lib/config/breakpoints.dart`.
+  static const double tablet = kCardTabletMax;
 
-  static bool isTablet(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return width >= mobile && width < desktop;
-  }
+  /// Desktop min width. Deprecated; use `kCardDesktopMin` from
+  /// `lib/config/breakpoints.dart`.
+  static const double desktop = kCardDesktopMin;
 
-  static bool isDesktop(BuildContext context) {
-    return MediaQuery.of(context).size.width >= desktop;
-  }
+  static bool isMobile(BuildContext context) => isCardMobile(context);
 
-  static double getCollapsedHeight(BuildContext context) {
-    if (isDesktop(context)) return 48.0;
-    if (isTablet(context)) return 56.0;
-    return 68.0; // Mobile
-  }
+  static bool isTablet(BuildContext context) => isCardTablet(context);
+
+  static bool isDesktop(BuildContext context) => isCardDesktop(context);
+
+  static double getCollapsedHeight(BuildContext context) =>
+      getCardCollapsedHeight(context);
 }

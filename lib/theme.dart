@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "config/design_tokens.dart";
 
 class MaterialTheme {
   final TextTheme textTheme;
@@ -346,6 +347,57 @@ class MaterialTheme {
     ),
     scaffoldBackgroundColor: colorScheme.surface,
     canvasColor: colorScheme.surface,
+
+    // ── M3 Component Themes ──────────────────────────────────
+    segmentedButtonTheme: SegmentedButtonThemeData(
+      style: SegmentedButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(kRadius),
+        ),
+      ),
+    ),
+
+    dropdownMenuTheme: DropdownMenuThemeData(
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: colorScheme.surfaceContainerHighest,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(kRadius),
+        ),
+      ),
+    ),
+
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: colorScheme.surfaceContainerHighest,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(kRadius),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(kRadius),
+        borderSide: BorderSide(color: colorScheme.outline),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(kRadius),
+        borderSide: BorderSide(color: colorScheme.primary, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(kRadius),
+        borderSide: BorderSide(color: colorScheme.error, width: 2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(kRadius),
+        borderSide: BorderSide(color: colorScheme.error, width: 2),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(kRadius),
+        borderSide: BorderSide(color: colorScheme.outline.withValues(alpha: 0.12)),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: kSp16,
+        vertical: kSp16,
+      ),
+    ),
   );
 
 

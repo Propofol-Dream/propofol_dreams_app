@@ -4,14 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../config/design_tokens.dart';
+import '../../config/ui_config.dart';
 import '../../providers/settings.dart';
+import '../PDInputControlFrame.dart';
 
 class PDTextField extends StatefulWidget {
   PDTextField({
     super.key,
     this.prefixIcon,
     required this.labelText,
-    this.helperText = '',
+    this.helperText,
     required this.interval,
     required this.fractionDigits,
     required this.controller,
@@ -21,10 +24,12 @@ class PDTextField extends StatefulWidget {
     this.timer,
     this.enabled = true,
     this.height, // Now nullable for responsive calculation
+    this.m3Style = false,
+    this.useInputControlFrame = false,
   });
 
   final String labelText;
-  final String helperText;
+  final String? helperText;
   final IconData? prefixIcon;
 
   final double interval;
@@ -40,6 +45,8 @@ class PDTextField extends StatefulWidget {
   Timer? timer;
   final Duration delay = const Duration(milliseconds: 50);
   double? height;
+  final bool m3Style;
+  final bool useInputControlFrame;
 
   @override
   State<PDTextField> createState() => _PDTextFieldState();
@@ -108,7 +115,7 @@ class _PDTextFieldState extends State<PDTextField> {
 
     bool isError = !(isNumeric && isWithinRange);
 
-    bool isWarning = widget.helperText.isNotEmpty;
+    bool isWarning = widget.helperText != null && widget.helperText!.isNotEmpty;
 
     bool canBeDecreased =
         val != null ? val - widget.interval >= widget.range[0] : false;
@@ -116,6 +123,74 @@ class _PDTextFieldState extends State<PDTextField> {
     bool canBeIncreased =
         val != null ? val + widget.interval <= widget.range[1] : false;
 
+    final validationErrorText = widget.enabled
+        ? widget.controller.text.isEmpty
+            ? 'Please enter a value'
+            : isNumeric
+                ? isWithinRange
+                    ? null
+                    : 'min: ${widget.range[0]} and max: ${widget.range[1]}'
+                : 'Please enter a value'
+        : null;
+
+    final useFrame = UIConfig.shouldUseInputControlFrame(
+      optIn: widget.useInputControlFrame,
+    );
+
+    final field = _buildTextFieldStack(
+      context: context,
+      settings: settings,
+      responsiveHeight: responsiveHeight,
+      suffixIconConstraintsWidth: suffixIconConstraintsWidth,
+      suffixIconConstraintsHeight: suffixIconConstraintsHeight,
+      isError: isError,
+      isWarning: isWarning,
+      isNumeric: isNumeric,
+      isWithinRange: isWithinRange,
+      canBeDecreased: canBeDecreased,
+      canBeIncreased: canBeIncreased,
+      usesExternalStatusLane: useFrame,
+      errorText: useFrame
+          ? null
+          : widget.enabled
+              ? validationErrorText
+              : '',
+      helperText: useFrame ? null : widget.helperText,
+    );
+
+    if (!useFrame) return field;
+
+    final helperText =
+        widget.helperText?.trim().isNotEmpty == true ? widget.helperText : null;
+
+    return PDInputControlFrame(
+      controlHeight: responsiveHeight,
+      statusText: validationErrorText ?? helperText,
+      statusType: validationErrorText != null
+          ? PDInputStatusType.error
+          : helperText != null
+              ? PDInputStatusType.warning
+              : PDInputStatusType.none,
+      child: field,
+    );
+  }
+
+  Widget _buildTextFieldStack({
+    required BuildContext context,
+    required Settings settings,
+    required double responsiveHeight,
+    required double suffixIconConstraintsWidth,
+    required double suffixIconConstraintsHeight,
+    required bool isError,
+    required bool isWarning,
+    required bool isNumeric,
+    required bool isWithinRange,
+    required bool canBeDecreased,
+    required bool canBeIncreased,
+    required bool usesExternalStatusLane,
+    required String? errorText,
+    required String? helperText,
+  }) {
     return Stack(alignment: Alignment.centerRight, children: [
       TextField(
         enabled: widget.enabled,
@@ -141,23 +216,17 @@ class _PDTextFieldState extends State<PDTextField> {
         decoration: InputDecoration(
           // contentPadding: EdgeInsets.only(bottom: 0),
           filled: widget.enabled ? true : false,
-          fillColor: isError
-              ? Theme.of(context).colorScheme.onError
-              : isWarning
-                  ? Theme.of(context).colorScheme.onTertiary
-                  : Theme.of(context).colorScheme.onPrimary,
-          helperText: widget.helperText,
+          fillColor: widget.m3Style
+              ? null
+              : isError
+                  ? Theme.of(context).colorScheme.onError
+                  : isWarning
+                      ? Theme.of(context).colorScheme.onTertiary
+                      : Theme.of(context).colorScheme.onPrimary,
+          helperText: helperText,
           helperStyle: TextStyle(
               color: Theme.of(context).colorScheme.tertiary, fontSize: 10),
-          errorText: widget.enabled
-              ? widget.controller.text.isEmpty
-                  ? 'Please enter a value'
-                  : isNumeric
-                      ? isWithinRange
-                          ? null
-                          : 'min: ${widget.range[0]} and max: ${widget.range[1]}'
-                      : 'Please enter a value'
-              : '',
+          errorText: errorText,
           errorStyle: TextStyle(
               color: Theme.of(context).colorScheme.error, fontSize: 10),
           prefixIcon: Icon(
@@ -181,13 +250,56 @@ class _PDTextFieldState extends State<PDTextField> {
                         : Theme.of(context).colorScheme.primary
                 : Theme.of(context).disabledColor,
           ),
-          // Border styling handled by theme - removed explicit border definitions
-          // to allow M3 theme wrapper to control all border states consistently
+          // Full bordered style with rounded corners — added in L8
+          // (LAYOUT_MIGRATION_SPEC.md follow-up). Provides a more Material
+          // 3-like outlined appearance with consistent border radius.
+          // The previous version relied on a theme wrapper which broke
+          // when the field was nested in a constrained card layout.
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(kRadius),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(kRadius),
+            borderSide: BorderSide(
+              color: widget.enabled
+                  ? isError
+                      ? Theme.of(context).colorScheme.error
+                      : isWarning
+                          ? Theme.of(context).colorScheme.tertiary
+                          : Theme.of(context).colorScheme.primary
+                  : Theme.of(context).disabledColor,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(kRadius),
+            borderSide: BorderSide(
+              color: isError
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.primary,
+              width: 2.0,
+            ),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(kRadius),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(kRadius),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.error,
+              width: 2.0,
+            ),
+          ),
         ),
       ),
       widget.controller.text.isNotEmpty
           ? Container(
-              padding: const EdgeInsets.only(bottom: 20),
+              padding: EdgeInsets.only(bottom: usesExternalStatusLane ? 0 : 20),
               width: suffixIconConstraintsWidth,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -215,9 +327,8 @@ class _PDTextFieldState extends State<PDTextField> {
                         : null,
                     onLongPress: widget.enabled
                         ? () {
-                            // Use provided timer or create local timer
-                            final timerToUse = widget.timer != null ? widget.timer! : _localTimer;
-                            final timer = Timer.periodic(widget.delay, (t) async {
+                            final timer =
+                                Timer.periodic(widget.delay, (t) async {
                               double? prev =
                                   double.tryParse(widget.controller.text);
                               if (prev != null && prev >= widget.range[0]) {
@@ -232,7 +343,7 @@ class _PDTextFieldState extends State<PDTextField> {
                                 }
                               }
                             });
-                            
+
                             // Store timer reference
                             if (widget.timer != null) {
                               widget.timer = timer;
@@ -289,7 +400,8 @@ class _PDTextFieldState extends State<PDTextField> {
                     onLongPress: widget.enabled
                         ? () {
                             // Use provided timer or create local timer
-                            final timer = Timer.periodic(widget.delay, (t) async {
+                            final timer =
+                                Timer.periodic(widget.delay, (t) async {
                               double? prev =
                                   double.tryParse(widget.controller.text);
                               if (prev != null && prev <= widget.range[1]) {
@@ -304,7 +416,7 @@ class _PDTextFieldState extends State<PDTextField> {
                                 }
                               }
                             });
-                            
+
                             // Store timer reference
                             if (widget.timer != null) {
                               widget.timer = timer;

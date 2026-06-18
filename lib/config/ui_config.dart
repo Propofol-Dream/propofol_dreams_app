@@ -45,6 +45,9 @@ class UIConfig {
   /// Replace PDSwitchField with Material 3 Switch
   static const bool useMaterial3Switch = false;
 
+  /// Enable the PD fixed control/status-lane input frame for opted-in widgets.
+  static const bool useInputControlFrame = true;
+
   // ===========================================================================
   // PER-SCREEN MIGRATION FLAGS
   // ===========================================================================
@@ -104,7 +107,8 @@ class UIConfig {
   static void activateEmergencyFallback() {
     _emergencyFallback = true;
     if (kDebugMode) {
-      print('🚨 UIConfig: Emergency fallback activated - all Material 3 features disabled');
+      print(
+          '🚨 UIConfig: Emergency fallback activated - all Material 3 features disabled');
     }
   }
 
@@ -123,33 +127,37 @@ class UIConfig {
   /// Master check for any Material 3 feature being enabled
   /// Takes into account emergency fallback
   static bool get anyMaterial3Enabled =>
-    !_emergencyFallback && (
-      useMaterial3Components ||
-      useMaterial3Navigation ||
-      useMaterial3Tables ||
-      enableDataVisualization ||
-      tciScreenMaterial3 ||
-      volumeScreenMaterial3 ||
-      durationScreenMaterial3 ||
-      eleMarshScreenMaterial3 ||
-      settingsScreenMaterial3
-    );
+      !_emergencyFallback &&
+      (useMaterial3Components ||
+          useMaterial3Navigation ||
+          useMaterial3Tables ||
+          enableDataVisualization ||
+          tciScreenMaterial3 ||
+          volumeScreenMaterial3 ||
+          durationScreenMaterial3 ||
+          eleMarshScreenMaterial3 ||
+          settingsScreenMaterial3);
 
   /// Check if Material 3 components should be used (respects emergency fallback)
   static bool get shouldUseMaterial3Components =>
-    !_emergencyFallback && useMaterial3Components;
+      !_emergencyFallback && useMaterial3Components;
 
   /// Check if specific TCI screen enhancements should be enabled
   static bool get shouldEnhanceTCIScreen =>
-    !_emergencyFallback && (useMaterial3Components || tciScreenMaterial3);
+      !_emergencyFallback && (useMaterial3Components || tciScreenMaterial3);
 
   /// Check if specific dropdown enhancements should be enabled
   static bool get shouldUseMaterial3Dropdown =>
-    !_emergencyFallback && (useMaterial3Components || useMaterial3DropdownMenu);
+      !_emergencyFallback &&
+      (useMaterial3Components || useMaterial3DropdownMenu);
 
   /// Check if data visualization should be enabled
   static bool get shouldShowDataVisualization =>
-    !_emergencyFallback && enableDataVisualization;
+      !_emergencyFallback && enableDataVisualization;
+
+  /// Check if an opted-in widget should use PDInputControlFrame.
+  static bool shouldUseInputControlFrame({required bool optIn}) =>
+      !_emergencyFallback && useInputControlFrame && optIn;
 
   // ===========================================================================
   // MIGRATION UTILITIES
@@ -165,6 +173,7 @@ class UIConfig {
         'material3Navigation': useMaterial3Navigation,
         'material3Tables': useMaterial3Tables,
         'dataVisualization': enableDataVisualization,
+        'inputControlFrame': useInputControlFrame,
       },
       'screens': {
         'tciScreen': tciScreenMaterial3,
@@ -186,12 +195,16 @@ class UIConfig {
     final issues = <String>[];
 
     // Check for logical inconsistencies
-    if (tciScreenMaterial3 && !useMaterial3Components && !useMaterial3DropdownMenu) {
-      issues.add('TCI screen Material 3 enabled but no Material 3 components enabled');
+    if (tciScreenMaterial3 &&
+        !useMaterial3Components &&
+        !useMaterial3DropdownMenu) {
+      issues.add(
+          'TCI screen Material 3 enabled but no Material 3 components enabled');
     }
 
     if (enableDataVisualization && !anyMaterial3Enabled) {
-      issues.add('Data visualization enabled but no Material 3 features enabled');
+      issues
+          .add('Data visualization enabled but no Material 3 features enabled');
     }
 
     if (enableDesktopEnhancements && !useMaterial3Components) {

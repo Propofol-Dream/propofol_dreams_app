@@ -4,13 +4,7 @@ import '../models/model.dart';
 import '../models/sex.dart';
 import '../models/InfusionUnit.dart';
 import '../l10n/generated/app_localizations.dart';
-
-// Forward declaration for ResponsiveBreakpoints
-class ResponsiveBreakpoints {
-  static bool isMobile(BuildContext context) {
-    return MediaQuery.of(context).size.width < 600;
-  }
-}
+import '../config/breakpoints.dart';
 
 /// A widget that displays a compact summary of input parameters
 /// for medical calculators when in collapsed state
@@ -59,9 +53,14 @@ class InputSummaryDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ResponsiveBreakpoints.isMobile(context)
-        ? _buildMobileSummary(context)
-        : _buildDesktopSummary(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useCompactSummary = constraints.maxWidth < kCardMobileMax;
+        return useCompactSummary
+            ? _buildMobileSummary(context)
+            : _buildDesktopSummary(context);
+      },
+    );
   }
 
   Widget _buildMobileSummary(BuildContext context) {
@@ -88,37 +87,41 @@ class InputSummaryDisplay extends StatelessWidget {
   Widget _buildFirstRow(BuildContext context) {
     switch (calculatorType) {
       case CalculatorType.tci:
-        return Row(
+        return Wrap(
+          spacing: 16.0,
+          runSpacing: 6.0,
           children: [
             _buildPatientSummary(context),
-            const SizedBox(width: 16.0),
             _buildDrugSummary(context),
           ],
         );
 
       case CalculatorType.volume:
-        return Row(
+        return Wrap(
+          spacing: 16.0,
+          runSpacing: 6.0,
           children: [
             _buildPatientSummary(context),
-            const SizedBox(width: 16.0),
             _buildModelSummary(context),
           ],
         );
 
       case CalculatorType.duration:
-        return Row(
+        return Wrap(
+          spacing: 16.0,
+          runSpacing: 6.0,
           children: [
             _buildWeightSummary(context),
-            const SizedBox(width: 16.0),
             _buildInfusionRateSummary(context),
           ],
         );
 
       case CalculatorType.elemarsh:
-        return Row(
+        return Wrap(
+          spacing: 16.0,
+          runSpacing: 6.0,
           children: [
             _buildPatientSummary(context),
-            const SizedBox(width: 16.0),
             _buildTargetCeSummary(context),
           ],
         );
@@ -128,32 +131,33 @@ class InputSummaryDisplay extends StatelessWidget {
   Widget _buildSecondRow(BuildContext context) {
     switch (calculatorType) {
       case CalculatorType.tci:
-        return Row(
+        return Wrap(
+          spacing: 16.0,
+          runSpacing: 6.0,
           children: [
             _buildModelSummary(context),
-            const SizedBox(width: 16.0),
             _buildTargetSummary(context),
-            const SizedBox(width: 16.0),
             _buildDurationSummary(context),
           ],
         );
 
       case CalculatorType.volume:
-        return Row(
+        return Wrap(
+          spacing: 16.0,
+          runSpacing: 6.0,
           children: [
             _buildTargetSummary(context),
-            const SizedBox(width: 16.0),
             _buildDurationSummary(context),
-            const Spacer(),
             _buildCalculatorIcon(context, Icons.science_outlined),
           ],
         );
 
       case CalculatorType.duration:
-        return Row(
+        return Wrap(
+          spacing: 8.0,
+          runSpacing: 6.0,
           children: [
             _buildCalculatorIcon(context, Icons.schedule),
-            const SizedBox(width: 8.0),
             Text(
               AppLocalizations.of(context)?.duration ?? 'Duration Analysis',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -164,12 +168,12 @@ class InputSummaryDisplay extends StatelessWidget {
         );
 
       case CalculatorType.elemarsh:
-        return Row(
+        return Wrap(
+          spacing: 16.0,
+          runSpacing: 6.0,
           children: [
             _buildFlowSummary(context),
-            const SizedBox(width: 16.0),
             _buildModelSummary(context),
-            const Spacer(),
             _buildCalculatorIcon(context, Icons.hub_outlined),
           ],
         );
@@ -286,26 +290,29 @@ class InputSummaryDisplay extends StatelessWidget {
     required String text,
     required Color color,
   }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          size: 16,
-          color: color,
-        ),
-        const SizedBox(width: 4.0),
-        Flexible(
-          child: Text(
-            text,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
-            overflow: TextOverflow.ellipsis,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 180),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: color,
           ),
-        ),
-      ],
+          const SizedBox(width: 4.0),
+          Flexible(
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

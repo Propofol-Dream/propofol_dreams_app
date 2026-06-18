@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import '../config/design_tokens.dart';
 import '../config/ui_config.dart';
 import '../components/material3/m3_text_field.dart';
 import '../components/material3/m3_dropdown_menu.dart';
@@ -7,10 +7,11 @@ import '../components/adaptive_text_field.dart';
 import '../components/adaptive_dropdown.dart';
 import '../components/legacy/PDAdvancedSegmentedController.dart';
 import '../components/legacy/PDSwitchController.dart';
-import '../providers/settings.dart';
+import '../components/pk_field.dart';
+import '../components/switch_field.dart';
+import '../components/selector_row.dart';
 import '../models/drug.dart';
 import '../models/model.dart';
-import '../l10n/generated/app_localizations.dart';
 
 /// Test screen to showcase Material 3 components
 ///
@@ -34,6 +35,15 @@ class _M3TestScreenState extends State<M3TestScreen> {
   final PDAdvancedSegmentedController _modelController = PDAdvancedSegmentedController();
   final PDSwitchController _sexController = PDSwitchController();
 
+  // New PKField redesign state
+  final TextEditingController _pkAgeController = TextEditingController(text: '35');
+  final TextEditingController _pkHeightController = TextEditingController(text: '170');
+  final TextEditingController _pkWeightController = TextEditingController(text: '70');
+  final TextEditingController _pkTargetController = TextEditingController(text: '3.0');
+  final TextEditingController _pkDurationController = TextEditingController(text: '120');
+  Model _pkSelectedModel = Model.Schnider;
+  bool _pkSex = false; // false = Male, true = Female
+
   bool _m3Enabled = false;
   Drug _selectedDrug = Drug.propofol20mg;
   bool _controllersDisposed = false;
@@ -54,6 +64,11 @@ class _M3TestScreenState extends State<M3TestScreen> {
       _heightController.dispose();
       _targetController.dispose();
       _durationController.dispose();
+      _pkAgeController.dispose();
+      _pkHeightController.dispose();
+      _pkWeightController.dispose();
+      _pkTargetController.dispose();
+      _pkDurationController.dispose();
       _controllersDisposed = true;
     }
     super.dispose();
@@ -64,7 +79,6 @@ class _M3TestScreenState extends State<M3TestScreen> {
       _m3Enabled = !_m3Enabled;
     });
 
-    // Show snackbar with current state
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -81,32 +95,107 @@ class _M3TestScreenState extends State<M3TestScreen> {
   }
 
   void _onModelSelected() {
-    setState(() {
-      // Trigger rebuild to show changes
-    });
+    setState(() {});
   }
 
   void _onFieldUpdated() {
-    setState(() {
-      // Trigger rebuild for validation
-    });
+    setState(() {});
+  }
+
+  // Validation for PKField redesign
+  List<String> _validatePKForm() {
+    final errors = <String>[];
+    final age = int.tryParse(_pkAgeController.text);
+    if (age == null || age < 0 || age > 120) {
+      errors.add('Age must be 0–120 years');
+    }
+    final height = int.tryParse(_pkHeightController.text);
+    if (height == null || height < 100 || height > 250) {
+      errors.add('Height must be 100–250 cm');
+    }
+    final weight = int.tryParse(_pkWeightController.text);
+    if (weight == null || weight < 1 || weight > 200) {
+      errors.add('Weight must be 1–200 kg');
+    }
+    final target = double.tryParse(_pkTargetController.text);
+    if (target == null || target < 0.5 || target > 20.0) {
+      errors.add('Target must be 0.5–20.0 μg/mL');
+    }
+    final duration = int.tryParse(_pkDurationController.text);
+    if (duration == null || duration < 5 || duration > 600) {
+      errors.add('Duration must be 5–600 min');
+    }
+    return errors;
+  }
+
+  List<Widget> _buildErrorPanel(BuildContext context) {
+    final theme = Theme.of(context);
+    final errors = _validatePKForm();
+
+    if (errors.isEmpty) {
+      return [];
+    }
+
+    return [
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.errorContainer,
+          borderRadius: BorderRadius.circular(kRadius),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  color: theme.colorScheme.onErrorContainer,
+                  size: 16,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '${errors.length} validation ${errors.length == 1 ? 'error' : 'errors'}',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.onErrorContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            ...errors.map((e) => Padding(
+              padding: const EdgeInsets.only(left: 22),
+              child: Text(
+                e,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onErrorContainer,
+                ),
+              ),
+            )),
+          ],
+        ),
+      ),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final settings = context.watch<Settings>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Material 3 Test Lab'),
-        backgroundColor: theme.colorScheme.surfaceContainer,
-        actions: [
-          // Toggle switch for M3 vs Legacy
+      backgroundColor: theme.colorScheme.surface,
+      body: SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // M3/Legacy Toggle — moved from AppBar in L1
+          // (LAYOUT_MIGRATION_SPEC.md Finding 26).
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
+            padding: const EdgeInsets.only(bottom: 16.0),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   'M3',
@@ -124,13 +213,6 @@ class _M3TestScreenState extends State<M3TestScreen> {
               ],
             ),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
             // Header section
             Card(
               child: Padding(
@@ -188,6 +270,161 @@ class _M3TestScreenState extends State<M3TestScreen> {
             ),
 
             const SizedBox(height: 24),
+
+            // PKField Redesign Section
+            _SectionHeader(
+              title: 'PKField Redesign',
+              subtitle: 'M3-native input form with top error panel',
+              icon: Icons.rocket_launch_outlined,
+            ),
+            const SizedBox(height: 16),
+
+            // Error panel
+            ..._buildErrorPanel(context),
+
+            const SizedBox(height: 12),
+
+            // SelectorRow
+            SelectorRow(
+              prefixIcon: Icons.psychology_outlined,
+              labelText: 'PK Model',
+              selectedModel: _pkSelectedModel,
+              models: Model.values,
+              onModelSelected: (model) {
+                setState(() => _pkSelectedModel = model);
+              },
+            ),
+
+            const SizedBox(height: 12),
+
+            // Sex + Age
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: SwitchField(
+                    prefixIcon: _pkSex
+                        ? Icons.woman
+                        : Icons.man,
+                    labelText: 'Sex',
+                    value: _pkSex,
+                    switchLabels: const {
+                      false: 'Male',
+                      true: 'Female',
+                    },
+                    onChanged: (v) {
+                      setState(() => _pkSex = v);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: PKField(
+                    prefixIcon: Icons.calendar_month,
+                    labelText: 'Age',
+                    controller: _pkAgeController,
+                    interval: 1,
+                    fractionDigits: 0,
+                    range: const [0, 120],
+                    onChanged: () => setState(() {}),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 2),
+
+            // Height + Weight
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: PKField(
+                    prefixIcon: Icons.height,
+                    labelText: 'Height (cm)',
+                    controller: _pkHeightController,
+                    interval: 1,
+                    fractionDigits: 0,
+                    range: const [100, 250],
+                    onChanged: () => setState(() {}),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: PKField(
+                    prefixIcon: Icons.monitor_weight_outlined,
+                    labelText: 'Weight (kg)',
+                    controller: _pkWeightController,
+                    interval: 1,
+                    fractionDigits: 0,
+                    range: const [1, 200],
+                    onChanged: () => setState(() {}),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 2),
+
+            // Target + Duration
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: PKField(
+                    prefixIcon: Icons.gps_fixed,
+                    labelText: 'Target (μg/mL)',
+                    controller: _pkTargetController,
+                    interval: 0.5,
+                    fractionDigits: 1,
+                    range: const [0.5, 20.0],
+                    onChanged: () => setState(() {}),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: PKField(
+                    prefixIcon: Icons.timer_outlined,
+                    labelText: 'Duration (min)',
+                    controller: _pkDurationController,
+                    interval: 5,
+                    fractionDigits: 0,
+                    range: const [5, 600],
+                    onChanged: () => setState(() {}),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // System Info Card
+            Card(
+              color: theme.colorScheme.surfaceContainerLow,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: theme.colorScheme.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Errors are consolidated at the top. Fields show red border on error. ± buttons adjust values.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 32),
 
             // Text Field Components Section
             _SectionHeader(

@@ -1,0 +1,67 @@
+<h2>CalculatorSelectorRow Error Treatment</h2>
+<p class="subtitle">Pick the style that feels safest and least noisy for a medical calculator. All options keep errors selector-level only.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding:18px;background:#f8faf9;border-radius:12px;border:1px solid #d8dfdc;min-height:160px;">
+        <div style="font-size:13px;color:#46615a;margin-bottom:8px;font-weight:600;">Option A: Inline Below Selector</div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <div style="flex:1;border:1.5px solid #ba1a1a;border-radius:8px;height:56px;background:white;display:flex;align-items:center;padding:0 12px;color:#ba1a1a;box-sizing:border-box;">
+            <span style="margin-right:8px;">⌁</span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Model: Eleveld</span><span>⌄</span>
+          </div>
+          <div style="width:56px;height:56px;border:1.5px solid #006b5b;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;color:#006b5b;">↻</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:flex-start;margin-top:6px;margin-left:2px;color:#ba1a1a;font-size:12px;line-height:1.25;max-width:260px;">
+          <span>!</span><span>Eleveld unavailable: age must be 1-16 years for pediatric mode</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Inline Below Selector</h3>
+      <p>Closest to Material field errors. Compact, local, and clearly tied to the selector.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding:18px;background:#f8faf9;border-radius:12px;border:1px solid #d8dfdc;min-height:160px;">
+        <div style="font-size:13px;color:#46615a;margin-bottom:8px;font-weight:600;">Option B: Error Box Below Row</div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <div style="flex:1;border:1.5px solid #ba1a1a;border-radius:8px;height:56px;background:white;display:flex;align-items:center;padding:0 12px;color:#ba1a1a;box-sizing:border-box;">
+            <span style="margin-right:8px;">⌁</span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Model: Eleveld</span><span>⌄</span>
+          </div>
+          <div style="width:56px;height:56px;border:1.5px solid #006b5b;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;color:#006b5b;">↻</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;padding:8px 10px;background:#ffdad6;border:1px solid #ffb4ab;border-radius:8px;color:#410002;font-size:12px;line-height:1.25;">
+          <span>!</span><span>Eleveld unavailable: age must be 1-16 years for pediatric mode</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Error Box Below Row</h3>
+      <p>More visible, but heavier. Could make rare selector errors feel like global card failures.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding:18px;background:#f8faf9;border-radius:12px;border:1px solid #d8dfdc;min-height:160px;">
+        <div style="font-size:13px;color:#46615a;margin-bottom:8px;font-weight:600;">Option C: Compact Status Line</div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <div style="flex:1;border:1.5px solid #ba1a1a;border-radius:8px;height:56px;background:white;display:flex;align-items:center;padding:0 12px;color:#ba1a1a;box-sizing:border-box;">
+            <span style="margin-right:8px;">⌁</span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Model: Eleveld</span><span>⌄</span>
+          </div>
+          <div style="width:56px;height:56px;border:1.5px solid #006b5b;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;color:#006b5b;">↻</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;margin-top:6px;color:#ba1a1a;font-size:11px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;">
+          <span>!</span><span style="overflow:hidden;text-overflow:ellipsis;">Age must be 1-16 years</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Compact Status Line</h3>
+      <p>Least vertical impact, but may hide the clinically relevant reason on narrow screens.</p>
+    </div>
+  </div>
+</div>

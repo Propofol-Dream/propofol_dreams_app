@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 
+import '../constants.dart';
 import '../providers/settings.dart';
 import '../utils/responsive_helper.dart';
 import '../models/volume_mode.dart';
@@ -10,10 +12,9 @@ import 'volume_screen.dart';
 import 'volume_plus_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
-import 'tci_screen.dart'; // Using original TCI screen
+import 'tci_screen.dart';
 import 'realtime_screen.dart';
-import 'settings_screen.dart';
-import 'm3_test_screen.dart';
+import 'settings_screen_m3.dart'; // M3 migrated
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,159 +25,279 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int currenIndex = 1; // Start with TCI screen (index 1)
+  bool _isRealTimeMode = false;
 
   List<Widget> _getScreens(Settings settings) {
     return [
       EleMarshScreen(),
-      const TCIScreen(), // Moved to position 1 (TCI screen)
+      _isRealTimeMode
+          ? const RealtimeScreen()
+          : const TCIScreen(),
       settings.volumeMode == VolumeMode.Volume
           ? const VolumeScreen()
           : const VolumePlusScreen(),
       const DurationScreen(),
       const SettingsScreen(),
-      const M3TestScreen(), // Material 3 test lab
-      const RealtimeScreen(), // Real-time TCI with clock time
     ];
   }
 
   @override
   void initState() {
     super.initState();
-    
-    // Settings are already loaded - initialize controllers with final values
     final settings = context.read<Settings>();
     _setControllersFromSettings(settings);
   }
 
   void _setControllersFromSettings(Settings settings) {
-    currenIndex = settings.currentScreenIndex;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      settings.statusBarInfo = null;
+    });
+    currenIndex = settings.currentScreenIndex.clamp(0, 4);
   }
 
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<Settings>();
-    //this is to set status bar text color
     settings.isDarkTheme == true
         ? SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light)
         : SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
 
-    // Use mobile layout for small screens, web layout for larger screens
-    if (ResponsiveHelper.shouldUseMobileLayout(context)) {
-      return _buildMobileLayout(settings);
-    } else {
-      return _buildWebLayout(settings);
-    }
+    return _buildShell(settings);
   }
 
-  /// Build the original mobile layout with bottom navigation
-  Widget _buildMobileLayout(Settings settings) {
-    final screens = _getScreens(settings);
-
-    return Scaffold(
-      // body: SingleChildScrollView(
-      // physics: MediaQuery
-      //     .of(context)
-      //     .viewInsets
-      //     .bottom <= 0
-      //     ? const NeverScrollableScrollPhysics()
-      //     : const BouncingScrollPhysics(),
-      // child: screens[currenIndex]),
-      body: Column(
-        children: [
-          Expanded(
-            child:
-                screens[currenIndex], // no need for SingleChildScrollView here
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: currenIndex,
-          onTap: (index) async {
-            await HapticFeedback.heavyImpact();
+  /// Returns the title for the current tab based on [index].
+  /// Returns AppBar actions for the current tab.
+  List<Widget> _actionsFor(BuildContext context, int index) {
+    if (index != 1) return [];
+    return [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: SegmentedButton<bool>(
+          segments: const [
+            ButtonSegment(value: false, label: Text('Standard')),
+            ButtonSegment(value: true, label: Text('Real-Time')),
+          ],
+          selected: {_isRealTimeMode},
+          onSelectionChanged: (Set<bool> selected) {
             setState(() {
-              currenIndex = settings.currentScreenIndex = index;
+              _isRealTimeMode = selected.first;
             });
           },
-          items: [
-            const BottomNavigationBarItem(
-                icon: Icon(Icons.hub_outlined), label: 'EleMarsh'),
-            BottomNavigationBarItem(
-                icon: const Icon(Icons.ssid_chart), 
-                label: AppLocalizations.of(context)!.tci), // Moved to position 1 and renamed
-            BottomNavigationBarItem(
-                icon: const Icon(Icons.science_outlined),
-                label: AppLocalizations.of(context)!.volume),
-            BottomNavigationBarItem(
-                icon: const Icon(Icons.schedule),
-                label: AppLocalizations.of(context)!.duration),
-            BottomNavigationBarItem(
-                icon: const Icon(Icons.settings),
-                label: AppLocalizations.of(context)!.settings),
-            const BottomNavigationBarItem(
-                icon: Icon(Icons.science),
-                label: 'M3 Lab'),
-            const BottomNavigationBarItem(
-                icon: Icon(Icons.access_time),
-                label: 'Real-Time'),
-          ]),
+        ),
+      ),
+    ];
+  }
+
+  /// On web, wraps [child] in `Center > ConstrainedBox(maxWidth: 1440)` so the
+  /// body content is constrained and centered on wide browser windows. The
+  /// `Scaffold` chrome (AppBar, bottomNavigationBar / status bar) sits
+  /// **outside** this constraint and stays full-width.
+  ///
+  /// Added in L7 (LAYOUT_MIGRATION_SPEC.md). Returns [child] unchanged on
+  /// non-web platforms.
+  Widget _wrapWithWebMaxWidth(Widget child) {
+    if (!kIsWeb) return child;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1440),
+            child: SizedBox(
+              width: constraints.maxWidth.clamp(0.0, 1440.0),
+              height: constraints.maxHeight,
+              child: child,
+            ),
+          ),
+        );
+      },
     );
   }
 
-  /// Build the web/tablet layout with side navigation
-  Widget _buildWebLayout(Settings settings) {
+  /// Shared shell that renders the outer [Scaffold] with either a mobile
+  /// [NavigationBar] or a desktop [NavigationRail] side nav depending on
+  /// the breakpoint returned by [ResponsiveHelper.shouldUseMobileLayout].
+  Widget _buildShell(Settings settings) {
     final screens = _getScreens(settings);
+    final theme = Theme.of(context);
+    final useMobile = ResponsiveHelper.shouldUseMobileLayout(context);
+
+    final navDestinations = const [
+      NavigationDestination(
+        icon: Icon(Icons.hub_outlined),
+        selectedIcon: Icon(Icons.hub),
+        label: 'EleMarsh',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.ssid_chart_outlined),
+        selectedIcon: Icon(Icons.ssid_chart),
+        label: 'TCI',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.science_outlined),
+        selectedIcon: Icon(Icons.science),
+        label: 'Volume',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.schedule_outlined),
+        selectedIcon: Icon(Icons.schedule),
+        label: 'Duration',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.settings_outlined),
+        selectedIcon: Icon(Icons.settings),
+        label: 'Settings',
+      ),
+    ];
+
+    final railDestinations = const [
+      NavigationRailDestination(
+        icon: Icon(Icons.hub_outlined),
+        selectedIcon: Icon(Icons.hub),
+        label: Text('EleMarsh'),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.ssid_chart_outlined),
+        selectedIcon: Icon(Icons.ssid_chart),
+        label: Text('TCI'),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.science_outlined),
+        selectedIcon: Icon(Icons.science),
+        label: Text('Volume'),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.schedule_outlined),
+        selectedIcon: Icon(Icons.schedule),
+        label: Text('Duration'),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.settings_outlined),
+        selectedIcon: Icon(Icons.settings),
+        label: Text('Settings'),
+      ),
+    ];
+
+    final body = useMobile
+        ? Column(
+            children: [
+              Expanded(child: screens[currenIndex]),
+            ],
+          )
+        : Row(
+            children: [
+              NavigationRail(
+                selectedIndex: currenIndex,
+                onDestinationSelected: (index) async {
+                  await HapticFeedback.lightImpact();
+                  setState(() {
+                    settings.statusBarInfo = null;
+                    currenIndex = settings.currentScreenIndex = index;
+                  });
+                },
+                labelType: NavigationRailLabelType.all,
+                backgroundColor: theme.colorScheme.surface,
+                indicatorColor: theme.colorScheme.secondaryContainer,
+                leading: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Icon(
+                    Icons.monitor_heart_outlined,
+                    color: theme.colorScheme.primary,
+                    size: 32,
+                  ),
+                ),
+                trailing: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.settings_outlined,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        currenIndex = settings.currentScreenIndex = 4;
+                      });
+                    },
+                  ),
+                ),
+                destinations: railDestinations,
+              ),
+              const VerticalDivider(thickness: 1, width: 1),
+              Expanded(child: screens[currenIndex]),
+            ],
+          );
 
     return Scaffold(
-      body: Row(
+      appBar: AppBar(
+        actions: _actionsFor(context, currenIndex),
+      ),
+      body: _wrapWithWebMaxWidth(body),
+      bottomNavigationBar: useMobile
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                NavigationBar(
+                  selectedIndex: currenIndex,
+                  onDestinationSelected: (index) async {
+                    await HapticFeedback.heavyImpact();
+                    setState(() {
+                      settings.statusBarInfo = null;
+                      currenIndex = settings.currentScreenIndex = index;
+                    });
+                  },
+                  indicatorColor: theme.colorScheme.secondaryContainer,
+                  backgroundColor: theme.colorScheme.surfaceContainerLow,
+                  height: 80,
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                  destinations: navDestinations,
+                ),
+                Container(
+                  height: 24,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  child: Row(
+                    children: [
+                      const Spacer(),
+                      Text(
+                        appVersion,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          : _buildStatusBar(settings),
+    );
+  }
+
+  /// Desktop status bar showing model / drug / pump info from the active screen.
+  Widget _buildStatusBar(Settings settings) {
+    final info = settings.statusBarInfo;
+    if (info == null) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Row(
         children: [
-          // Side navigation rail
-          NavigationRail(
-            selectedIndex: currenIndex,
-            onDestinationSelected: (index) async {
-              await HapticFeedback.lightImpact();
-              setState(() {
-                currenIndex = settings.currentScreenIndex = index;
-              });
-            },
-            labelType: NavigationRailLabelType.all,
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            destinations: [
-              const NavigationRailDestination(
-                icon: Icon(Icons.hub_outlined),
-                label: Text('EleMarsh'),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.ssid_chart),
-                label: Text(AppLocalizations.of(context)!.tci),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.science_outlined),
-                label: Text(AppLocalizations.of(context)!.volume),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.schedule),
-                label: Text(AppLocalizations.of(context)!.duration),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.settings),
-                label: Text(AppLocalizations.of(context)!.settings),
-              ),
-              const NavigationRailDestination(
-                icon: Icon(Icons.science),
-                label: Text('M3 Lab'),
-              ),
-              const NavigationRailDestination(
-                icon: Icon(Icons.access_time),
-                label: Text('Real-Time'),
-              ),
-            ],
+          Icon(Icons.info_outline, size: 14, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Text(
+            info,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-          // Vertical divider
-          const VerticalDivider(thickness: 1, width: 1),
-          // Main content area
-          Expanded(
-            child: screens[currenIndex],
+          const Spacer(),
+          Text(
+            appVersion,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),

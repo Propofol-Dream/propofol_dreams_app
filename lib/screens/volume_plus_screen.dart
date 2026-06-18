@@ -601,7 +601,7 @@ class _VolumePlusScreenState extends State<VolumePlusScreen> {
             decoration: InputDecoration(
               filled: true,
               fillColor: Theme.of(context).colorScheme.onPrimary,
-              helperText: '', // Reserve space to prevent layout shift
+              helperText: null,
               helperStyle: const TextStyle(fontSize: 10),
               errorText: hasValidationError ? validationErrorText : null,
               errorStyle: TextStyle(
@@ -741,10 +741,9 @@ class _VolumePlusScreenState extends State<VolumePlusScreen> {
               constraints: BoxConstraints(
                 minHeight: constraints.maxHeight - MediaQuery.of(context).viewInsets.bottom,
               ),
-              child: IntrinsicHeight(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
 
                   // Adult/Pediatric toggle
                   Row(
@@ -1000,8 +999,7 @@ class _VolumePlusScreenState extends State<VolumePlusScreen> {
 
                   // Bottom safe area padding
                   SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
-                  ],
-                ),
+                ],
               ),
             ),
           ),
