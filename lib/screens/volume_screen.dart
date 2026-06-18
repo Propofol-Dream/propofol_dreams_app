@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' hide Selector;
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 import '../utils/responsive_helper.dart';
 import '../utils/intents.dart';
@@ -20,7 +20,7 @@ import '../constants.dart';
 import '../components/infusion_regime_table.dart';
 import '../components/pk_field.dart';
 import '../components/switch_field.dart';
-import '../components/selector_row.dart';
+import '../components/selector.dart';
 
 
 class _VolumeScreenState extends State<VolumeScreen> {
@@ -619,10 +619,11 @@ class _VolumeScreenState extends State<VolumeScreen> {
           child: Row(
             children: [
               IntrinsicWidth(
-                child: SelectorRow(
-                  selectedModel: _selectedModel,
-                  models: modelOptions,
-                  onModelSelected: (m) {
+                child: Selector<Model>(
+                  selectedItem: _selectedModel,
+                  items: modelOptions,
+                  itemLabelBuilder: (m) => m.name,
+                  onItemSelected: (m) {
                     setState(() {
                       _selectedModel = m;
                       if (settings.inAdultView) {

@@ -2,8 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
-
 import '../constants.dart';
 import '../providers/settings.dart';
 import '../utils/responsive_helper.dart';
@@ -13,7 +11,6 @@ import 'volume_plus_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
 import 'tci_screen.dart';
-import 'realtime_screen.dart';
 import 'settings_screen_m3.dart'; // M3 migrated
 
 class HomeScreen extends StatefulWidget {
@@ -24,15 +21,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int currenIndex = 1; // Start with TCI screen (index 1)
-  bool _isRealTimeMode = false;
+  int currenIndex = 1;
 
   List<Widget> _getScreens(Settings settings) {
     return [
       EleMarshScreen(),
-      _isRealTimeMode
-          ? const RealtimeScreen()
-          : const TCIScreen(),
+      const TCIScreen(),
       settings.volumeMode == VolumeMode.Volume
           ? const VolumeScreen()
           : const VolumePlusScreen(),
@@ -65,27 +59,38 @@ class _HomeScreenState extends State<HomeScreen> {
     return _buildShell(settings);
   }
 
-  /// Returns the title for the current tab based on [index].
-  /// Returns AppBar actions for the current tab.
-  List<Widget> _actionsFor(BuildContext context, int index) {
-    if (index != 1) return [];
-    return [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: SegmentedButton<bool>(
-          segments: const [
-            ButtonSegment(value: false, label: Text('Standard')),
-            ButtonSegment(value: true, label: Text('Real-Time')),
-          ],
-          selected: {_isRealTimeMode},
-          onSelectionChanged: (Set<bool> selected) {
-            setState(() {
-              _isRealTimeMode = selected.first;
-            });
-          },
+  Widget _buildRailItem(int index, IconData icon, IconData selectedIcon, String label, ThemeData theme, Settings settings) {
+    final selected = currenIndex == index;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          setState(() {
+            settings.statusBarInfo = null;
+            currenIndex = settings.currentScreenIndex = index;
+          });
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: selected
+              ? BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                )
+              : null,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(selected ? selectedIcon : icon, color: selected ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurfaceVariant),
+              const SizedBox(height: 4),
+              Text(label, style: TextStyle(fontSize: 11, color: selected ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurfaceVariant)),
+            ],
+          ),
         ),
       ),
-    ];
+    );
   }
 
   /// On web, wraps [child] in `Center > ConstrainedBox(maxWidth: 1440)` so the
@@ -150,35 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ];
 
-    final railDestinations = const [
-      NavigationRailDestination(
-        icon: Icon(Icons.hub_outlined),
-        selectedIcon: Icon(Icons.hub),
-        label: Text('EleMarsh'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.ssid_chart_outlined),
-        selectedIcon: Icon(Icons.ssid_chart),
-        label: Text('TCI'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.science_outlined),
-        selectedIcon: Icon(Icons.science),
-        label: Text('Volume'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.schedule_outlined),
-        selectedIcon: Icon(Icons.schedule),
-        label: Text('Duration'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.settings_outlined),
-        selectedIcon: Icon(Icons.settings),
-        label: Text('Settings'),
-      ),
-    ];
-
-    final body = useMobile
+    final bodyContent = useMobile
         ? Column(
             children: [
               Expanded(child: screens[currenIndex]),
@@ -186,52 +163,31 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         : Row(
             children: [
-              NavigationRail(
-                selectedIndex: currenIndex,
-                onDestinationSelected: (index) async {
-                  await HapticFeedback.lightImpact();
-                  setState(() {
-                    settings.statusBarInfo = null;
-                    currenIndex = settings.currentScreenIndex = index;
-                  });
-                },
-                labelType: NavigationRailLabelType.all,
-                backgroundColor: theme.colorScheme.surface,
-                indicatorColor: theme.colorScheme.secondaryContainer,
-                leading: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Icon(
-                    Icons.monitor_heart_outlined,
-                    color: theme.colorScheme.primary,
-                    size: 32,
-                  ),
+              Container(
+                width: 72,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 8),
+                    _buildRailItem(0, Icons.hub_outlined, Icons.hub, 'EleMarsh', theme, settings),
+                    _buildRailItem(1, Icons.ssid_chart_outlined, Icons.ssid_chart, 'TCI', theme, settings),
+                    _buildRailItem(2, Icons.science_outlined, Icons.science, 'Volume', theme, settings),
+                    _buildRailItem(3, Icons.schedule_outlined, Icons.schedule, 'Duration', theme, settings),
+                    _buildRailItem(4, Icons.settings_outlined, Icons.settings, 'Settings', theme, settings),
+                    const Spacer(),
+                  ],
                 ),
-                trailing: Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.settings_outlined,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        currenIndex = settings.currentScreenIndex = 4;
-                      });
-                    },
-                  ),
-                ),
-                destinations: railDestinations,
               ),
-              const VerticalDivider(thickness: 1, width: 1),
-              Expanded(child: screens[currenIndex]),
+              Expanded(
+                child: _wrapWithWebMaxWidth(screens[currenIndex]),
+              ),
             ],
           );
 
+    final body = useMobile ? _wrapWithWebMaxWidth(bodyContent) : bodyContent;
+
     return Scaffold(
-      appBar: AppBar(
-        actions: _actionsFor(context, currenIndex),
-      ),
-      body: _wrapWithWebMaxWidth(body),
+      body: body,
       bottomNavigationBar: useMobile
           ? Column(
               mainAxisSize: MainAxisSize.min,

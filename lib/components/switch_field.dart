@@ -62,9 +62,7 @@ class _SwitchFieldState extends State<SwitchField> {
           ),
           decoration: InputDecoration(
             filled: true,
-            fillColor: widget.enabled
-                ? theme.colorScheme.surfaceContainerHighest
-                : null,
+            fillColor: theme.colorScheme.onPrimary,
             prefixIcon: widget.prefixIcon != null
                 ? Icon(
                     widget.prefixIcon,

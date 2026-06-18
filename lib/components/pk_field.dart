@@ -117,9 +117,7 @@ class _PKFieldState extends State<PKField> {
           ),
           decoration: InputDecoration(
             filled: true,
-            fillColor: widget.enabled
-                ? theme.colorScheme.surfaceContainerHighest
-                : null,
+            fillColor: theme.colorScheme.onPrimary,
             prefixIcon: widget.prefixIcon != null
                 ? Icon(
                     widget.prefixIcon,

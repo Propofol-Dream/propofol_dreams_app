@@ -9,7 +9,7 @@ import '../components/legacy/PDAdvancedSegmentedController.dart';
 import '../components/legacy/PDSwitchController.dart';
 import '../components/pk_field.dart';
 import '../components/switch_field.dart';
-import '../components/selector_row.dart';
+import '../components/selector.dart';
 import '../models/drug.dart';
 import '../models/model.dart';
 
@@ -284,13 +284,14 @@ class _M3TestScreenState extends State<M3TestScreen> {
 
             const SizedBox(height: 12),
 
-            // SelectorRow
-            SelectorRow(
+            // Selector
+            Selector<Model>(
               prefixIcon: Icons.psychology_outlined,
               labelText: 'PK Model',
-              selectedModel: _pkSelectedModel,
-              models: Model.values,
-              onModelSelected: (model) {
+              selectedItem: _pkSelectedModel,
+              items: Model.values,
+              itemLabelBuilder: (m) => m.name,
+              onItemSelected: (model) {
                 setState(() => _pkSelectedModel = model);
               },
             ),
