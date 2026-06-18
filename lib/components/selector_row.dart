@@ -25,49 +25,63 @@ class SelectorRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return TextField(
-      controller: TextEditingController(text: selectedModel?.name ?? ''),
-      readOnly: true,
-      decoration: InputDecoration(
-        labelText: labelText ?? 'Select Model',
-        prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon)
-            : const Icon(Icons.psychology_outlined),
-        suffixIcon: const Icon(Icons.arrow_drop_down),
-        filled: true,
-        fillColor: theme.colorScheme.surfaceContainerHighest,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: kSp16,
-          vertical: kSp12,
+    return SizedBox(
+      height: 48,
+      child: TextField(
+        controller: TextEditingController(text: selectedModel?.name ?? ''),
+        readOnly: true,
+        enableInteractiveSelection: false,
+        style: TextStyle(
+          color: theme.colorScheme.onSurface,
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(kRadius),
-          borderSide: BorderSide(
-            color: theme.colorScheme.outline,
-            width: 1.0,
+        decoration: InputDecoration(
+          labelText: labelText ?? 'Select Model',
+          labelStyle: TextStyle(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(kRadius),
-          borderSide: BorderSide(
-            color: theme.colorScheme.outline,
-            width: 1.0,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(kRadius),
-          borderSide: BorderSide(
+          floatingLabelStyle: TextStyle(
             color: theme.colorScheme.primary,
-            width: 2.0,
+          ),
+          prefixIcon: null,
+          suffixIcon: Icon(
+            Icons.arrow_drop_down,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          filled: true,
+          fillColor: theme.colorScheme.surfaceContainerHighest,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: kSp16,
+            vertical: kSp12,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(kRadius),
+            borderSide: BorderSide(
+              color: theme.colorScheme.outline,
+              width: 1.0,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(kRadius),
+            borderSide: BorderSide(
+              color: theme.colorScheme.outline,
+              width: 1.0,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(kRadius),
+            borderSide: BorderSide(
+              color: theme.colorScheme.primary,
+              width: 2.0,
+            ),
           ),
         ),
+        onTap: enabled
+            ? () {
+                HapticFeedback.lightImpact();
+                _showModelSheet(context);
+              }
+            : null,
       ),
-      onTap: enabled
-          ? () {
-              HapticFeedback.lightImpact();
-              _showModelSheet(context);
-            }
-          : null,
     );
   }
 

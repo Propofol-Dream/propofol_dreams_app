@@ -120,7 +120,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       //     surface: const Color(0xff191C1B),
       //   ),
       // ),
-      darkTheme: ThemeData(colorScheme: MaterialTheme.darkScheme()),
+      darkTheme: ThemeData(
+        colorScheme: MaterialTheme.darkScheme(),
+        useMaterial3: true,
+      ),
       themeMode: settings.themeModeSelection,
       home: const HomeScreen(),
     );
