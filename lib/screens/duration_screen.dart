@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,13 +10,9 @@ import '../utils/intents.dart';
 
 import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/config/design_tokens.dart';
-import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
-import 'package:propofol_dreams_app/components/legacy/PDSegmentedController.dart';
-import 'package:propofol_dreams_app/components/legacy/PDSegmentedControl.dart';
 import 'package:propofol_dreams_app/models/InfusionUnit.dart';
 import 'package:propofol_dreams_app/components/infusion_regime_table.dart';
-import 'package:propofol_dreams_app/components/collapsible_input_card.dart';
-import 'package:propofol_dreams_app/components/input_summary_display.dart';
+import 'package:propofol_dreams_app/components/pk_field.dart';
 
 import '../providers/settings.dart';
 
@@ -30,7 +26,7 @@ class DurationScreen extends StatefulWidget {
 class _DurationScreenState extends State<DurationScreen> {
   final TextEditingController weightController = TextEditingController();
   final TextEditingController infusionRateController = TextEditingController();
-  final PDSegmentedController infusionUnitController = PDSegmentedController();
+  int _selectedUnitIndex = 0;
   final ScrollController tableScrollController = ScrollController();
 
   List<DurationRowData> durationRows = [];
@@ -43,13 +39,13 @@ class _DurationScreenState extends State<DurationScreen> {
   ];
 
   int infusionRateDecimal = 1;
-  final CollapsibleInputCardController _inputCardController =
-      CollapsibleInputCardController();
+  Timer _debounceTimer = Timer(Duration.zero, () {});
+  static const Duration _debounceDelay = Duration(milliseconds: 500);
 
   @override
   void initState() {
     super.initState();
-    
+
     // Settings are already loaded - initialize controllers with final values
     final settings = context.read<Settings>();
     _setControllersFromSettings(settings);
@@ -68,15 +64,15 @@ class _DurationScreenState extends State<DurationScreen> {
 
   void _setControllersFromSettings(Settings settings) {
     weightController.text = settings.weight?.toString() ?? '';
-    infusionUnitController.val = settings.infusionUnit == InfusionUnit.mg_kg_hr
+    _selectedUnitIndex = settings.infusionUnit == InfusionUnit.mg_kg_hr
         ? 0
         : settings.infusionUnit == InfusionUnit.mcg_kg_min
             ? 1
             : 2;
-    infusionRateDecimal = infusionUnits[infusionUnitController.val] ==
+    infusionRateDecimal = infusionUnits[_selectedUnitIndex] ==
             InfusionUnit.mg_kg_hr
         ? 1
-        : infusionUnits[infusionUnitController.val] == InfusionUnit.mcg_kg_min
+        : infusionUnits[_selectedUnitIndex] == InfusionUnit.mcg_kg_min
             ? 0
             : 1;
     infusionRateController.text =
@@ -131,11 +127,11 @@ class _DurationScreenState extends State<DurationScreen> {
 
     //update Infusion Rate if conditions met
     InfusionUnit previous = settings.infusionUnit;
-    InfusionUnit current = infusionUnits[infusionUnitController.val];
-    infusionRateDecimal = infusionUnits[infusionUnitController.val] ==
+    InfusionUnit current = infusionUnits[_selectedUnitIndex];
+    infusionRateDecimal = infusionUnits[_selectedUnitIndex] ==
             InfusionUnit.mg_kg_hr
         ? 1
-        : infusionUnits[infusionUnitController.val] == InfusionUnit.mcg_kg_min
+        : infusionUnits[_selectedUnitIndex] == InfusionUnit.mcg_kg_min
             ? 0
             : 1;
 
@@ -151,7 +147,7 @@ class _DurationScreenState extends State<DurationScreen> {
           settings.infusionRate!.toStringAsFixed(infusionRateDecimal);
     }
 
-    settings.infusionUnit = infusionUnits[infusionUnitController.val];
+    settings.infusionUnit = infusionUnits[_selectedUnitIndex];
     run();
   }
 
@@ -182,7 +178,7 @@ class _DurationScreenState extends State<DurationScreen> {
   void run({bool collapseInput = false}) {
     int? weight = int.tryParse(weightController.text);
     double? infusionRate = double.tryParse(infusionRateController.text);
-    InfusionUnit infusionUnit = infusionUnits[infusionUnitController.val];
+    InfusionUnit infusionUnit = infusionUnits[_selectedUnitIndex];
     final settings = context.read<Settings>();
 
     if (isRunnable(
@@ -219,7 +215,6 @@ class _DurationScreenState extends State<DurationScreen> {
       setState(() {
         durationRows = durations;
       });
-      if (collapseInput) _inputCardController.collapse();
       settings.statusBarInfo =
           'Rate: ${infusionRate!.toStringAsFixed(infusionRateDecimal)} ${infusionUnit.toString()} · Weight: ${weight ?? '—'}kg';
     } else {
@@ -232,98 +227,141 @@ class _DurationScreenState extends State<DurationScreen> {
 
   @override
   void dispose() {
+    _debounceTimer.cancel();
     tableScrollController.dispose();
     super.dispose();
   }
 
-  /// Input fields widget used as [CollapsibleInputCard] expandedContent.
-  Widget _buildInputFields(double UIHeight, double cardWidth) {
-    bool weightEnabled = infusionUnits[infusionUnitController.val] ==
-            InfusionUnit.mL_hr
-        ? false
-        : true;
+  List<String> _validate() {
+    final errors = <String>[];
+    final weight = int.tryParse(weightController.text);
+    final rate = double.tryParse(infusionRateController.text);
+    if (weight != null && (weight < 0 || weight > 250)) {
+      errors.add('Weight 0-250 kg');
+    }
+    if (rate != null && (rate < 1 || rate > 9999)) {
+      errors.add('Rate 1-9999');
+    }
+    return errors;
+  }
+
+  Widget _buildErrorPanel(List<String> errors) {
+    return SizedBox(
+      height: 48,
+      child: errors.isEmpty
+          ? const SizedBox.shrink()
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: kSp16, vertical: 8),
+              child: Text(
+                errors.first,
+                style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
+              ),
+            ),
+    );
+  }
+
+  /// Input fields widget used as input panel content.
+  Widget _buildInputFields(Settings settings) {
+    final theme = Theme.of(context);
+    final errors = _validate();
+    final weightEnabled = infusionUnits[_selectedUnitIndex] != InfusionUnit.mL_hr;
+
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Weight input field
-        SizedBox(
-          height: UIHeight + 24,
-          child: PDTextField(
-            prefixIcon: Icons.monitor_weight_outlined,
-            labelText: '${AppLocalizations.of(context)!.weight} (kg)',
-            controller: weightController,
-            fractionDigits: 0,
-            interval: 1,
-            onPressed: updateWeight,
-            enabled: weightEnabled,
-            range: const [0, 250],
-          ),
-        ),
-        const SizedBox(height: 8),
-        // Infusion rate input field
-        SizedBox(
-          height: UIHeight + 24,
-          child: PDTextField(
-            prefixIcon: Icons.water_drop_outlined,
-            labelText: '${AppLocalizations.of(context)!.infusionRate} (${[
-              InfusionUnit.mg_kg_hr.toString(),
-              InfusionUnit.mcg_kg_min.toString(),
-              InfusionUnit.mL_hr.toString()
-            ][infusionUnitController.val]})',
-            controller: infusionRateController,
-            fractionDigits: infusionRateDecimal,
-            interval: infusionUnits[infusionUnitController.val] ==
-                    InfusionUnit.mg_kg_hr
-                ? 0.5
-                : infusionUnits[infusionUnitController.val] ==
-                        InfusionUnit.mcg_kg_min
-                    ? 10
-                    : 1,
-            onPressed: updateInfusionRate,
-            range: const [1, 9999],
-          ),
-        ),
-        const SizedBox(height: 8),
-        // Infusion unit segmented control
-        SizedBox(
-          height: UIHeight,
-          width: cardWidth,
-          child: PDSegmentedControl(
-            fitWidth: true,
-            fitHeight: true,
-            fontSize: 14,
-            defaultColor: Theme.of(context).colorScheme.primary,
-            defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-            labels: [...infusionUnits.map((e) => e.toString())],
-            segmentedController: infusionUnitController,
-            onPressed: [
-              updateInfusionUnit,
-              updateInfusionUnit,
-              updateInfusionUnit,
+        _buildErrorPanel(errors),
+        const SizedBox(height: kSp12),
+        // Weight
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          child: Row(
+            children: [
+              Expanded(
+                child: PKField(
+                  prefixIcon: Icons.monitor_weight_outlined,
+                  labelText: '${AppLocalizations.of(context)!.weight} (kg)',
+                  controller: weightController,
+                  fractionDigits: 0,
+                  interval: 1.0,
+                  range: const [0, 250],
+                  enabled: weightEnabled,
+                  onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, updateWeight); },
+                  hasError: errors.isNotEmpty,
+                ),
+              ),
             ],
           ),
         ),
+        const SizedBox(height: kSp12),
+        // Infusion rate
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          child: Row(
+            children: [
+              Expanded(
+                child: PKField(
+                  prefixIcon: Icons.water_drop_outlined,
+                  labelText: '${AppLocalizations.of(context)!.infusionRate} (${infusionUnits[_selectedUnitIndex].toString()})',
+                  controller: infusionRateController,
+                  fractionDigits: infusionRateDecimal,
+                  interval: infusionUnits[_selectedUnitIndex] == InfusionUnit.mg_kg_hr ? 0.5 : infusionUnits[_selectedUnitIndex] == InfusionUnit.mcg_kg_min ? 10.0 : 1.0,
+                  range: const [1, 9999],
+                  onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, updateInfusionRate); },
+                  hasError: errors.isNotEmpty,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: kSp12),
+        // Infusion unit button group
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          child: SizedBox(
+            height: 48,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: List.generate(infusionUnits.length, (i) {
+                final selected = _selectedUnitIndex == i;
+                return Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                      backgroundColor: selected ? theme.colorScheme.primary : theme.colorScheme.onPrimary,
+                      foregroundColor: selected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.horizontal(
+                          left: Radius.circular(i == 0 ? kRadius : 0),
+                          right: Radius.circular(i == infusionUnits.length - 1 ? kRadius : 0),
+                        ),
+                        side: BorderSide(color: theme.colorScheme.outline),
+                      ),
+                    ),
+                    onPressed: () {
+                      setState(() => _selectedUnitIndex = i);
+                      updateInfusionUnit();
+                    },
+                    child: Text(infusionUnits[i].toString(), style: const TextStyle(fontSize: 12)),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+        const SizedBox(height: kSp12),
       ],
     );
   }
 
-  /// Collapsible input card wrapping the Duration input fields.
-  Widget _buildInputCard(double UIHeight, double cardWidth) {
-    final weight = int.tryParse(weightController.text);
-    final infusionRate = double.tryParse(infusionRateController.text);
-    final infusionUnit = infusionUnits[infusionUnitController.val];
-
-    return CollapsibleInputCard(
-      title: AppLocalizations.of(context)!.duration,
-      controller: _inputCardController,
-      expandedContent: _buildInputFields(UIHeight, cardWidth),
-      collapsedSummary: InputSummaryDisplay(
-        calculatorType: CalculatorType.duration,
-        weight: weight,
-        infusionRate: infusionRate,
-        infusionUnit: infusionUnit,
+  Widget _buildInputPanel(Settings settings) {
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(kRadius),
       ),
-      onCalculate: () => run(collapseInput: true),
-      showCalculateButton: false,
+      child: _buildInputFields(settings),
     );
   }
 
@@ -344,54 +382,31 @@ class _DurationScreenState extends State<DurationScreen> {
     );
   }
 
-  /// Tablet 2-column layout: input card on left (320px), results on right.
-  Widget _buildTabletLayout(Settings settings, double UIHeight, double mediaQueryHeight) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: horizontalSidesPaddingPixel,
-        right: horizontalSidesPaddingPixel,
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 320,
-            child: _buildInputCard(UIHeight, 320 - 2 * kSp16),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: SingleChildScrollView(
-              child: _buildResultsTable(settings, mediaQueryHeight),
+  /// Desktop/tablet 2-column layout: results on left, input panel on right (393px).
+  Widget _buildDesktopLayout(Settings settings) {
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: horizontalSidesPaddingPixel,
+          right: horizontalSidesPaddingPixel,
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(top: 12),
+                child: _buildResultsTable(settings, MediaQuery.of(context).size.height),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Desktop 2-column layout: input card on left (360px), results on right.
-  Widget _buildDesktopLayout(Settings settings, double UIHeight, double mediaQueryHeight) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: horizontalSidesPaddingPixel,
-        right: horizontalSidesPaddingPixel,
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 360,
-            child: _buildInputCard(UIHeight, 360 - 2 * kSp16),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: SingleChildScrollView(
-              child: _buildResultsTable(settings, mediaQueryHeight),
+            const SizedBox(width: 12),
+            SizedBox(
+              width: 393,
+              child: _buildInputPanel(settings),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -425,66 +440,52 @@ class _DurationScreenState extends State<DurationScreen> {
 
     final settings = context.watch<Settings>();
 
-    infusionRateDecimal = infusionUnits[infusionUnitController.val] ==
+    infusionRateDecimal = infusionUnits[_selectedUnitIndex] ==
             InfusionUnit.mg_kg_hr
         ? 1
-        : infusionUnits[infusionUnitController.val] == InfusionUnit.mcg_kg_min
+        : infusionUnits[_selectedUnitIndex] == InfusionUnit.mcg_kg_min
             ? 0
             : 1;
 
-    final mediaQuery = MediaQuery.of(context);
-    final double UIHeight = mediaQuery.size.aspectRatio >= 0.455
-        ? mediaQuery.size.height >= screenBreakPoint1
-            ? 56
-            : 48
-        : 48;
-
-    final double cardWidth =
-        mediaQuery.size.width - 2 * horizontalSidesPaddingPixel;
-
     if (isDesktopLayout) {
-      return _wrapWithKeyboardShortcuts(
-        _buildDesktopLayout(settings, UIHeight, mediaQuery.size.height),
-      );
+      return _wrapWithKeyboardShortcuts(_buildDesktopLayout(settings));
     }
     if (isTabletLayout) {
-      return _wrapWithKeyboardShortcuts(
-        _buildTabletLayout(settings, UIHeight, mediaQuery.size.height),
-      );
+      return _wrapWithKeyboardShortcuts(_buildDesktopLayout(settings));
     }
 
-    // Mobile: single-column scrollable layout
-    return _wrapWithKeyboardShortcuts(
-      LayoutBuilder(
-        builder: (context, constraints) {
-          return Container(
-            padding: EdgeInsets.only(
-              left: horizontalSidesPaddingPixel,
-              right: horizontalSidesPaddingPixel,
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: SingleChildScrollView(
-              reverse: true,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight -
-                      MediaQuery.of(context).viewInsets.bottom,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildResultsTable(settings, mediaQuery.size.height),
-                    const SizedBox(height: 16),
-                    _buildInputCard(UIHeight, cardWidth),
-                    SizedBox(
-                      height: MediaQuery.of(context).padding.bottom + 24,
+    // Mobile: fixed-bottom input panel with results above
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      body: Column(
+        children: [
+          Expanded(
+            child: CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: true,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: horizontalSidesPaddingPixel,
+                      right: horizontalSidesPaddingPixel,
+                      bottom: 12,
                     ),
-                  ],
+                    child: Column(
+                      children: [
+                        const Spacer(),
+                        _buildResultsTable(settings, MediaQuery.of(context).size.height),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          );
-        },
+          ),
+          SafeArea(
+            top: false,
+            child: _buildInputPanel(settings),
+          ),
+        ],
       ),
     );
   }

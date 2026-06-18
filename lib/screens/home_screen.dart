@@ -5,13 +5,11 @@ import 'package:provider/provider.dart';
 import '../constants.dart';
 import '../providers/settings.dart';
 import '../utils/responsive_helper.dart';
-import '../models/volume_mode.dart';
 import 'volume_screen.dart';
-import 'volume_plus_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
 import 'tci_screen.dart';
-import 'settings_screen_m3.dart'; // M3 migrated
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,9 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return [
       EleMarshScreen(),
       const TCIScreen(),
-      settings.volumeMode == VolumeMode.Volume
-          ? const VolumeScreen()
-          : const VolumePlusScreen(),
+      const VolumeScreen(),
       const DurationScreen(),
       const SettingsScreen(),
     ];

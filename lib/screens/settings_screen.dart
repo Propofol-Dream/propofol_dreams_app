@@ -6,11 +6,8 @@ import 'package:propofol_dreams_app/constants.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 import 'package:propofol_dreams_app/models/drug.dart';
-import 'package:propofol_dreams_app/models/volume_mode.dart';
 
-import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
-import 'package:propofol_dreams_app/components/legacy/PDSegmentedController.dart';
-import 'package:propofol_dreams_app/components/legacy/PDSegmentedControl.dart';
+import 'package:propofol_dreams_app/components/pk_field.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,134 +17,100 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final PDSegmentedController propofolController = PDSegmentedController();
-  final PDSegmentedController remifentanilController = PDSegmentedController();
-  final PDSegmentedController remimazolamController = PDSegmentedController();
-  final PDSegmentedController themeController = PDSegmentedController();
-  final PDSegmentedController volumeModeController = PDSegmentedController();
   final TextEditingController pumpController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    
-    // Settings are already loaded - initialize controllers with final values
     final settings = context.read<Settings>();
     _setControllersFromSettings(settings);
   }
 
   void _setControllersFromSettings(Settings settings) {
-    // Check which propofol variant is currently set by checking legacy concentration
-    final currentPropofolConcentration = settings.density; // Use legacy density getter for backward compatibility
-    propofolController.val = currentPropofolConcentration == 10 ? 0 : 1;
-    
-    // Check which remifentanil variant is currently set
-    final currentRemifentanilDrug = settings.getCurrentDrugVariant('Remifentanil');
-    if (currentRemifentanilDrug == Drug.remifentanil20mcg) {
-      remifentanilController.val = 0;
-    } else if (currentRemifentanilDrug == Drug.remifentanil40mcg) {
-      remifentanilController.val = 1;
-    } else {
-      remifentanilController.val = 2; // 50mcg default
-    }
-    
-    // Check which remimazolam variant is currently set
-    final currentRemimazolamDrug = settings.getCurrentDrugVariant('Remimazolam');
-    if (currentRemimazolamDrug == Drug.remimazolam1mg) {
-      remimazolamController.val = 0;
-    } else {
-      remimazolamController.val = 1; // 2mg
-    }
-    
     pumpController.text = settings.max_pump_rate.toString();
-    themeController.val = settings.themeModeSelection == ThemeMode.light
-        ? 0
-        : settings.themeModeSelection == ThemeMode.dark
-            ? 1
-            : 2;
-    volumeModeController.val = settings.volumeMode == VolumeMode.Volume ? 0 : 1;
   }
 
-  Widget _buildDrugConcentrationSection(Drug drug, Settings settings, double UIHeight, double screenWidth) {
-    // Get available variants for this drug type
+  Widget _buildButtonGroup({
+    required List<String> labels,
+    required int selectedIndex,
+    required ValueChanged<int> onChanged,
+  }) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      height: 48,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: List.generate(labels.length, (i) {
+          final selected = selectedIndex == i;
+          return Expanded(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(0, 48),
+                backgroundColor: selected ? theme.colorScheme.primary : theme.colorScheme.onPrimary,
+                foregroundColor: selected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.horizontal(
+                    left: Radius.circular(i == 0 ? kRadius : 0),
+                    right: Radius.circular(i == labels.length - 1 ? kRadius : 0),
+                  ),
+                  side: BorderSide(color: theme.colorScheme.outline),
+                ),
+              ),
+              onPressed: () => onChanged(i),
+              child: Text(labels[i], style: const TextStyle(fontSize: 13)),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildDrugConcentrationSection(Drug drug, Settings settings) {
     final availableVariants = settings.getAvailableDrugVariants(drug.displayName);
-    final availableConcentrations = availableVariants.map((variant) => variant.concentration).toList();
+    final availableConcentrations = availableVariants.map((v) => v.concentration).toList();
     final currentConcentration = settings.getDrugConcentration(drug);
-    
+    final theme = Theme.of(context);
+
+    int currentIndex = 0;
+    if (availableConcentrations.length > 1) {
+      currentIndex = availableConcentrations.indexOf(currentConcentration);
+      if (currentIndex < 0) currentIndex = 0;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Drug name with icon indicator
         Row(
           children: [
-            Icon(
-              drug.icon,
-              size: 18,
-              color: drug.getColor(context),
-            ),
+            Icon(drug.icon, size: 18, color: drug.getColor(context)),
             const SizedBox(width: kSp8),
-            Text(
-              drug.toLocalizedString(context),
-              style: const TextStyle(fontSize: 16,),
-            ),
+            Text(drug.toLocalizedString(context), style: const TextStyle(fontSize: 16)),
           ],
         ),
         const SizedBox(height: kSp12),
-        
-        // Concentration selector or display
         if (availableConcentrations.length > 1)
-          // Multiple options - show segmented control
-          SizedBox(
-            height: UIHeight,
-            width: screenWidth, // Always use full width for all configurations
-            child: Center(
-              child: PDSegmentedControl(
-              fitWidth: true, // Always fit to full width
-              fitHeight: true,
-              fontSize: 15, // Consistent font size that works for all configurations
-              defaultColor: Theme.of(context).colorScheme.primary,
-              defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-              labels: availableConcentrations.map((conc) =>
-                '${conc.toStringAsFixed(conc == conc.roundToDouble() ? 0 : 1)} ${drug.concentrationUnit.displayName}'
-              ).toList(),
-              segmentedController: drug.displayName == 'Propofol'
-                  ? propofolController
-                  : drug.displayName == 'Remifentanil'
-                      ? remifentanilController
-                      : drug.displayName == 'Remimazolam'
-                          ? remimazolamController
-                          : PDSegmentedController(),
-              onPressed: availableVariants.map((variant) => () {
-                // Set the concentration for the appropriate variant
-                settings.setDrugConcentration(variant, variant.concentration);
-                if (drug.displayName == 'Propofol' || drug.displayName == 'Remifentanil' || drug.displayName == 'Remimazolam') {
-                  setState(() {
-                    _setControllersFromSettings(settings);
-                  });
-                }
-              }).toList(),
-            ),
-            ),
+          _buildButtonGroup(
+            labels: availableConcentrations.map((conc) =>
+              '${conc.toStringAsFixed(conc == conc.roundToDouble() ? 0 : 1)} ${drug.concentrationUnit.displayName}'
+            ).toList(),
+            selectedIndex: currentIndex,
+            onChanged: (i) {
+              settings.setDrugConcentration(availableVariants[i], availableVariants[i].concentration);
+              setState(() {});
+            },
           )
         else
-          // Single option - show as display only
           Container(
-            height: UIHeight,
-            width: screenWidth,
+            height: 48,
             decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).colorScheme.primary),
-              color: Theme.of(context).colorScheme.primary,
+              color: theme.colorScheme.primary,
               borderRadius: BorderRadius.circular(kRadius),
             ),
-            child: Center(
-              child: Text(
-                '${currentConcentration.toStringAsFixed(currentConcentration == currentConcentration.roundToDouble() ? 0 : 1)} ${drug.concentrationUnit.displayName}',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+            alignment: Alignment.center,
+            child: Text(
+              '${currentConcentration.toStringAsFixed(currentConcentration == currentConcentration.roundToDouble() ? 0 : 1)} ${drug.concentrationUnit.displayName}',
+              style: TextStyle(fontSize: 16, color: theme.colorScheme.onPrimary, fontWeight: FontWeight.w500),
             ),
           ),
       ],
@@ -156,188 +119,66 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // print('settings screen build');
-
-
-    var mediaQuery = MediaQuery.of(context);
-    // var screenWidth = mediaQuery.size.width;
-
-    final double UIHeight =
-    mediaQuery.size.aspectRatio >= 0.455 ?  mediaQuery.size.height>=768? 56: 48 : 48;
-
     final settings = context.watch<Settings>();
 
-    return Column(children: [
-      const SizedBox(height: kSp16),
-      Expanded(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
-          child: ListView(
-            padding: EdgeInsets.zero,
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: horizontalSidesPaddingPixel),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   Text(
-                    AppLocalizations.of(context)!.appearance,
-                     style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: kSp4),
-                  // Text(
-                  //   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus finibus lorem vitae augue tincidunt, at aliquet mauris condimentum. Donec pellentesque tempus dapibus',
-                  //   style: TextStyle(fontSize: 14),
-                  // ),
-                  const SizedBox(height: kSp16),
-                  SizedBox(
-                    height: UIHeight,
-                    width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
-                    child: PDSegmentedControl(
-                      fitWidth: true,
-                      fitHeight: true,
-                      fontSize: 16,
-                      defaultColor: Theme.of(context).colorScheme.primary,
-                      defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-                      labels:  [AppLocalizations.of(context)!.light,AppLocalizations.of(context)!.dark,AppLocalizations.of(context)!.auto],
-                      segmentedController: themeController,
-                      onPressed: [
-                        () {
-                          settings.themeModeSelection = ThemeMode.light;
-                        },
-                        () {
-                          settings.themeModeSelection = ThemeMode.dark;
-                        },
-                        () {
-                          settings.themeModeSelection = ThemeMode.system;
-                        }
-                      ],
-                    ),
-                  ),
-                  // ElevatedButton(
-                  //     onPressed: () async {
-                  //       var pref = await SharedPreferences.getInstance();
-                  //       pref.clear();
-                  //     },
-                  //     child: Text('Clear'))
-                ],
-              ),
-              const SizedBox(height: kSp24),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.drugConcentration,
-                    style: const TextStyle(fontSize: 18,),
-                  ),
-                  const SizedBox(height: kSp8),
-
-                  // Propofol - with selection
-                  _buildDrugConcentrationSection(
-                    Drug.propofol10mg,
-                    settings,
-                    UIHeight,
-                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
-                  ),
-                  const SizedBox(height: kSp8),
-
-                  // Remifentanil - with selection
-                  _buildDrugConcentrationSection(
-                    Drug.remifentanil50mcg,
-                    settings,
-                    UIHeight,
-                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
-                  ),
-                  const SizedBox(height: kSp8),
-
-                  // Dexmedetomidine - display only
-                  _buildDrugConcentrationSection(
-                    Drug.dexmedetomidine,
-                    settings,
-                    UIHeight,
-                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
-                  ),
-                  const SizedBox(height: kSp8),
-
-                  // Remimazolam - with selection
-                  _buildDrugConcentrationSection(
-                    Drug.remimazolam1mg,
-                    settings,
-                    UIHeight,
-                    mediaQuery.size.width - 2 * horizontalSidesPaddingPixel
-                  ),
-                ],
-              ),
-              const SizedBox(height: kSp24),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   Text(
-                    AppLocalizations.of(context)!.maximumPumpRate,
-                     style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: kSp4),
-                  const SizedBox(height: kSp16),
-                  SizedBox(
-                    height: UIHeight + 24,
-                    child: PDTextField(
-                        prefixIcon: Icons.settings_input_component_outlined,
-                        labelText: '${AppLocalizations.of(context)!.pumpRate} (mL/hr)',
-                        interval: 50,
-                        fractionDigits: 0,
-                        controller: pumpController,
-                        onPressed: () {
-                          int? pumpRate = int.tryParse(pumpController.text);
-                          if (pumpRate != null) {
-                            settings.max_pump_rate = pumpRate;
-                          }
-                        },
-                        range: const [0, 1500]),
-                  )
-                ],
-              ),
-              const SizedBox(height: kSp24),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Volume Mode',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: kSp4),
-                  const SizedBox(height: kSp16),
-                  SizedBox(
-                    height: UIHeight,
-                    width: mediaQuery.size.width - 2 * horizontalSidesPaddingPixel,
-                    child: PDSegmentedControl(
-                      fitWidth: true,
-                      fitHeight: true,
-                      fontSize: 16,
-                      defaultColor: Theme.of(context).colorScheme.primary,
-                      defaultOnColor: Theme.of(context).colorScheme.onPrimary,
-                      labels: [
-                        VolumeMode.Volume.displayName,
-                        VolumeMode.VolumePlus.displayName,
-                      ],
-                      segmentedController: volumeModeController,
-                      onPressed: [
-                        () {
-                          settings.volumeMode = VolumeMode.Volume;
-                        },
-                        () {
-                          settings.volumeMode = VolumeMode.VolumePlus;
-                        },
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              // Divider(
-              //   color: Theme.of(context).colorScheme.primary,
-              // ),
               const SizedBox(height: kSp16),
+              Text(AppLocalizations.of(context)!.appearance, style: const TextStyle(fontSize: 18)),
+              const SizedBox(height: kSp16),
+              _buildButtonGroup(
+                labels: [
+                  AppLocalizations.of(context)!.light,
+                  AppLocalizations.of(context)!.dark,
+                  AppLocalizations.of(context)!.auto,
+                ],
+                selectedIndex: settings.themeModeSelection == ThemeMode.light
+                    ? 0
+                    : settings.themeModeSelection == ThemeMode.dark
+                        ? 1
+                        : 2,
+                onChanged: (i) {
+                  settings.themeModeSelection = i == 0 ? ThemeMode.light : i == 1 ? ThemeMode.dark : ThemeMode.system;
+                },
+              ),
+              const SizedBox(height: kSp24),
+              Text(AppLocalizations.of(context)!.drugConcentration, style: const TextStyle(fontSize: 18)),
+              const SizedBox(height: kSp16),
+              _buildDrugConcentrationSection(Drug.propofol10mg, settings),
+              const SizedBox(height: kSp16),
+              _buildDrugConcentrationSection(Drug.remifentanil50mcg, settings),
+              const SizedBox(height: kSp16),
+              _buildDrugConcentrationSection(Drug.dexmedetomidine, settings),
+              const SizedBox(height: kSp16),
+              _buildDrugConcentrationSection(Drug.remimazolam1mg, settings),
+              const SizedBox(height: kSp24),
+              Text(AppLocalizations.of(context)!.maximumPumpRate, style: const TextStyle(fontSize: 18)),
+              const SizedBox(height: kSp16),
+              PKField(
+                prefixIcon: Icons.settings_input_component_outlined,
+                labelText: '${AppLocalizations.of(context)!.pumpRate} (mL/hr)',
+                interval: 50,
+                fractionDigits: 0,
+                controller: pumpController,
+                range: const [0, 1500],
+                onChanged: () {
+                  int? pumpRate = int.tryParse(pumpController.text);
+                  if (pumpRate != null) {
+                    settings.max_pump_rate = pumpRate;
+                  }
+                },
+              ),
+              const SizedBox(height: kSp32),
             ],
           ),
         ),
       ),
-    ]);
+    );
   }
 }
