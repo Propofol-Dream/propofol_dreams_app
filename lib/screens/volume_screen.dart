@@ -619,107 +619,105 @@ class _VolumeScreenState extends State<VolumeScreen> {
           child: Row(
             children: [
               Expanded(
-                child: Container(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SelectorRow(
-                          selectedModel: _selectedModel,
-                          models: modelOptions,
-                          onModelSelected: (m) {
-                            setState(() {
-                              _selectedModel = m;
-                              if (settings.inAdultView) {
-                                settings.adultModel = m;
-                              } else {
-                                settings.pediatricModel = m;
-                              }
-                            });
-                            run();
-                          },
-                        ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SelectorRow(
+                        selectedModel: _selectedModel,
+                        models: modelOptions,
+                        onModelSelected: (m) {
+                          setState(() {
+                            _selectedModel = m;
+                            if (settings.inAdultView) {
+                              settings.adultModel = m;
+                            } else {
+                              settings.pediatricModel = m;
+                            }
+                          });
+                          run();
+                        },
                       ),
-                      const SizedBox(width: 4),
-                      Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest,
-                          border: Border.all(color: theme.colorScheme.outline),
-                          borderRadius: BorderRadius.circular(kRadius),
-                        ),
-                        padding: const EdgeInsets.only(left: 12, right: 4),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              settings.inAdultView ? Icons.face : Icons.child_care_outlined,
-                              size: 18,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              settings.inAdultView
-                                  ? AppLocalizations.of(context)!.adult
-                                  : AppLocalizations.of(context)!.paed,
-                              style: theme.textTheme.labelMedium,
-                            ),
-                            const SizedBox(width: 2),
-                            Switch(
-                              value: settings.inAdultView,
-                              activeThumbColor: theme.colorScheme.primary,
-                              activeTrackColor: theme.colorScheme.primary.withValues(alpha: 0.1),
-                              inactiveThumbColor: theme.colorScheme.onSurfaceVariant,
-                              inactiveTrackColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                              onChanged: (v) {
-                                HapticFeedback.lightImpact();
-                                if (v != settings.inAdultView) {
-                                  if (settings.inAdultView) {
-                                    settings.adultAge = int.tryParse(ageController.text);
-                                    settings.adultHeight = int.tryParse(heightController.text);
-                                    settings.adultWeight = int.tryParse(weightController.text);
-                                    settings.propofolTarget = double.tryParse(targetController.text);
-                                    settings.adultDuration = int.tryParse(durationController.text);
-                                    settings.adultSex = _sexValue ? Sex.Female : Sex.Male;
-                                  } else {
-                                    settings.pediatricAge = int.tryParse(ageController.text);
-                                    settings.pediatricHeight = int.tryParse(heightController.text);
-                                    settings.pediatricWeight = int.tryParse(weightController.text);
-                                    settings.pediatricTarget = double.tryParse(targetController.text);
-                                    settings.pediatricDuration = int.tryParse(durationController.text);
-                                    settings.pediatricSex = _sexValue ? Sex.Female : Sex.Male;
-                                  }
-                                  settings.inAdultView = v;
-                                  ageController.text = settings.inAdultView
-                                      ? (settings.adultAge?.toString() ?? '')
-                                      : (settings.pediatricAge?.toString() ?? '');
-                                  heightController.text = settings.inAdultView
-                                      ? (settings.adultHeight?.toString() ?? '')
-                                      : (settings.pediatricHeight?.toString() ?? '');
-                                  weightController.text = settings.inAdultView
-                                      ? (settings.adultWeight?.toString() ?? '')
-                                      : (settings.pediatricWeight?.toString() ?? '');
-                                  targetController.text = settings.inAdultView
-                                      ? (settings.propofolTarget?.toStringAsFixed(1) ?? '')
-                                      : (settings.pediatricTarget?.toStringAsFixed(1) ?? '');
-                                  durationController.text = settings.inAdultView
-                                      ? (settings.adultDuration?.toString() ?? '')
-                                      : (settings.pediatricDuration?.toString() ?? '');
-                                  _sexValue = settings.inAdultView
-                                      ? settings.adultSex == Sex.Female
-                                      : settings.pediatricSex == Sex.Female;
-                                  _selectedModel = settings.inAdultView
-                                      ? settings.adultModel
-                                      : settings.pediatricModel;
-                                  updateModelOptions(settings.inAdultView);
-                                  run();
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        border: Border.all(color: theme.colorScheme.outline),
+                        borderRadius: BorderRadius.circular(kRadius),
+                      ),
+                      padding: const EdgeInsets.only(left: 12, right: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            settings.inAdultView ? Icons.face : Icons.child_care_outlined,
+                            size: 18,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            settings.inAdultView
+                                ? AppLocalizations.of(context)!.adult
+                                : AppLocalizations.of(context)!.paed,
+                            style: theme.textTheme.labelMedium,
+                          ),
+                          const SizedBox(width: 2),
+                          Switch(
+                            value: settings.inAdultView,
+                            activeThumbColor: theme.colorScheme.primary,
+                            activeTrackColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                            inactiveThumbColor: theme.colorScheme.onSurfaceVariant,
+                            inactiveTrackColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+                            onChanged: (v) {
+                              HapticFeedback.lightImpact();
+                              if (v != settings.inAdultView) {
+                                if (settings.inAdultView) {
+                                  settings.adultAge = int.tryParse(ageController.text);
+                                  settings.adultHeight = int.tryParse(heightController.text);
+                                  settings.adultWeight = int.tryParse(weightController.text);
+                                  settings.propofolTarget = double.tryParse(targetController.text);
+                                  settings.adultDuration = int.tryParse(durationController.text);
+                                  settings.adultSex = _sexValue ? Sex.Female : Sex.Male;
+                                } else {
+                                  settings.pediatricAge = int.tryParse(ageController.text);
+                                  settings.pediatricHeight = int.tryParse(heightController.text);
+                                  settings.pediatricWeight = int.tryParse(weightController.text);
+                                  settings.pediatricTarget = double.tryParse(targetController.text);
+                                  settings.pediatricDuration = int.tryParse(durationController.text);
+                                  settings.pediatricSex = _sexValue ? Sex.Female : Sex.Male;
                                 }
-                              },
-                            ),
-                          ],
-                        ),
+                                settings.inAdultView = v;
+                                ageController.text = settings.inAdultView
+                                    ? (settings.adultAge?.toString() ?? '')
+                                    : (settings.pediatricAge?.toString() ?? '');
+                                heightController.text = settings.inAdultView
+                                    ? (settings.adultHeight?.toString() ?? '')
+                                    : (settings.pediatricHeight?.toString() ?? '');
+                                weightController.text = settings.inAdultView
+                                    ? (settings.adultWeight?.toString() ?? '')
+                                    : (settings.pediatricWeight?.toString() ?? '');
+                                targetController.text = settings.inAdultView
+                                    ? (settings.propofolTarget?.toStringAsFixed(1) ?? '')
+                                    : (settings.pediatricTarget?.toStringAsFixed(1) ?? '');
+                                durationController.text = settings.inAdultView
+                                    ? (settings.adultDuration?.toString() ?? '')
+                                    : (settings.pediatricDuration?.toString() ?? '');
+                                _sexValue = settings.inAdultView
+                                    ? settings.adultSex == Sex.Female
+                                    : settings.pediatricSex == Sex.Female;
+                                _selectedModel = settings.inAdultView
+                                    ? settings.adultModel
+                                    : settings.pediatricModel;
+                                updateModelOptions(settings.inAdultView);
+                                run();
+                              }
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 12),

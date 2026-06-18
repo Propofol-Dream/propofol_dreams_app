@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../config/design_tokens.dart';
 import '../models/model.dart';
 
@@ -24,19 +25,15 @@ class SelectorRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return DropdownMenu<Model>(
-      initialSelection: selectedModel,
-      controller: TextEditingController(
-        text: selectedModel?.name ?? '',
-      ),
-      enableFilter: true,
-      enableSearch: true,
-      enabled: enabled,
-      label: Text(labelText ?? 'Select Model'),
-      leadingIcon: prefixIcon != null
-          ? Icon(prefixIcon)
-          : const Icon(Icons.psychology_outlined),
-      inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+    return TextField(
+      controller: TextEditingController(text: selectedModel?.name ?? ''),
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: labelText ?? 'Select Model',
+        prefixIcon: prefixIcon != null
+            ? Icon(prefixIcon)
+            : const Icon(Icons.psychology_outlined),
+        suffixIcon: const Icon(Icons.arrow_drop_down),
         filled: true,
         fillColor: theme.colorScheme.surfaceContainerHighest,
         contentPadding: const EdgeInsets.symmetric(
@@ -65,32 +62,60 @@ class SelectorRow extends StatelessWidget {
           ),
         ),
       ),
-      menuStyle: MenuStyle(
-        elevation: WidgetStateProperty.all(kElev8),
-        backgroundColor: WidgetStateProperty.all(
-          theme.colorScheme.surfaceContainerLow,
-        ),
-        shape: WidgetStateProperty.all(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kRadius),
-          ),
-        ),
+      onTap: enabled
+          ? () {
+              HapticFeedback.lightImpact();
+              _showModelSheet(context);
+            }
+          : null,
+    );
+  }
+
+  void _showModelSheet(BuildContext context) {
+    final theme = Theme.of(context);
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(kRadius)),
       ),
-      dropdownMenuEntries: models.map((model) {
-        return DropdownMenuEntry<Model>(
-          value: model,
-          label: model.name,
-          leadingIcon: Icon(
-            Icons.check_circle,
-            color: theme.colorScheme.primary,
-            size: 20,
-          ),
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Text(
+                'Select Model',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            const Divider(height: 1),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: models.map((model) {
+                  final isSelected = model == selectedModel;
+                  return ListTile(
+                    leading: Icon(
+                      isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurfaceVariant,
+                      size: 20,
+                    ),
+                    title: Text(model.name),
+                    onTap: () {
+                      Navigator.pop(context);
+                      onModelSelected(model);
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
         );
-      }).toList(),
-      onSelected: (Model? model) {
-        if (model != null) {
-          onModelSelected(model);
-        }
       },
     );
   }
