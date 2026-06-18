@@ -59,40 +59,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return _buildShell(settings);
   }
 
-  Widget _buildRailItem(int index, IconData icon, IconData selectedIcon, String label, ThemeData theme, Settings settings) {
-    final selected = currenIndex == index;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          setState(() {
-            settings.statusBarInfo = null;
-            currenIndex = settings.currentScreenIndex = index;
-          });
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          decoration: selected
-              ? BoxDecoration(
-                  color: theme.colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(16),
-                )
-              : null,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(selected ? selectedIcon : icon, color: selected ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurfaceVariant),
-              const SizedBox(height: 4),
-              Text(label, style: TextStyle(fontSize: 11, color: selected ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurfaceVariant)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   /// On web, wraps [child] in `Center > ConstrainedBox(maxWidth: 1440)` so the
   /// body content is constrained and centered on wide browser windows. The
   /// `Scaffold` chrome (AppBar, bottomNavigationBar / status bar) sits
@@ -155,6 +121,34 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ];
 
+    final railDestinations = const [
+      NavigationRailDestination(
+        icon: Icon(Icons.hub_outlined),
+        selectedIcon: Icon(Icons.hub),
+        label: Text('EleMarsh'),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.ssid_chart_outlined),
+        selectedIcon: Icon(Icons.ssid_chart),
+        label: Text('TCI'),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.science_outlined),
+        selectedIcon: Icon(Icons.science),
+        label: Text('Volume'),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.schedule_outlined),
+        selectedIcon: Icon(Icons.schedule),
+        label: Text('Duration'),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.settings_outlined),
+        selectedIcon: Icon(Icons.settings),
+        label: Text('Settings'),
+      ),
+    ];
+
     final bodyContent = useMobile
         ? Column(
             children: [
@@ -163,20 +157,19 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         : Row(
             children: [
-              Container(
-                width: 72,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 8),
-                    _buildRailItem(0, Icons.hub_outlined, Icons.hub, 'EleMarsh', theme, settings),
-                    _buildRailItem(1, Icons.ssid_chart_outlined, Icons.ssid_chart, 'TCI', theme, settings),
-                    _buildRailItem(2, Icons.science_outlined, Icons.science, 'Volume', theme, settings),
-                    _buildRailItem(3, Icons.schedule_outlined, Icons.schedule, 'Duration', theme, settings),
-                    _buildRailItem(4, Icons.settings_outlined, Icons.settings, 'Settings', theme, settings),
-                    const Spacer(),
-                  ],
-                ),
+              NavigationRail(
+                selectedIndex: currenIndex,
+                onDestinationSelected: (index) async {
+                  await HapticFeedback.lightImpact();
+                  setState(() {
+                    settings.statusBarInfo = null;
+                    currenIndex = settings.currentScreenIndex = index;
+                  });
+                },
+                labelType: NavigationRailLabelType.all,
+                backgroundColor: theme.colorScheme.surface,
+                indicatorColor: theme.colorScheme.secondaryContainer,
+                destinations: railDestinations,
               ),
               Expanded(
                 child: _wrapWithWebMaxWidth(screens[currenIndex]),

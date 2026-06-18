@@ -1,20 +1,14 @@
 import 'dart:async';
-import 'dart:math' as math;
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:propofol_dreams_app/models/calculator.dart';
 import 'package:propofol_dreams_app/models/elemarsh.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart' hide Selector;
 import 'package:propofol_dreams_app/l10n/generated/app_localizations.dart';
 import '../utils/responsive_helper.dart';
-import '../utils/text_measurement.dart';
 import '../utils/intents.dart';
 
 import 'package:propofol_dreams_app/models/simulation.dart' as PDSim;
@@ -25,15 +19,8 @@ import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/target.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
 
-import 'package:propofol_dreams_app/components/legacy/PDSwitchController.dart';
-import 'package:propofol_dreams_app/components/legacy/PDSwitchField.dart';
-import 'package:propofol_dreams_app/components/legacy/PDTextField.dart';
-
-import 'package:propofol_dreams_app/components/legacy/PDSegmentedController.dart';
-import 'package:propofol_dreams_app/components/legacy/PDSegmentedControl.dart';
-import 'package:propofol_dreams_app/components/legacy/PDTextFieldSegmentedControl.dart';
-import 'package:propofol_dreams_app/components/collapsible_input_card.dart';
-import 'package:propofol_dreams_app/components/input_summary_display.dart';
+import 'package:propofol_dreams_app/components/pk_field.dart';
+import 'package:propofol_dreams_app/components/switch_field.dart';
 
 import '../constants.dart';
 import 'package:propofol_dreams_app/config/design_tokens.dart';
@@ -46,19 +33,20 @@ class EleMarshScreen extends StatefulWidget {
 }
 
 class _EleMarshScreenState extends State<EleMarshScreen> {
-  PDSwitchController sexController = PDSwitchController();
+  bool _sexValue = false;
   TextEditingController ageController = TextEditingController();
   TextEditingController heightController = TextEditingController();
   TextEditingController weightController = TextEditingController();
   TextEditingController targetController = TextEditingController();
 
-  final PDSegmentedController flowController = PDSegmentedController();
-  PDSwitchController modelController = PDSwitchController();
+  bool _isWakeFlow = false;
+  bool _isEleveldModel = false;
   TextEditingController maintenanceCeController = TextEditingController();
   TextEditingController maintenanceSEController = TextEditingController();
   TextEditingController infusionRateController = TextEditingController();
-  final CollapsibleInputCardController _inputCardController =
-      CollapsibleInputCardController();
+
+  Timer _debounceTimer = Timer(Duration.zero, () {});
+  static const Duration _debounceDelay = Duration(milliseconds: 500);
 
   //Displays
   String weightBestGuess = "--";
@@ -83,26 +71,25 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   @override
   void initState() {
     super.initState();
-    
-    // Settings are already loaded - initialize controllers with final values
     final settings = context.read<Settings>();
     _setControllersFromSettings(settings);
   }
 
   @override
   void dispose() {
+    _debounceTimer.cancel();
     super.dispose();
   }
 
   void _setControllersFromSettings(Settings settings) {
-    sexController.val = settings.EMSex == Sex.Female ? true : false;
+    _sexValue = settings.EMSex == Sex.Female;
     ageController.text = settings.EMAge?.toString() ?? '40';
     heightController.text = settings.EMHeight?.toString() ?? '170';
     weightController.text = settings.EMWeight?.toString() ?? '70';
     targetController.text = settings.EMTarget?.toString() ?? '3.0';
 
-    flowController.val = settings.EMFlow == 'wake' ? 1 : 0;
-    modelController.val = settings.EMWakeUpModel == Model.Eleveld ? true : false;
+    _isWakeFlow = settings.EMFlow == 'wake';
+    _isEleveldModel = settings.EMWakeUpModel == Model.Eleveld;
     maintenanceCeController.text = settings.EMMaintenanceCe?.toString() ?? '3.0';
     maintenanceSEController.text = settings.EMMaintenanceSE?.toString() ?? '40';
     infusionRateController.text = settings.EMInfusionRate?.toString() ?? '';
@@ -110,7 +97,6 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   }
 
   void updatePDTextEditingController() {
-    // final settings = Provider.of<Settings>(context, listen: false);
     run();
   }
 
@@ -121,10 +107,10 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     int? height = int.tryParse(heightController.text);
     int? weight = int.tryParse(weightController.text);
     double? target = double.tryParse(targetController.text);
-    Sex sex = sexController.val ? Sex.Female : Sex.Male;
+    Sex sex = _sexValue ? Sex.Female : Sex.Male;
 
-    String flow = flowController.val == 0 ? 'induce' : 'wake';
-    Model m = modelController.val ? Model.Eleveld : Model.EleMarsh;
+    String flow = _isWakeFlow ? 'wake' : 'induce';
+    Model m = _isEleveldModel ? Model.Eleveld : Model.EleMarsh;
     double? maintenanceCe = double.tryParse(maintenanceCeController.text);
     int? maintenanceSE = int.tryParse(maintenanceSEController.text);
 
@@ -145,7 +131,6 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         height != null &&
         weight != null &&
         target != null &&
-        m != null &&
         maintenanceCe != null &&
         maintenanceSE != null) {
       switch (age) {
@@ -219,8 +204,6 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             maxPumpRate: settings.max_pump_rate,
             target: target,
             duration: Duration(hours: 3));
-        // Operation operation =
-        //     Operation(target: target, duration: Duration(hours: 3));
         PDSim.Simulation simulation =
             PDSim.Simulation(model: model, patient: patient, pump: pump);
 
@@ -240,7 +223,6 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           weightBestGuess = resultInduction.weightBestGuess.toString();
           inductionCPTarget =
               resultInduction.inductionCPTarget.toStringAsFixed(1);
-          // round manua.Bolus to nearest 10
           int rawManualBolus = resultInduction.manualBolus.round();
           int roundedManualBolus10 = (rawManualBolus / 10).round() * 10;
           manualBolus = roundedManualBolus10.toString();
@@ -248,17 +230,13 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           predictedBIS = resultInduction.predictedBIS.toStringAsFixed(0);
           BMI = patient.bmi.toStringAsFixed(1);
 
-          // Format vial times with rounding to nearest minute
           String formatDuration(Duration? duration) {
             if (duration == null) return "--";
             int minutes = duration.inMinutes;
             int seconds = duration.inSeconds % 60;
-
-            // Round to nearest minute: ≤30 seconds rounds down, >30 seconds rounds up
             if (seconds > 30) {
               minutes += 1;
             }
-
             return "${minutes} min";
           }
 
@@ -282,7 +260,6 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                 '${calculationDuration.inMilliseconds.toString()} milliseconds'
           });
         });
-        if (collapseInput) _inputCardController.collapse();
         final statusInfo = flow == 'induce'
             ? 'ABW: $weightBestGuess kg · CeT: ${target.toStringAsFixed(1)}μg/mL'
             : 'Wake-up: $range μg/mL · Model: ${m.toString()}';
@@ -334,8 +311,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   void reset({bool toDefault = false}) {
     final settings = Provider.of<Settings>(context, listen: false);
 
-    if (flowController.val == 0) {
-      sexController.val = toDefault
+    if (!_isWakeFlow) {
+      _sexValue = toDefault
           ? true
           : settings.EMSex == Sex.Female
               ? true
@@ -361,7 +338,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
               ? settings.EMTarget.toString()
               : '';
     } else {
-      modelController.val = toDefault
+      _isEleveldModel = toDefault
           ? false
           : settings.EMWakeUpModel == Model.EleMarsh
               ? false
@@ -385,625 +362,703 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   int minHeightEleMarsh = 85;
   int maxHeightEleMarsh = 220;
 
-  /// Input fields widget used as [CollapsibleInputCard] expandedContent.
-  Widget _buildInputFields(Settings settings, double UIHeight) {
-    final induceFlow = flowController.val == 0;
-    final sex = sexController.val ? Sex.Female : Sex.Male;
+  List<String> _validate() {
+    final errors = <String>[];
+    final age = int.tryParse(ageController.text);
+    final height = int.tryParse(heightController.text);
+    final weight = int.tryParse(weightController.text);
+    final target = double.tryParse(targetController.text);
+    final maintenanceCe = double.tryParse(maintenanceCeController.text);
+    final maintenanceSE = int.tryParse(maintenanceSEController.text);
+
+    if (age != null && (age < Model.EleMarsh.minAge || age > Model.EleMarsh.maxAge)) {
+      errors.add('Age ${Model.EleMarsh.minAge}-${Model.EleMarsh.maxAge}');
+    }
+    if (height != null && (height < minHeightEleMarsh || height > maxHeightEleMarsh)) {
+      errors.add('Height $minHeightEleMarsh-$maxHeightEleMarsh cm');
+    }
+    if (weight != null && (weight < minWeightEleMarsh || weight > maxWeightEleMarsh)) {
+      errors.add('Weight $minWeightEleMarsh-$maxWeightEleMarsh kg');
+    }
+    if (target != null && (target < 0.5 || target > 8.0)) {
+      errors.add('Target 0.5-8.0 μg/mL');
+    }
+    if (maintenanceCe != null && (maintenanceCe < 0.5 || maintenanceCe > 10)) {
+      errors.add('Maintenance Ce 0.5-10 μg/mL');
+    }
+    if (maintenanceSE != null && (maintenanceSE < 1 || maintenanceSE > 99)) {
+      errors.add('Maintenance SE 1-99');
+    }
+    return errors;
+  }
+
+  Widget _buildErrorPanel(List<String> errors) {
+    return SizedBox(
+      height: 48,
+      child: errors.isEmpty
+          ? const SizedBox.shrink()
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: kSp16, vertical: 8),
+              child: Text(
+                errors.first,
+                style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildInputFields(Settings settings) {
+    final theme = Theme.of(context);
+    final errors = _validate();
     final age = int.tryParse(ageController.text);
     final isAdult = age == null || age >= 17;
-    final maintenanceCe = double.tryParse(maintenanceCeController.text);
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Flow selector + help/reset buttons
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: TextMeasurement.calculateSegmentedControlWidth(
-                context: context,
-                segmentLabels: [
-                  AppLocalizations.of(context)!.induce,
-                  AppLocalizations.of(context)!.emerge,
-                ],
-                textStyle: Theme.of(context).textTheme.bodyLarge ??
-                    const TextStyle(fontSize: 14),
-              ),
-              child: PDTextFieldSegmentedControl(
-                height: UIHeight,
-                fontSize: 14,
-                helperText: '',
-                labels: [
-                  AppLocalizations.of(context)!.induce,
-                  AppLocalizations.of(context)!.emerge,
-                ],
-                segmentedController: flowController,
-                onPressed: [
-                  () => settings.EMFlow = 'induce',
-                  () => settings.EMFlow = 'wake',
-                ],
-              ),
-            ),
-            Row(
-              children: [
-                Container(
-                  height: UIHeight,
-                  width: UIHeight,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.all(0),
-                      backgroundColor: Theme.of(context).colorScheme.onPrimary,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          strokeAlign: BorderSide.strokeAlignOutside,
+        _buildErrorPanel(errors),
+        const SizedBox(height: kSp12),
+        // Flow selector + Help/Reset buttons
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          child: Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(0, 48),
+                            backgroundColor: !_isWakeFlow ? theme.colorScheme.primary : theme.colorScheme.onPrimary,
+                            foregroundColor: !_isWakeFlow ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.horizontal(left: Radius.circular(kRadius)),
+                              side: BorderSide(color: theme.colorScheme.outline),
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() => _isWakeFlow = false);
+                            settings.EMFlow = 'induce';
+                            run();
+                          },
+                          child: Text(AppLocalizations.of(context)!.induce),
                         ),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(5)),
                       ),
-                    ),
-                    onPressed: () async {
-                      await HapticFeedback.mediumImpact();
-                      flowController.val == 0
-                          ? showInduceAlertDialog(context)
-                          : showWakeAlertDialog(context);
-                    },
-                    child: const Center(child: Icon(Symbols.question_mark)),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(0, 48),
+                            backgroundColor: _isWakeFlow ? theme.colorScheme.primary : theme.colorScheme.onPrimary,
+                            foregroundColor: _isWakeFlow ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.horizontal(right: Radius.circular(kRadius)),
+                              side: BorderSide(color: theme.colorScheme.outline),
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() => _isWakeFlow = true);
+                            settings.EMFlow = 'wake';
+                            run();
+                          },
+                          child: Text(AppLocalizations.of(context)!.emerge),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  height: UIHeight,
-                  width: UIHeight,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.all(0),
-                      backgroundColor: Theme.of(context).colorScheme.onPrimary,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          strokeAlign: BorderSide.strokeAlignOutside,
-                        ),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(5)),
-                      ),
+              ),
+              const SizedBox(width: kSp8),
+              SizedBox(
+                height: 48,
+                width: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size.zero,
+                    padding: EdgeInsets.zero,
+                    backgroundColor: theme.colorScheme.onPrimary,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(color: theme.colorScheme.outline),
+                      borderRadius: BorderRadius.circular(kRadius),
                     ),
-                    onPressed: () async {
-                      await HapticFeedback.mediumImpact();
-                      reset(toDefault: true);
-                    },
-                    child: const Icon(Icons.restart_alt_outlined),
                   ),
+                  onPressed: () => _isWakeFlow ? showWakeAlertDialog(context) : showInduceAlertDialog(context),
+                  child: const Icon(Symbols.question_mark, size: 20),
                 ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        // Induce: RSI/STD toggle (L8: moved from results chip to input card)
-        Opacity(
-          opacity: induceFlow ? 1 : 0,
-          child: Container(
-            height: induceFlow ? UIHeight : 0,
-            child: SegmentedButton<bool>(
-              segments: [
-                ButtonSegment(
-                  value: false,
-                  label: const Text('STD'),
-                  icon: Icon(Symbols.syringe),
+              ),
+              const SizedBox(width: kSp8),
+              SizedBox(
+                height: 48,
+                width: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size.zero,
+                    padding: EdgeInsets.zero,
+                    backgroundColor: theme.colorScheme.onPrimary,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(color: theme.colorScheme.outline),
+                      borderRadius: BorderRadius.circular(kRadius),
+                    ),
+                  ),
+                  onPressed: () { HapticFeedback.mediumImpact(); reset(toDefault: true); },
+                  child: const Icon(Icons.restart_alt_outlined, size: 20),
                 ),
-                ButtonSegment(
-                  value: true,
-                  label: const Text('RSI'),
-                  icon: Icon(Symbols.front_hand),
-                ),
-              ],
-              selected: {settings.EMRSI},
-              onSelectionChanged: (Set<bool> selected) {
-                if (selected.length == 1) {
-                  settings.EMRSI = selected.first;
-                  run();
-                }
-              },
-            ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 25),
-        // Induce: Sex + Age row
-        Opacity(
-          opacity: induceFlow ? 1 : 0,
-          child: Container(
-            height: induceFlow ? UIHeight + 24 : 0,
+        const SizedBox(height: kSp12),
+        // RSI/STD toggle (Induce only)
+        if (!_isWakeFlow)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: kSp16),
+            child: SizedBox(
+              height: 48,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(0, 48),
+                        backgroundColor: !settings.EMRSI ? theme.colorScheme.primary : theme.colorScheme.onPrimary,
+                        foregroundColor: !settings.EMRSI ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.horizontal(left: Radius.circular(kRadius)),
+                          side: BorderSide(color: theme.colorScheme.outline),
+                        ),
+                      ),
+                      onPressed: () {
+                        settings.EMRSI = false;
+                        run();
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.medication_liquid, size: 18),
+                          SizedBox(width: 6),
+                          Text('STD'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(0, 48),
+                        backgroundColor: settings.EMRSI ? theme.colorScheme.primary : theme.colorScheme.onPrimary,
+                        foregroundColor: settings.EMRSI ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.horizontal(right: Radius.circular(kRadius)),
+                          side: BorderSide(color: theme.colorScheme.outline),
+                        ),
+                      ),
+                      onPressed: () {
+                        settings.EMRSI = true;
+                        run();
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Symbols.front_hand, size: 18),
+                          SizedBox(width: 6),
+                          Text('RSI'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        if (!_isWakeFlow) const SizedBox(height: kSp12),
+        // Induce: Sex + Age
+        if (!_isWakeFlow)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: kSp16),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  child: PDSwitchField(
+                  child: SwitchField(
                     labelText: AppLocalizations.of(context)!.sex,
-                    prefixIcon: sexController.val == true
-                        ? isAdult
-                            ? Icons.woman
-                            : Icons.girl
-                        : isAdult
-                            ? Icons.man
-                            : Icons.boy,
-                    controller: sexController,
-                    switchTexts: {
-                      true: isAdult
-                          ? Sex.Female.toLocalizedString(context)
-                          : Sex.Girl.toLocalizedString(context),
-                      false: isAdult
-                          ? Sex.Male.toLocalizedString(context)
-                          : Sex.Boy.toLocalizedString(context),
+                    prefixIcon: _sexValue
+                        ? (isAdult ? Icons.woman : Icons.girl)
+                        : (isAdult ? Icons.man : Icons.boy),
+                    value: _sexValue,
+                    switchLabels: {
+                      true: isAdult ? Sex.Female.toLocalizedString(context) : Sex.Girl.toLocalizedString(context),
+                      false: isAdult ? Sex.Male.toLocalizedString(context) : Sex.Boy.toLocalizedString(context),
                     },
-                    onChanged: run,
-                    height: UIHeight,
+                    onChanged: (v) { setState(() => _sexValue = v); run(); },
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: kSp12),
                 Expanded(
-                  child: PDTextField(
-                    prefixIcon: Icons.calendar_month,
+                  child: PKField(
                     labelText: AppLocalizations.of(context)!.age,
+                    prefixIcon: Icons.calendar_month,
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: ageController,
                     range: [Model.EleMarsh.minAge, Model.EleMarsh.maxAge],
-                    onPressed: updatePDTextEditingController,
+                    onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, run); },
+                    hasError: errors.isNotEmpty,
                   ),
                 ),
               ],
             ),
           ),
-        ),
-        // Emerge: Model row
-        Opacity(
-          opacity: induceFlow ? 0 : 1,
-          child: Container(
-            height: induceFlow ? 0 : UIHeight + 24,
+        if (!_isWakeFlow) const SizedBox(height: kSp12),
+        // Induce: Height + Weight
+        if (!_isWakeFlow)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: kSp16),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  child: PDSwitchField(
-                    labelText: AppLocalizations.of(context)!.model,
-                    prefixIcon: modelController.val == true
-                        ? Icons.spoke_outlined
-                        : Icons.hub_outlined,
-                    controller: modelController,
-                    switchTexts: {
-                      true: Model.Eleveld.toString(),
-                      false: Model.EleMarsh.toString(),
-                    },
-                    onChanged: run,
-                    height: UIHeight,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        // Induce: Height + Weight row
-        Opacity(
-          opacity: induceFlow ? 1 : 0,
-          child: Container(
-            height: induceFlow ? UIHeight + 24 : 0,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: PDTextField(
+                  child: PKField(
                     prefixIcon: Icons.straighten,
                     labelText: '${AppLocalizations.of(context)!.height} (cm)',
-                    interval: 1,
+                    interval: 1.0,
                     fractionDigits: 0,
                     controller: heightController,
                     range: [minHeightEleMarsh, maxHeightEleMarsh],
-                    onPressed: updatePDTextEditingController,
+                    onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, run); },
+                    hasError: errors.isNotEmpty,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: kSp12),
                 Expanded(
-                  child: PDTextField(
+                  child: PKField(
                     prefixIcon: Icons.monitor_weight_outlined,
                     labelText: '${AppLocalizations.of(context)!.weight} (kg)',
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: weightController,
                     range: [minWeightEleMarsh, maxWeightEleMarsh],
-                    onPressed: updatePDTextEditingController,
+                    onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, run); },
+                    hasError: errors.isNotEmpty,
                   ),
                 ),
               ],
             ),
           ),
-        ),
-        // Emerge: Maintenance SE row
-        Opacity(
-          opacity: induceFlow ? 0 : 1,
-          child: Container(
-            height: induceFlow ? 0 : UIHeight + 24,
+        if (!_isWakeFlow) const SizedBox(height: kSp12),
+        // Induce: Target
+        if (!_isWakeFlow)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: kSp16),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: PDTextField(
-                    prefixIcon: Icons.monitor_heart_outlined,
-                    labelText: AppLocalizations.of(context)!
-                        .maintenanceStateEntropy,
-                    helperText: isMaintenanceSEOutOfRange
-                        ? '*Accuracy reduced, min: 21 and max: 60'
-                        : '',
-                    interval: 1,
-                    fractionDigits: 0,
-                    controller: maintenanceSEController,
-                    range: const [1, 99],
-                    onPressed: updatePDTextEditingController,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        // Induce: Target row
-        Opacity(
-          opacity: induceFlow ? 1 : 0,
-          child: Container(
-            height: induceFlow ? UIHeight + 24 : 0,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: PDTextField(
+                  child: PKField(
                     prefixIcon: Target.EffectSite.icon,
-                    labelText:
-                        '${AppLocalizations.of(context)!.effectSiteTarget} (μg/mL)',
+                    labelText: '${AppLocalizations.of(context)!.effectSiteTarget} (μg/mL)',
                     interval: 0.5,
                     fractionDigits: 1,
                     controller: targetController,
                     range: const [0.5, 8],
-                    onPressed: updatePDTextEditingController,
+                    onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, run); },
+                    hasError: errors.isNotEmpty,
                   ),
                 ),
               ],
             ),
           ),
-        ),
-        // Emerge: Maintenance Ce row
-        Opacity(
-          opacity: induceFlow ? 0 : 1,
-          child: Container(
-            height: induceFlow ? 0 : UIHeight + 24,
+        if (!_isWakeFlow) const SizedBox(height: kSp12),
+        // Emerge: Model
+        if (_isWakeFlow)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: kSp16),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: PDTextField(
-                    prefixIcon: settings.EMWakeUpModel.target.icon,
-                    labelText: settings.EMWakeUpModel == Model.Eleveld
+                  child: SwitchField(
+                    labelText: AppLocalizations.of(context)!.model,
+                    prefixIcon: _isEleveldModel ? Icons.spoke_outlined : Icons.hub_outlined,
+                    value: _isEleveldModel,
+                    switchLabels: {
+                      true: Model.Eleveld.toString(),
+                      false: Model.EleMarsh.toString(),
+                    },
+                    onChanged: (v) { setState(() => _isEleveldModel = v); run(); },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (_isWakeFlow) const SizedBox(height: kSp12),
+        // Emerge: Maintenance SE
+        if (_isWakeFlow)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: kSp16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: PKField(
+                    prefixIcon: Icons.monitor_heart_outlined,
+                    labelText: AppLocalizations.of(context)!.maintenanceStateEntropy,
+                    interval: 1.0,
+                    fractionDigits: 0,
+                    controller: maintenanceSEController,
+                    range: const [1, 99],
+                    onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, run); },
+                    hasError: errors.isNotEmpty,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (_isWakeFlow) const SizedBox(height: kSp12),
+        // Emerge: Maintenance Ce
+        if (_isWakeFlow)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: kSp16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: PKField(
+                    prefixIcon: (_isEleveldModel ? Model.Eleveld : Model.EleMarsh).target.icon,
+                    labelText: _isEleveldModel
                         ? AppLocalizations.of(context)!.maintenanceCe
                         : AppLocalizations.of(context)!.maintenanceCp,
                     interval: 0.5,
                     fractionDigits: 1,
                     controller: maintenanceCeController,
                     range: const [0.5, 8],
-                    onPressed: updatePDTextEditingController,
+                    onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, run); },
+                    hasError: errors.isNotEmpty,
                   ),
                 ),
               ],
             ),
           ),
-        ),
+        if (_isWakeFlow) const SizedBox(height: kSp12),
       ],
     );
   }
 
-  /// Collapsible input card wrapping the EleMarsh input fields.
-  Widget _buildInputCard(Settings settings, double UIHeight) {
-    final age = int.tryParse(ageController.text);
-    final weight = int.tryParse(weightController.text);
-    final height = int.tryParse(heightController.text);
-    final target = double.tryParse(targetController.text);
-    final sex = sexController.val ? Sex.Female : Sex.Male;
-    final maintenanceCe = double.tryParse(maintenanceCeController.text);
-    final m = modelController.val ? Model.Eleveld : Model.EleMarsh;
-
-    return CollapsibleInputCard(
-      title: 'EleMarsh',
-      controller: _inputCardController,
-      expandedContent: _buildInputFields(settings, UIHeight),
-      collapsedSummary: InputSummaryDisplay(
-        calculatorType: CalculatorType.elemarsh,
-        age: age,
-        sex: sex,
-        weight: weight,
-        height: height,
-        drug: null,
-        model: m,
-        target: target,
-        maintenanceCe: maintenanceCe,
-        flow: flowController.val == 0 ? 'induce' : 'wake',
+  Widget _buildInputPanel(Settings settings) {
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(kRadius),
       ),
-      onCalculate: () => run(collapseInput: true),
-      showCalculateButton: false,
+      child: _buildInputFields(settings),
     );
   }
 
-  /// Results section: the big results display.
-  /// (L8: RSI/STD chip removed — moved to input card as a SegmentedButton.)
   Widget _buildResultsSection(Settings settings) {
-    final mediaQuery = MediaQuery.of(context);
-    final double rowHeight = 20 + 34 + 2 + 4;
-    final isInduceFlow = flowController.val == 0;
+    final theme = Theme.of(context);
+    final isInduceFlow = !_isWakeFlow;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-          child: Column(
+        if (isInduceFlow) ...[
+          Padding(
+            padding: const EdgeInsets.only(left: kSp4, bottom: kSp8),
+            child: Text(
+              AppLocalizations.of(context)!.induce,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.outline,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Row(
             children: [
-              // Induce results
-              Opacity(
-                opacity: isInduceFlow ? 1 : 0,
-                child: Container(
-                  height: isInduceFlow ? rowHeight * 4 : 0,
-                  child: Column(
-                    children: [
-                      _buildResultRow(
-                        'EleMarsh ${AppLocalizations.of(context)!.abw}',
-                        Text('$weightBestGuess',
-                            style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w600,
-                                color: Theme.of(context).colorScheme.primary)),
-                        Text(' kg',
-                            style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w600,
-                                color: Theme.of(context).colorScheme.primary)),
-                      ),
-                      _buildResultRow(
-                        settings.EMRSI
-                            ? AppLocalizations.of(context)!.manualBolus
-                            : '${AppLocalizations.of(context)!.induction} CpT',
-                        Text(
-                            settings.EMRSI
-                                ? manualBolus
-                                : inductionCPTarget,
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: settings.EMRSI
-                                    ? Theme.of(context).colorScheme.tertiary
-                                    : Theme.of(context).colorScheme.primary)),
-                        Text(
-                            settings.EMRSI ? ' mg' : ' μg/mL',
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: settings.EMRSI
-                                    ? Theme.of(context).colorScheme.tertiary
-                                    : Theme.of(context).colorScheme.primary)),
-                      ),
-                      _buildResultRow(
-                        'eBIS',
-                        Text(predictedBIS,
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: mediaQuery.platformBrightness ==
-                                        Brightness.light
-                                    ? const Color(0xFF2D2D2D)
-                                    : const Color(0xFFFAFAFA))),
-                        Text(BMI,
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: mediaQuery.platformBrightness ==
-                                        Brightness.light
-                                    ? const Color(0xFF2D2D2D)
-                                    : const Color(0xFFFAFAFA))),
-                        leadingLabel: 'BMI',
-                      ),
-                      _buildResultRow(
-                        '20ml',
-                        Text(vial20mlTime,
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: mediaQuery.platformBrightness ==
-                                        Brightness.light
-                                    ? const Color(0xFF2D2D2D)
-                                    : const Color(0xFFFAFAFA))),
-                        Text(vial50mlTime,
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: mediaQuery.platformBrightness ==
-                                        Brightness.light
-                                    ? const Color(0xFF2D2D2D)
-                                    : const Color(0xFFFAFAFA))),
-                        leadingLabel: '50ml',
-                      ),
-                    ],
-                  ),
+              Expanded(
+                child: _buildStatCard(
+                  'EleMarsh ${AppLocalizations.of(context)!.abw}',
+                  '$weightBestGuess',
+                  'kg',
+                  Icons.monitor_weight,
+                  theme.colorScheme.primary,
+                  theme,
                 ),
               ),
-              // Emerge results
-              Opacity(
-                opacity: isInduceFlow ? 0 : 1,
-                child: Container(
-                  height: isInduceFlow ? 0 : 119,
-                  child: Column(
-                    children: [
-                      Container(
-                        color: isMaintenanceSEOutOfRange
-                            ? Theme.of(context).colorScheme.onTertiary
-                            : Theme.of(context).colorScheme.onPrimary,
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            const SizedBox(height: 16),
-                            Text(
-                              AppLocalizations.of(context)!.wakeUpRange,
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  color: isMaintenanceSEOutOfRange
-                                      ? Theme.of(context).colorScheme.tertiary
-                                      : Theme.of(context).colorScheme.primary),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Text(
-                                  range,
-                                  style: TextStyle(
-                                      fontSize: 54,
-                                      color: isMaintenanceSEOutOfRange
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .tertiary
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .primary),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+              const SizedBox(width: kSp8),
+              Expanded(
+                child: _buildStatCard(
+                  settings.EMRSI
+                      ? AppLocalizations.of(context)!.manualBolus
+                      : '${AppLocalizations.of(context)!.induction} CpT',
+                  settings.EMRSI ? manualBolus : inductionCPTarget,
+                  settings.EMRSI ? 'mg' : 'μg/mL',
+                  settings.EMRSI ? Icons.medication_liquid : Icons.psychology,
+                  settings.EMRSI
+                      ? theme.colorScheme.tertiary
+                      : theme.colorScheme.primary,
+                  theme,
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: kSp8),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  'eBIS',
+                  predictedBIS,
+                  '',
+                  Icons.monitor_heart_outlined,
+                  theme.colorScheme.onSurface,
+                  theme,
+                ),
+              ),
+              const SizedBox(width: kSp8),
+              Expanded(
+                child: _buildStatCard(
+                  'BMI',
+                  BMI,
+                  '',
+                  Icons.monitor_weight,
+                  theme.colorScheme.onSurface,
+                  theme,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: kSp8),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  '20 mL',
+                  vial20mlTime,
+                  'min',
+                  Icons.schedule,
+                  theme.colorScheme.onSurface,
+                  theme,
+                ),
+              ),
+              const SizedBox(width: kSp8),
+              Expanded(
+                child: _buildStatCard(
+                  '50 mL',
+                  vial50mlTime,
+                  'min',
+                  Icons.schedule,
+                  theme.colorScheme.onSurface,
+                  theme,
+                ),
+              ),
+            ],
+          ),
+        ] else ...[
+          Padding(
+            padding: const EdgeInsets.only(left: kSp4, bottom: kSp8),
+            child: Text(
+              AppLocalizations.of(context)!.wakeUpRange,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.outline,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Card(
+            elevation: 1,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(kRadius),
+              side: isMaintenanceSEOutOfRange
+                  ? BorderSide(color: theme.colorScheme.error)
+                  : BorderSide.none,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    range,
+                    style: TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.w700,
+                      color: isMaintenanceSEOutOfRange
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: kSp8),
+                  Text(
+                    'μg/mL',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isMaintenanceSEOutOfRange)
+            Padding(
+              padding: const EdgeInsets.only(top: kSp8),
+              child: Text(
+                '*Accuracy reduced, min: 21 and max: 60',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ),
+        ],
       ],
     );
   }
 
-  /// Helper: a single result row with a leading label + two value texts.
-  Widget _buildResultRow(
-    String leftLabel,
-    Widget value1,
-    Widget value2, {
-    String? leadingLabel,
-  }) {
-    final mediaQuery = MediaQuery.of(context);
-    return Container(
-      height: 20 + 34 + 2 + 4,
-      color: Theme.of(context).colorScheme.onPrimary,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Divider(height: 0.0, color: Colors.transparent),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildStatCard(
+    String label,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color accentColor,
+    ThemeData theme,
+  ) {
+    return Card(
+      elevation: 1,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(kRadius),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Text(
-                  leftLabel,
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Theme.of(context).colorScheme.primary,
+                Icon(icon, size: 16, color: accentColor),
+                const SizedBox(width: kSp4),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: theme.colorScheme.outline,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Row(
-                  children: [
-                    value1,
-                    const SizedBox(width: 8),
-                    if (leadingLabel != null)
-                      Text(
-                        leadingLabel,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: mediaQuery.platformBrightness ==
-                                  Brightness.light
-                              ? const Color(0xFF2D2D2D)
-                              : const Color(0xFFFAFAFA),
-                        ),
-                      ),
-                    value2,
-                  ],
+              ],
+            ),
+            const SizedBox(height: kSp8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: accentColor,
+                    ),
+                  ),
+                ),
+                if (subtitle.isNotEmpty) ...[
+                  const SizedBox(width: kSp4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout(Settings settings) {
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: horizontalSidesPaddingPixel,
+          right: horizontalSidesPaddingPixel,
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(top: 12),
+                child: _buildResultsSection(settings),
+              ),
+            ),
+            const SizedBox(width: 12),
+            SizedBox(
+              width: 393,
+              child: _buildInputPanel(settings),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(Settings settings) {
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      body: Column(
+        children: [
+          Expanded(
+            child: CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: true,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: horizontalSidesPaddingPixel,
+                      right: horizontalSidesPaddingPixel,
+                      bottom: 12,
+                    ),
+                    child: Column(
+                      children: [
+                        const Spacer(),
+                        _buildResultsSection(settings),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.only(left: 16.0),
-            child: Divider(
-              height: 1.0,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+          SafeArea(
+            top: false,
+            child: _buildInputPanel(settings),
           ),
         ],
       ),
     );
   }
 
-  /// Tablet 2-column layout: input card on left (320px), results on right.
-  Widget _buildTabletLayout(Settings settings, double UIHeight) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: horizontalSidesPaddingPixel,
-        right: horizontalSidesPaddingPixel,
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 320,
-            child: _buildInputCard(settings, UIHeight),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: SingleChildScrollView(
-              child: _buildResultsSection(settings),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Desktop 2-column layout: input card on left (360px), results on right.
-  Widget _buildDesktopLayout(Settings settings, double UIHeight) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: horizontalSidesPaddingPixel,
-        right: horizontalSidesPaddingPixel,
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 360,
-            child: _buildInputCard(settings, UIHeight),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: SingleChildScrollView(
-              child: _buildResultsSection(settings),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Wraps [child] in [Shortcuts] + [Actions] for Enter=run() on desktop/web.
   Widget _wrapWithKeyboardShortcuts(Widget child) {
     final enable = ResponsiveHelper.isDesktop(context) || kIsWeb;
     if (!enable) return child;
@@ -1030,61 +1085,16 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     final isDesktopLayout = ResponsiveHelper.isDesktop(context);
     final isTabletLayout = ResponsiveHelper.isTablet(context) && !isDesktopLayout;
 
-    final mediaQuery = MediaQuery.of(context);
-
-    final double UIHeight = (mediaQuery.size.aspectRatio >= 0.455
-        ? mediaQuery.size.height >= screenBreakPoint1
-            ? 56
-            : 48
-        : 48) + (ResponsiveHelper.isAndroid() ? 4 : 0);
-
     final settings = context.watch<Settings>();
 
     if (isDesktopLayout) {
-      return _wrapWithKeyboardShortcuts(
-        _buildDesktopLayout(settings, UIHeight),
-      );
+      return _wrapWithKeyboardShortcuts(_buildDesktopLayout(settings));
     }
     if (isTabletLayout) {
-      return _wrapWithKeyboardShortcuts(
-        _buildTabletLayout(settings, UIHeight),
-      );
+      return _wrapWithKeyboardShortcuts(_buildDesktopLayout(settings));
     }
 
-    // Mobile: single-column scrollable layout
-    return _wrapWithKeyboardShortcuts(
-      LayoutBuilder(
-        builder: (context, constraints) {
-          return Container(
-            padding: EdgeInsets.only(
-              left: horizontalSidesPaddingPixel,
-              right: horizontalSidesPaddingPixel,
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: SingleChildScrollView(
-              reverse: true,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight -
-                      MediaQuery.of(context).viewInsets.bottom,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildResultsSection(settings),
-                    const SizedBox(height: 24),
-                    _buildInputCard(settings, UIHeight),
-                    SizedBox(
-                      height: MediaQuery.of(context).padding.bottom + 24,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
+    return _buildMobileLayout(settings);
   }
 
   // ─── Info dialogs (EleMarsh Algorithm) ───────────────────
@@ -1473,7 +1483,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                     "(2) Enter the corresponding state entropy (SE) observed.\n"),
             TextSpan(
                 text:
-                    "(3) The algorithm will derive the Cp range for anaesthesia emergence based on the individual’s propofol sensitivity.\n\n"),
+                    "(3) The algorithm will derive the Cp range for anaesthesia emergence based on the individual's propofol sensitivity.\n\n"),
             TextSpan(
                 text: "Limitations:\n",
                 style: TextStyle(fontWeight: FontWeight.bold)),
