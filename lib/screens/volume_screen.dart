@@ -21,6 +21,7 @@ import '../components/infusion_regime_table.dart';
 import '../components/pk_field.dart';
 import '../components/switch_field.dart';
 import '../components/selector.dart';
+import '../components/collapsible_input_section.dart';
 
 
 class _VolumeScreenState extends State<VolumeScreen> {
@@ -902,14 +903,34 @@ class _VolumeScreenState extends State<VolumeScreen> {
     );
   }
 
+  Widget _buildSummary() {
+    final weight = int.tryParse(weightController.text) ?? 0;
+    final target = double.tryParse(targetController.text) ?? 0;
+    final hours = int.tryParse(durationController.text) ?? 0;
+    final model = _selectedModel.name;
+    final theme = Theme.of(context);
+    return Text(
+      '$model · ${weight}kg · ${target.toStringAsFixed(1)} μg/mL · ${hours}h',
+      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
   Widget _buildInputPanel(Settings settings) {
-    return Card(
+    final useMobile = ResponsiveHelper.shouldUseMobileLayout(context);
+    final panel = Card(
       margin: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(kRadius),
       ),
       child: _buildInputFields(settings),
+    );
+    if (!useMobile) return panel;
+    return CollapsibleInputSection(
+      summary: _buildSummary(),
+      child: panel,
     );
   }
 
