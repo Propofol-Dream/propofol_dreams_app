@@ -646,7 +646,7 @@ class _TCIScreenState extends State<TCIScreen> {
     );
   }
 
-  Widget _buildDashboardCards(InfusionRegimeData data) {
+  Widget _buildDashboardCards(InfusionRegimeData data, {bool compact = false}) {
     final theme = Theme.of(context);
     final bolusVal = data.totalBolus < 10
         ? data.totalBolus.toStringAsFixed(1)
@@ -659,28 +659,28 @@ class _TCIScreenState extends State<TCIScreen> {
     return Row(
       children: [
         _buildStatCard(
-            'Bolus', '$bolusVal mL', Icons.medication_liquid, theme.colorScheme.primary),
+            'Bolus', '$bolusVal mL', Icons.medication_liquid, theme.colorScheme.primary, compact: compact),
         const SizedBox(width: kSp8),
         _buildStatCard(
-            'Max Rate', '$maxRateStr mL/hr', Icons.speed, theme.colorScheme.tertiary),
+            'Max Rate', '$maxRateStr mL/hr', Icons.speed, theme.colorScheme.tertiary, compact: compact),
         const SizedBox(width: kSp8),
         _buildStatCard(
             'Total', '${data.totalVolume.toStringAsFixed(1)} mL',
-            Icons.water_drop, theme.colorScheme.secondary),
+            Icons.water_drop, theme.colorScheme.secondary, compact: compact),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color accentColor) {
+  Widget _buildStatCard(String label, String value, IconData icon, Color accentColor, {bool compact = false}) {
     return Expanded(
       child: Card(
         elevation: 1,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(kRadius)),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+          padding: EdgeInsets.symmetric(vertical: compact ? 8 : 10, horizontal: compact ? 8 : 8),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(icon, size: 18, color: accentColor),
+            Icon(icon, size: compact ? 14 : 18, color: accentColor),
             const SizedBox(height: kSp4),
             Text(label,
                 style: TextStyle(
@@ -710,7 +710,7 @@ class _TCIScreenState extends State<TCIScreen> {
           _buildPatientChips(),
           const SizedBox(height: kSp12),
         ],
-        _buildDashboardCards(data),
+        _buildDashboardCards(data, compact: ResponsiveHelper.shouldUseMobileLayout(context)),
         const SizedBox(height: kSp12),
         if (showChart) ...[
           Padding(
@@ -735,7 +735,7 @@ class _TCIScreenState extends State<TCIScreen> {
         ],
         DosageDataTable(
           data: data,
-          maxVisibleRows: 8,
+          maxVisibleRows: ResponsiveHelper.shouldUseMobileLayout(context) ? 4 : 8,
           selectedRowIndex: settings.selectedDosageTableRow,
           onRowTap: (index) {
             if (settings.selectedDosageTableRow == index) {
