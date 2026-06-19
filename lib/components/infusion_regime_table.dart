@@ -764,6 +764,8 @@ class DosageDataTable extends StatelessWidget {
   final Function(int)? onRowTap;
   final ScrollController? scrollController;
   final TimeOfDay? startTime;
+  final int? syncedRowIndex;
+  final bool isSynced;
 
   const DosageDataTable({
     super.key,
@@ -773,6 +775,8 @@ class DosageDataTable extends StatelessWidget {
     this.onRowTap,
     this.scrollController,
     this.startTime,
+    this.syncedRowIndex,
+    this.isSynced = false,
   });
 
   @override
@@ -919,10 +923,16 @@ class DosageDataTable extends StatelessWidget {
     final bodyStyle = theme.textTheme.bodyMedium?.copyWith(
       color: theme.colorScheme.onSurface,
     );
+
+    final bool isSyncAnchor = !isSynced && index == syncedRowIndex;
+    final bool isPastRow = isSynced && index < (syncedRowIndex ?? 0);
+    final bool isNowRow = isSynced && index == syncedRowIndex;
     
     final backgroundColor = isSelected 
         ? theme.colorScheme.primary.withValues(alpha: 0.1)
-        : Colors.transparent;
+        : isNowRow || isSyncAnchor
+            ? theme.colorScheme.secondaryContainer
+            : Colors.transparent;
 
     final rateText = row.infusionRate < 0.1 
         ? '\u2014'
@@ -940,48 +950,55 @@ class DosageDataTable extends StatelessWidget {
       timeText = row.timeString;
     }
 
-    return GestureDetector(
-      onTap: () {
-        if (onRowTap != null) {
-          onRowTap!(index);
-        }
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          border: Border(
-            bottom: BorderSide(
-              color: theme.dividerColor.withValues(alpha: 0.3), 
-              width: 0.5,
+    if (isNowRow) {
+      timeText += ' ◀ (now)';
+    }
+
+    return Opacity(
+      opacity: isPastRow ? 0.3 : 1.0,
+      child: GestureDetector(
+        onTap: () {
+          if (onRowTap != null) {
+            onRowTap!(index);
+          }
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            border: Border(
+              bottom: BorderSide(
+                color: theme.dividerColor.withValues(alpha: 0.3), 
+                width: 0.5,
+              ),
             ),
           ),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 30,
-              child: Text(
-                timeText,
-                style: bodyStyle?.copyWith(
-                  fontWeight: isFirstRow ? FontWeight.w600 : FontWeight.w500,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 30,
+                child: Text(
+                  timeText,
+                  style: bodyStyle?.copyWith(
+                    fontWeight: isFirstRow ? FontWeight.w600 : FontWeight.w500,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 70,
-              child: Text(
-                rateText,
-                style: bodyStyle?.copyWith(
-                  fontWeight: FontWeight.normal,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  fontFeatures: const [FontFeature.tabularFigures()],
+              Expanded(
+                flex: 70,
+                child: Text(
+                  rateText,
+                  style: bodyStyle?.copyWith(
+                    fontWeight: FontWeight.normal,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
