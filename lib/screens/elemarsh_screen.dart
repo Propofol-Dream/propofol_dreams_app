@@ -21,6 +21,7 @@ import 'package:propofol_dreams_app/models/sex.dart';
 
 import 'package:propofol_dreams_app/components/pk_field.dart';
 import 'package:propofol_dreams_app/components/switch_field.dart';
+import 'package:propofol_dreams_app/components/collapsible_input_section.dart';
 
 import '../constants.dart';
 import 'package:propofol_dreams_app/config/design_tokens.dart';
@@ -747,14 +748,36 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     );
   }
 
+  Widget _buildSummary() {
+    final age = int.tryParse(ageController.text) ?? 0;
+    final weight = int.tryParse(weightController.text) ?? 0;
+    final height = int.tryParse(heightController.text) ?? 0;
+    final target = double.tryParse(targetController.text) ?? 0;
+    final flow = _isWakeFlow ? 'Wake' : 'Induce';
+    final sex = _sexValue ? 'F' : 'M';
+    final theme = Theme.of(context);
+    return Text(
+      '$flow · $sex · ${age}y · ${weight}kg · ${height}cm · CeT ${target.toStringAsFixed(1)}',
+      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
   Widget _buildInputPanel(Settings settings) {
-    return Card(
+    final useMobile = ResponsiveHelper.shouldUseMobileLayout(context);
+    final panel = Card(
       margin: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(kRadius),
       ),
       child: _buildInputFields(settings),
+    );
+    if (!useMobile) return panel;
+    return CollapsibleInputSection(
+      summary: _buildSummary(),
+      child: panel,
     );
   }
 
