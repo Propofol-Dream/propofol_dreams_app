@@ -38,6 +38,9 @@ class _TCIScreenState extends State<TCIScreen> {
   Drug? _selectedDrug;
   bool _sexValue = false;
   TimeOfDay _startTime = TimeOfDay.now();
+  int? _syncedRowIndex;
+  TimeOfDay? _syncedClockTime;
+  bool _isTableSynced = false;
 
   static final _uniqueDrugs = () {
     final seen = <String>{};
@@ -179,6 +182,9 @@ class _TCIScreenState extends State<TCIScreen> {
         final results = simulation.estimate;
 
         setState(() {
+          _isTableSynced = false;
+          _syncedRowIndex = null;
+          _syncedClockTime = null;
           infusionRegimeData = InfusionRegimeData.fromSimulation(
             times: results.times,
             pumpInfs: results.pumpInfs,
@@ -366,6 +372,10 @@ class _TCIScreenState extends State<TCIScreen> {
           ),
         ),
         const SizedBox(height: kSp12),
+        if (_syncedRowIndex != null) ...[
+          _buildSyncSection(),
+          const SizedBox(height: kSp12),
+        ],
         // Sex + Age
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: kSp16),
@@ -583,6 +593,95 @@ class _TCIScreenState extends State<TCIScreen> {
     return '$h:${time.minute.toString().padLeft(2, '0')} $p';
   }
 
+  Widget _buildSyncSection() {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: kSp16),
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(kRadius),
+              onTap: () async {
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: _syncedClockTime ?? TimeOfDay.now(),
+                );
+                if (picked != null) {
+                  setState(() => _syncedClockTime = picked);
+                }
+              },
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(kRadius),
+                  border: Border.all(color: theme.colorScheme.outline),
+                  color: theme.colorScheme.onPrimary,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: kSp12),
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _syncedClockTime?.format(context) ?? 'Set clock time',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: _syncedClockTime != null
+                        ? theme.colorScheme.onSurface
+                        : theme.colorScheme.outline,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: kSp8),
+          SizedBox(
+            height: 48,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(kRadius),
+                ),
+              ),
+              onPressed: _syncedRowIndex != null && _syncedClockTime != null
+                  ? () {
+                      setState(() => _isTableSynced = true);
+                    }
+                  : null,
+              child: const Text('Sync'),
+            ),
+          ),
+          if (_isTableSynced) ...[
+            const SizedBox(width: kSp8),
+            SizedBox(
+              height: 48,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.onPrimary,
+                  foregroundColor: theme.colorScheme.onSurfaceVariant,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(color: theme.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(kRadius),
+                  ),
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isTableSynced = false;
+                    _syncedRowIndex = null;
+                    _syncedClockTime = null;
+                  });
+                },
+                child: const Text('Clear'),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   // ── Results Area ─────────────────────────────────────────────
 
   Widget _buildPatientChips() {
@@ -733,19 +832,26 @@ class _TCIScreenState extends State<TCIScreen> {
           ),
           const SizedBox(height: 12),
         ],
+        if (_isTableSynced && data.rows.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: LinearProgressIndicator(
+              value: ((_syncedRowIndex ?? 0) + 1) / data.rows.length,
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            ),
+          ),
+        ],
         DosageDataTable(
           data: data,
           maxVisibleRows: ResponsiveHelper.shouldUseMobileLayout(context) ? 4 : 8,
           selectedRowIndex: settings.selectedDosageTableRow,
           onRowTap: (index) {
-            if (settings.selectedDosageTableRow == index) {
-              settings.selectedDosageTableRow = null;
-            } else {
-              settings.selectedDosageTableRow = index;
-            }
+            setState(() => _syncedRowIndex = index);
           },
           scrollController: tableScrollController,
           startTime: _startTime,
+          syncedRowIndex: _syncedRowIndex,
+          isSynced: _isTableSynced,
         ),
       ],
     );
