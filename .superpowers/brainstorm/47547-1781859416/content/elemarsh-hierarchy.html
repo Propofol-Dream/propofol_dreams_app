@@ -1,0 +1,80 @@
+<h2>EleMarsh Results — Visual Hierarchy</h2>
+<p>Current layout: all stat cards are the same size. George wants ABW and CpT/Bolus to stand out.</p>
+
+<div style="display:flex; gap:24px; flex-wrap:wrap;">
+  <div style="flex:1; min-width:280px;">
+    <h3 style="color:#666;">Current (flat)</h3>
+    <div style="border:1px solid #ddd; border-radius:12px; padding:12px; background:#fafafa;">
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <div style="flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:10px; background:white;">
+          <div style="font-size:10px; color:#999;">ABW</div>
+          <div style="font-size:24px; font-weight:700; color:#1976D2;">72</div>
+          <div style="font-size:11px; color:#999;">kg</div>
+        </div>
+        <div style="flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:10px; background:white;">
+          <div style="font-size:10px; color:#999;">Induction CpT</div>
+          <div style="font-size:24px; font-weight:700; color:#1976D2;">4.5</div>
+          <div style="font-size:11px; color:#999;">μg/mL</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <div style="flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:10px; background:white;">
+          <div style="font-size:10px; color:#999;">eBIS</div>
+          <div style="font-size:24px; font-weight:700; color:#333;">42</div>
+          <div style="font-size:11px; color:#999;">BMI 24</div>
+        </div>
+        <div style="flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:10px; background:white;">
+          <div style="font-size:10px; color:#999;">20 mL</div>
+          <div style="font-size:24px; font-weight:700; color:#333;">12:30</div>
+          <div style="font-size:11px; color:#999;">50 mL 31:15</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex:1; min-width:280px;">
+    <h3 style="color:#1976D2;">Proposed (hierarchical)</h3>
+    <div style="border:2px solid #1976D2; border-radius:12px; padding:12px; background:#f0f7ff;">
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <div style="flex:1; border:2px solid #1976D2; border-radius:8px; padding:14px; background:white;">
+          <div style="font-size:10px; color:#999; text-transform:uppercase; letter-spacing:0.5px;">ABW</div>
+          <div style="font-size:32px; font-weight:800; color:#1976D2;">72</div>
+          <div style="font-size:13px; font-weight:500; color:#1976D2;">kg</div>
+        </div>
+        <div style="flex:1; border:2px solid #1976D2; border-radius:8px; padding:14px; background:white;">
+          <div style="font-size:10px; color:#999; text-transform:uppercase; letter-spacing:0.5px;">Induction CpT</div>
+          <div style="font-size:32px; font-weight:800; color:#1976D2;">4.5</div>
+          <div style="font-size:13px; font-weight:500; color:#1976D2;">μg/mL</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <div style="flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:8px; background:white;">
+          <div style="font-size:9px; color:#999;">eBIS</div>
+          <div style="font-size:18px; font-weight:600; color:#555;">42</div>
+          <div style="font-size:10px; color:#999;">BMI 24</div>
+        </div>
+        <div style="flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:8px; background:white;">
+          <div style="font-size:9px; color:#999;">20 mL</div>
+          <div style="font-size:18px; font-weight:600; color:#555;">12:30</div>
+          <div style="font-size:10px; color:#999;">50 mL 31:15</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:16px; padding:12px; background:#fff3e0; border-radius:8px; border-left:4px solid #ff9800;">
+  <strong>Key changes:</strong>
+  <ul style="margin:4px 0 0 0;">
+    <li>ABW + CpT/Bolus: <strong>32px, weight 800, primary color, thicker border</strong> — dominant</li>
+    <li>eBIS: <strong>18px, weight 600</strong> — secondary</li>
+    <li>BMI + vial times: <strong>18px, weight 600, subtle</strong> — tertiary</li>
+    <li>Units move next to value (already done)</li>
+  </ul>
+</div>
+
+<div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+  <div style="padding:8px 16px; background:#e8f5e9; border-radius:20px; font-size:13px;">✅ ABW + CpT dominant</div>
+  <div style="padding:8px 16px; background:#e8f5e9; border-radius:20px; font-size:13px;">✅ eBIS medium</div>
+  <div style="padding:8px 16px; background:#fff3e0; border-radius:20px; font-size:13px;">❓ BMI + vial times: keep as separate cards or merge?</div>
+</div>

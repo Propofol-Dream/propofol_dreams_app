@@ -1,0 +1,52 @@
+<h2>Collapsible Input Panels</h2>
+<p>George mentioned a minimize button (like pdtci's "Minimize Patient Form") to free up screen space on mobile once data is entered.</p>
+
+<div style="display:flex; gap:24px; flex-wrap:wrap;">
+  <div style="flex:1; min-width:260px;">
+    <h3 style="color:#666;">Current (expanded)</h3>
+    <div style="border:1px solid #ddd; border-radius:12px; background:#fafafa; overflow:hidden;">
+      <div style="background:#1976D2; color:white; padding:8px 12px; font-size:13px; font-weight:600; display:flex; justify-content:space-between;">
+        <span>Input Panel</span>
+        <span style="cursor:pointer; opacity:0.7;">▾ Minimize</span>
+      </div>
+      <div style="padding:12px;">
+        <div style="height:48px; background:#eee; border-radius:8px; margin-bottom:8px;"></div>
+        <div style="height:48px; background:#eee; border-radius:8px; margin-bottom:8px;"></div>
+        <div style="height:48px; background:#eee; border-radius:8px; margin-bottom:8px;"></div>
+        <div style="height:48px; background:#eee; border-radius:8px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex:1; min-width:260px;">
+    <h3 style="color:#1976D2;">Proposed</h3>
+    <div style="border:2px solid #1976D2; border-radius:12px; background:#f0f7ff; overflow:hidden;">
+      <div style="background:#1976D2; color:white; padding:8px 12px; font-size:13px; font-weight:600; display:flex; justify-content:space-between;">
+        <span style="cursor:pointer;">▸ Expanded</span>
+        <span style="font-size:11px; opacity:0.8;">{summary} Max rate: 999 mL/hr</span>
+      </div>
+      <div style="transition: max-height 0.3s ease; overflow:hidden; max-height:0; padding:0 12px;">
+        <div style="height:48px; background:#e3f2fd; border-radius:8px; margin-bottom:8px;"></div>
+        <div style="height:48px; background:#e3f2fd; border-radius:8px; margin-bottom:8px;"></div>
+        <div style="height:48px; background:#e3f2fd; border-radius:8px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:16px; padding:12px; background:#fff3e0; border-radius:8px; border-left:4px solid #ff9800;">
+  <strong>How it works:</strong>
+  <ul style="margin:4px 0 0 0;">
+    <li>Each screen gets a <strong>collapsible input card</strong> header bar</li>
+    <li>Header shows a <strong>summary</strong> of current inputs (e.g., "Propofol · 70kg · 3.0 μg/mL")</li>
+    <li>Tap header or arrow to <strong>expand/collapse</strong></li>
+    <li>Animation: <strong>300ms ease</strong> slide</li>
+    <li>On mobile, starts <strong>collapsed by default</strong> after first calculation</li>
+  </ul>
+</div>
+
+<div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+  <div style="padding:8px 16px; background:#e8f5e9; border-radius:20px; font-size:13px;">✅ Header with summary</div>
+  <div style="padding:8px 16px; background:#e8f5e9; border-radius:20px; font-size:13px;">✅ Tap to toggle</div>
+  <div style="padding:8px 16px; background:#fff3e0; border-radius:20px; font-size:13px;">❓ Auto-collapse after first calc on mobile?</div>
+</div>

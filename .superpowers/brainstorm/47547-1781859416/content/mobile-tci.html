@@ -1,0 +1,51 @@
+<h2>Mobile-First Pass — TCI Screen</h2>
+<p>On mobile, TCI currently has: chips (removed ✓), dashboard cards, chart (removed ✓), data table. Still a lot of vertical content. Options for the dashboard cards on mobile:</p>
+
+<div style="display:flex; gap:24px; flex-wrap:wrap;">
+  <div style="flex:1; min-width:220px;">
+    <div style="border:2px solid #1976D2; border-radius:12px; padding:12px; background:#f0f7ff;">
+      <h3 style="margin:0 0 8px 0; font-size:14px; color:#1976D2;">A — Compact row</h3>
+      <div style="display:flex; gap:4px;">
+        <div style="flex:1; text-align:center; padding:6px; background:white; border-radius:6px;">
+          <div style="font-size:9px; color:#999;">Bolus</div>
+          <div style="font-size:16px; font-weight:700;">22</div>
+          <div style="font-size:9px; color:#999;">mL</div>
+        </div>
+        <div style="flex:1; text-align:center; padding:6px; background:white; border-radius:6px;">
+          <div style="font-size:9px; color:#999;">Max</div>
+          <div style="font-size:16px; font-weight:700;">52</div>
+          <div style="font-size:9px; color:#999;">mL/hr</div>
+        </div>
+        <div style="flex:1; text-align:center; padding:6px; background:white; border-radius:6px;">
+          <div style="font-size:9px; color:#999;">Total</div>
+          <div style="font-size:16px; font-weight:700;">159</div>
+          <div style="font-size:9px; color:#999;">mL</div>
+        </div>
+      </div>
+      <div style="margin-top:8px; font-size:11px; color:#666;">Compact cards, smaller text. Saves ~40px vertical.</div>
+    </div>
+  </div>
+
+  <div style="flex:1; min-width:220px;">
+    <div style="border:1px solid #ddd; border-radius:12px; padding:12px; background:#fafafa;">
+      <h3 style="margin:0 0 8px 0; font-size:14px; color:#666;">B — Inline text row</h3>
+      <div style="padding:8px; background:white; border-radius:6px; font-size:13px;">
+        <strong>Bolus</strong> 22 mL · <strong>Max</strong> 52 mL/hr · <strong>Total</strong> 159 mL
+      </div>
+      <div style="margin-top:8px; font-size:11px; color:#666;">Minimal — just a text line. Saves ~60px vertical.</div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:16px; padding:12px; background:#fff3e0; border-radius:8px; border-left:4px solid #ff9800;">
+  <strong>Other mobile optimizations:</strong>
+  <ul style="margin:4px 0 0 0;">
+    <li><strong>Input panel</strong> — already fixed-bottom, collapsible header coming in workstream #2</li>
+    <li><strong>Data table</strong> — reduce maxVisibleRows on mobile (currently 8, suggest 4)</li>
+    <li><strong>Start time</strong> — already in target row, OK as-is</li>
+  </ul>
+</div>
+
+<div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+  <div style="padding:8px 16px; background:#fff3e0; border-radius:20px; font-size:13px;">❓ Which dashboard style for mobile: A (compact cards) or B (inline text)?</div>
+</div>

@@ -1,0 +1,73 @@
+<h2>Real-Time Infusion Table</h2>
+<p>Based on pdtci.netlify.app: tap a time row → sync with wall clock → progress bar → dim past rows.</p>
+
+<div style="border:2px solid #1976D2; border-radius:12px; padding:16px; background:#f0f7ff; max-width:500px;">
+  <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+    <div style="font-size:11px; color:#666; font-weight:600; flex:2;">Time</div>
+    <div style="font-size:11px; color:#666; font-weight:600; flex:1; text-align:right;">Rate</div>
+    <div style="font-size:11px; color:#666; font-weight:600; flex:1; text-align:right;">Volume</div>
+  </div>
+  <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; opacity:0.3;">
+    <div style="flex:2; font-size:14px;">0:00</div>
+    <div style="flex:1; text-align:right; font-size:14px;">52</div>
+    <div style="flex:1; text-align:right; font-size:14px;">22</div>
+  </div>
+  <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; opacity:0.3;">
+    <div style="flex:2; font-size:14px;">0:15</div>
+    <div style="flex:1; text-align:right; font-size:14px;">44</div>
+    <div style="flex:1; text-align:right; font-size:14px;">33</div>
+  </div>
+  <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; opacity:0.3;">
+    <div style="flex:2; font-size:14px;">0:30</div>
+    <div style="flex:1; text-align:right; font-size:14px;">41</div>
+    <div style="flex:1; text-align:right; font-size:14px;">43</div>
+  </div>
+  <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:2px solid #1976D2; background:#e3f2fd;">
+    <div style="flex:2; font-size:14px; font-weight:700; color:#1976D2;">◀ 0:45 <span style="font-weight:400; font-size:11px; color:#666;">(now)</span></div>
+    <div style="flex:1; text-align:right; font-size:14px; font-weight:600;">39</div>
+    <div style="flex:1; text-align:right; font-size:14px; font-weight:600;">53</div>
+  </div>
+  <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee;">
+    <div style="flex:2; font-size:14px;">1:00</div>
+    <div style="flex:1; text-align:right; font-size:14px;">38</div>
+    <div style="flex:1; text-align:right; font-size:14px;">63</div>
+  </div>
+  <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee;">
+    <div style="flex:2; font-size:14px;">1:15</div>
+    <div style="flex:1; text-align:right; font-size:14px;">38</div>
+    <div style="flex:1; text-align:right; font-size:14px;">72</div>
+  </div>
+  <div style="display:flex; justify-content:space-between; padding:6px 0;">
+    <div style="flex:2; font-size:14px;">1:30</div>
+    <div style="flex:1; text-align:right; font-size:14px;">37</div>
+    <div style="flex:1; text-align:right; font-size:14px;">81</div>
+  </div>
+</div>
+
+<div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+  <div style="background:#1976D2; color:white; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer;">Sync Time</div>
+  <div style="background:#f5f5f5; padding:6px 12px; border-radius:6px; font-size:12px; border:1px solid #ddd;">Clear Sync</div>
+  <div style="font-size:12px; color:#666;">Set clock: <strong>08:45</strong></div>
+</div>
+
+<div style="margin-top:16px; padding:12px; background:#fff3e0; border-radius:8px; border-left:4px solid #ff9800;">
+  <strong>Workflow:</strong>
+  <ol style="margin:4px 0 0 0;">
+    <li>User <strong>taps a time cell</strong> (e.g., "0:45") — row highlights</li>
+    <li>User sets the <strong>current wall clock time</strong> (e.g., 08:45)</li>
+    <li>User taps <strong>"Sync Time"</strong> — the table anchors "0:45" to 08:45</li>
+    <li><strong>Past rows dim</strong> (0:00, 0:15, 0:30 become translucent)</li>
+    <li><strong>"Now" row</strong> gets a blue highlight + "◀ (now)" label</li>
+    <li><strong>Future rows</strong> remain full opacity</li>
+    <li><strong>Progress bar</strong> at top shows elapsed fraction</li>
+    <li>User can <strong>"Clear Sync"</strong> to reset</li>
+  </ol>
+</div>
+
+<div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+  <div style="padding:8px 16px; background:#e8f5e9; border-radius:20px; font-size:13px;">✅ Tap row to select</div>
+  <div style="padding:8px 16px; background:#e8f5e9; border-radius:20px; font-size:13px;">✅ Sync to wall clock</div>
+  <div style="padding:8px 16px; background:#e8f5e9; border-radius:20px; font-size:13px;">✅ Dim past rows</div>
+  <div style="padding:8px 16px; background:#e8f5e9; border-radius:20px; font-size:13px;">✅ Progress bar</div>
+  <div style="padding:8px 16px; background:#fff3e0; border-radius:20px; font-size:13px;">❓ Live timer auto-advance "now" row?</div>
+</div>
