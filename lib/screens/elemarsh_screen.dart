@@ -810,6 +810,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                   Icons.monitor_weight,
                   theme.colorScheme.primary,
                   theme,
+                  valueFontSize: 32,
+                  prominent: true,
                 ),
               ),
               const SizedBox(width: kSp8),
@@ -825,6 +827,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                       ? theme.colorScheme.tertiary
                       : theme.colorScheme.primary,
                   theme,
+                  valueFontSize: 32,
+                  prominent: true,
                 ),
               ),
             ],
@@ -840,6 +844,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                   Icons.monitor_heart_outlined,
                   theme.colorScheme.onSurface,
                   theme,
+                  valueFontSize: 18,
                 ),
               ),
               const SizedBox(width: kSp8),
@@ -851,6 +856,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                   Icons.monitor_weight,
                   theme.colorScheme.onSurface,
                   theme,
+                  valueFontSize: 18,
                 ),
               ),
             ],
@@ -866,6 +872,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                   Icons.schedule,
                   theme.colorScheme.onSurface,
                   theme,
+                  valueFontSize: 18,
                 ),
               ),
               const SizedBox(width: kSp8),
@@ -877,6 +884,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                   Icons.schedule,
                   theme.colorScheme.onSurface,
                   theme,
+                  valueFontSize: 18,
                 ),
               ),
             ],
@@ -953,16 +961,24 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     String subtitle,
     IconData icon,
     Color accentColor,
-    ThemeData theme,
-  ) {
+    ThemeData theme, {
+    double valueFontSize = 24,
+    bool prominent = false,
+  }) {
     return Card(
       elevation: 1,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(kRadius),
+        side: prominent
+            ? BorderSide(color: accentColor, width: 2)
+            : BorderSide.none,
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+        padding: EdgeInsets.symmetric(
+          vertical: prominent ? 14 : 12,
+          horizontal: 10,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -994,7 +1010,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                   child: Text(
                     value,
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: valueFontSize,
                       fontWeight: FontWeight.w700,
                       color: accentColor,
                     ),
