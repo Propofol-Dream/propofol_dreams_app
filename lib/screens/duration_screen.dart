@@ -13,6 +13,7 @@ import 'package:propofol_dreams_app/config/design_tokens.dart';
 import 'package:propofol_dreams_app/models/InfusionUnit.dart';
 import 'package:propofol_dreams_app/components/infusion_regime_table.dart';
 import 'package:propofol_dreams_app/components/pk_field.dart';
+import 'package:propofol_dreams_app/components/collapsible_input_section.dart';
 
 import '../providers/settings.dart';
 
@@ -260,6 +261,19 @@ class _DurationScreenState extends State<DurationScreen> {
     );
   }
 
+  Widget _buildSummary() {
+    final weight = int.tryParse(weightController.text) ?? 0;
+    final rate = double.tryParse(infusionRateController.text) ?? 0;
+    final unit = infusionUnits[_selectedUnitIndex].toString();
+    final theme = Theme.of(context);
+    return Text(
+      '${weight}kg · ${rate.toStringAsFixed(infusionRateDecimal)} $unit',
+      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
   /// Input fields widget used as input panel content.
   Widget _buildInputFields(Settings settings) {
     final theme = Theme.of(context);
@@ -355,13 +369,19 @@ class _DurationScreenState extends State<DurationScreen> {
   }
 
   Widget _buildInputPanel(Settings settings) {
-    return Card(
+    final useMobile = ResponsiveHelper.shouldUseMobileLayout(context);
+    final panel = Card(
       margin: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(kRadius),
       ),
       child: _buildInputFields(settings),
+    );
+    if (!useMobile) return panel;
+    return CollapsibleInputSection(
+      summary: _buildSummary(),
+      child: panel,
     );
   }
 
