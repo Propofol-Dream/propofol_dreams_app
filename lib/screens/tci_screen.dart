@@ -25,6 +25,7 @@ import '../components/pk_field.dart';
 import '../components/switch_field.dart';
 import '../components/selector.dart';
 import '../components/infusion_rate_chart.dart';
+import '../components/collapsible_input_section.dart';
 
 class TCIScreen extends StatefulWidget {
   const TCIScreen({super.key});
@@ -485,14 +486,36 @@ class _TCIScreenState extends State<TCIScreen> {
     );
   }
 
+  Widget _buildSummary() {
+    final age = int.tryParse(ageController.text) ?? 0;
+    final weight = int.tryParse(weightController.text) ?? 0;
+    final height = int.tryParse(heightController.text) ?? 0;
+    final target = double.tryParse(targetController.text) ?? 0;
+    final drug = _selectedDrug?.displayName ?? 'Drug';
+    final sex = _sexValue ? 'F' : 'M';
+    final theme = Theme.of(context);
+    return Text(
+      '$drug · $sex · ${age}y · ${weight}kg · ${height}cm · CeT ${target.toStringAsFixed(1)}',
+      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
   Widget _buildInputPanel(Settings settings) {
-    return Card(
+    final useMobile = ResponsiveHelper.shouldUseMobileLayout(context);
+    final panel = Card(
       margin: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(kRadius),
       ),
       child: _buildInputFields(settings),
+    );
+    if (!useMobile) return panel;
+    return CollapsibleInputSection(
+      summary: _buildSummary(),
+      child: panel,
     );
   }
 
@@ -679,33 +702,37 @@ class _TCIScreenState extends State<TCIScreen> {
     );
   }
 
-  Widget _buildResults(InfusionRegimeData data, Settings settings) {
+  Widget _buildResults(InfusionRegimeData data, Settings settings, {bool showChips = true, bool showChart = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildPatientChips(),
-        const SizedBox(height: kSp12),
+        if (showChips) ...[
+          _buildPatientChips(),
+          const SizedBox(height: kSp12),
+        ],
         _buildDashboardCards(data),
         const SizedBox(height: kSp12),
-        Padding(
-          padding: const EdgeInsets.only(left: kSp4, bottom: kSp4),
-          child: Text(
-            'Rate (mL/hr)',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+        if (showChart) ...[
+          Padding(
+            padding: const EdgeInsets.only(left: kSp4, bottom: kSp4),
+            child: Text(
+              'Rate (mL/hr)',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-        ),
-        SizedBox(
-          height: 250,
-          child: InfusionRateChart(
-            data: data,
-            startTime: _startTime,
+          SizedBox(
+            height: 250,
+            child: InfusionRateChart(
+              data: data,
+              startTime: _startTime,
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
+          const SizedBox(height: 12),
+        ],
         DosageDataTable(
           data: data,
           maxVisibleRows: 8,
@@ -786,7 +813,7 @@ class _TCIScreenState extends State<TCIScreen> {
                     top: 12,
                   ),
                   child: infusionRegimeData != null
-                      ? _buildResults(infusionRegimeData!, settings)
+                      ? _buildResults(infusionRegimeData!, settings, showChips: false, showChart: false)
                       : SizedBox(
                           height: constraints.maxHeight - 100,
                           child: Center(
