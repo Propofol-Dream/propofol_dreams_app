@@ -496,37 +496,100 @@ class _TCIScreenState extends State<TCIScreen> {
     );
   }
 
-  Widget _buildSummary() {
-    final age = int.tryParse(ageController.text) ?? 0;
-    final weight = int.tryParse(weightController.text) ?? 0;
-    final height = int.tryParse(heightController.text) ?? 0;
-    final target = double.tryParse(targetController.text) ?? 0;
-    final drug = _selectedDrug?.displayName ?? 'Drug';
-    final sex = _sexValue ? 'F' : 'M';
-    final theme = Theme.of(context);
-    return Text(
-      '$drug · $sex · ${age}y · ${weight}kg · ${height}cm · CeT ${target.toStringAsFixed(1)}',
-      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+  Widget _buildInputPanel(Settings settings) {
+    final useMobile = ResponsiveHelper.shouldUseMobileLayout(context);
+    if (!useMobile) {
+      return Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(32),
+        ),
+        child: _buildInputFields(settings),
+      );
+    }
+    return CollapsibleInputSection(
+      child: _buildInputFields(settings),
+      collapsedChips: _buildCollapsedChips(settings),
     );
   }
 
-  Widget _buildInputPanel(Settings settings) {
-    final useMobile = ResponsiveHelper.shouldUseMobileLayout(context);
-    final panel = Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(kRadius),
+  List<Widget> _buildCollapsedChips(Settings settings) {
+    final errors = _validate(settings);
+    final theme = Theme.of(context);
+    final ageText = ageController.text;
+    final weightText = weightController.text;
+    final heightText = heightController.text;
+    final targetText = targetController.text;
+
+    Widget chip({
+      required String displayValue,
+      required String emptyLabel,
+      required IconData icon,
+      required bool isEmpty,
+      required bool hasError,
+    }) {
+      final chipColor = hasError
+          ? theme.colorScheme.error
+          : (isEmpty ? theme.colorScheme.outline : null);
+      final bgColor = hasError
+          ? theme.colorScheme.errorContainer.withValues(alpha: 0.5)
+          : null;
+      return Chip(
+        avatar: Icon(hasError ? Icons.error_outline : icon, size: 16, color: chipColor),
+        label: Text(isEmpty ? emptyLabel : displayValue,
+            style: TextStyle(fontSize: 11, color: chipColor)),
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        backgroundColor: bgColor,
+      );
+    }
+
+    return [
+      Chip(
+        avatar: Icon(_selectedDrug?.icon ?? Icons.medication, size: 16),
+        label: Text(_selectedDrug?.displayName ?? 'Drug', style: const TextStyle(fontSize: 11)),
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 6),
       ),
-      child: _buildInputFields(settings),
-    );
-    if (!useMobile) return panel;
-    return CollapsibleInputSection(
-      summary: _buildSummary(),
-      child: panel,
-    );
+      Chip(
+        avatar: Icon(_sexValue ? Icons.female : Icons.male, size: 16),
+        label: Text(_sexValue ? 'F' : 'M', style: const TextStyle(fontSize: 11)),
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+      ),
+      chip(
+        displayValue: '${ageText}y',
+        emptyLabel: 'Age',
+        icon: Icons.calendar_month,
+        isEmpty: ageText.isEmpty,
+        hasError: errors.any((e) => e.startsWith('Age')),
+      ),
+      chip(
+        displayValue: '${weightText}kg',
+        emptyLabel: 'Weight',
+        icon: Icons.monitor_weight,
+        isEmpty: weightText.isEmpty,
+        hasError: errors.any((e) => e.startsWith('Weight')),
+      ),
+      chip(
+        displayValue: '${heightText}cm',
+        emptyLabel: 'Height',
+        icon: Icons.straighten,
+        isEmpty: heightText.isEmpty,
+        hasError: errors.any((e) => e.startsWith('Height')),
+      ),
+      chip(
+        displayValue: '${targetText} μg/mL',
+        emptyLabel: 'Target',
+        icon: Icons.psychology,
+        isEmpty: targetText.isEmpty,
+        hasError: errors.any((e) => e.startsWith('Target')),
+      ),
+    ];
   }
 
   // ── Start Time ──────────────────────────────────────────────
@@ -843,7 +906,7 @@ class _TCIScreenState extends State<TCIScreen> {
         ],
         DosageDataTable(
           data: data,
-          maxVisibleRows: ResponsiveHelper.shouldUseMobileLayout(context) ? 4 : 8,
+          maxVisibleRows: ResponsiveHelper.shouldUseMobileLayout(context) ? 99 : 8,
           selectedRowIndex: settings.selectedDosageTableRow,
           onRowTap: (index) {
             setState(() => _syncedRowIndex = index);

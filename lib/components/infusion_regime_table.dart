@@ -242,22 +242,19 @@ class _AnimatedDataTableState extends State<AnimatedDataTable>
 
   @override
   Widget build(BuildContext context) {
-    return SizeTransition(
-      sizeFactor: _headerAnimation,
-      child: FadeTransition(
-        opacity: _headerAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.95, end: 1.0).animate(_contentAnimation),
-            child: DataTable(
-              data: widget.data,
-              headers: widget.headers,
-              maxVisibleRows: widget.maxVisibleRows,
-              selectedRowIndex: widget.selectedRowIndex,
-              onRowTap: widget.onRowTap,
-              scrollController: widget.scrollController,
-            ),
+    return FadeTransition(
+      opacity: _headerAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.95, end: 1.0).animate(_contentAnimation),
+          child: DataTable(
+            data: widget.data,
+            headers: widget.headers,
+            maxVisibleRows: widget.maxVisibleRows,
+            selectedRowIndex: widget.selectedRowIndex,
+            onRowTap: widget.onRowTap,
+            scrollController: widget.scrollController,
           ),
         ),
       ),
@@ -425,8 +422,7 @@ class DataTable extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
-    final visibleRows = data; // Show all data, let scrolling handle the rest
-    final tableHeight = math.min(visibleRows.length, maxVisibleRows) * 41.0;
+    final visibleRows = data;
 
     return Container(
       decoration: BoxDecoration(
@@ -434,12 +430,10 @@ class DataTable extends StatelessWidget {
         borderRadius: BorderRadius.circular(5),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildHeader(context),
-          SizedBox(
-            height: tableHeight,
+          Expanded(
             child: SingleChildScrollView(
               controller: scrollController,
               physics: const AlwaysScrollableScrollPhysics(),

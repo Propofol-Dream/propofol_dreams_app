@@ -261,19 +261,6 @@ class _DurationScreenState extends State<DurationScreen> {
     );
   }
 
-  Widget _buildSummary() {
-    final weight = int.tryParse(weightController.text) ?? 0;
-    final rate = double.tryParse(infusionRateController.text) ?? 0;
-    final unit = infusionUnits[_selectedUnitIndex].toString();
-    final theme = Theme.of(context);
-    return Text(
-      '${weight}kg · ${rate.toStringAsFixed(infusionRateDecimal)} $unit',
-      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-
   /// Input fields widget used as input panel content.
   Widget _buildInputFields(Settings settings) {
     final theme = Theme.of(context);
@@ -370,19 +357,68 @@ class _DurationScreenState extends State<DurationScreen> {
 
   Widget _buildInputPanel(Settings settings) {
     final useMobile = ResponsiveHelper.shouldUseMobileLayout(context);
-    final panel = Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(kRadius),
-      ),
-      child: _buildInputFields(settings),
-    );
-    if (!useMobile) return panel;
+    if (!useMobile) {
+      return Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(32),
+        ),
+        child: _buildInputFields(settings),
+      );
+    }
     return CollapsibleInputSection(
-      summary: _buildSummary(),
-      child: panel,
+      child: _buildInputFields(settings),
+      collapsedChips: _buildCollapsedChips(),
     );
+  }
+
+  List<Widget> _buildCollapsedChips() {
+    final errors = _validate();
+    final theme = Theme.of(context);
+    final weightText = weightController.text;
+    final rateText = infusionRateController.text;
+
+    Widget chip({
+      required String displayValue,
+      required String emptyLabel,
+      required IconData icon,
+      required bool isEmpty,
+      required bool hasError,
+    }) {
+      final chipColor = hasError
+          ? theme.colorScheme.error
+          : (isEmpty ? theme.colorScheme.outline : null);
+      final bgColor = hasError
+          ? theme.colorScheme.errorContainer.withValues(alpha: 0.5)
+          : null;
+      return Chip(
+        avatar: Icon(hasError ? Icons.error_outline : icon, size: 16, color: chipColor),
+        label: Text(isEmpty ? emptyLabel : displayValue,
+            style: TextStyle(fontSize: 11, color: chipColor)),
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        backgroundColor: bgColor,
+      );
+    }
+
+    return [
+      chip(
+        displayValue: '${weightText}kg',
+        emptyLabel: 'Weight',
+        icon: Icons.monitor_weight,
+        isEmpty: weightText.isEmpty,
+        hasError: errors.any((e) => e.startsWith('Weight')),
+      ),
+      chip(
+        displayValue: '$rateText ${infusionUnits[_selectedUnitIndex].toString()}',
+        emptyLabel: 'Rate',
+        icon: Icons.water_drop,
+        isEmpty: rateText.isEmpty,
+        hasError: errors.any((e) => e.startsWith('Rate')),
+      ),
+    ];
   }
 
   /// Results table section.

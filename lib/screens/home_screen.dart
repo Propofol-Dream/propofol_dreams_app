@@ -191,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     });
                   },
                   indicatorColor: theme.colorScheme.secondaryContainer,
-                  backgroundColor: theme.colorScheme.surfaceContainerLow,
+                  backgroundColor: theme.colorScheme.surface,
                   height: 80,
                   labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
                   destinations: navDestinations,

@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import '../config/design_tokens.dart';
 
 class CollapsibleInputSection extends StatefulWidget {
-  final Widget summary;
   final Widget child;
+  final List<Widget>? collapsedChips;
+  final ValueChanged<bool>? onCollapsedChanged;
 
   const CollapsibleInputSection({
     super.key,
-    required this.summary,
     required this.child,
+    this.collapsedChips,
+    this.onCollapsedChanged,
   });
 
   @override
@@ -21,41 +23,71 @@ class _CollapsibleInputSectionState extends State<CollapsibleInputSection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        InkWell(
-          borderRadius: BorderRadius.circular(kRadius),
-          onTap: () => setState(() => _isCollapsed = !_isCollapsed),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: kSp16, vertical: 10),
-            child: Row(
-              children: [
-                AnimatedRotation(
-                  turns: _isCollapsed ? -0.25 : 0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Icon(
-                    Icons.chevron_left,
-                    size: 20,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(width: kSp8),
-                Expanded(child: widget.summary),
-              ],
-            ),
+
+    return GestureDetector(
+      onVerticalDragEnd: (details) {
+        if (details.primaryVelocity == null) return;
+        final wasCollapsed = _isCollapsed;
+        if (details.primaryVelocity! > 300) {
+          _isCollapsed = true;
+        } else if (details.primaryVelocity! < -300) {
+          _isCollapsed = false;
+        }
+        if (wasCollapsed != _isCollapsed) {
+          setState(() {});
+          widget.onCollapsedChanged?.call(_isCollapsed);
+        }
+      },
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(32),
+            topRight: Radius.circular(32),
           ),
         ),
-        AnimatedCrossFade(
-          firstChild: const SizedBox.shrink(),
-          secondChild: widget.child,
-          crossFadeState: _isCollapsed
-              ? CrossFadeState.showFirst
-              : CrossFadeState.showSecond,
-          duration: const Duration(milliseconds: 300),
-          sizeCurve: Curves.fastOutSlowIn,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: 24,
+              child: Center(
+                child: Container(
+                  width: 32,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 150),
+              opacity: _isCollapsed ? 1.0 : 0.0,
+              child: _isCollapsed && widget.collapsedChips != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: kSp16, right: kSp16, bottom: kSp8),
+                      child: Wrap(
+                        spacing: kSp8,
+                        runSpacing: kSp4,
+                        children: widget.collapsedChips!,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              alignment: Alignment.bottomCenter,
+              child: _isCollapsed
+                  ? const SizedBox(height: 0)
+                  : widget.child,
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

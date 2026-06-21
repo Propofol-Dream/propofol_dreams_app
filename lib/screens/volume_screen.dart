@@ -39,6 +39,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
   Timer timer = Timer(Duration.zero, () {});
   Duration delay = const Duration(milliseconds: 500);
   bool _shouldAnimateTableExpansion = false;
+  bool _isInputCollapsed = false;
 
   double targetInterval = 0.5;
   int durationInterval = 10; //in mins
@@ -903,35 +904,95 @@ class _VolumeScreenState extends State<VolumeScreen> {
     );
   }
 
-  Widget _buildSummary() {
-    final weight = int.tryParse(weightController.text) ?? 0;
-    final target = double.tryParse(targetController.text) ?? 0;
-    final hours = int.tryParse(durationController.text) ?? 0;
-    final model = _selectedModel.name;
-    final theme = Theme.of(context);
-    return Text(
-      '$model · ${weight}kg · ${target.toStringAsFixed(1)} μg/mL · ${hours}h',
-      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+  Widget _buildInputPanel(Settings settings) {
+    final useMobile = ResponsiveHelper.shouldUseMobileLayout(context);
+    if (!useMobile) {
+      return Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(32),
+        ),
+        child: _buildInputFields(settings),
+      );
+    }
+    return CollapsibleInputSection(
+      child: _buildInputFields(settings),
+      collapsedChips: _buildCollapsedChips(settings),
+      onCollapsedChanged: (collapsed) {
+        setState(() => _isInputCollapsed = collapsed);
+      },
     );
   }
 
-  Widget _buildInputPanel(Settings settings) {
-    final useMobile = ResponsiveHelper.shouldUseMobileLayout(context);
-    final panel = Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(kRadius),
+  List<Widget> _buildCollapsedChips(Settings settings) {
+    final errors = _validate(settings);
+    final theme = Theme.of(context);
+    final weightText = weightController.text;
+    final targetText = targetController.text;
+    final durationText = durationController.text;
+
+    Widget chip({
+      required String displayValue,
+      required String emptyLabel,
+      required IconData icon,
+      required bool isEmpty,
+      required bool hasError,
+    }) {
+      final chipColor = hasError
+          ? theme.colorScheme.error
+          : (isEmpty ? theme.colorScheme.outline : null);
+      final bgColor = hasError
+          ? theme.colorScheme.errorContainer.withValues(alpha: 0.5)
+          : null;
+      return Chip(
+        avatar: Icon(hasError ? Icons.error_outline : icon, size: 16, color: chipColor),
+        label: Text(isEmpty ? emptyLabel : displayValue,
+            style: TextStyle(fontSize: 11, color: chipColor)),
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        backgroundColor: bgColor,
+      );
+    }
+
+    return [
+      Chip(
+        avatar: const Icon(Icons.model_training, size: 16),
+        label: Text(_selectedModel.name, style: const TextStyle(fontSize: 11)),
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 6),
       ),
-      child: _buildInputFields(settings),
-    );
-    if (!useMobile) return panel;
-    return CollapsibleInputSection(
-      summary: _buildSummary(),
-      child: panel,
-    );
+      Chip(
+        avatar: Icon(_sexValue ? Icons.female : Icons.male, size: 16),
+        label: Text(_sexValue ? 'F' : 'M', style: const TextStyle(fontSize: 11)),
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+      ),
+      chip(
+        displayValue: '${weightText}kg',
+        emptyLabel: 'Weight',
+        icon: Icons.monitor_weight,
+        isEmpty: weightText.isEmpty,
+        hasError: errors.any((e) => e.contains('Weight') || e.contains('weight')),
+      ),
+      chip(
+        displayValue: '${targetText} μg/mL',
+        emptyLabel: 'Target',
+        icon: Icons.psychology,
+        isEmpty: targetText.isEmpty,
+        hasError: errors.any((e) => e.contains('Target') || e.contains('target')),
+      ),
+      chip(
+        displayValue: '${durationText}h',
+        emptyLabel: 'Duration',
+        icon: Icons.schedule,
+        isEmpty: durationText.isEmpty,
+        hasError: errors.any((e) => e.contains('Duration') || e.contains('duration')),
+      ),
+    ];
   }
 
   List<ConfidenceIntervalRowData> _buildConfidenceIntervalData(
@@ -1187,63 +1248,38 @@ class _VolumeScreenState extends State<VolumeScreen> {
       body: _wrapWithKeyboardShortcuts(
         Column(
           children: [
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    padding: EdgeInsets.only(
-                      left: horizontalSidesPaddingPixel,
-                      right: horizontalSidesPaddingPixel,
-                      top: 12,
-                    ),
-                    child: _buildResultsSection(
-                        settings, screenHeight, target, modelIsRunnable, showTable: false),
-                  );
-                },
-              ),
-            ),
-            // Result label + arrow pinned just above input panel
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-              ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        onPressed: () async {
-                          await HapticFeedback.mediumImpact();
-                          updatePDTableController(tableController);
-                        },
-                        icon: tableController.val
-                            ? const Icon(Icons.expand_more)
-                            : const Icon(Icons.expand_less),
-                      ),
-                      AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.fastOutSlowIn,
-                        style: TextStyle(
-                          fontSize: tableController.val ? 34 : 60,
-                          color: Theme.of(context).colorScheme.onSurface,
+            if (_isInputCollapsed && mediaQuery.size.height >= screenBreakPoint1) ...[
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.fastOutSlowIn,
+                          style: TextStyle(
+                            fontSize: 60,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          child: Text(modelIsRunnable ? result : emptyResult),
                         ),
-                        child: Text(modelIsRunnable ? result : emptyResult),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            // Data table (expands between result label and input panel)
-            AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.fastOutSlowIn,
-              alignment: Alignment.topCenter,
-              child: tableController.val && mediaQuery.size.height >= screenBreakPoint1
-                  ? Consumer<Settings>(
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final rowHeight = 41.0;
+                    final maxRows = (constraints.maxHeight / rowHeight).floor();
+                    return Consumer<Settings>(
                       builder: (context, settings, child) {
                         return AnimatedDataTable(
                           isExpanded: true,
@@ -1257,7 +1293,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
                                   'Target ${(target + targetInterval).toStringAsFixed(1)}',
                                 ]
                               : ['Target --', 'Target --', 'Target --'],
-                          maxVisibleRows: _calculateOptimalRowCount(screenHeight, true),
+                          maxVisibleRows: maxRows,
                           selectedRowIndex: settings.selectedVolumeTableRow,
                           onRowTap: (index) {
                             if (settings.selectedVolumeTableRow == index) {
@@ -1270,9 +1306,52 @@ class _VolumeScreenState extends State<VolumeScreen> {
                           animate: _shouldAnimateTableExpansion,
                         );
                       },
-                    )
-                  : const SizedBox.shrink(),
-            ),
+                    );
+                  },
+                ),
+              ),
+            ] else
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
+                    SliverFillRemaining(
+                      hasScrollBody: true,
+                      child: Column(
+                        children: [
+                          _buildResultsSection(
+                              settings, screenHeight, target, modelIsRunnable, showTable: false),
+                          const Spacer(),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                            ),
+                            child: SafeArea(
+                              top: false,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    AnimatedDefaultTextStyle(
+                                      duration: const Duration(milliseconds: 200),
+                                      curve: Curves.fastOutSlowIn,
+                                      style: TextStyle(
+                                        fontSize: 60,
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                      child: Text(modelIsRunnable ? result : emptyResult),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Container(
               child: SafeArea(
                 top: false,
