@@ -513,11 +513,11 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     }
     return CollapsibleInputSection(
       child: _buildInputFields(settings),
-      collapsedChips: _buildCollapsedChips(settings),
+      collapsedChipRows: _buildCollapsedChips(settings),
     );
   }
 
-  List<Widget> _buildCollapsedChips(Settings settings) {
+  List<List<Widget>> _buildCollapsedChips(Settings settings) {
     final errors = _validate(settings);
     final theme = Theme.of(context);
     final ageText = ageController.text;
@@ -550,48 +550,54 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     }
 
     return [
-      Chip(
-        avatar: Icon(_selectedDrug?.icon ?? Icons.medication, size: 16),
-        label: Text(_selectedDrug?.displayName ?? 'Drug', style: const TextStyle(fontSize: 11)),
-        visualDensity: VisualDensity.compact,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-      ),
-      Chip(
-        avatar: Icon(_sexValue ? Icons.female : Icons.male, size: 16),
-        label: Text(_sexValue ? 'F' : 'M', style: const TextStyle(fontSize: 11)),
-        visualDensity: VisualDensity.compact,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-      ),
-      chip(
-        displayValue: '${ageText}y',
-        emptyLabel: 'Age',
-        icon: Icons.calendar_month,
-        isEmpty: ageText.isEmpty,
-        hasError: errors.any((e) => e.startsWith('Age')),
-      ),
-      chip(
-        displayValue: '${weightText}kg',
-        emptyLabel: 'Weight',
-        icon: Icons.monitor_weight,
-        isEmpty: weightText.isEmpty,
-        hasError: errors.any((e) => e.startsWith('Weight')),
-      ),
-      chip(
-        displayValue: '${heightText}cm',
-        emptyLabel: 'Height',
-        icon: Icons.straighten,
-        isEmpty: heightText.isEmpty,
-        hasError: errors.any((e) => e.startsWith('Height')),
-      ),
-      chip(
-        displayValue: '${targetText} μg/mL',
-        emptyLabel: 'Target',
-        icon: Icons.psychology,
-        isEmpty: targetText.isEmpty,
-        hasError: errors.any((e) => e.startsWith('Target')),
-      ),
+      [
+        Chip(
+          avatar: Icon(_selectedDrug?.icon ?? Icons.medication, size: 16),
+          label: Text(_selectedDrug?.displayName ?? 'Drug',
+              style: const TextStyle(fontSize: 11)),
+          visualDensity: VisualDensity.compact,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+        ),
+        chip(
+          displayValue: '${targetText} μg/mL',
+          emptyLabel: 'Target',
+          icon: Icons.psychology,
+          isEmpty: targetText.isEmpty,
+          hasError: errors.any((e) => e.startsWith('Target')),
+        ),
+      ],
+      [
+        chip(
+          displayValue: '${ageText}y',
+          emptyLabel: 'Age',
+          icon: Icons.calendar_month,
+          isEmpty: ageText.isEmpty,
+          hasError: errors.any((e) => e.startsWith('Age')),
+        ),
+        Chip(
+          avatar: Icon(_sexValue ? Icons.female : Icons.male, size: 16),
+          label: Text(_sexValue ? 'F' : 'M',
+              style: const TextStyle(fontSize: 11)),
+          visualDensity: VisualDensity.compact,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+        ),
+        chip(
+          displayValue: '${weightText}kg',
+          emptyLabel: 'Weight',
+          icon: Icons.monitor_weight,
+          isEmpty: weightText.isEmpty,
+          hasError: errors.any((e) => e.startsWith('Weight')),
+        ),
+        chip(
+          displayValue: '${heightText}cm',
+          emptyLabel: 'Height',
+          icon: Icons.straighten,
+          isEmpty: heightText.isEmpty,
+          hasError: errors.any((e) => e.startsWith('Height')),
+        ),
+      ],
     ];
   }
 
