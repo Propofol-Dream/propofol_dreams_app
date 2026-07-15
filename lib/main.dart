@@ -31,6 +31,14 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  late Settings _settings;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _settings = Provider.of<Settings>(context, listen: false);
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
@@ -43,12 +51,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       case AppLifecycleState.paused:
         print("app paused - saving settings");
         // Save all settings when app pauses to ensure data persistence
-        Provider.of<Settings>(context, listen: false).saveAllSettings();
+        _settings.saveAllSettings();
         break;
       case AppLifecycleState.detached:
         print("app detached - saving settings");
         // Save all settings when app is being terminated
-        Provider.of<Settings>(context, listen: false).saveAllSettings();
+        _settings.saveAllSettings();
         break;
       case AppLifecycleState.hidden:
         print("app in hidden");
@@ -65,7 +73,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     // Save settings one final time before disposal
-    Provider.of<Settings>(context, listen: false).saveAllSettings();
+    _settings.saveAllSettings();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

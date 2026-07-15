@@ -1,10 +1,11 @@
 import 'package:propofol_dreams_app/models/model.dart';
+import 'package:propofol_dreams_app/models/parameters.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
 import 'dart:math' as math;
 
 void main() {
   // Test standard reference patient
-  final pkParams = Model.EleveldPropofol.calculatePKParameters(
+  final pkParams = Model.Eleveld.calculatePKParameters(
     sex: Sex.Male,
     weight: 70,
     height: 170,

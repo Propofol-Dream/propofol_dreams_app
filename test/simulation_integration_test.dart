@@ -24,7 +24,7 @@ void main() {
 
       final pump = Pump(
         timeStep: const Duration(seconds: 1),
-        density: 10, // mg/mL for propofol
+        concentration: 10.0, // mg/mL for propofol
         maxPumpRate: 1200,
         target: 3.0,
         duration: const Duration(minutes: 60),
@@ -32,9 +32,9 @@ void main() {
 
       // Test all propofol models
       final propofolModels = [
-        Model.EleveldPropofol,
-        Model.MarshPropofol,
-        Model.SchniderPropofol,
+        Model.Eleveld,
+        Model.Marsh,
+        Model.Schnider,
       ];
 
       for (final model in propofolModels) {
@@ -61,20 +61,20 @@ void main() {
 
     test('Parameter calculation system works for all models', () {
       final allModels = [
-        Model.EleveldPropofol,
-        Model.MarshPropofol,
-        Model.SchniderPropofol,
-        Model.PaedfusorPropofol,
-        Model.KatariaPropofol,
-        Model.MintoRemifentanil,
-        Model.EleveldRemifentanil,
-        Model.HannivoortDexmedetomidine,
-        Model.EleveldRemimazolam,
+        Model.Eleveld,
+        Model.Marsh,
+        Model.Schnider,
+        Model.Paedfusor,
+        Model.Kataria,
+        Model.Eleveld,
+        Model.Eleveld,
+        Model.Hannivoort,
+        Model.Eleveld,
       ];
 
       for (final model in allModels) {
         // Skip models that don't support adult patients
-        if ((model == Model.PaedfusorPropofol || model == Model.KatariaPropofol) && age >= 17) {
+        if ((model == Model.Paedfusor || model == Model.Kataria) && age >= 17) {
           continue;
         }
 

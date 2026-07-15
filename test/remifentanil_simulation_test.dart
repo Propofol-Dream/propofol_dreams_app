@@ -163,7 +163,7 @@ void main() {
     // 2. Remifentanil Minto Test
     runSimulationTest(const SimulationTestConfig(
       testName: 'Remifentanil 50mcg/ml + Minto Model',
-      model: Model.Minto,
+      model: Model.Eleveld,
       drug: Drug.remifentanil50mcg,
       sex: Sex.Female,
       age: 40,

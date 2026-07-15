@@ -33,7 +33,7 @@ void main() {
       );
 
       final simulation = PDSim.Simulation(
-        model: Model.Minto,
+        model: Model.Eleveld,
         patient: patient,
         pump: pump,
       );
@@ -52,7 +52,7 @@ void main() {
         cumulativeInfusedVolumes: results.cumulativeInfusedVolumes,
         density: 50,
         totalDuration: const Duration(minutes: duration),
-        isEffectSiteTargeting: Model.Minto.target.name == 'EffectSite',
+        isEffectSiteTargeting: Model.Eleveld.target.name == 'EffectSite',
         drugConcentrationMgMl: 50.0,
       );
 
@@ -125,7 +125,7 @@ void main() {
         Model.Eleveld,
         Model.Paedfusor,
         Model.Kataria,
-        Model.Minto,
+        Model.Eleveld,
         Model.Hannivoort,
       ];
 

@@ -1,10 +1,25 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:propofol_dreams_app/models/drug.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
 import 'package:propofol_dreams_app/models/parameters.dart';
 
 void main() {
   group('PK Calculator', () {
+    Drug drugForModel(Model model) {
+      switch (model) {
+        case Model.Hannivoort:
+          return Drug.dexmedetomidine;
+        case Model.Marsh:
+        case Model.Schnider:
+        case Model.Eleveld:
+        case Model.Paedfusor:
+        case Model.Kataria:
+        case Model.EleMarsh:
+        case Model.None:
+          return Drug.propofol10mg;
+      }
+    }
     
     /// Helper function to calculate and display parameters for a patient
     void calculateForPatient({
@@ -19,15 +34,15 @@ void main() {
       print('BMI: ${(weight / ((height/100) * (height/100))).toStringAsFixed(1)}');
       
       final allModels = [
-        Model.EleveldPropofol,
-        Model.MarshPropofol,
-        Model.SchniderPropofol,
-        Model.PaedfusorPropofol,
-        Model.KatariaPropofol,
-        Model.MintoRemifentanil,
-        Model.EleveldRemifentanil,
-        Model.HannivoortDexmedetomidine,
-        Model.EleveldRemimazolam,
+        Model.Eleveld,
+        Model.Marsh,
+        Model.Schnider,
+        Model.Paedfusor,
+        Model.Kataria,
+        Model.Eleveld,
+        Model.Eleveld,
+        Model.Hannivoort,
+        Model.Eleveld,
       ];
       
       print('\n--- PHARMACOKINETIC PARAMETERS ---\n');
@@ -44,9 +59,10 @@ void main() {
             sex: sex, weight: weight, height: height, age: age,
           );
           
-          print('${model.name} (${model.drug.displayName})');
-          print('  Concentration: ${model.drug.concentration} ${model.drug.concentrationUnit.displayName}');
-          print('  Target: ${model.target.name} (${model.drug.targetUnit.displayName})');
+          final drug = drugForModel(model);
+          print('${model.name} (${drug.displayName})');
+          print('  Concentration: ${drug.concentration} ${drug.concentrationUnit.displayName}');
+          print('  Target: ${model.target.name} (${drug.targetUnit.displayName})');
           print('  V1=${params.V1.toStringAsFixed(3)}L, V2=${params.V2.toStringAsFixed(3)}L, V3=${params.V3.toStringAsFixed(3)}L');
           print('  Cl1=${params.Cl1.toStringAsFixed(4)}L/min, Cl2=${params.Cl2.toStringAsFixed(4)}L/min, Cl3=${params.Cl3.toStringAsFixed(4)}L/min');
           print('  k10=${params.k10.toStringAsFixed(4)}/min, ke0=${params.ke0.toStringAsFixed(4)}/min');
@@ -139,14 +155,15 @@ void main() {
       print('\n=== PROPOFOL MODEL COMPARISON ===');
       print('Patient: ${sex.name}, ${age}y, ${height}cm, ${weight}kg\n');
       
-      final propofolModels = [Model.EleveldPropofol, Model.MarshPropofol, Model.SchniderPropofol];
+      final propofolModels = [Model.Eleveld, Model.Marsh, Model.Schnider];
       
       print('Model           Conc     V1(L)    V2(L)    V3(L)    k10(/min) ke0(/min) Target');
       print('─' * 80);
       
       for (final model in propofolModels) {
         final params = model.calculatePKParameters(sex: sex, weight: weight, height: height, age: age);
-        final concStr = '${model.drug.concentration.toStringAsFixed(0)}${model.drug.concentrationUnit.displayName}';
+        final drug = drugForModel(model);
+        final concStr = '${drug.concentration.toStringAsFixed(0)}${drug.concentrationUnit.displayName}';
         print('${model.name.padRight(15)} ${concStr.padRight(8)} ${params.V1.toStringAsFixed(2).padLeft(6)} ${params.V2.toStringAsFixed(1).padLeft(7)} ${params.V3.toStringAsFixed(0).padLeft(7)} ${params.k10.toStringAsFixed(4).padLeft(9)} ${params.ke0.toStringAsFixed(3).padLeft(8)} ${model.target.name}');
       }
       
@@ -163,12 +180,12 @@ void main() {
       print('Patient: ${sex.name}, ${age}y, ${height}cm, ${weight}kg\n');
       
       final models = [
-        Model.EleveldPropofol,
-        Model.MarshPropofol,
-        Model.SchniderPropofol,
-        Model.MintoRemifentanil,
-        Model.HannivoortDexmedetomidine,
-        Model.EleveldRemimazolam,
+        Model.Eleveld,
+        Model.Marsh,
+        Model.Schnider,
+        Model.Eleveld,
+        Model.Hannivoort,
+        Model.Eleveld,
       ];
       
       print('Model                    Drug            Conc      V1(L)  k10(/min) ke0(/min) Target');
@@ -176,8 +193,9 @@ void main() {
       
       for (final model in models) {
         final params = model.calculatePKParameters(sex: sex, weight: weight, height: height, age: age);
-        final concStr = '${model.drug.concentration.toStringAsFixed(0)}${model.drug.concentrationUnit.displayName}';
-        print('${model.name.padRight(24)} ${model.drug.displayName.padRight(15)} ${concStr.padRight(9)} ${params.V1.toStringAsFixed(2).padLeft(5)} ${params.k10.toStringAsFixed(4).padLeft(9)} ${params.ke0.toStringAsFixed(3).padLeft(8)} ${model.target.name}');
+        final drug = drugForModel(model);
+        final concStr = '${drug.concentration.toStringAsFixed(0)}${drug.concentrationUnit.displayName}';
+        print('${model.name.padRight(24)} ${drug.displayName.padRight(15)} ${concStr.padRight(9)} ${params.V1.toStringAsFixed(2).padLeft(5)} ${params.k10.toStringAsFixed(4).padLeft(9)} ${params.ke0.toStringAsFixed(3).padLeft(8)} ${model.target.name}');
       }
       
       expect(true, true);

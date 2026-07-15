@@ -21,9 +21,9 @@ void main() {
     Duration duration = const Duration(minutes: 60);
 
     // Set up for the model
-    Model goldModel = Model.EleveldPropofol;
+    Model goldModel = Model.Eleveld;
     Patient goldPatient = Patient(weight: weight, age: age, height: height, sex: gender);
-    Pump goldPump = Pump(timeStep: timeStep, density: density, maxPumpRate: maxPumpRate,target: target, duration: duration);
+    Pump goldPump = Pump(timeStep: timeStep, concentration: density.toDouble(), maxPumpRate: maxPumpRate,target: target, duration: duration);
     // Operation baselineOperation = Operation(target: target, duration: duration);
     Simulation goldSimulation = Simulation(
         model: goldModel, patient: goldPatient, pump: goldPump);

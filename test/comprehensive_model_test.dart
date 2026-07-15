@@ -28,7 +28,7 @@ void main() {
       (model: Model.Kataria, drug: Drug.propofol10mg, target: 3.0),
       
       // Remifentanil models
-      (model: Model.Minto, drug: Drug.remifentanil50mcg, target: 3.0),
+      (model: Model.Eleveld, drug: Drug.remifentanil50mcg, target: 3.0),
       
       // Dexmedetomidine models
       (model: Model.Hannivoort, drug: Drug.dexmedetomidine, target: 3.0),
@@ -152,7 +152,7 @@ void main() {
 
           // Print simulation results
           print('Model: ${model.name} | Drug: ${drug.displayName} (${drug.concentration}${drug.concentrationUnit.displayName})');
-          print('  Target: $testTarget ${testDrug.targetUnit.displayName} (${model.target.name})');
+          print('  Target: $testTarget ${drug.targetUnit.displayName} (${model.target.name})');
           print('  Total bolus: ${infusionRegimeData.totalBolus.toStringAsFixed(2)} mL');
           print('  Total volume: ${infusionRegimeData.totalVolume.toStringAsFixed(2)} mL');
           print('  Max rate: ${infusionRegimeData.maxInfusionRate.toStringAsFixed(2)} mL/hr');
@@ -183,7 +183,7 @@ void main() {
       
       final allModels = [
         Model.Marsh, Model.Schnider, Model.Eleveld, Model.Paedfusor, 
-        Model.Kataria, Model.Minto, Model.Hannivoort, Model.EleMarsh, Model.None
+        Model.Kataria, Model.Eleveld, Model.Hannivoort, Model.EleMarsh, Model.None
       ];
       
       for (final model in allModels) {

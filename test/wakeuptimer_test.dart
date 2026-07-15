@@ -4,14 +4,29 @@ import 'package:propofol_dreams_app/models/pump.dart';
 import 'package:propofol_dreams_app/models/simulation.dart';
 import 'package:propofol_dreams_app/models/model.dart';
 import 'package:propofol_dreams_app/models/sex.dart';
-import 'package:propofol_dreams_app/models/WUTInput.dart.bk';
 
 import 'dart:io';
 import 'dart:math';
 import 'dart:collection';
 
+class WUTInput implements Comparable<WUTInput> {
+  WUTInput({
+    required this.durationInput,
+    required this.dosageInput,
+    required this.eBISInput,
+  });
+
+  final Duration durationInput;
+  final double dosageInput;
+  final double eBISInput;
+  double? concentrationEffect;
+
+  @override
+  int compareTo(WUTInput other) => durationInput.compareTo(other.durationInput);
+}
+
 void main() {
-  Model model = Model.EleveldPropofol;
+  Model model = Model.Eleveld;
   int weight = 87;
   int age = 62;
   int height = 183;
@@ -129,7 +144,7 @@ void main() {
         Patient(weight: weight, height: height, age: age, sex: gender);
     Pump pump = Pump(
         timeStep: timeStep,
-        density: density,
+        concentration: density.toDouble(),
         maxPumpRate: maxPumpRate,
         target: baseTarget,
         duration: firstDuration *

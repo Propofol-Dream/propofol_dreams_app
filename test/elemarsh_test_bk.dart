@@ -117,9 +117,9 @@ void main() {
     Duration duration = const Duration(minutes: 60);
 
     // Set up for the model
-    Model goldModel = Model.EleveldPropofol;
+    Model goldModel = Model.Eleveld;
     Patient goldPatient = Patient(weight: weight, age: age, height: height, sex: gender);
-    Pump goldPump = Pump(timeStep: timeStepSim, density: density, maxPumpRate: maxPumpRate,target: target, duration: duration);
+    Pump goldPump = Pump(timeStep: timeStepSim, concentration: density.toDouble(), maxPumpRate: maxPumpRate,target: target, duration: duration);
     // Operation baselineOperation = Operation(target: target, duration: duration);
     Simulation goldSimulation = Simulation(
         model: goldModel, patient: goldPatient, pump: goldPump);
@@ -170,7 +170,7 @@ void main() {
       bolusGuess=bolusGuess+2) {
 
         // Set up for the Marsh model
-        Model marshModel = Model.MarshPropofol;
+        Model marshModel = Model.Marsh;
         Patient marshPatient = goldSimulation.patient.copy();
         marshPatient.weight = weightGuess;
         Pump marshPump = goldSimulation.pump.copy();

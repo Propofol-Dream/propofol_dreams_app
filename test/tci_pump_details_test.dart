@@ -24,7 +24,7 @@ void main() {
         maxPumpRate: 1200, // ml/hr
         target: 4.0, // mcg/ml
         duration: const Duration(minutes: 15),
-        drug: Drug.propofol,
+        drug: Drug.propofol10mg,
       );
 
       // Create simulation with Eleveld model
@@ -89,7 +89,7 @@ void main() {
       "finalPlasmaConcentration": ${results.concentrations.last.toStringAsFixed(2)},
       "finalEffectConcentration": ${results.concentrationsEffect.last.toStringAsFixed(2)},
       "finalBIS": ${results.BISEstimates.last.toStringAsFixed(1)},
-      "averagePumpRate": ${results.pumpInfs.reduce((a, b) => a + b) / results.pumpInfs.length.toStringAsFixed(2)},
+      "averagePumpRate": ${(results.pumpInfs.reduce((a, b) => a + b) / results.pumpInfs.length).toStringAsFixed(2)},
       "averagePumpRateUnit": "mg/hr"
     }
   }

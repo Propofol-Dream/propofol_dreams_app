@@ -26,15 +26,15 @@ void main() {
       
       // Calculate parameters for all models
       final allModels = [
-        Model.EleveldPropofol,
-        Model.MarshPropofol,
-        Model.SchniderPropofol,
-        Model.PaedfusorPropofol,
-        Model.KatariaPropofol,
-        Model.MintoRemifentanil,
-        Model.EleveldRemifentanil,
-        Model.HannivoortDexmedetomidine,
-        Model.EleveldRemimazolam,
+        Model.Eleveld,
+        Model.Marsh,
+        Model.Schnider,
+        Model.Paedfusor,
+        Model.Kataria,
+        Model.Eleveld,
+        Model.Eleveld,
+        Model.Hannivoort,
+        Model.Eleveld,
       ];
       
       print('\n=== PHARMACOKINETIC PARAMETERS ===\n');
@@ -56,9 +56,8 @@ void main() {
           );
           
           // Print model info
-          print('${model.name} (${model.drug.displayName})');
-          print('  Drug Concentration: ${model.drug.concentration} ${model.drug.concentrationUnit.displayName}');
-          print('  Target: ${model.target.name} (${model.drug.targetUnit.displayName})');
+          print(model.name);
+          print('  Target: ${model.target.name}');
           print('  ');
           print('  VOLUMES (L):');
           print('    V1 (Central): ${params.V1.toStringAsFixed(4)}');
@@ -115,7 +114,7 @@ void main() {
       
       // Always pass the test
       expect(true, true);
-    });
+    }
     
     test('Quick reference - Calculate for standard patient', () {
       // Standard reference patient: 35yo male, 70kg, 170cm
@@ -128,12 +127,12 @@ void main() {
       print('35-year-old male, 70kg, 170cm\n');
       
       final models = [
-        Model.EleveldPropofol,
-        Model.MarshPropofol,
-        Model.SchniderPropofol,
-        Model.MintoRemifentanil,
-        Model.HannivoortDexmedetomidine,
-        Model.EleveldRemimazolam,
+        Model.Eleveld,
+        Model.Marsh,
+        Model.Schnider,
+        Model.Eleveld,
+        Model.Hannivoort,
+        Model.Eleveld,
       ];
       
       for (final model in models) {
@@ -162,14 +161,14 @@ void main() {
       
       // Compare propofol models
       print('PROPOFOL MODELS:');
-      final propofolModels = [Model.EleveldPropofol, Model.MarshPropofol, Model.SchniderPropofol];
+      final propofolModels = [Model.Eleveld, Model.Marsh, Model.Schnider];
       for (final model in propofolModels) {
         final params = model.calculatePKParameters(sex: sex, weight: weight, height: height, age: age);
         print('${model.name}: V1=${params.V1.toStringAsFixed(2)}L, Cl1=${params.Cl1.toStringAsFixed(3)}L/min, ke0=${params.ke0.toStringAsFixed(3)}');
       }
       
       print('\nREMIFENTANIL MODELS:');
-      final remiModels = [Model.MintoRemifentanil, Model.EleveldRemifentanil];
+      final remiModels = [Model.Eleveld, Model.Eleveld];
       for (final model in remiModels) {
         final params = model.calculatePKParameters(sex: sex, weight: weight, height: height, age: age);
         print('${model.name}: V1=${params.V1.toStringAsFixed(2)}L, Cl1=${params.Cl1.toStringAsFixed(3)}L/min, ke0=${params.ke0.toStringAsFixed(3)}');

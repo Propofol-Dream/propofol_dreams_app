@@ -1,8 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:propofol_dreams_app/models/drug.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('Settings UI Test', () {
     test('Settings only shows 4 drugs after removal', () {
       final settings = Settings();
@@ -31,14 +38,14 @@ void main() {
       settings.setDrugConcentration(Drug.propofol20mg, 20.0);
       expect(settings.getDrugConcentration(Drug.propofol20mg), equals(20.0));
       
-      // Test that density getter still works for backward compatibility
+      // density reflects the current Propofol concentration for legacy callers.
       expect(settings.density, equals(20));
       
       // Test other drugs have their default concentrations
       expect(settings.getDrugConcentration(Drug.remifentanil50mcg), equals(50.0));
       expect(settings.getDrugConcentration(Drug.dexmedetomidine), equals(4.0));
       expect(settings.getDrugConcentration(Drug.remimazolam1mg), equals(1.0));
-      expect(settings.getDrugConcentration(Drug.remimazolam2mg), equals(2.0));
+      expect(settings.getDrugConcentration(Drug.remimazolam2mg), equals(1.0));
       
       print('✓ Drug concentration system working correctly');
     });

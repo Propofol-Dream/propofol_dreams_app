@@ -19,12 +19,12 @@ void main() {
   Duration duration = const Duration(minutes: 10);
 
   test('Peak', () async {
-    Model model = Model.EleveldPropofol;
+    Model model = Model.Eleveld;
     Patient patient =
     Patient(weight: weight, age: age, height: height, sex: gender);
     Pump pump = Pump(
         timeStep: timeStep,
-        density: density,
+        concentration: density.toDouble(),
         maxPumpRate: maxPumpRate,
         target: target,
         duration: duration);
@@ -48,7 +48,7 @@ void main() {
   //       Patient(weight: weight, age: age, height: height, gender: gender);
   //   Pump pump = Pump(
   //       timeStep: timeStep,
-  //       density: density,
+  //       concentration: density.toDouble(),
   //       maxPumpRate: maxPumpRate,
   //       target: target,
   //       duration: duration);

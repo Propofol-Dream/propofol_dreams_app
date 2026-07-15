@@ -19,7 +19,7 @@ void main() {
   // Standard pump settings
   final pump = Pump(
     timeStep: Duration(seconds: 1), // 1-second resolution
-    density: 10, // mg/mL
+    concentration: 10.0, // mg/mL
     maxPumpRate: 1200, // mL/hr
     target: 3.0, // mcg/mL
     duration: Duration(minutes: 10), // Short duration for analysis
@@ -27,7 +27,7 @@ void main() {
   
   // Test with Eleveld model
   final simulation = PDSim.Simulation(
-    model: Model.EleveldPropofol,
+    model: Model.Eleveld,
     patient: patient,
     pump: pump,
   );
@@ -35,7 +35,7 @@ void main() {
   final results = simulation.estimate;
   
   print('Time Step: ${pump.timeStep.inSeconds} seconds');
-  print('Max Pump Rate: ${pump.maxPumpRate} mL/hr = ${pump.maxPumpRate * pump.density} mg/hr');
+  print('Max Pump Rate: ${pump.maxPumpRate} mL/hr = ${pump.maxPumpRate * pump.concentration} mg/hr');
   print('Target: ${pump.target} mcg/mL\n');
   
   // Analyze first 5 minutes (300 seconds) to see rate changes
@@ -49,11 +49,11 @@ void main() {
   for (int i = 0; i < results.times.length && results.times[i].inSeconds <= 300; i++) {
     final time = results.times[i];
     final pumpRateMgHr = results.pumpInfs[i];
-    final pumpRateMlHr = pumpRateMgHr / pump.density;
+    final pumpRateMlHr = pumpRateMgHr / pump.concentration;
     final accumVolume = results.cumulativeInfusedVolumes[i];
     
     // Check if at max rate
-    final maxRateMgHr = pump.maxPumpRate * pump.density;
+    final maxRateMgHr = pump.maxPumpRate * pump.concentration;
     final isMaxRate = (pumpRateMgHr >= maxRateMgHr * 0.95); // 95% threshold for floating point comparison
     
     if (isMaxRate) {

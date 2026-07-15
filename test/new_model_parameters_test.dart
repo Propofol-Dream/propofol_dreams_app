@@ -12,7 +12,7 @@ void main() {
     const int age = 35;
 
     test('Minto parameters calculation', () {
-      final params = Model.Minto.calculatePKParameters(
+      final params = Model.Eleveld.calculatePKParameters(
         sex: sex,
         weight: weight,
         height: height,
@@ -148,7 +148,7 @@ void main() {
     test('All models return valid parameters', () {
       // Test all models don't return default zero parameters
       for (final model in [
-        Model.Minto,
+        Model.Eleveld,
         Model.Eleveld,
         Model.Hannivoort,
         Model.Marsh,

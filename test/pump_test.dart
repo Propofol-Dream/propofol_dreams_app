@@ -6,7 +6,7 @@ void main() {
   test('New Boluse Sequence', () {
     Pump pump = Pump(
         timeStep: const Duration(seconds: 1),
-        density: 10,
+        concentration: 10.0,
         maxPumpRate: 1200,
         target: 4,
         duration: const Duration(minutes: 60));
