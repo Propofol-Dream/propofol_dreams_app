@@ -13,7 +13,10 @@ class CollapsibleInputSection extends StatefulWidget {
     this.collapsedChips,
     this.collapsedChipRows,
     this.onCollapsedChanged,
-  });
+  }) : assert(
+          collapsedChips == null || collapsedChipRows == null,
+          'Use either collapsedChips or collapsedChipRows, not both.',
+        );
 
   @override
   State<CollapsibleInputSection> createState() =>
