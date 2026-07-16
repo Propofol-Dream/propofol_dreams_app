@@ -3,13 +3,13 @@ import '../config/design_tokens.dart';
 
 class CollapsibleInputSection extends StatefulWidget {
   final Widget child;
-  final List<Widget>? collapsedChips;
+  final List<List<Widget>>? collapsedChipRows;
   final ValueChanged<bool>? onCollapsedChanged;
 
   const CollapsibleInputSection({
     super.key,
     required this.child,
-    this.collapsedChips,
+    this.collapsedChipRows,
     this.onCollapsedChanged,
   });
 
@@ -66,13 +66,22 @@ class _CollapsibleInputSectionState extends State<CollapsibleInputSection> {
             AnimatedOpacity(
               duration: const Duration(milliseconds: 150),
               opacity: _isCollapsed ? 1.0 : 0.0,
-              child: _isCollapsed && widget.collapsedChips != null
+              child: _isCollapsed && widget.collapsedChipRows != null
                   ? Padding(
                       padding: const EdgeInsets.only(left: kSp16, right: kSp16, bottom: kSp8),
-                      child: Wrap(
-                        spacing: kSp8,
-                        runSpacing: kSp4,
-                        children: widget.collapsedChips!,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: widget.collapsedChipRows!.map((row) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Wrap(
+                              spacing: kSp8,
+                              runSpacing: kSp4,
+                              children: row,
+                            ),
+                          );
+                        }).toList(),
                       ),
                     )
                   : const SizedBox.shrink(),
