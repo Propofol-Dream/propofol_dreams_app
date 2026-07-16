@@ -55,16 +55,15 @@ void main() {
     expect(find.textContaining('Propofol'), findsWidgets);
   });
 
-  testWidgets('TCIScreenNew stacks desktop context cards on tablet width',
+  testWidgets('TCIScreenNew keeps table-first structure on tablet width',
       (tester) async {
     await _pumpTciScreen(tester, surfaceSize: const Size(768, 800));
 
     expect(find.byKey(const ValueKey('tci-new-desktop-workstation')),
         findsOneWidget);
-    expect(find.byKey(const ValueKey('tci-new-desktop-context-stacked')),
-        findsOneWidget);
-    expect(find.byKey(const ValueKey('tci-new-desktop-context-split')),
-        findsNothing);
+    expect(find.byKey(const ValueKey('tci-new-cet-context')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tci-new-table-card')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tci-new-ebis-footer')), findsOneWidget);
   });
 
   testWidgets('TCIScreenNew renders mobile pdtci flow with bottom controls',
@@ -81,5 +80,58 @@ void main() {
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.byType(NavigationRail), findsNothing);
     expect(find.textContaining('Propofol'), findsWidgets);
+  });
+
+  testWidgets('TCIScreenNew input panel is target-first', (tester) async {
+    await _pumpTciScreen(tester, surfaceSize: const Size(1200, 800));
+
+    final target = find.byKey(const ValueKey('tci-new-target-primary'));
+    final drug = find.byKey(const ValueKey('tci-new-drug-row'));
+    final demographics = find.byKey(const ValueKey('tci-new-demographics-row'));
+    final size = find.byKey(const ValueKey('tci-new-size-row'));
+
+    expect(target, findsOneWidget);
+    expect(drug, findsOneWidget);
+    expect(demographics, findsOneWidget);
+    expect(size, findsOneWidget);
+    expect(tester.getTopLeft(target).dy, lessThan(tester.getTopLeft(drug).dy));
+    expect(tester.getTopLeft(drug).dy,
+        lessThan(tester.getTopLeft(demographics).dy));
+    expect(tester.getTopLeft(demographics).dy,
+        lessThan(tester.getTopLeft(size).dy));
+  });
+
+  testWidgets('TCIScreenNew shows CeT above table and eBIS below table',
+      (tester) async {
+    await _pumpTciScreen(tester, surfaceSize: const Size(1200, 800));
+
+    final cet = find.byKey(const ValueKey('tci-new-cet-context'));
+    final table = find.byKey(const ValueKey('tci-new-table-card'));
+    final ebis = find.byKey(const ValueKey('tci-new-ebis-footer'));
+
+    expect(cet, findsOneWidget);
+    expect(table, findsOneWidget);
+    expect(ebis, findsOneWidget);
+    expect(tester.getTopLeft(cet).dy, lessThan(tester.getTopLeft(table).dy));
+    expect(tester.getTopLeft(table).dy, lessThan(tester.getTopLeft(ebis).dy));
+    expect(find.textContaining('CeT'), findsWidgets);
+    expect(find.textContaining('eBIS'), findsWidgets);
+  });
+
+  testWidgets('TCIScreenNew uses pdtci Set Clock Time panel after row tap',
+      (tester) async {
+    await _pumpTciScreen(tester, surfaceSize: const Size(1200, 800));
+
+    await tester.tap(find.byKey(const ValueKey('tci-new-table-card')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('tci-new-sync-panel')), findsOneWidget);
+    expect(find.text('Set Clock Time'), findsOneWidget);
+    expect(
+        find.byKey(const ValueKey('tci-new-sync-hour-field')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tci-new-sync-minute-field')),
+        findsOneWidget);
+    expect(find.text('Sync Time'), findsOneWidget);
+    expect(find.text('Clear Sync'), findsOneWidget);
   });
 }

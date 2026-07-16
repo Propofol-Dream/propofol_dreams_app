@@ -24,7 +24,6 @@ import '../components/infusion_regime_table.dart';
 import '../components/pk_field.dart';
 import '../components/switch_field.dart';
 import '../components/selector.dart';
-import '../components/infusion_rate_chart.dart';
 import '../components/collapsible_input_section.dart';
 
 class TCIScreenNew extends StatefulWidget {
@@ -59,8 +58,12 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
   final heightController = TextEditingController();
   final weightController = TextEditingController();
   final targetController = TextEditingController();
+  final syncHourController = TextEditingController();
+  final syncMinuteController = TextEditingController();
 
   InfusionRegimeData? infusionRegimeData;
+  List<double?> _effectSiteConcentrationsByRow = const [];
+  List<double?> _bisEstimatesByRow = const [];
   bool _isCalculating = false;
   static const int _fixedDurationMinutes = 240; // 4 hours
 
@@ -185,19 +188,35 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
 
         final results = simulation.estimate;
 
+        final nextData = InfusionRegimeData.fromSimulation(
+          times: results.times,
+          pumpInfs: results.pumpInfs,
+          cumulativeInfusedVolumes: results.cumulativeInfusedVolumes,
+          density: 10,
+          totalDuration: Duration(minutes: _fixedDurationMinutes),
+          isEffectSiteTargeting: selectedModel.target == Target.EffectSite,
+          drugConcentrationMgMl: pumpConcentration,
+        );
+        final sampledCe = _sampleSimulationValuesByRow(
+          rows: nextData.rows,
+          times: results.times,
+          values: results.concentrationsEffect,
+        );
+        final sampledBis = _sampleSimulationValuesByRow(
+          rows: nextData.rows,
+          times: results.times,
+          values: results.BISEstimates,
+        );
+
         setState(() {
           _isTableSynced = false;
           _syncedRowIndex = null;
           _syncedClockTime = null;
-          infusionRegimeData = InfusionRegimeData.fromSimulation(
-            times: results.times,
-            pumpInfs: results.pumpInfs,
-            cumulativeInfusedVolumes: results.cumulativeInfusedVolumes,
-            density: 10,
-            totalDuration: Duration(minutes: _fixedDurationMinutes),
-            isEffectSiteTargeting: selectedModel.target == Target.EffectSite,
-            drugConcentrationMgMl: pumpConcentration,
-          );
+          syncHourController.clear();
+          syncMinuteController.clear();
+          infusionRegimeData = nextData;
+          _effectSiteConcentrationsByRow = sampledCe;
+          _bisEstimatesByRow = sampledBis;
         });
 
         final conc = pumpConcentration;
@@ -210,6 +229,8 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
       } else {
         setState(() {
           infusionRegimeData = null;
+          _effectSiteConcentrationsByRow = const [];
+          _bisEstimatesByRow = const [];
         });
       }
     } catch (e) {
@@ -276,7 +297,25 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     heightController.dispose();
     weightController.dispose();
     targetController.dispose();
+    syncHourController.dispose();
+    syncMinuteController.dispose();
     super.dispose();
+  }
+
+  List<double?> _sampleSimulationValuesByRow({
+    required List<InfusionRegimeRow> rows,
+    required List<Duration> times,
+    required List<double> values,
+  }) {
+    if (rows.isEmpty || times.isEmpty || values.isEmpty) return const [];
+
+    return rows.map((row) {
+      var index = times.indexWhere((time) => time >= row.time);
+      if (index == -1) index = times.length - 1;
+      if (index >= values.length) index = values.length - 1;
+      if (index < 0) return null;
+      return values[index];
+    }).toList();
   }
 
   // ── Input Panel ──────────────────────────────────────────────
@@ -313,8 +352,31 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
       children: [
         _buildErrorPanel(errors),
         const SizedBox(height: kSp12),
+        // Target
+        Padding(
+          key: const ValueKey('tci-new-target-primary'),
+          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          child: PKField(
+            labelText: model.getTargetLabel(context, _selectedDrug),
+            prefixIcon: model.target.icon,
+            interval: model.getTargetProperties(_selectedDrug).interval,
+            fractionDigits: 1,
+            controller: targetController,
+            range: [
+              model.getTargetProperties(_selectedDrug).min,
+              model.getTargetProperties(_selectedDrug).max,
+            ],
+            onChanged: () {
+              timer.cancel();
+              timer = Timer(_debounceDelay, calculate);
+            },
+            hasError: errors.isNotEmpty,
+          ),
+        ),
+        const SizedBox(height: kSp12),
         // Drug selector + Reset button
         Padding(
+          key: const ValueKey('tci-new-drug-row'),
           padding: const EdgeInsets.symmetric(horizontal: kSp16),
           child: Row(
             children: [
@@ -385,6 +447,7 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
         ],
         // Sex + Age
         Padding(
+          key: const ValueKey('tci-new-demographics-row'),
           padding: const EdgeInsets.symmetric(horizontal: kSp16),
           child: Row(
             children: [
@@ -429,6 +492,7 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
         const SizedBox(height: kSp12),
         // Height + Weight
         Padding(
+          key: const ValueKey('tci-new-size-row'),
           padding: const EdgeInsets.symmetric(horizontal: kSp16),
           child: Row(
             children: [
@@ -463,37 +527,6 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
                   },
                   hasError: errors.isNotEmpty,
                 ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: kSp12),
-        // Target + Start time
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
-          child: Row(
-            children: [
-              Expanded(
-                child: PKField(
-                  labelText: model.getTargetLabel(context, _selectedDrug),
-                  prefixIcon: model.target.icon,
-                  interval: model.getTargetProperties(_selectedDrug).interval,
-                  fractionDigits: 1,
-                  controller: targetController,
-                  range: [
-                    model.getTargetProperties(_selectedDrug).min,
-                    model.getTargetProperties(_selectedDrug).max,
-                  ],
-                  onChanged: () {
-                    timer.cancel();
-                    timer = Timer(_debounceDelay, calculate);
-                  },
-                  hasError: errors.isNotEmpty,
-                ),
-              ),
-              const SizedBox(width: kSp12),
-              Expanded(
-                child: _buildStartTimeField(theme),
               ),
             ],
           ),
@@ -606,156 +639,167 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     ];
   }
 
-  // ── Start Time ──────────────────────────────────────────────
-
-  Widget _buildStartTimeField(ThemeData theme) {
-    final displayText = _format12Hour(_startTime);
-
-    return InkWell(
-      onTap: () async {
-        final picked = await showTimePicker(
-          context: context,
-          initialTime: _startTime,
-          builder: (ctx, child) => MediaQuery(
-            data: MediaQuery.of(ctx).copyWith(alwaysUse24HourFormat: false),
-            child: child!,
-          ),
-        );
-        if (picked != null) setState(() => _startTime = picked);
-      },
-      borderRadius: BorderRadius.circular(kRadius),
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(kRadius),
-          border: Border.all(color: theme.colorScheme.outline, width: 1),
-          color: theme.colorScheme.onPrimary,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: kSp12),
-        child: Row(
-          children: [
-            Icon(Icons.access_time,
-                size: 20, color: theme.colorScheme.onSurfaceVariant),
-            const SizedBox(width: kSp8),
-            Expanded(
-              child: Text(
-                displayText,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() => _startTime = TimeOfDay.now());
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: theme.colorScheme.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: const Text('Now', style: TextStyle(fontSize: 12)),
-            ),
-          ],
-        ),
-      ),
-    );
+  int? _validSyncHour() {
+    final value = int.tryParse(syncHourController.text);
+    if (value == null || value < 0 || value > 23) return null;
+    return value;
   }
 
-  String _format12Hour(TimeOfDay time) {
-    final p = time.period == DayPeriod.pm ? 'PM' : 'AM';
-    final h = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-    return '$h:${time.minute.toString().padLeft(2, '0')} $p';
+  int? _validSyncMinute() {
+    final value = int.tryParse(syncMinuteController.text);
+    if (value == null || value < 0 || value > 59) return null;
+    return value;
+  }
+
+  bool get _canSyncClockTime =>
+      _syncedRowIndex != null &&
+      _validSyncHour() != null &&
+      _validSyncMinute() != null &&
+      infusionRegimeData != null &&
+      _syncedRowIndex! < infusionRegimeData!.rows.length;
+
+  void _selectTableRow(int index) {
+    final now = _syncedClockTime ?? TimeOfDay.now();
+    setState(() {
+      _syncedRowIndex = index;
+      _isTableSynced = false;
+      _syncedClockTime = now;
+      syncHourController.text = now.hour.toString();
+      syncMinuteController.text = now.minute.toString().padLeft(2, '0');
+    });
+  }
+
+  void _syncClockTime() {
+    if (!_canSyncClockTime) return;
+    final data = infusionRegimeData!;
+    final row = data.rows[_syncedRowIndex!];
+    final chosenMinutes = _validSyncHour()! * 60 + _validSyncMinute()!;
+    final startMinutes = (chosenMinutes - row.time.inMinutes) % (24 * 60);
+    setState(() {
+      _syncedClockTime = TimeOfDay(
+        hour: chosenMinutes ~/ 60,
+        minute: chosenMinutes % 60,
+      );
+      _startTime = TimeOfDay(
+        hour: startMinutes ~/ 60,
+        minute: startMinutes % 60,
+      );
+      _isTableSynced = true;
+    });
+  }
+
+  void _clearClockSync() {
+    setState(() {
+      _isTableSynced = false;
+      _syncedRowIndex = null;
+      _syncedClockTime = null;
+      syncHourController.clear();
+      syncMinuteController.clear();
+    });
+  }
+
+  Widget _buildSyncNumberField({
+    required Key key,
+    required String label,
+    required TextEditingController controller,
+  }) {
+    return TextField(
+      key: key,
+      controller: controller,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.onPrimary,
+        border:
+            OutlineInputBorder(borderRadius: BorderRadius.circular(kRadius)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: kSp12, vertical: kSp8),
+      ),
+      onChanged: (_) => setState(() {}),
+    );
   }
 
   Widget _buildSyncSection() {
     final theme = Theme.of(context);
     return Padding(
+      key: const ValueKey('tci-new-sync-panel'),
       padding: const EdgeInsets.symmetric(horizontal: kSp16),
-      child: Row(
-        children: [
-          Expanded(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(kRadius),
-              onTap: () async {
-                final picked = await showTimePicker(
-                  context: context,
-                  initialTime: _syncedClockTime ?? TimeOfDay.now(),
-                );
-                if (picked != null) {
-                  setState(() => _syncedClockTime = picked);
-                }
-              },
-              child: Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(kRadius),
-                  border: Border.all(color: theme.colorScheme.outline),
-                  color: theme.colorScheme.onPrimary,
+      child: Card(
+        elevation: 0,
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(kRadius)),
+        child: Padding(
+          padding: const EdgeInsets.all(kSp12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Set Clock Time',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: kSp12),
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  _syncedClockTime?.format(context) ?? 'Set clock time',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: _syncedClockTime != null
-                        ? theme.colorScheme.onSurface
-                        : theme.colorScheme.outline,
+              ),
+              const SizedBox(height: kSp8),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSyncNumberField(
+                      key: const ValueKey('tci-new-sync-hour-field'),
+                      label: 'Hours',
+                      controller: syncHourController,
+                    ),
                   ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: kSp8),
-          SizedBox(
-            height: 48,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: theme.colorScheme.onPrimary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(kRadius),
-                ),
-              ),
-              onPressed: _syncedRowIndex != null && _syncedClockTime != null
-                  ? () {
-                      setState(() => _isTableSynced = true);
-                    }
-                  : null,
-              child: const Text('Sync'),
-            ),
-          ),
-          if (_isTableSynced) ...[
-            const SizedBox(width: kSp8),
-            SizedBox(
-              height: 48,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.onPrimary,
-                  foregroundColor: theme.colorScheme.onSurfaceVariant,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(color: theme.colorScheme.outline),
-                    borderRadius: BorderRadius.circular(kRadius),
+                  const SizedBox(width: kSp8),
+                  Expanded(
+                    child: _buildSyncNumberField(
+                      key: const ValueKey('tci-new-sync-minute-field'),
+                      label: 'Minutes',
+                      controller: syncMinuteController,
+                    ),
                   ),
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isTableSynced = false;
-                    _syncedRowIndex = null;
-                    _syncedClockTime = null;
-                  });
-                },
-                child: const Text('Clear'),
+                ],
               ),
-            ),
-          ],
-        ],
+              const SizedBox(height: kSp8),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(kRadius),
+                        ),
+                      ),
+                      onPressed: _canSyncClockTime ? _syncClockTime : null,
+                      child: const Text('Sync Time'),
+                    ),
+                  ),
+                  const SizedBox(width: kSp8),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.onPrimary,
+                        foregroundColor: theme.colorScheme.onSurfaceVariant,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(color: theme.colorScheme.outline),
+                          borderRadius: BorderRadius.circular(kRadius),
+                        ),
+                      ),
+                      onPressed: _clearClockSync,
+                      child: const Text('Clear Sync'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -824,67 +868,6 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     );
   }
 
-  Widget _buildDashboardCards(InfusionRegimeData data, {bool compact = false}) {
-    final theme = Theme.of(context);
-    final bolusVal = data.totalBolus < 10
-        ? data.totalBolus.toStringAsFixed(1)
-        : data.totalBolus.toStringAsFixed(0);
-    final maxRate = data.maxInfusionRate;
-    final maxRateStr =
-        maxRate >= 10 ? maxRate.toStringAsFixed(0) : maxRate.toStringAsFixed(1);
-
-    return Row(
-      children: [
-        _buildStatCard('Bolus', '$bolusVal mL', Icons.medication_liquid,
-            theme.colorScheme.primary,
-            compact: compact),
-        const SizedBox(width: kSp8),
-        _buildStatCard('Max Rate', '$maxRateStr mL/hr', Icons.speed,
-            theme.colorScheme.tertiary,
-            compact: compact),
-        const SizedBox(width: kSp8),
-        _buildStatCard('Total', '${data.totalVolume.toStringAsFixed(1)} mL',
-            Icons.water_drop, theme.colorScheme.secondary,
-            compact: compact),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(
-      String label, String value, IconData icon, Color accentColor,
-      {bool compact = false}) {
-    return Expanded(
-      child: Card(
-        elevation: 1,
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kRadius)),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-              vertical: compact ? 8 : 10, horizontal: compact ? 8 : 8),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(icon, size: compact ? 14 : 18, color: accentColor),
-            const SizedBox(height: kSp4),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 10, color: Theme.of(context).colorScheme.outline),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
-            const SizedBox(height: kSp2),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(value,
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: accentColor)),
-            ),
-          ]),
-        ),
-      ),
-    );
-  }
-
   Widget _buildEmptyResultsState() {
     return Center(
       child: Column(
@@ -905,94 +888,80 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     );
   }
 
-  Widget _buildDesktopContextSection(InfusionRegimeData data) {
-    Widget chartCard() {
-      return Card(
-        elevation: 1,
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kRadius)),
-        child: Padding(
-          padding: const EdgeInsets.all(kSp12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Rate (mL/hr)',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-              const SizedBox(height: kSp8),
-              Expanded(
-                child: InfusionRateChart(
-                  data: data,
-                  startTime: _startTime,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+  int get _displayRowIndex {
+    final rows = infusionRegimeData?.rows.length ?? 0;
+    if (rows == 0) return 0;
+    final selected = _syncedRowIndex ?? 0;
+    return selected.clamp(0, rows - 1);
+  }
 
-    Widget patientCard() {
-      return Card(
-        elevation: 1,
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kRadius)),
-        child: Padding(
-          padding: const EdgeInsets.all(kSp12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Patient / model',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-              const SizedBox(height: kSp8),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: _buildPatientChips(),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+  String _formatDisplayValue(List<double?> values, int fractionDigits) {
+    if (values.isEmpty) return '--';
+    final index = _displayRowIndex.clamp(0, values.length - 1);
+    final value = values[index];
+    if (value == null || value.isNaN || value.isInfinite) return '--';
+    return value.toStringAsFixed(fractionDigits);
+  }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 560) {
-          return Column(
-            key: const ValueKey('tci-new-desktop-context-stacked'),
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: chartCard()),
-              const SizedBox(height: kSp12),
-              Expanded(child: patientCard()),
-            ],
-          );
-        }
-
-        return Row(
-          key: const ValueKey('tci-new-desktop-context-split'),
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _buildCetContext() {
+    final theme = Theme.of(context);
+    final unit = _selectedDrug?.targetUnit.displayName ?? 'μg/mL';
+    final ce = _formatDisplayValue(_effectSiteConcentrationsByRow, 2);
+    return Card(
+      key: const ValueKey('tci-new-cet-context'),
+      elevation: 1,
+      margin: EdgeInsets.zero,
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(kRadius)),
+      child: Padding(
+        padding: const EdgeInsets.all(kSp12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(flex: 3, child: chartCard()),
-            const SizedBox(width: kSp12),
-            Expanded(flex: 2, child: patientCard()),
+            Row(
+              children: [
+                Chip(
+                  label: Text('CeT $ce $unit'),
+                  visualDensity: VisualDensity.compact,
+                ),
+                const Spacer(),
+                Icon(Icons.psychology, color: theme.colorScheme.primary),
+              ],
+            ),
+            const SizedBox(height: kSp4),
+            _buildPatientChips(),
           ],
-        );
-      },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEbisFooter() {
+    final theme = Theme.of(context);
+    final ebis = _formatDisplayValue(_bisEstimatesByRow, 0);
+    return Card(
+      key: const ValueKey('tci-new-ebis-footer'),
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(kRadius)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: kSp12, vertical: kSp8),
+        child: Row(
+          children: [
+            Icon(Icons.monitor_heart_outlined,
+                size: 18, color: theme.colorScheme.primary),
+            const SizedBox(width: kSp8),
+            Text(
+              'eBIS $ebis',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1018,11 +987,9 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
           data: data,
           maxVisibleRows: maxVisibleRows,
           selectedRowIndex: settings.selectedDosageTableRow,
-          onRowTap: (index) {
-            setState(() => _syncedRowIndex = index);
-          },
+          onRowTap: _selectTableRow,
           scrollController: tableScrollController,
-          startTime: _startTime,
+          startTime: _isTableSynced ? _startTime : null,
           syncedRowIndex: _syncedRowIndex,
           isSynced: _isTableSynced,
         ),
@@ -1036,27 +1003,32 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildDashboardCards(data),
-        const SizedBox(height: kSp12),
-        SizedBox(
-          height: 250,
-          child: _buildDesktopContextSection(data),
-        ),
+        _buildCetContext(),
         const SizedBox(height: kSp12),
         Expanded(
-          child: Card(
-            elevation: 1,
-            margin: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(kRadius)),
-            child: Padding(
-              padding: const EdgeInsets.all(kSp12),
-              child: SingleChildScrollView(
-                child: _buildTableSection(data, settings, maxVisibleRows: 8),
+          child: GestureDetector(
+            onTap: () {
+              if (data.rows.isNotEmpty && _syncedRowIndex == null) {
+                _selectTableRow(0);
+              }
+            },
+            child: Card(
+              key: const ValueKey('tci-new-table-card'),
+              elevation: 1,
+              margin: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(kRadius)),
+              child: Padding(
+                padding: const EdgeInsets.all(kSp12),
+                child: SingleChildScrollView(
+                  child: _buildTableSection(data, settings, maxVisibleRows: 8),
+                ),
               ),
             ),
           ),
         ),
+        const SizedBox(height: kSp12),
+        _buildEbisFooter(),
       ],
     );
   }
@@ -1101,18 +1073,28 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildDashboardCards(data, compact: true),
+        _buildCetContext(),
         const SizedBox(height: kSp12),
-        Card(
-          elevation: 1,
-          margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(kRadius)),
-          child: Padding(
-            padding: const EdgeInsets.all(kSp8),
-            child: _buildTableSection(data, settings, maxVisibleRows: 99),
+        GestureDetector(
+          onTap: () {
+            if (data.rows.isNotEmpty && _syncedRowIndex == null) {
+              _selectTableRow(0);
+            }
+          },
+          child: Card(
+            key: const ValueKey('tci-new-table-card'),
+            elevation: 1,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(kRadius)),
+            child: Padding(
+              padding: const EdgeInsets.all(kSp8),
+              child: _buildTableSection(data, settings, maxVisibleRows: 99),
+            ),
           ),
         ),
+        const SizedBox(height: kSp12),
+        _buildEbisFooter(),
       ],
     );
   }
