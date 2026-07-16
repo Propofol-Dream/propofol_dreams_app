@@ -70,16 +70,15 @@ class _DurationScreenState extends State<DurationScreen> {
         : settings.infusionUnit == InfusionUnit.mcg_kg_min
             ? 1
             : 2;
-    infusionRateDecimal = infusionUnits[_selectedUnitIndex] ==
-            InfusionUnit.mg_kg_hr
-        ? 1
-        : infusionUnits[_selectedUnitIndex] == InfusionUnit.mcg_kg_min
-            ? 0
-            : 1;
+    infusionRateDecimal =
+        infusionUnits[_selectedUnitIndex] == InfusionUnit.mg_kg_hr
+            ? 1
+            : infusionUnits[_selectedUnitIndex] == InfusionUnit.mcg_kg_min
+                ? 0
+                : 1;
     infusionRateController.text =
         settings.infusionRate?.toStringAsFixed(infusionRateDecimal) ?? '';
   }
-
 
   void updateWeight() {
     final settings = context.read<Settings>();
@@ -114,10 +113,18 @@ class _DurationScreenState extends State<DurationScreen> {
       return infusionRate / weight * settings.propofol_concentration;
     } else if (previous == InfusionUnit.mL_hr &&
         current == InfusionUnit.mcg_kg_min) {
-      return infusionRate / weight * settings.propofol_concentration * 1000 / 60;
+      return infusionRate /
+          weight *
+          settings.propofol_concentration *
+          1000 /
+          60;
     } else if (previous == InfusionUnit.mcg_kg_min &&
         current == InfusionUnit.mL_hr) {
-      return infusionRate * weight / settings.propofol_concentration / 1000 * 60;
+      return infusionRate *
+          weight /
+          settings.propofol_concentration /
+          1000 *
+          60;
     } else {
       return 0;
     }
@@ -129,12 +136,12 @@ class _DurationScreenState extends State<DurationScreen> {
     //update Infusion Rate if conditions met
     InfusionUnit previous = settings.infusionUnit;
     InfusionUnit current = infusionUnits[_selectedUnitIndex];
-    infusionRateDecimal = infusionUnits[_selectedUnitIndex] ==
-            InfusionUnit.mg_kg_hr
-        ? 1
-        : infusionUnits[_selectedUnitIndex] == InfusionUnit.mcg_kg_min
-            ? 0
-            : 1;
+    infusionRateDecimal =
+        infusionUnits[_selectedUnitIndex] == InfusionUnit.mg_kg_hr
+            ? 1
+            : infusionUnits[_selectedUnitIndex] == InfusionUnit.mcg_kg_min
+                ? 0
+                : 1;
 
     int? weight = int.tryParse(weightController.text);
     double? infusionRate = double.tryParse(infusionRateController.text);
@@ -247,15 +254,21 @@ class _DurationScreenState extends State<DurationScreen> {
   }
 
   Widget _buildErrorPanel(List<String> errors) {
-    return SizedBox(
-      height: 48,
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
       child: errors.isEmpty
           ? const SizedBox.shrink()
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: kSp16, vertical: 8),
-              child: Text(
-                errors.first,
-                style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
+          : SizedBox(
+              height: 48,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: kSp8, vertical: 8),
+                child: Text(
+                  errors.first,
+                  style: TextStyle(
+                      fontSize: 12, color: Theme.of(context).colorScheme.error),
+                ),
               ),
             ),
     );
@@ -265,7 +278,8 @@ class _DurationScreenState extends State<DurationScreen> {
   Widget _buildInputFields(Settings settings) {
     final theme = Theme.of(context);
     final errors = _validate();
-    final weightEnabled = infusionUnits[_selectedUnitIndex] != InfusionUnit.mL_hr;
+    final weightEnabled =
+        infusionUnits[_selectedUnitIndex] != InfusionUnit.mL_hr;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -274,7 +288,7 @@ class _DurationScreenState extends State<DurationScreen> {
         const SizedBox(height: kSp12),
         // Weight
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          padding: const EdgeInsets.symmetric(horizontal: kSp8),
           child: Row(
             children: [
               Expanded(
@@ -286,7 +300,10 @@ class _DurationScreenState extends State<DurationScreen> {
                   interval: 1.0,
                   range: const [0, 250],
                   enabled: weightEnabled,
-                  onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, updateWeight); },
+                  onChanged: () {
+                    _debounceTimer.cancel();
+                    _debounceTimer = Timer(_debounceDelay, updateWeight);
+                  },
                   hasError: errors.isNotEmpty,
                 ),
               ),
@@ -296,18 +313,28 @@ class _DurationScreenState extends State<DurationScreen> {
         const SizedBox(height: kSp12),
         // Infusion rate
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          padding: const EdgeInsets.symmetric(horizontal: kSp8),
           child: Row(
             children: [
               Expanded(
                 child: PKField(
                   prefixIcon: Icons.water_drop_outlined,
-                  labelText: '${AppLocalizations.of(context)!.infusionRate} (${infusionUnits[_selectedUnitIndex].toString()})',
+                  labelText:
+                      '${AppLocalizations.of(context)!.infusionRate} (${infusionUnits[_selectedUnitIndex].toString()})',
                   controller: infusionRateController,
                   fractionDigits: infusionRateDecimal,
-                  interval: infusionUnits[_selectedUnitIndex] == InfusionUnit.mg_kg_hr ? 0.5 : infusionUnits[_selectedUnitIndex] == InfusionUnit.mcg_kg_min ? 10.0 : 1.0,
+                  interval:
+                      infusionUnits[_selectedUnitIndex] == InfusionUnit.mg_kg_hr
+                          ? 0.5
+                          : infusionUnits[_selectedUnitIndex] ==
+                                  InfusionUnit.mcg_kg_min
+                              ? 10.0
+                              : 1.0,
                   range: const [1, 9999],
-                  onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, updateInfusionRate); },
+                  onChanged: () {
+                    _debounceTimer.cancel();
+                    _debounceTimer = Timer(_debounceDelay, updateInfusionRate);
+                  },
                   hasError: errors.isNotEmpty,
                 ),
               ),
@@ -317,7 +344,7 @@ class _DurationScreenState extends State<DurationScreen> {
         const SizedBox(height: kSp12),
         // Infusion unit button group
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          padding: const EdgeInsets.symmetric(horizontal: kSp8),
           child: SizedBox(
             height: 48,
             child: Row(
@@ -328,13 +355,18 @@ class _DurationScreenState extends State<DurationScreen> {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(0, 48),
-                      backgroundColor: selected ? theme.colorScheme.primary : theme.colorScheme.onPrimary,
-                      foregroundColor: selected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                      backgroundColor: selected
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onPrimary,
+                      foregroundColor: selected
+                          ? theme.colorScheme.onPrimary
+                          : theme.colorScheme.onSurfaceVariant,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.horizontal(
                           left: Radius.circular(i == 0 ? kRadius : 0),
-                          right: Radius.circular(i == infusionUnits.length - 1 ? kRadius : 0),
+                          right: Radius.circular(
+                              i == infusionUnits.length - 1 ? kRadius : 0),
                         ),
                         side: BorderSide(color: theme.colorScheme.outline),
                       ),
@@ -343,7 +375,8 @@ class _DurationScreenState extends State<DurationScreen> {
                       setState(() => _selectedUnitIndex = i);
                       updateInfusionUnit();
                     },
-                    child: Text(infusionUnits[i].toString(), style: const TextStyle(fontSize: 12)),
+                    child: Text(infusionUnits[i].toString(),
+                        style: const TextStyle(fontSize: 12)),
                   ),
                 );
               }),
@@ -369,11 +402,11 @@ class _DurationScreenState extends State<DurationScreen> {
     }
     return CollapsibleInputSection(
       child: _buildInputFields(settings),
-      collapsedChips: _buildCollapsedChips(),
+      collapsedChipRows: _buildCollapsedChips(),
     );
   }
 
-  List<Widget> _buildCollapsedChips() {
+  List<List<Widget>> _buildCollapsedChips() {
     final errors = _validate();
     final theme = Theme.of(context);
     final weightText = weightController.text;
@@ -393,7 +426,8 @@ class _DurationScreenState extends State<DurationScreen> {
           ? theme.colorScheme.errorContainer.withValues(alpha: 0.5)
           : null;
       return Chip(
-        avatar: Icon(hasError ? Icons.error_outline : icon, size: 16, color: chipColor),
+        avatar: Icon(hasError ? Icons.error_outline : icon,
+            size: 16, color: chipColor),
         label: Text(isEmpty ? emptyLabel : displayValue,
             style: TextStyle(fontSize: 11, color: chipColor)),
         visualDensity: VisualDensity.compact,
@@ -404,20 +438,23 @@ class _DurationScreenState extends State<DurationScreen> {
     }
 
     return [
-      chip(
-        displayValue: '${weightText}kg',
-        emptyLabel: 'Weight',
-        icon: Icons.monitor_weight,
-        isEmpty: weightText.isEmpty,
-        hasError: errors.any((e) => e.startsWith('Weight')),
-      ),
-      chip(
-        displayValue: '$rateText ${infusionUnits[_selectedUnitIndex].toString()}',
-        emptyLabel: 'Rate',
-        icon: Icons.water_drop,
-        isEmpty: rateText.isEmpty,
-        hasError: errors.any((e) => e.startsWith('Rate')),
-      ),
+      [
+        chip(
+          displayValue: '${weightText}kg',
+          emptyLabel: 'Weight',
+          icon: Icons.monitor_weight,
+          isEmpty: weightText.isEmpty,
+          hasError: errors.any((e) => e.startsWith('Weight')),
+        ),
+        chip(
+          displayValue:
+              '$rateText ${infusionUnits[_selectedUnitIndex].toString()}',
+          emptyLabel: 'Rate',
+          icon: Icons.water_drop,
+          isEmpty: rateText.isEmpty,
+          hasError: errors.any((e) => e.startsWith('Rate')),
+        ),
+      ],
     ];
   }
 
@@ -453,7 +490,8 @@ class _DurationScreenState extends State<DurationScreen> {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.only(top: 12),
-                child: _buildResultsTable(settings, MediaQuery.of(context).size.height),
+                child: _buildResultsTable(
+                    settings, MediaQuery.of(context).size.height),
               ),
             ),
             const SizedBox(width: 12),
@@ -492,16 +530,17 @@ class _DurationScreenState extends State<DurationScreen> {
   @override
   Widget build(BuildContext context) {
     final isDesktopLayout = ResponsiveHelper.isDesktop(context);
-    final isTabletLayout = ResponsiveHelper.isTablet(context) && !isDesktopLayout;
+    final isTabletLayout =
+        ResponsiveHelper.isTablet(context) && !isDesktopLayout;
 
     final settings = context.watch<Settings>();
 
-    infusionRateDecimal = infusionUnits[_selectedUnitIndex] ==
-            InfusionUnit.mg_kg_hr
-        ? 1
-        : infusionUnits[_selectedUnitIndex] == InfusionUnit.mcg_kg_min
-            ? 0
-            : 1;
+    infusionRateDecimal =
+        infusionUnits[_selectedUnitIndex] == InfusionUnit.mg_kg_hr
+            ? 1
+            : infusionUnits[_selectedUnitIndex] == InfusionUnit.mcg_kg_min
+                ? 0
+                : 1;
 
     if (isDesktopLayout) {
       return _wrapWithKeyboardShortcuts(_buildDesktopLayout(settings));
@@ -529,7 +568,8 @@ class _DurationScreenState extends State<DurationScreen> {
                     child: Column(
                       children: [
                         const Spacer(),
-                        _buildResultsTable(settings, MediaQuery.of(context).size.height),
+                        _buildResultsTable(
+                            settings, MediaQuery.of(context).size.height),
                       ],
                     ),
                   ),

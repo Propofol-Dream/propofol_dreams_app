@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:propofol_dreams_app/main.dart';
 import 'package:propofol_dreams_app/providers/settings.dart';
+import 'package:propofol_dreams_app/screens/tci_screen_new.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
@@ -30,5 +31,6 @@ void main() {
     await tester.pump();
 
     expect(find.byType(MaterialApp), findsOneWidget);
+    expect(find.byType(TCIScreenNew), findsOneWidget);
   });
 }

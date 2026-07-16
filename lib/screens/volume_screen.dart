@@ -23,7 +23,6 @@ import '../components/switch_field.dart';
 import '../components/selector.dart';
 import '../components/collapsible_input_section.dart';
 
-
 class _VolumeScreenState extends State<VolumeScreen> {
   TextEditingController ageController = TextEditingController();
   TextEditingController heightController = TextEditingController();
@@ -98,7 +97,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
   void _setControllersFromSettings(Settings settings) {
     tableController.val = settings.isVolumeTableExpanded;
-    _selectedModel = settings.inAdultView ? settings.adultModel : settings.pediatricModel;
+    _selectedModel =
+        settings.inAdultView ? settings.adultModel : settings.pediatricModel;
     _sexValue = settings.inAdultView
         ? settings.adultSex == Sex.Female
         : settings.pediatricSex == Sex.Female;
@@ -447,9 +447,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
     final settings = Provider.of<Settings>(context, listen: false);
 
     if (settings.inAdultView) {
-      _sexValue = toDefault
-          ? true
-          : settings.adultSex == Sex.Female;
+      _sexValue = toDefault ? true : settings.adultSex == Sex.Female;
       ageController.text = toDefault
           ? 40.toString()
           : settings.adultAge != null
@@ -476,9 +474,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
               ? settings.adultDuration.toString()
               : '';
     } else {
-      _sexValue = toDefault
-          ? true
-          : settings.pediatricSex == Sex.Female;
+      _sexValue = toDefault ? true : settings.pediatricSex == Sex.Female;
       ageController.text = toDefault
           ? 8.toString()
           : settings.pediatricAge != null
@@ -539,9 +535,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
     final weight = int.tryParse(weightController.text);
     final duration = int.tryParse(durationController.text);
 
-    final model = settings.inAdultView
-        ? settings.adultModel
-        : settings.pediatricModel;
+    final model =
+        settings.inAdultView ? settings.adultModel : settings.pediatricModel;
 
     if (model == Model.None) {
       errors.add('No model selected');
@@ -549,9 +544,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
     }
 
     final bool hasNulls = age == null || weight == null || duration == null;
-    final bool targetNull =
-        double.tryParse(targetController.text) == null;
-    final bool hasMissingFields = hasNulls || targetNull ||
+    final bool targetNull = double.tryParse(targetController.text) == null;
+    final bool hasMissingFields = hasNulls ||
+        targetNull ||
         (model.target != Target.Plasma && height == null);
 
     if (hasMissingFields) {
@@ -562,40 +557,46 @@ class _VolumeScreenState extends State<VolumeScreen> {
       errors.add('Age ${model.minAge}-${model.maxAge} for ${model.name}');
     }
     if (weight != null && !model.withinWeight(weight)) {
-      errors.add('Weight ${model.minWeight}-${model.maxWeight} kg for ${model.name}');
+      errors.add(
+          'Weight ${model.minWeight}-${model.maxWeight} kg for ${model.name}');
     }
     if (height != null && !model.withinHeight(height)) {
-      errors.add('Height ${model.minHeight}-${model.maxHeight} cm for ${model.name}');
+      errors.add(
+          'Height ${model.minHeight}-${model.maxHeight} cm for ${model.name}');
     }
 
     return errors;
   }
 
   Widget _buildErrorPanel(List<String> errors) {
-    return SizedBox(
-      height: 48,
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
       child: errors.isEmpty
           ? const SizedBox.shrink()
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: kSp16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    errors.first,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                  ),
-                  if (errors.length > 1)
+          : SizedBox(
+              height: 48,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: kSp8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                     Text(
-                      '+${errors.length - 1} more',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
+                      errors.first,
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.error),
                     ),
-                ],
+                    if (errors.length > 1)
+                      Text(
+                        '+${errors.length - 1} more',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.error),
+                      ),
+                  ],
+                ),
               ),
             ),
     );
@@ -604,7 +605,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
   Widget _buildInputFields(Settings settings) {
     final theme = Theme.of(context);
     final age = int.tryParse(ageController.text);
-    final model = settings.inAdultView ? settings.adultModel : settings.pediatricModel;
+    final model =
+        settings.inAdultView ? settings.adultModel : settings.pediatricModel;
     final errors = _validate(settings);
     final sexSwitchEnabled = model.target != Target.Plasma;
     final heightEnabled = model.target != Target.Plasma;
@@ -617,7 +619,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         const SizedBox(height: kSp12),
         // Model selector, adult/paed toggle, and reset button
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          padding: const EdgeInsets.symmetric(horizontal: kSp8),
           child: Row(
             children: [
               IntrinsicWidth(
@@ -651,7 +653,9 @@ class _VolumeScreenState extends State<VolumeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      settings.inAdultView ? Icons.face : Icons.child_care_outlined,
+                      settings.inAdultView
+                          ? Icons.face
+                          : Icons.child_care_outlined,
                       size: 18,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -666,26 +670,40 @@ class _VolumeScreenState extends State<VolumeScreen> {
                     Switch(
                       value: settings.inAdultView,
                       activeThumbColor: theme.colorScheme.primary,
-                      activeTrackColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      activeTrackColor:
+                          theme.colorScheme.primary.withValues(alpha: 0.1),
                       inactiveThumbColor: theme.colorScheme.onSurfaceVariant,
-                      inactiveTrackColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+                      inactiveTrackColor: theme.colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.1),
                       onChanged: (v) {
                         HapticFeedback.lightImpact();
                         if (v != settings.inAdultView) {
                           if (settings.inAdultView) {
-                            settings.adultAge = int.tryParse(ageController.text);
-                            settings.adultHeight = int.tryParse(heightController.text);
-                            settings.adultWeight = int.tryParse(weightController.text);
-                            settings.propofolTarget = double.tryParse(targetController.text);
-                            settings.adultDuration = int.tryParse(durationController.text);
-                            settings.adultSex = _sexValue ? Sex.Female : Sex.Male;
+                            settings.adultAge =
+                                int.tryParse(ageController.text);
+                            settings.adultHeight =
+                                int.tryParse(heightController.text);
+                            settings.adultWeight =
+                                int.tryParse(weightController.text);
+                            settings.propofolTarget =
+                                double.tryParse(targetController.text);
+                            settings.adultDuration =
+                                int.tryParse(durationController.text);
+                            settings.adultSex =
+                                _sexValue ? Sex.Female : Sex.Male;
                           } else {
-                            settings.pediatricAge = int.tryParse(ageController.text);
-                            settings.pediatricHeight = int.tryParse(heightController.text);
-                            settings.pediatricWeight = int.tryParse(weightController.text);
-                            settings.pediatricTarget = double.tryParse(targetController.text);
-                            settings.pediatricDuration = int.tryParse(durationController.text);
-                            settings.pediatricSex = _sexValue ? Sex.Female : Sex.Male;
+                            settings.pediatricAge =
+                                int.tryParse(ageController.text);
+                            settings.pediatricHeight =
+                                int.tryParse(heightController.text);
+                            settings.pediatricWeight =
+                                int.tryParse(weightController.text);
+                            settings.pediatricTarget =
+                                double.tryParse(targetController.text);
+                            settings.pediatricDuration =
+                                int.tryParse(durationController.text);
+                            settings.pediatricSex =
+                                _sexValue ? Sex.Female : Sex.Male;
                           }
                           settings.inAdultView = v;
                           ageController.text = settings.inAdultView
@@ -698,8 +716,10 @@ class _VolumeScreenState extends State<VolumeScreen> {
                               ? (settings.adultWeight?.toString() ?? '')
                               : (settings.pediatricWeight?.toString() ?? '');
                           targetController.text = settings.inAdultView
-                              ? (settings.propofolTarget?.toStringAsFixed(1) ?? '')
-                              : (settings.pediatricTarget?.toStringAsFixed(1) ?? '');
+                              ? (settings.propofolTarget?.toStringAsFixed(1) ??
+                                  '')
+                              : (settings.pediatricTarget?.toStringAsFixed(1) ??
+                                  '');
                           durationController.text = settings.inAdultView
                               ? (settings.adultDuration?.toString() ?? '')
                               : (settings.pediatricDuration?.toString() ?? '');
@@ -745,7 +765,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         const SizedBox(height: kSp12),
         // Sex and Age row
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          padding: const EdgeInsets.symmetric(horizontal: kSp8),
           child: Row(
             children: [
               Expanded(
@@ -799,7 +819,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         const SizedBox(height: kSp12),
         // Height and Weight row
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          padding: const EdgeInsets.symmetric(horizontal: kSp8),
           child: Row(
             children: [
               Expanded(
@@ -850,7 +870,7 @@ class _VolumeScreenState extends State<VolumeScreen> {
         const SizedBox(height: kSp12),
         // Target and Duration row
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          padding: const EdgeInsets.symmetric(horizontal: kSp8),
           child: Row(
             children: [
               Expanded(
@@ -918,19 +938,23 @@ class _VolumeScreenState extends State<VolumeScreen> {
     }
     return CollapsibleInputSection(
       child: _buildInputFields(settings),
-      collapsedChips: _buildCollapsedChips(settings),
+      collapsedChipRows: _buildCollapsedChips(settings),
       onCollapsedChanged: (collapsed) {
         setState(() => _isInputCollapsed = collapsed);
       },
     );
   }
 
-  List<Widget> _buildCollapsedChips(Settings settings) {
+  List<List<Widget>> _buildCollapsedChips(Settings settings) {
     final errors = _validate(settings);
     final theme = Theme.of(context);
     final weightText = weightController.text;
     final targetText = targetController.text;
     final durationText = durationController.text;
+    final heightText = heightController.text;
+    final durationMins = int.tryParse(durationText);
+    final durationDisplay =
+        durationMins != null ? '${durationMins * 60}min' : '';
 
     Widget chip({
       required String displayValue,
@@ -946,7 +970,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
           ? theme.colorScheme.errorContainer.withValues(alpha: 0.5)
           : null;
       return Chip(
-        avatar: Icon(hasError ? Icons.error_outline : icon, size: 16, color: chipColor),
+        avatar: Icon(hasError ? Icons.error_outline : icon,
+            size: 16, color: chipColor),
         label: Text(isEmpty ? emptyLabel : displayValue,
             style: TextStyle(fontSize: 11, color: chipColor)),
         visualDensity: VisualDensity.compact,
@@ -957,41 +982,58 @@ class _VolumeScreenState extends State<VolumeScreen> {
     }
 
     return [
-      Chip(
-        avatar: const Icon(Icons.model_training, size: 16),
-        label: Text(_selectedModel.name, style: const TextStyle(fontSize: 11)),
-        visualDensity: VisualDensity.compact,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-      ),
-      Chip(
-        avatar: Icon(_sexValue ? Icons.female : Icons.male, size: 16),
-        label: Text(_sexValue ? 'F' : 'M', style: const TextStyle(fontSize: 11)),
-        visualDensity: VisualDensity.compact,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-      ),
-      chip(
-        displayValue: '${weightText}kg',
-        emptyLabel: 'Weight',
-        icon: Icons.monitor_weight,
-        isEmpty: weightText.isEmpty,
-        hasError: errors.any((e) => e.contains('Weight') || e.contains('weight')),
-      ),
-      chip(
-        displayValue: '${targetText} μg/mL',
-        emptyLabel: 'Target',
-        icon: Icons.psychology,
-        isEmpty: targetText.isEmpty,
-        hasError: errors.any((e) => e.contains('Target') || e.contains('target')),
-      ),
-      chip(
-        displayValue: '${durationText}h',
-        emptyLabel: 'Duration',
-        icon: Icons.schedule,
-        isEmpty: durationText.isEmpty,
-        hasError: errors.any((e) => e.contains('Duration') || e.contains('duration')),
-      ),
+      [
+        Chip(
+          avatar: const Icon(Icons.model_training, size: 16),
+          label:
+              Text(_selectedModel.name, style: const TextStyle(fontSize: 11)),
+          visualDensity: VisualDensity.compact,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+        ),
+        chip(
+          displayValue: '${targetText} μg/mL',
+          emptyLabel: 'Target',
+          icon: Icons.psychology,
+          isEmpty: targetText.isEmpty,
+          hasError:
+              errors.any((e) => e.contains('Target') || e.contains('target')),
+        ),
+      ],
+      [
+        Chip(
+          avatar: Icon(_sexValue ? Icons.female : Icons.male, size: 16),
+          label:
+              Text(_sexValue ? 'F' : 'M', style: const TextStyle(fontSize: 11)),
+          visualDensity: VisualDensity.compact,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+        ),
+        chip(
+          displayValue: '${weightText}kg',
+          emptyLabel: 'Weight',
+          icon: Icons.monitor_weight,
+          isEmpty: weightText.isEmpty,
+          hasError:
+              errors.any((e) => e.contains('Weight') || e.contains('weight')),
+        ),
+        chip(
+          displayValue: '${heightText}cm',
+          emptyLabel: 'Height',
+          icon: Icons.straighten,
+          isEmpty: heightText.isEmpty,
+          hasError:
+              errors.any((e) => e.contains('Height') || e.contains('height')),
+        ),
+        chip(
+          displayValue: durationDisplay,
+          emptyLabel: 'Duration',
+          icon: Icons.schedule,
+          isEmpty: durationText.isEmpty,
+          hasError: errors
+              .any((e) => e.contains('Duration') || e.contains('duration')),
+        ),
+      ],
     ];
   }
 
@@ -1023,7 +1065,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
 
   /// Results section: data table only (result label is pinned below).
   Widget _buildResultsSection(Settings settings, double screenHeight,
-      double? target, bool modelIsRunnable, {bool showTable = true}) {
+      double? target, bool modelIsRunnable,
+      {bool showTable = true}) {
     final mediaQuery = MediaQuery.of(context);
     return Column(
       children: [
@@ -1031,36 +1074,36 @@ class _VolumeScreenState extends State<VolumeScreen> {
         if (showTable)
           mediaQuery.size.height >= screenBreakPoint1
               ? Consumer<Settings>(
-                builder: (context, settings, child) {
-                  return AnimatedDataTable(
-                    isExpanded: tableController.val,
-                    data: _buildConfidenceIntervalData(modelIsRunnable),
-                    headers: modelIsRunnable
-                        ? [
-                            (target! - targetInterval) >= 0
-                                ? 'Target ${(target - targetInterval).toStringAsFixed(1)}'
-                                : 'Target ${0.toStringAsFixed(1)}',
-                            'Target ${target.toStringAsFixed(1)}',
-                            'Target ${(target + targetInterval).toStringAsFixed(1)}',
-                          ]
-                        : ['Target --', 'Target --', 'Target --'],
-                    maxVisibleRows: tableController.val
-                        ? _calculateOptimalRowCount(screenHeight, true)
-                        : 0,
-                    selectedRowIndex: settings.selectedVolumeTableRow,
-                    onRowTap: (index) {
-                      if (settings.selectedVolumeTableRow == index) {
-                        settings.selectedVolumeTableRow = null;
-                      } else {
-                        settings.selectedVolumeTableRow = index;
-                      }
-                    },
-                    scrollController: tableScrollController,
-                    animate: _shouldAnimateTableExpansion,
-                  );
-                },
-              )
-            : const SizedBox(height: 0),
+                  builder: (context, settings, child) {
+                    return AnimatedDataTable(
+                      isExpanded: tableController.val,
+                      data: _buildConfidenceIntervalData(modelIsRunnable),
+                      headers: modelIsRunnable
+                          ? [
+                              (target! - targetInterval) >= 0
+                                  ? 'Target ${(target - targetInterval).toStringAsFixed(1)}'
+                                  : 'Target ${0.toStringAsFixed(1)}',
+                              'Target ${target.toStringAsFixed(1)}',
+                              'Target ${(target + targetInterval).toStringAsFixed(1)}',
+                            ]
+                          : ['Target --', 'Target --', 'Target --'],
+                      maxVisibleRows: tableController.val
+                          ? _calculateOptimalRowCount(screenHeight, true)
+                          : 0,
+                      selectedRowIndex: settings.selectedVolumeTableRow,
+                      onRowTap: (index) {
+                        if (settings.selectedVolumeTableRow == index) {
+                          settings.selectedVolumeTableRow = null;
+                        } else {
+                          settings.selectedVolumeTableRow = index;
+                        }
+                      },
+                      scrollController: tableScrollController,
+                      animate: _shouldAnimateTableExpansion,
+                    );
+                  },
+                )
+              : const SizedBox(height: 0),
       ],
     );
   }
@@ -1220,7 +1263,8 @@ class _VolumeScreenState extends State<VolumeScreen> {
     int? duration = int.tryParse(durationController.text);
     double? target = double.tryParse(targetController.text);
 
-    _selectedModel = settings.inAdultView ? settings.adultModel : settings.pediatricModel;
+    _selectedModel =
+        settings.inAdultView ? settings.adultModel : settings.pediatricModel;
 
     bool modelIsRunnable = _selectedModel.isRunnable(
         age: age,
@@ -1248,69 +1292,73 @@ class _VolumeScreenState extends State<VolumeScreen> {
       body: _wrapWithKeyboardShortcuts(
         Column(
           children: [
-            if (_isInputCollapsed && mediaQuery.size.height >= screenBreakPoint1) ...[
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                ),
-                child: SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedDefaultTextStyle(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.fastOutSlowIn,
-                          style: TextStyle(
-                            fontSize: 60,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          child: Text(modelIsRunnable ? result : emptyResult),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+            if (_isInputCollapsed)
               Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final rowHeight = 41.0;
-                    final maxRows = (constraints.maxHeight / rowHeight).floor();
-                    return Consumer<Settings>(
-                      builder: (context, settings, child) {
-                        return AnimatedDataTable(
-                          isExpanded: true,
-                          data: _buildConfidenceIntervalData(modelIsRunnable),
-                          headers: modelIsRunnable
-                              ? [
-                                  (target! - targetInterval) >= 0
-                                      ? 'Target ${(target - targetInterval).toStringAsFixed(1)}'
-                                      : 'Target ${0.toStringAsFixed(1)}',
-                                  'Target ${target.toStringAsFixed(1)}',
-                                  'Target ${(target + targetInterval).toStringAsFixed(1)}',
-                                ]
-                              : ['Target --', 'Target --', 'Target --'],
-                          maxVisibleRows: maxRows,
-                          selectedRowIndex: settings.selectedVolumeTableRow,
-                          onRowTap: (index) {
-                            if (settings.selectedVolumeTableRow == index) {
-                              settings.selectedVolumeTableRow = null;
-                            } else {
-                              settings.selectedVolumeTableRow = index;
-                            }
-                          },
-                          scrollController: tableScrollController,
-                          animate: _shouldAnimateTableExpansion,
-                        );
-                      },
-                    );
-                  },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                      ),
+                      child: SafeArea(
+                        top: false,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AnimatedDefaultTextStyle(
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.fastOutSlowIn,
+                                style: TextStyle(
+                                  fontSize: 60,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                                child: Text(
+                                    modelIsRunnable ? result : emptyResult),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      child: Consumer<Settings>(
+                        builder: (context, settings, child) {
+                          return AnimatedDataTable(
+                            isExpanded: true,
+                            data: _buildConfidenceIntervalData(modelIsRunnable),
+                            headers: modelIsRunnable
+                                ? [
+                                    (target! - targetInterval) >= 0
+                                        ? 'Target ${(target - targetInterval).toStringAsFixed(1)}'
+                                        : 'Target ${0.toStringAsFixed(1)}',
+                                    'Target ${target.toStringAsFixed(1)}',
+                                    'Target ${(target + targetInterval).toStringAsFixed(1)}',
+                                  ]
+                                : ['Target --', 'Target --', 'Target --'],
+                            maxVisibleRows: 5,
+                            selectedRowIndex: settings.selectedVolumeTableRow,
+                            onRowTap: (index) {
+                              if (settings.selectedVolumeTableRow == index) {
+                                settings.selectedVolumeTableRow = null;
+                              } else {
+                                settings.selectedVolumeTableRow = index;
+                              }
+                            },
+                            scrollController: tableScrollController,
+                            animate: true,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ] else
+              )
+            else
               Expanded(
                 child: CustomScrollView(
                   slivers: [
@@ -1318,8 +1366,6 @@ class _VolumeScreenState extends State<VolumeScreen> {
                       hasScrollBody: true,
                       child: Column(
                         children: [
-                          _buildResultsSection(
-                              settings, screenHeight, target, modelIsRunnable, showTable: false),
                           const Spacer(),
                           Container(
                             decoration: BoxDecoration(
@@ -1328,18 +1374,24 @@ class _VolumeScreenState extends State<VolumeScreen> {
                             child: SafeArea(
                               top: false,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     AnimatedDefaultTextStyle(
-                                      duration: const Duration(milliseconds: 200),
+                                      duration:
+                                          const Duration(milliseconds: 200),
                                       curve: Curves.fastOutSlowIn,
                                       style: TextStyle(
                                         fontSize: 60,
-                                        color: Theme.of(context).colorScheme.onSurface,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                       ),
-                                      child: Text(modelIsRunnable ? result : emptyResult),
+                                      child: Text(modelIsRunnable
+                                          ? result
+                                          : emptyResult),
                                     ),
                                   ],
                                 ),

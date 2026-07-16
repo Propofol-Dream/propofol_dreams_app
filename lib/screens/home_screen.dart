@@ -8,7 +8,7 @@ import '../utils/responsive_helper.dart';
 import 'volume_screen.dart';
 import 'duration_screen.dart';
 import 'elemarsh_screen.dart';
-import 'tci_screen.dart';
+import 'tci_screen_new.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Widget> _getScreens(Settings settings) {
     return [
       EleMarshScreen(),
-      const TCIScreen(),
+      const TCIScreenNew(),
       const VolumeScreen(),
       const DurationScreen(),
       const SettingsScreen(),

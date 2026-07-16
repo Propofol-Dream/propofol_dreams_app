@@ -326,17 +326,34 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
   // ── Input Panel ──────────────────────────────────────────────
 
   Widget _buildErrorPanel(List<String> errors) {
-    return SizedBox(
-      height: 48,
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
       child: errors.isEmpty
           ? const SizedBox.shrink()
-          : Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: kSp16, vertical: 8),
-              child: Text(
-                errors.first,
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.error, fontSize: 12),
+          : SizedBox(
+              height: 48,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: kSp8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      errors.first,
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.error),
+                    ),
+                    if (errors.length > 1)
+                      Text(
+                        '+${errors.length - 1} more',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.error),
+                      ),
+                  ],
+                ),
               ),
             ),
     );
@@ -357,32 +374,82 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
       children: [
         _buildErrorPanel(errors),
         const SizedBox(height: kSp12),
-        // Target
+        // Target + eBIS
         Padding(
           key: const ValueKey('tci-new-target-primary'),
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
-          child: PKField(
-            labelText: model.getTargetLabel(context, _selectedDrug),
-            prefixIcon: model.target.icon,
-            interval: model.getTargetProperties(_selectedDrug).interval,
-            fractionDigits: 1,
-            controller: targetController,
-            range: [
-              model.getTargetProperties(_selectedDrug).min,
-              model.getTargetProperties(_selectedDrug).max,
+          padding: const EdgeInsets.symmetric(horizontal: kSp8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: PKField(
+                  labelText: model.getTargetLabel(context, _selectedDrug),
+                  prefixIcon: model.target.icon,
+                  interval: model.getTargetProperties(_selectedDrug).interval,
+                  fractionDigits: 1,
+                  controller: targetController,
+                  range: [
+                    model.getTargetProperties(_selectedDrug).min,
+                    model.getTargetProperties(_selectedDrug).max,
+                  ],
+                  onChanged: () {
+                    timer.cancel();
+                    timer = Timer(_debounceDelay, calculate);
+                  },
+                  hasError: errors.isNotEmpty,
+                ),
+              ),
+              if (infusionRegimeData != null &&
+                  _bisEstimatesByRow.isNotEmpty) ...[
+                const SizedBox(width: kSp8),
+                SizedBox(
+                  height: 48,
+                  width: 80,
+                  child: TextField(
+                    key: const ValueKey('tci-new-ebis-field'),
+                    readOnly: true,
+                    controller: TextEditingController(
+                        text: _formatDisplayValue(_bisEstimatesByRow, 0)),
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      labelText: 'eBIS',
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.only(left: 12),
+                        child: Icon(Icons.monitor_heart_outlined,
+                            size: 18, color: theme.colorScheme.primary),
+                      ),
+                      prefixIconConstraints:
+                          const BoxConstraints(minWidth: 0, minHeight: 0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(kRadius),
+                        borderSide:
+                            BorderSide(color: theme.colorScheme.outline),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(kRadius),
+                        borderSide:
+                            BorderSide(color: theme.colorScheme.outline),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(kRadius),
+                        borderSide:
+                            BorderSide(color: theme.colorScheme.outline),
+                      ),
+                      filled: true,
+                      fillColor: theme.colorScheme.onPrimary,
+                    ),
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                  ),
+                ),
+              ],
             ],
-            onChanged: () {
-              timer.cancel();
-              timer = Timer(_debounceDelay, calculate);
-            },
-            hasError: errors.isNotEmpty,
           ),
         ),
         const SizedBox(height: kSp12),
         // Drug selector + Reset button
         Padding(
           key: const ValueKey('tci-new-drug-row'),
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          padding: const EdgeInsets.symmetric(horizontal: kSp8),
           child: Row(
             children: [
               IntrinsicWidth(
@@ -446,14 +513,10 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
           ),
         ),
         const SizedBox(height: kSp12),
-        if (_syncedRowIndex != null) ...[
-          _buildSyncSection(),
-          const SizedBox(height: kSp12),
-        ],
         // Sex + Age
         Padding(
           key: const ValueKey('tci-new-demographics-row'),
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          padding: const EdgeInsets.symmetric(horizontal: kSp8),
           child: Row(
             children: [
               Expanded(
@@ -498,7 +561,7 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
         // Weight + Height
         Padding(
           key: const ValueKey('tci-new-size-row'),
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          padding: const EdgeInsets.symmetric(horizontal: kSp8),
           child: Row(
             children: [
               Expanded(
@@ -672,6 +735,7 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
       syncHourController.text = now.hour.toString();
       syncMinuteController.text = now.minute.toString().padLeft(2, '0');
     });
+    _showSyncModal();
   }
 
   void _syncClockTime() {
@@ -707,6 +771,7 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     required Key key,
     required String label,
     required TextEditingController controller,
+    VoidCallback? onChanged,
   }) {
     return TextField(
       key: key,
@@ -722,90 +787,115 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: kSp12, vertical: kSp8),
       ),
-      onChanged: (_) => setState(() {}),
+      onChanged: (_) {
+        setState(() {});
+        onChanged?.call();
+      },
     );
   }
 
-  Widget _buildSyncSection() {
+  Future<void> _showSyncModal() {
     final theme = Theme.of(context);
-    return Padding(
-      key: const ValueKey('tci-new-sync-panel'),
-      padding: const EdgeInsets.symmetric(horizontal: kSp16),
-      child: Card(
-        elevation: 0,
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kRadius)),
-        child: Padding(
-          padding: const EdgeInsets.all(kSp12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Set Clock Time',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              key: const ValueKey('tci-new-sync-modal'),
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: kSp16,
+                  right: kSp16,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + kSp16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Set Clock Time',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: kSp12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildSyncNumberField(
+                            key: const ValueKey('tci-new-sync-hour-field'),
+                            label: 'Hours',
+                            controller: syncHourController,
+                            onChanged: () => setSheetState(() {}),
+                          ),
+                        ),
+                        const SizedBox(width: kSp8),
+                        Expanded(
+                          child: _buildSyncNumberField(
+                            key: const ValueKey('tci-new-sync-minute-field'),
+                            label: 'Minutes',
+                            controller: syncMinuteController,
+                            onChanged: () => setSheetState(() {}),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: kSp12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(kRadius),
+                              ),
+                            ),
+                            onPressed: _canSyncClockTime
+                                ? () {
+                                    _syncClockTime();
+                                    Navigator.of(sheetContext).pop();
+                                  }
+                                : null,
+                            child: const Text('Set Time'),
+                          ),
+                        ),
+                        const SizedBox(width: kSp8),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.onPrimary,
+                              foregroundColor:
+                                  theme.colorScheme.onSurfaceVariant,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                    color: theme.colorScheme.outline),
+                                borderRadius: BorderRadius.circular(kRadius),
+                              ),
+                            ),
+                            onPressed: () {
+                              _clearClockSync();
+                              Navigator.of(sheetContext).pop();
+                            },
+                            child: const Text('Clear'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: kSp8),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSyncNumberField(
-                      key: const ValueKey('tci-new-sync-hour-field'),
-                      label: 'Hours',
-                      controller: syncHourController,
-                    ),
-                  ),
-                  const SizedBox(width: kSp8),
-                  Expanded(
-                    child: _buildSyncNumberField(
-                      key: const ValueKey('tci-new-sync-minute-field'),
-                      label: 'Minutes',
-                      controller: syncMinuteController,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: kSp8),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: theme.colorScheme.onPrimary,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(kRadius),
-                        ),
-                      ),
-                      onPressed: _canSyncClockTime ? _syncClockTime : null,
-                      child: const Text('Sync Time'),
-                    ),
-                  ),
-                  const SizedBox(width: kSp8),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.onPrimary,
-                        foregroundColor: theme.colorScheme.onSurfaceVariant,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          side: BorderSide(color: theme.colorScheme.outline),
-                          borderRadius: BorderRadius.circular(kRadius),
-                        ),
-                      ),
-                      onPressed: _clearClockSync,
-                      child: const Text('Clear Sync'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -920,50 +1010,14 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(kRadius)),
       child: Padding(
         padding: const EdgeInsets.all(kSp12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Chip(
-                  label: Text('CeT $ce $unit'),
-                  visualDensity: VisualDensity.compact,
-                ),
-                const Spacer(),
-                Icon(Icons.psychology, color: theme.colorScheme.primary),
-              ],
-            ),
-            const SizedBox(height: kSp4),
-            _buildPatientChips(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEbisFooter() {
-    final theme = Theme.of(context);
-    final ebis = _formatDisplayValue(_bisEstimatesByRow, 0);
-    return Card(
-      key: const ValueKey('tci-new-ebis-footer'),
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(kRadius)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: kSp12, vertical: kSp8),
         child: Row(
           children: [
-            Icon(Icons.monitor_heart_outlined,
-                size: 18, color: theme.colorScheme.primary),
-            const SizedBox(width: kSp8),
-            Text(
-              'eBIS $ebis',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+            Chip(
+              label: Text('CeT $ce $unit'),
+              visualDensity: VisualDensity.compact,
             ),
+            const Spacer(),
+            Icon(Icons.psychology, color: theme.colorScheme.primary),
           ],
         ),
       ),
@@ -1008,8 +1062,6 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildCetContext(),
-        const SizedBox(height: kSp12),
         Expanded(
           child: GestureDetector(
             onTap: () {
@@ -1032,8 +1084,6 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
             ),
           ),
         ),
-        const SizedBox(height: kSp12),
-        _buildEbisFooter(),
       ],
     );
   }
@@ -1078,8 +1128,6 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildCetContext(),
-        const SizedBox(height: kSp12),
         GestureDetector(
           onTap: () {
             if (data.rows.isNotEmpty && _syncedRowIndex == null) {
@@ -1098,8 +1146,6 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
             ),
           ),
         ),
-        const SizedBox(height: kSp12),
-        _buildEbisFooter(),
       ],
     );
   }

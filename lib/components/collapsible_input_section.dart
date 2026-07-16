@@ -72,35 +72,32 @@ class _CollapsibleInputSectionState extends State<CollapsibleInputSection> {
                 ),
               ),
             ),
-            AnimatedOpacity(
-              duration: const Duration(milliseconds: 150),
-              opacity: _isCollapsed ? 1.0 : 0.0,
-              child: _isCollapsed && collapsedChipRows != null
-                  ? Padding(
-                      padding: const EdgeInsets.only(
-                          left: kSp16, right: kSp16, bottom: kSp8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: collapsedChipRows.map((row) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Wrap(
-                              spacing: kSp8,
-                              runSpacing: kSp4,
-                              children: row,
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
             AnimatedSize(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
               alignment: Alignment.bottomCenter,
-              child: _isCollapsed ? const SizedBox(height: 0) : widget.child,
+              child: _isCollapsed
+                  ? (collapsedChipRows != null
+                      ? Padding(
+                          padding: const EdgeInsets.only(
+                              left: kSp16, right: kSp16, bottom: kSp8),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: collapsedChipRows.map((row) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Wrap(
+                                  spacing: kSp8,
+                                  runSpacing: kSp4,
+                                  children: row,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        )
+                      : const SizedBox.shrink())
+                  : widget.child,
             ),
           ],
         ),

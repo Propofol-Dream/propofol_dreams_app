@@ -111,7 +111,7 @@ class DurationTableRowData extends TableRowData {
 }
 
 // Generic animated data table (used by volume screen)
-class AnimatedDataTable extends StatefulWidget {
+class AnimatedDataTable extends StatelessWidget {
   final List<TableRowData> data;
   final List<String> headers;
   final bool isExpanded;
@@ -134,130 +134,14 @@ class AnimatedDataTable extends StatefulWidget {
   });
 
   @override
-  State<AnimatedDataTable> createState() => _AnimatedDataTableState();
-}
-
-class _AnimatedDataTableState extends State<AnimatedDataTable>
-    with TickerProviderStateMixin {
-  late AnimationController _mainController;
-  late AnimationController _contentController;
-  late Animation<double> _headerAnimation;
-  late Animation<double> _contentAnimation;
-  late Animation<Offset> _slideAnimation;
-  bool _isFirstBuild = true;
-
-  @override
-  void initState() {
-    super.initState();
-    
-    _mainController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    
-    _contentController = AnimationController(
-      duration: const Duration(milliseconds: 150),
-      vsync: this,
-    );
-
-    _headerAnimation = CurvedAnimation(
-      parent: _mainController,
-      curve: Curves.fastOutSlowIn,
-    );
-
-    _contentAnimation = CurvedAnimation(
-      parent: _contentController,
-      curve: Curves.easeOutCubic,
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, -0.1),
-      end: Offset.zero,
-    ).animate(_contentAnimation);
-
-    // Set initial state without animation
-    if (widget.isExpanded) {
-      if (widget.animate) {
-        // Only animate if specifically requested (button tap)
-        _mainController.forward();
-        _contentController.forward();
-      } else {
-        // Jump to final state immediately (screen restoration)
-        _mainController.value = 1.0;
-        _contentController.value = 1.0;
-      }
-    }
-  }
-
-  @override
-  void didUpdateWidget(AnimatedDataTable oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    
-    // Skip animation logic on first build
-    if (_isFirstBuild) {
-      _isFirstBuild = false;
-      return;
-    }
-    
-    if (widget.isExpanded != oldWidget.isExpanded) {
-      if (widget.animate) {
-        // Play animation when animate is true (button tap)
-        if (widget.isExpanded) {
-          _mainController.forward();
-          Future.delayed(const Duration(milliseconds: 25), () {
-            if (mounted) _contentController.forward();
-          });
-        } else {
-          _contentController.reverse();
-          _mainController.reverse();
-        }
-      } else {
-        // Jump to final state without animation (screen restoration)
-        if (widget.isExpanded) {
-          _mainController.value = 1.0;
-          _contentController.value = 1.0;
-        } else {
-          _mainController.value = 0.0;
-          _contentController.value = 0.0;
-        }
-      }
-    } else if (widget.animate != oldWidget.animate && !widget.animate) {
-      // If animate flag changes from true to false, ensure we're in the correct final state
-      if (widget.isExpanded) {
-        _mainController.value = 1.0;
-        _contentController.value = 1.0;
-      } else {
-        _mainController.value = 0.0;
-        _contentController.value = 0.0;
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _mainController.dispose();
-    _contentController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _headerAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: ScaleTransition(
-          scale: Tween<double>(begin: 0.95, end: 1.0).animate(_contentAnimation),
-          child: DataTable(
-            data: widget.data,
-            headers: widget.headers,
-            maxVisibleRows: widget.maxVisibleRows,
-            selectedRowIndex: widget.selectedRowIndex,
-            onRowTap: widget.onRowTap,
-            scrollController: widget.scrollController,
-          ),
-        ),
-      ),
+    return DataTable(
+      data: data,
+      headers: headers,
+      maxVisibleRows: maxVisibleRows,
+      selectedRowIndex: selectedRowIndex,
+      onRowTap: onRowTap,
+      scrollController: scrollController,
     );
   }
 }
@@ -423,33 +307,44 @@ class DataTable extends StatelessWidget {
 
     final theme = Theme.of(context);
     final visibleRows = data;
+    final rowHeight = 41.0;
+    final tableHeight = math.min(visibleRows.length, maxVisibleRows) * rowHeight;
+    const headerHeight = 42.0;
 
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: theme.colorScheme.primary, width: 1),
         borderRadius: BorderRadius.circular(5),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildHeader(context),
-          Expanded(
-            child: SingleChildScrollView(
-              controller: scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: visibleRows.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final row = entry.value;
-                  final isFirstRow = index == 0;
-                  final isSelected = selectedRowIndex == index;
-                  return _buildDataRow(context, row, isFirstRow, isSelected, index);
-                }).toList(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final bodyHeight = constraints.hasBoundedHeight
+              ? math.min(tableHeight, math.max(0, constraints.maxHeight - headerHeight))
+              : tableHeight;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(context),
+              SizedBox(
+                height: bodyHeight.toDouble(),
+                child: ListView.builder(
+                  controller: scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: visibleRows.length,
+                  itemBuilder: (context, index) {
+                    final row = visibleRows[index];
+                    final isFirstRow = index == 0;
+                    final isSelected = selectedRowIndex == index;
+                    return _buildDataRow(context, row, isFirstRow, isSelected, index);
+                  },
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -790,36 +685,45 @@ class DosageDataTable extends StatelessWidget {
 
     final theme = Theme.of(context);
     final tableHeight = math.min(data.rows.length, maxVisibleRows) * 41.0;
+    const fixedRowsHeight = 82.0;
 
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: theme.colorScheme.primary, width: 1),
         borderRadius: BorderRadius.circular(5),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildBolusRow(context),
-          _buildHeader(context),
-          SizedBox(
-            height: tableHeight,
-            child: SingleChildScrollView(
-              controller: scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: data.rows.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final row = entry.value;
-                  final isFirstRow = index == 0;
-                  final isSelected = selectedRowIndex == index;
-                  return _buildDataRow(context, row, isFirstRow, isSelected, index);
-                }).toList(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final bodyHeight = constraints.hasBoundedHeight
+              ? math.min(tableHeight, math.max(0, constraints.maxHeight - fixedRowsHeight))
+              : tableHeight;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildBolusRow(context),
+              _buildHeader(context),
+              SizedBox(
+                height: bodyHeight.toDouble(),
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: data.rows.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final row = entry.value;
+                      final isFirstRow = index == 0;
+                      final isSelected = selectedRowIndex == index;
+                      return _buildDataRow(context, row, isFirstRow, isSelected, index);
+                    }).toList(),
+                  ),
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }

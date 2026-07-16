@@ -91,7 +91,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
 
     _isWakeFlow = settings.EMFlow == 'wake';
     _isEleveldModel = settings.EMWakeUpModel == Model.Eleveld;
-    maintenanceCeController.text = settings.EMMaintenanceCe?.toString() ?? '3.0';
+    maintenanceCeController.text =
+        settings.EMMaintenanceCe?.toString() ?? '3.0';
     maintenanceSEController.text = settings.EMMaintenanceSE?.toString() ?? '40';
     infusionRateController.text = settings.EMInfusionRate?.toString() ?? '';
     run(initState: true);
@@ -372,13 +373,16 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     final maintenanceCe = double.tryParse(maintenanceCeController.text);
     final maintenanceSE = int.tryParse(maintenanceSEController.text);
 
-    if (age != null && (age < Model.EleMarsh.minAge || age > Model.EleMarsh.maxAge)) {
+    if (age != null &&
+        (age < Model.EleMarsh.minAge || age > Model.EleMarsh.maxAge)) {
       errors.add('Age ${Model.EleMarsh.minAge}-${Model.EleMarsh.maxAge}');
     }
-    if (height != null && (height < minHeightEleMarsh || height > maxHeightEleMarsh)) {
+    if (height != null &&
+        (height < minHeightEleMarsh || height > maxHeightEleMarsh)) {
       errors.add('Height $minHeightEleMarsh-$maxHeightEleMarsh cm');
     }
-    if (weight != null && (weight < minWeightEleMarsh || weight > maxWeightEleMarsh)) {
+    if (weight != null &&
+        (weight < minWeightEleMarsh || weight > maxWeightEleMarsh)) {
       errors.add('Weight $minWeightEleMarsh-$maxWeightEleMarsh kg');
     }
     if (target != null && (target < 0.5 || target > 8.0)) {
@@ -394,15 +398,21 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   }
 
   Widget _buildErrorPanel(List<String> errors) {
-    return SizedBox(
-      height: 48,
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
       child: errors.isEmpty
           ? const SizedBox.shrink()
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: kSp16, vertical: 8),
-              child: Text(
-                errors.first,
-                style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
+          : SizedBox(
+              height: 48,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: kSp8, vertical: 8),
+                child: Text(
+                  errors.first,
+                  style: TextStyle(
+                      fontSize: 12, color: Theme.of(context).colorScheme.error),
+                ),
               ),
             ),
     );
@@ -421,7 +431,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         const SizedBox(height: kSp12),
         // Flow selector + Help/Reset buttons
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: kSp16),
+          padding: const EdgeInsets.symmetric(horizontal: kSp8),
           child: Row(
             children: [
               Expanded(
@@ -434,12 +444,18 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             minimumSize: const Size(0, 48),
-                            backgroundColor: !_isWakeFlow ? theme.colorScheme.primary : theme.colorScheme.onPrimary,
-                            foregroundColor: !_isWakeFlow ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                            backgroundColor: !_isWakeFlow
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onPrimary,
+                            foregroundColor: !_isWakeFlow
+                                ? theme.colorScheme.onPrimary
+                                : theme.colorScheme.onSurfaceVariant,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.horizontal(left: Radius.circular(kRadius)),
-                              side: BorderSide(color: theme.colorScheme.outline),
+                              borderRadius: BorderRadius.horizontal(
+                                  left: Radius.circular(kRadius)),
+                              side:
+                                  BorderSide(color: theme.colorScheme.outline),
                             ),
                           ),
                           onPressed: () {
@@ -454,12 +470,18 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             minimumSize: const Size(0, 48),
-                            backgroundColor: _isWakeFlow ? theme.colorScheme.primary : theme.colorScheme.onPrimary,
-                            foregroundColor: _isWakeFlow ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                            backgroundColor: _isWakeFlow
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onPrimary,
+                            foregroundColor: _isWakeFlow
+                                ? theme.colorScheme.onPrimary
+                                : theme.colorScheme.onSurfaceVariant,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.horizontal(right: Radius.circular(kRadius)),
-                              side: BorderSide(color: theme.colorScheme.outline),
+                              borderRadius: BorderRadius.horizontal(
+                                  right: Radius.circular(kRadius)),
+                              side:
+                                  BorderSide(color: theme.colorScheme.outline),
                             ),
                           ),
                           onPressed: () {
@@ -489,7 +511,9 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                       borderRadius: BorderRadius.circular(kRadius),
                     ),
                   ),
-                  onPressed: () => _isWakeFlow ? showWakeAlertDialog(context) : showInduceAlertDialog(context),
+                  onPressed: () => _isWakeFlow
+                      ? showWakeAlertDialog(context)
+                      : showInduceAlertDialog(context),
                   child: const Icon(Symbols.question_mark, size: 20),
                 ),
               ),
@@ -508,7 +532,10 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                       borderRadius: BorderRadius.circular(kRadius),
                     ),
                   ),
-                  onPressed: () { HapticFeedback.mediumImpact(); reset(toDefault: true); },
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    reset(toDefault: true);
+                  },
                   child: const Icon(Icons.restart_alt_outlined, size: 20),
                 ),
               ),
@@ -519,7 +546,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         // RSI/STD toggle (Induce only)
         if (!_isWakeFlow)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: kSp16),
+            padding: const EdgeInsets.symmetric(horizontal: kSp8),
             child: SizedBox(
               height: 48,
               child: Row(
@@ -529,11 +556,16 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(0, 48),
-                        backgroundColor: !settings.EMRSI ? theme.colorScheme.primary : theme.colorScheme.onPrimary,
-                        foregroundColor: !settings.EMRSI ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                        backgroundColor: !settings.EMRSI
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onPrimary,
+                        foregroundColor: !settings.EMRSI
+                            ? theme.colorScheme.onPrimary
+                            : theme.colorScheme.onSurfaceVariant,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.horizontal(left: Radius.circular(kRadius)),
+                          borderRadius: BorderRadius.horizontal(
+                              left: Radius.circular(kRadius)),
                           side: BorderSide(color: theme.colorScheme.outline),
                         ),
                       ),
@@ -555,11 +587,16 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(0, 48),
-                        backgroundColor: settings.EMRSI ? theme.colorScheme.primary : theme.colorScheme.onPrimary,
-                        foregroundColor: settings.EMRSI ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                        backgroundColor: settings.EMRSI
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onPrimary,
+                        foregroundColor: settings.EMRSI
+                            ? theme.colorScheme.onPrimary
+                            : theme.colorScheme.onSurfaceVariant,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.horizontal(right: Radius.circular(kRadius)),
+                          borderRadius: BorderRadius.horizontal(
+                              right: Radius.circular(kRadius)),
                           side: BorderSide(color: theme.colorScheme.outline),
                         ),
                       ),
@@ -585,7 +622,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         // Induce: Sex + Age
         if (!_isWakeFlow)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: kSp16),
+            padding: const EdgeInsets.symmetric(horizontal: kSp8),
             child: Row(
               children: [
                 Expanded(
@@ -596,10 +633,17 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                         : (isAdult ? Icons.man : Icons.boy),
                     value: _sexValue,
                     switchLabels: {
-                      true: isAdult ? Sex.Female.toLocalizedString(context) : Sex.Girl.toLocalizedString(context),
-                      false: isAdult ? Sex.Male.toLocalizedString(context) : Sex.Boy.toLocalizedString(context),
+                      true: isAdult
+                          ? Sex.Female.toLocalizedString(context)
+                          : Sex.Girl.toLocalizedString(context),
+                      false: isAdult
+                          ? Sex.Male.toLocalizedString(context)
+                          : Sex.Boy.toLocalizedString(context),
                     },
-                    onChanged: (v) { setState(() => _sexValue = v); run(); },
+                    onChanged: (v) {
+                      setState(() => _sexValue = v);
+                      run();
+                    },
                   ),
                 ),
                 const SizedBox(width: kSp12),
@@ -611,7 +655,10 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                     fractionDigits: 0,
                     controller: ageController,
                     range: [Model.EleMarsh.minAge, Model.EleMarsh.maxAge],
-                    onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, run); },
+                    onChanged: () {
+                      _debounceTimer.cancel();
+                      _debounceTimer = Timer(_debounceDelay, run);
+                    },
                     hasError: errors.isNotEmpty,
                   ),
                 ),
@@ -622,7 +669,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         // Induce: Height + Weight
         if (!_isWakeFlow)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: kSp16),
+            padding: const EdgeInsets.symmetric(horizontal: kSp8),
             child: Row(
               children: [
                 Expanded(
@@ -633,7 +680,10 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                     fractionDigits: 0,
                     controller: heightController,
                     range: [minHeightEleMarsh, maxHeightEleMarsh],
-                    onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, run); },
+                    onChanged: () {
+                      _debounceTimer.cancel();
+                      _debounceTimer = Timer(_debounceDelay, run);
+                    },
                     hasError: errors.isNotEmpty,
                   ),
                 ),
@@ -646,7 +696,10 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                     fractionDigits: 0,
                     controller: weightController,
                     range: [minWeightEleMarsh, maxWeightEleMarsh],
-                    onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, run); },
+                    onChanged: () {
+                      _debounceTimer.cancel();
+                      _debounceTimer = Timer(_debounceDelay, run);
+                    },
                     hasError: errors.isNotEmpty,
                   ),
                 ),
@@ -657,18 +710,22 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         // Induce: Target
         if (!_isWakeFlow)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: kSp16),
+            padding: const EdgeInsets.symmetric(horizontal: kSp8),
             child: Row(
               children: [
                 Expanded(
                   child: PKField(
                     prefixIcon: Target.EffectSite.icon,
-                    labelText: '${AppLocalizations.of(context)!.effectSiteTarget} (μg/mL)',
+                    labelText:
+                        '${AppLocalizations.of(context)!.effectSiteTarget} (μg/mL)',
                     interval: 0.5,
                     fractionDigits: 1,
                     controller: targetController,
                     range: const [0.5, 8],
-                    onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, run); },
+                    onChanged: () {
+                      _debounceTimer.cancel();
+                      _debounceTimer = Timer(_debounceDelay, run);
+                    },
                     hasError: errors.isNotEmpty,
                   ),
                 ),
@@ -679,19 +736,24 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         // Emerge: Model
         if (_isWakeFlow)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: kSp16),
+            padding: const EdgeInsets.symmetric(horizontal: kSp8),
             child: Row(
               children: [
                 Expanded(
                   child: SwitchField(
                     labelText: AppLocalizations.of(context)!.model,
-                    prefixIcon: _isEleveldModel ? Icons.spoke_outlined : Icons.hub_outlined,
+                    prefixIcon: _isEleveldModel
+                        ? Icons.spoke_outlined
+                        : Icons.hub_outlined,
                     value: _isEleveldModel,
                     switchLabels: {
                       true: Model.Eleveld.toString(),
                       false: Model.EleMarsh.toString(),
                     },
-                    onChanged: (v) { setState(() => _isEleveldModel = v); run(); },
+                    onChanged: (v) {
+                      setState(() => _isEleveldModel = v);
+                      run();
+                    },
                   ),
                 ),
               ],
@@ -701,18 +763,22 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         // Emerge: Maintenance SE
         if (_isWakeFlow)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: kSp16),
+            padding: const EdgeInsets.symmetric(horizontal: kSp8),
             child: Row(
               children: [
                 Expanded(
                   child: PKField(
                     prefixIcon: Icons.monitor_heart_outlined,
-                    labelText: AppLocalizations.of(context)!.maintenanceStateEntropy,
+                    labelText:
+                        AppLocalizations.of(context)!.maintenanceStateEntropy,
                     interval: 1.0,
                     fractionDigits: 0,
                     controller: maintenanceSEController,
                     range: const [1, 99],
-                    onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, run); },
+                    onChanged: () {
+                      _debounceTimer.cancel();
+                      _debounceTimer = Timer(_debounceDelay, run);
+                    },
                     hasError: errors.isNotEmpty,
                   ),
                 ),
@@ -723,12 +789,15 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         // Emerge: Maintenance Ce
         if (_isWakeFlow)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: kSp16),
+            padding: const EdgeInsets.symmetric(horizontal: kSp8),
             child: Row(
               children: [
                 Expanded(
                   child: PKField(
-                    prefixIcon: (_isEleveldModel ? Model.Eleveld : Model.EleMarsh).target.icon,
+                    prefixIcon:
+                        (_isEleveldModel ? Model.Eleveld : Model.EleMarsh)
+                            .target
+                            .icon,
                     labelText: _isEleveldModel
                         ? AppLocalizations.of(context)!.maintenanceCe
                         : AppLocalizations.of(context)!.maintenanceCp,
@@ -736,7 +805,10 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                     fractionDigits: 1,
                     controller: maintenanceCeController,
                     range: const [0.5, 8],
-                    onChanged: () { _debounceTimer.cancel(); _debounceTimer = Timer(_debounceDelay, run); },
+                    onChanged: () {
+                      _debounceTimer.cancel();
+                      _debounceTimer = Timer(_debounceDelay, run);
+                    },
                     hasError: errors.isNotEmpty,
                   ),
                 ),
@@ -762,11 +834,11 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     }
     return CollapsibleInputSection(
       child: _buildInputFields(settings),
-      collapsedChips: _buildCollapsedChips(),
+      collapsedChipRows: _buildCollapsedChips(),
     );
   }
 
-  List<Widget> _buildCollapsedChips() {
+  List<List<Widget>> _buildCollapsedChips() {
     final errors = _validate();
     final theme = Theme.of(context);
     final ageText = ageController.text;
@@ -788,7 +860,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
           ? theme.colorScheme.errorContainer.withValues(alpha: 0.5)
           : null;
       return Chip(
-        avatar: Icon(hasError ? Icons.error_outline : icon, size: 16, color: chipColor),
+        avatar: Icon(hasError ? Icons.error_outline : icon,
+            size: 16, color: chipColor),
         label: Text(isEmpty ? emptyLabel : displayValue,
             style: TextStyle(fontSize: 11, color: chipColor)),
         visualDensity: VisualDensity.compact,
@@ -799,49 +872,57 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
     }
 
     return [
-      Chip(
-        avatar: Icon(_isWakeFlow ? Icons.wb_sunny_outlined : Icons.nightlight_outlined, size: 16),
-        label: Text(_isWakeFlow ? 'Wake' : 'Induce', style: const TextStyle(fontSize: 11)),
-        visualDensity: VisualDensity.compact,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-      ),
-      Chip(
-        avatar: Icon(_sexValue ? Icons.female : Icons.male, size: 16),
-        label: Text(_sexValue ? 'F' : 'M', style: const TextStyle(fontSize: 11)),
-        visualDensity: VisualDensity.compact,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-      ),
-      chip(
-        displayValue: '${ageText}y',
-        emptyLabel: 'Age',
-        icon: Icons.calendar_month,
-        isEmpty: ageText.isEmpty,
-        hasError: errors.any((e) => e.startsWith('Age')),
-      ),
-      chip(
-        displayValue: '${weightText}kg',
-        emptyLabel: 'Weight',
-        icon: Icons.monitor_weight,
-        isEmpty: weightText.isEmpty,
-        hasError: errors.any((e) => e.startsWith('Weight')),
-      ),
-      chip(
-        displayValue: '${heightText}cm',
-        emptyLabel: 'Height',
-        icon: Icons.straighten,
-        isEmpty: heightText.isEmpty,
-        hasError: errors.any((e) => e.startsWith('Height')),
-      ),
-      if (!_isWakeFlow)
-        chip(
-          displayValue: '${targetText} μg/mL',
-          emptyLabel: 'Target',
-          icon: Icons.psychology,
-          isEmpty: targetText.isEmpty,
-          hasError: errors.any((e) => e.startsWith('Target')),
+      [
+        Chip(
+          avatar: Icon(
+              _isWakeFlow ? Icons.wb_sunny_outlined : Icons.nightlight_outlined,
+              size: 16),
+          label: Text(_isWakeFlow ? 'Wake' : 'Induce',
+              style: const TextStyle(fontSize: 11)),
+          visualDensity: VisualDensity.compact,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
         ),
+        if (!_isWakeFlow)
+          chip(
+            displayValue: '${targetText} μg/mL',
+            emptyLabel: 'Target',
+            icon: Icons.psychology,
+            isEmpty: targetText.isEmpty,
+            hasError: errors.any((e) => e.startsWith('Target')),
+          ),
+      ],
+      [
+        chip(
+          displayValue: '${ageText}y',
+          emptyLabel: 'Age',
+          icon: Icons.calendar_month,
+          isEmpty: ageText.isEmpty,
+          hasError: errors.any((e) => e.startsWith('Age')),
+        ),
+        Chip(
+          avatar: Icon(_sexValue ? Icons.female : Icons.male, size: 16),
+          label:
+              Text(_sexValue ? 'F' : 'M', style: const TextStyle(fontSize: 11)),
+          visualDensity: VisualDensity.compact,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+        ),
+        chip(
+          displayValue: '${weightText}kg',
+          emptyLabel: 'Weight',
+          icon: Icons.monitor_weight,
+          isEmpty: weightText.isEmpty,
+          hasError: errors.any((e) => e.startsWith('Weight')),
+        ),
+        chip(
+          displayValue: '${heightText}cm',
+          emptyLabel: 'Height',
+          icon: Icons.straighten,
+          isEmpty: heightText.isEmpty,
+          hasError: errors.any((e) => e.startsWith('Height')),
+        ),
+      ],
     ];
   }
 
@@ -1186,7 +1267,8 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
   @override
   Widget build(BuildContext context) {
     final isDesktopLayout = ResponsiveHelper.isDesktop(context);
-    final isTabletLayout = ResponsiveHelper.isTablet(context) && !isDesktopLayout;
+    final isTabletLayout =
+        ResponsiveHelper.isTablet(context) && !isDesktopLayout;
 
     final settings = context.watch<Settings>();
 
@@ -1212,8 +1294,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                 text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(text: 'Marshモデルを用いて、Eleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n'),
             TextSpan(
-                text: '使用方法：\n',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+                text: '使用方法：\n', style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(text: "（1）患者情報および希望するEleveld効果部位目標濃度を入力する。\n"),
             TextSpan(text: "（2）EleMarshアルゴリズムが調整体重および導入CpT（目標血漿濃度）を計算する。\n"),
             TextSpan(text: "（3）TCIポンプのMarshモデルの体重入力には、算出された調整体重を用いる。\n"),
@@ -1247,8 +1328,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                 text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(text: 'Marshモデルを用いて、Eleveldモデルの薬物投与挙動を正確にシミュレートする。\n\n'),
             TextSpan(
-                text: '使用方法：\n',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+                text: '使用方法：\n', style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(text: "（1）入力患者情報及び希望するEleveld効果部位目標濃度。\n"),
             TextSpan(text: "（2）EleMarshアルゴリズムが調整体重及び手動ボーラス投与量を算出。\n"),
             TextSpan(text: "（3）TCIポンプのMarshモデルの体重入力には、算出された調整体重を使用。\n"),
@@ -1282,8 +1362,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                 text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(text: '用Marsh模型精准模拟Eleveld模型的输注行为。\n\n'),
             TextSpan(
-                text: '使用方法：\n',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+                text: '使用方法：\n', style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(text: '（1）输入患者信息及期望达到的Eleveld效应室靶浓度。\n'),
             TextSpan(text: '（2）EleMarsh算法将计算调整体重及诱导CpT(血浆靶浓度)。\n'),
             TextSpan(text: '（3）在TCI泵的Marsh模型中，将调整体重作为患者体重输入。\n'),
@@ -1317,8 +1396,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                 text: '目的：\n', style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(text: '使Marsh模型精准模拟Eleveld模型的输注行为。\n\n'),
             TextSpan(
-                text: '使用方法：\n',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+                text: '使用方法：\n', style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(text: '（1）输入患者信息及期望达到的Eleveld效应室靶浓度。\n'),
             TextSpan(text: '（2）EleMarsh算法将计算调整体重及手动推注剂量。\n'),
             TextSpan(text: '（3）在TCI泵的Marsh模型中，将调整体重作为患者体重输入。\n'),
@@ -1349,8 +1427,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         child: Text.rich(
           TextSpan(children: [
             TextSpan(
-                text: "Aim:\n",
-                style: TextStyle(fontWeight: FontWeight.bold)),
+                text: "Aim:\n", style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(
                 text:
                     "Accurately mimic the infusion behaviour of Eleveld model using Marsh model.\n\n"),
@@ -1394,8 +1471,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         child: Text.rich(
           TextSpan(children: [
             TextSpan(
-                text: "Aim:\n",
-                style: TextStyle(fontWeight: FontWeight.bold)),
+                text: "Aim:\n", style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(
                 text:
                     "Accurately mimic the infusion behaviour of Eleveld model using Marsh model.\n\n"),
@@ -1488,8 +1564,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
                 text: '（2）その時点での状態エントロピー（State Entropy, SE）の数値を入力する。\n',
               ),
               TextSpan(
-                text:
-                    '（3）アルゴリズムが患者個人のプロポフォール感受性に基づき、麻酔覚醒時の血漿中濃度の範囲を推定する。\n\n',
+                text: '（3）アルゴリズムが患者個人のプロポフォール感受性に基づき、麻酔覚醒時の血漿中濃度の範囲を推定する。\n\n',
               ),
               TextSpan(
                 text: '注意事項：\n',
@@ -1543,9 +1618,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
             TextSpan(
                 text:
                     '（a）本算法推测的苏醒血浆浓度是假设患者受到最小外界刺激的情形下得出。实际苏醒浓度可能受到刺激强度、疼痛程度、肌松药物使用及辅助用药的影响。\n'),
-            TextSpan(
-                text:
-                    '（b）本算法适用于手术时长超过60分钟的病例；对于手术时间较短者，估算结果可能存在偏差。\n\n'),
+            TextSpan(text: '（b）本算法适用于手术时长超过60分钟的病例；对于手术时间较短者，估算结果可能存在偏差。\n\n'),
             TextSpan(
                 text: '文献:\n', style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(
@@ -1570,8 +1643,7 @@ class _EleMarshScreenState extends State<EleMarshScreen> {
         child: Text.rich(
           TextSpan(children: [
             TextSpan(
-                text: "Aim:\n",
-                style: TextStyle(fontWeight: FontWeight.bold)),
+                text: "Aim:\n", style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(
                 text:
                     "Estimate the propofol Cp at which the patient emerges from general anaesthesia (i.e. eye open to voice).\n\n"),
