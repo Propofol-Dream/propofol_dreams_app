@@ -55,6 +55,18 @@ void main() {
     expect(find.textContaining('Propofol'), findsWidgets);
   });
 
+  testWidgets('TCIScreenNew stacks desktop context cards on tablet width',
+      (tester) async {
+    await _pumpTciScreen(tester, surfaceSize: const Size(768, 800));
+
+    expect(find.byKey(const ValueKey('tci-new-desktop-workstation')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('tci-new-desktop-context-stacked')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('tci-new-desktop-context-split')),
+        findsNothing);
+  });
+
   testWidgets('TCIScreenNew renders mobile pdtci flow with bottom controls',
       (tester) async {
     await _pumpTciScreen(tester, surfaceSize: const Size(390, 844));

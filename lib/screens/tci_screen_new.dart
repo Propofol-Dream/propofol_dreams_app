@@ -906,74 +906,93 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
   }
 
   Widget _buildDesktopContextSection(InfusionRegimeData data) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(
-          flex: 3,
-          child: Card(
-            elevation: 1,
-            margin: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(kRadius)),
-            child: Padding(
-              padding: const EdgeInsets.all(kSp12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Rate (mL/hr)',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                  const SizedBox(height: kSp8),
-                  Expanded(
-                    child: InfusionRateChart(
-                      data: data,
-                      startTime: _startTime,
+    Widget chartCard() {
+      return Card(
+        elevation: 1,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(kRadius)),
+        child: Padding(
+          padding: const EdgeInsets.all(kSp12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Rate (mL/hr)',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ),
-                ],
               ),
-            ),
+              const SizedBox(height: kSp8),
+              Expanded(
+                child: InfusionRateChart(
+                  data: data,
+                  startTime: _startTime,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: kSp12),
-        Expanded(
-          flex: 2,
-          child: Card(
-            elevation: 1,
-            margin: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(kRadius)),
-            child: Padding(
-              padding: const EdgeInsets.all(kSp12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Patient / model',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                  const SizedBox(height: kSp8),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: _buildPatientChips(),
+      );
+    }
+
+    Widget patientCard() {
+      return Card(
+        elevation: 1,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(kRadius)),
+        child: Padding(
+          padding: const EdgeInsets.all(kSp12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Patient / model',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ),
-                ],
               ),
-            ),
+              const SizedBox(height: kSp8),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: _buildPatientChips(),
+                ),
+              ),
+            ],
           ),
         ),
-      ],
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 560) {
+          return Column(
+            key: const ValueKey('tci-new-desktop-context-stacked'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: chartCard()),
+              const SizedBox(height: kSp12),
+              Expanded(child: patientCard()),
+            ],
+          );
+        }
+
+        return Row(
+          key: const ValueKey('tci-new-desktop-context-split'),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(flex: 3, child: chartCard()),
+            const SizedBox(width: kSp12),
+            Expanded(flex: 2, child: patientCard()),
+          ],
+        );
+      },
     );
   }
 
