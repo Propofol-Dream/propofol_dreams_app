@@ -1030,66 +1030,6 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     );
   }
 
-  Widget _buildResults(InfusionRegimeData data, Settings settings,
-      {bool showChips = true, bool showChart = true}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (showChips) ...[
-          _buildPatientChips(),
-          const SizedBox(height: kSp12),
-        ],
-        _buildDashboardCards(data,
-            compact: ResponsiveHelper.shouldUseMobileLayout(context)),
-        const SizedBox(height: kSp12),
-        if (showChart) ...[
-          Padding(
-            padding: const EdgeInsets.only(left: kSp4, bottom: kSp4),
-            child: Text(
-              'Rate (mL/hr)',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-          ),
-          SizedBox(
-            height: 250,
-            child: InfusionRateChart(
-              data: data,
-              startTime: _startTime,
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
-        if (_isTableSynced && data.rows.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: LinearProgressIndicator(
-              value: ((_syncedRowIndex ?? 0) + 1) / data.rows.length,
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerHighest,
-            ),
-          ),
-        ],
-        DosageDataTable(
-          data: data,
-          maxVisibleRows:
-              ResponsiveHelper.shouldUseMobileLayout(context) ? 99 : 8,
-          selectedRowIndex: settings.selectedDosageTableRow,
-          onRowTap: (index) {
-            setState(() => _syncedRowIndex = index);
-          },
-          scrollController: tableScrollController,
-          startTime: _startTime,
-          syncedRowIndex: _syncedRowIndex,
-          isSynced: _isTableSynced,
-        ),
-      ],
-    );
-  }
-
   // ── Layouts ──────────────────────────────────────────────────
 
   Widget _buildDesktopResults(InfusionRegimeData data, Settings settings) {
