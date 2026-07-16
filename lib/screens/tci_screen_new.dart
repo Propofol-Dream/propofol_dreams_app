@@ -104,8 +104,8 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     final drugTarget = settings.getTciDrugTarget(_selectedDrug);
     final model = _getModelForDrug(_selectedDrug);
     final targetProps = model.getTargetProperties(_selectedDrug);
-    targetController.text =
-        drugTarget?.toStringAsFixed(1) ?? targetProps.defaultValue.toStringAsFixed(1);
+    targetController.text = drugTarget?.toStringAsFixed(1) ??
+        targetProps.defaultValue.toStringAsFixed(1);
   }
 
   void _saveToSettings() {
@@ -118,7 +118,8 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     final sex = _sexValue ? Sex.Female : Sex.Male;
 
     if (_selectedDrug != null) {
-      settings.tciDrug = settings.getCurrentDrugVariant(_selectedDrug!.displayName);
+      settings.tciDrug =
+          settings.getCurrentDrugVariant(_selectedDrug!.displayName);
     }
     settings.tciSex = sex;
     settings.tciAge = age;
@@ -200,8 +201,9 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
         });
 
         final conc = pumpConcentration;
-        final concStr =
-            conc == conc.roundToDouble() ? conc.toStringAsFixed(0) : conc.toStringAsFixed(1);
+        final concStr = conc == conc.roundToDouble()
+            ? conc.toStringAsFixed(0)
+            : conc.toStringAsFixed(1);
         final unit = resolvedDrug?.concentrationUnit.displayName ?? 'mg/mL';
         settings.statusBarInfo =
             'Model: ${selectedModel} · Drug: ${resolvedDrug?.displayName ?? '—'} $concStr $unit · Pump: ${settings.max_pump_rate} mL/hr';
@@ -220,18 +222,13 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
   void reset({bool toDefault = false}) {
     final settings = Provider.of<Settings>(context, listen: false);
 
-    _sexValue = toDefault
-        ? false
-        : settings.tciSex == Sex.Female;
-    ageController.text = toDefault
-        ? '40'
-        : (settings.tciAge?.toString() ?? '40');
-    heightController.text = toDefault
-        ? '170'
-        : (settings.tciHeight?.toString() ?? '170');
-    weightController.text = toDefault
-        ? '70'
-        : (settings.tciWeight?.toString() ?? '70');
+    _sexValue = toDefault ? false : settings.tciSex == Sex.Female;
+    ageController.text =
+        toDefault ? '40' : (settings.tciAge?.toString() ?? '40');
+    heightController.text =
+        toDefault ? '170' : (settings.tciHeight?.toString() ?? '170');
+    weightController.text =
+        toDefault ? '70' : (settings.tciWeight?.toString() ?? '70');
 
     final model = _getModelForDrug(_selectedDrug);
     final targetProps = model.getTargetProperties(_selectedDrug);
@@ -254,10 +251,12 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     if (age != null && (age < model.minAge || age > model.maxAge)) {
       errors.add('Age ${model.minAge}-${model.maxAge}');
     }
-    if (height != null && (height < model.minHeight || height > model.maxHeight)) {
+    if (height != null &&
+        (height < model.minHeight || height > model.maxHeight)) {
       errors.add('Height ${model.minHeight}-${model.maxHeight} cm');
     }
-    if (weight != null && (weight < model.minWeight || weight > model.maxWeight)) {
+    if (weight != null &&
+        (weight < model.minWeight || weight > model.maxWeight)) {
       errors.add('Weight ${model.minWeight}-${model.maxWeight} kg');
     }
     if (target != null) {
@@ -288,10 +287,12 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
       child: errors.isEmpty
           ? const SizedBox.shrink()
           : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: kSp16, vertical: 8),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: kSp16, vertical: 8),
               child: Text(
                 errors.first,
-                style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.error, fontSize: 12),
               ),
             ),
     );
@@ -326,13 +327,16 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
                   prefixIcon: _selectedDrug?.icon,
                   labelText: AppLocalizations.of(context)!.drug,
                   onItemSelected: (drug) {
-                    final actualDrug = settings.getCurrentDrugVariant(drug.displayName);
+                    final actualDrug =
+                        settings.getCurrentDrugVariant(drug.displayName);
                     // Save current target before switching
                     if (_selectedDrug != null) {
-                      final currentTarget = double.tryParse(targetController.text);
+                      final currentTarget =
+                          double.tryParse(targetController.text);
                       if (currentTarget != null) {
                         settings.setTciDrugTarget(
-                          settings.getCurrentDrugVariant(_selectedDrug!.displayName),
+                          settings.getCurrentDrugVariant(
+                              _selectedDrug!.displayName),
                           currentTarget,
                         );
                       }
@@ -539,7 +543,8 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
           ? theme.colorScheme.errorContainer.withValues(alpha: 0.5)
           : null;
       return Chip(
-        avatar: Icon(hasError ? Icons.error_outline : icon, size: 16, color: chipColor),
+        avatar: Icon(hasError ? Icons.error_outline : icon,
+            size: 16, color: chipColor),
         label: Text(isEmpty ? emptyLabel : displayValue,
             style: TextStyle(fontSize: 11, color: chipColor)),
         visualDensity: VisualDensity.compact,
@@ -577,8 +582,8 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
         ),
         Chip(
           avatar: Icon(_sexValue ? Icons.female : Icons.male, size: 16),
-          label: Text(_sexValue ? 'F' : 'M',
-              style: const TextStyle(fontSize: 11)),
+          label:
+              Text(_sexValue ? 'F' : 'M', style: const TextStyle(fontSize: 11)),
           visualDensity: VisualDensity.compact,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -629,7 +634,8 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
         padding: const EdgeInsets.symmetric(horizontal: kSp12),
         child: Row(
           children: [
-            Icon(Icons.access_time, size: 20, color: theme.colorScheme.onSurfaceVariant),
+            Icon(Icons.access_time,
+                size: 20, color: theme.colorScheme.onSurfaceVariant),
             const SizedBox(width: kSp8),
             Expanded(
               child: Text(
@@ -761,7 +767,9 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     final isMale = !_sexValue;
     final model = _currentModel;
     final resolvedDrug = _selectedDrug != null
-        ? context.read<Settings>().getCurrentDrugVariant(_selectedDrug!.displayName)
+        ? context
+            .read<Settings>()
+            .getCurrentDrugVariant(_selectedDrug!.displayName)
         : null;
 
     return Wrap(
@@ -769,8 +777,8 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
       runSpacing: 8,
       children: [
         Chip(
-          avatar: Icon(isMale ? Icons.male : Icons.female, size: 18,
-              color: isMale ? Colors.blue : Colors.pink),
+          avatar: Icon(isMale ? Icons.male : Icons.female,
+              size: 18, color: isMale ? Colors.blue : Colors.pink),
           label: Text(isMale ? 'Male' : 'Female',
               style: const TextStyle(fontSize: 13)),
           visualDensity: VisualDensity.compact,
@@ -793,16 +801,15 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
           visualDensity: VisualDensity.compact,
         ),
         Chip(
-          avatar: Icon(resolvedDrug?.icon ?? Symbols.medication, size: 18,
-              color: resolvedDrug?.getColor(context)),
+          avatar: Icon(resolvedDrug?.icon ?? Symbols.medication,
+              size: 18, color: resolvedDrug?.getColor(context)),
           label: Text(resolvedDrug?.displayWithConcentration ?? 'Drug',
               style: const TextStyle(fontSize: 13)),
           visualDensity: VisualDensity.compact,
         ),
         Chip(
           avatar: const Icon(Icons.model_training, size: 18),
-          label: Text(model.toString(),
-              style: const TextStyle(fontSize: 13)),
+          label: Text(model.toString(), style: const TextStyle(fontSize: 13)),
           visualDensity: VisualDensity.compact,
         ),
         Chip(
@@ -823,41 +830,46 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
         ? data.totalBolus.toStringAsFixed(1)
         : data.totalBolus.toStringAsFixed(0);
     final maxRate = data.maxInfusionRate;
-    final maxRateStr = maxRate >= 10
-        ? maxRate.toStringAsFixed(0)
-        : maxRate.toStringAsFixed(1);
+    final maxRateStr =
+        maxRate >= 10 ? maxRate.toStringAsFixed(0) : maxRate.toStringAsFixed(1);
 
     return Row(
       children: [
-        _buildStatCard(
-            'Bolus', '$bolusVal mL', Icons.medication_liquid, theme.colorScheme.primary, compact: compact),
+        _buildStatCard('Bolus', '$bolusVal mL', Icons.medication_liquid,
+            theme.colorScheme.primary,
+            compact: compact),
         const SizedBox(width: kSp8),
-        _buildStatCard(
-            'Max Rate', '$maxRateStr mL/hr', Icons.speed, theme.colorScheme.tertiary, compact: compact),
+        _buildStatCard('Max Rate', '$maxRateStr mL/hr', Icons.speed,
+            theme.colorScheme.tertiary,
+            compact: compact),
         const SizedBox(width: kSp8),
-        _buildStatCard(
-            'Total', '${data.totalVolume.toStringAsFixed(1)} mL',
-            Icons.water_drop, theme.colorScheme.secondary, compact: compact),
+        _buildStatCard('Total', '${data.totalVolume.toStringAsFixed(1)} mL',
+            Icons.water_drop, theme.colorScheme.secondary,
+            compact: compact),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color accentColor, {bool compact = false}) {
+  Widget _buildStatCard(
+      String label, String value, IconData icon, Color accentColor,
+      {bool compact = false}) {
     return Expanded(
       child: Card(
         elevation: 1,
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(kRadius)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(kRadius)),
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: compact ? 8 : 10, horizontal: compact ? 8 : 8),
+          padding: EdgeInsets.symmetric(
+              vertical: compact ? 8 : 10, horizontal: compact ? 8 : 8),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Icon(icon, size: compact ? 14 : 18, color: accentColor),
             const SizedBox(height: kSp4),
             Text(label,
                 style: TextStyle(
-                    fontSize: 10,
-                    color: Theme.of(context).colorScheme.outline),
-                maxLines: 1, overflow: TextOverflow.ellipsis),
+                    fontSize: 10, color: Theme.of(context).colorScheme.outline),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
             const SizedBox(height: kSp2),
             FittedBox(
               fit: BoxFit.scaleDown,
@@ -873,7 +885,134 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     );
   }
 
-  Widget _buildResults(InfusionRegimeData data, Settings settings, {bool showChips = true, bool showChart = true}) {
+  Widget _buildEmptyResultsState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.timeline,
+            size: 48,
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Enter patient details to see results',
+            style: TextStyle(color: Theme.of(context).colorScheme.outline),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopContextSection(InfusionRegimeData data) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          flex: 3,
+          child: Card(
+            elevation: 1,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(kRadius)),
+            child: Padding(
+              padding: const EdgeInsets.all(kSp12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Rate (mL/hr)',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const SizedBox(height: kSp8),
+                  Expanded(
+                    child: InfusionRateChart(
+                      data: data,
+                      startTime: _startTime,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: kSp12),
+        Expanded(
+          flex: 2,
+          child: Card(
+            elevation: 1,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(kRadius)),
+            child: Padding(
+              padding: const EdgeInsets.all(kSp12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Patient / model',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const SizedBox(height: kSp8),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: _buildPatientChips(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTableSection(
+    InfusionRegimeData data,
+    Settings settings, {
+    required int maxVisibleRows,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_isTableSynced && data.rows.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: LinearProgressIndicator(
+              value: ((_syncedRowIndex ?? 0) + 1) / data.rows.length,
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+            ),
+          ),
+        ],
+        DosageDataTable(
+          data: data,
+          maxVisibleRows: maxVisibleRows,
+          selectedRowIndex: settings.selectedDosageTableRow,
+          onRowTap: (index) {
+            setState(() => _syncedRowIndex = index);
+          },
+          scrollController: tableScrollController,
+          startTime: _startTime,
+          syncedRowIndex: _syncedRowIndex,
+          isSynced: _isTableSynced,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResults(InfusionRegimeData data, Settings settings,
+      {bool showChips = true, bool showChart = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -881,7 +1020,8 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
           _buildPatientChips(),
           const SizedBox(height: kSp12),
         ],
-        _buildDashboardCards(data, compact: ResponsiveHelper.shouldUseMobileLayout(context)),
+        _buildDashboardCards(data,
+            compact: ResponsiveHelper.shouldUseMobileLayout(context)),
         const SizedBox(height: kSp12),
         if (showChart) ...[
           Padding(
@@ -889,10 +1029,10 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
             child: Text(
               'Rate (mL/hr)',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
+                    color: Theme.of(context).colorScheme.outline,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
           SizedBox(
@@ -909,13 +1049,15 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
             padding: const EdgeInsets.only(bottom: 8),
             child: LinearProgressIndicator(
               value: ((_syncedRowIndex ?? 0) + 1) / data.rows.length,
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
             ),
           ),
         ],
         DosageDataTable(
           data: data,
-          maxVisibleRows: ResponsiveHelper.shouldUseMobileLayout(context) ? 99 : 8,
+          maxVisibleRows:
+              ResponsiveHelper.shouldUseMobileLayout(context) ? 99 : 8,
           selectedRowIndex: settings.selectedDosageTableRow,
           onRowTap: (index) {
             setState(() => _syncedRowIndex = index);
@@ -953,7 +1095,9 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
                           children: [
                             Icon(Icons.timeline,
                                 size: 48,
-                                color: Theme.of(context).colorScheme.outlineVariant),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outlineVariant),
                             const SizedBox(height: 8),
                             Text(
                               'Enter patient details to see results',
@@ -991,7 +1135,8 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
                     top: 12,
                   ),
                   child: infusionRegimeData != null
-                      ? _buildResults(infusionRegimeData!, settings, showChips: false, showChart: false)
+                      ? _buildResults(infusionRegimeData!, settings,
+                          showChips: false, showChart: false)
                       : SizedBox(
                           height: constraints.maxHeight - 100,
                           child: Center(
@@ -1052,7 +1197,8 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
   @override
   Widget build(BuildContext context) {
     final isDesktopLayout = ResponsiveHelper.isDesktop(context);
-    final isTabletLayout = ResponsiveHelper.isTablet(context) && !isDesktopLayout;
+    final isTabletLayout =
+        ResponsiveHelper.isTablet(context) && !isDesktopLayout;
 
     final settings = context.watch<Settings>();
 
