@@ -18,8 +18,12 @@ Future<void> _pumpTciScreen(
   required Size surfaceSize,
 }) async {
   final settings = await _settings();
-  await tester.binding.setSurfaceSize(surfaceSize);
-  addTearDown(() => tester.binding.setSurfaceSize(null));
+  tester.view.devicePixelRatio = 1.0;
+  tester.view.physicalSize = surfaceSize;
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
 
   await tester.pumpWidget(
     ChangeNotifierProvider<Settings>.value(
@@ -39,9 +43,12 @@ void main() {
       (tester) async {
     await _pumpTciScreen(tester, surfaceSize: const Size(1200, 800));
 
-    expect(find.byKey(const ValueKey('tci-new-desktop-workstation')), findsOneWidget);
-    expect(find.byKey(const ValueKey('tci-new-desktop-results-area')), findsOneWidget);
-    expect(find.byKey(const ValueKey('tci-new-desktop-input-rail')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tci-new-desktop-workstation')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('tci-new-desktop-results-area')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('tci-new-desktop-input-rail')),
+        findsOneWidget);
     expect(find.byKey(const ValueKey('tci-new-mobile-flow')), findsNothing);
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.byType(NavigationRail), findsNothing);
@@ -53,9 +60,12 @@ void main() {
     await _pumpTciScreen(tester, surfaceSize: const Size(390, 844));
 
     expect(find.byKey(const ValueKey('tci-new-mobile-flow')), findsOneWidget);
-    expect(find.byKey(const ValueKey('tci-new-mobile-results-area')), findsOneWidget);
-    expect(find.byKey(const ValueKey('tci-new-mobile-input-sheet')), findsOneWidget);
-    expect(find.byKey(const ValueKey('tci-new-desktop-workstation')), findsNothing);
+    expect(find.byKey(const ValueKey('tci-new-mobile-results-area')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('tci-new-mobile-input-sheet')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('tci-new-desktop-workstation')),
+        findsNothing);
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.byType(NavigationRail), findsNothing);
     expect(find.textContaining('Propofol'), findsWidgets);
