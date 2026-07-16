@@ -1073,48 +1073,66 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
 
   // ── Layouts ──────────────────────────────────────────────────
 
+  Widget _buildDesktopResults(InfusionRegimeData data, Settings settings) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildDashboardCards(data),
+        const SizedBox(height: kSp12),
+        SizedBox(
+          height: 250,
+          child: _buildDesktopContextSection(data),
+        ),
+        const SizedBox(height: kSp12),
+        Expanded(
+          child: Card(
+            elevation: 1,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(kRadius)),
+            child: Padding(
+              padding: const EdgeInsets.all(kSp12),
+              child: SingleChildScrollView(
+                child: _buildTableSection(data, settings, maxVisibleRows: 8),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildDesktopLayout(Settings settings) {
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.only(
           left: horizontalSidesPaddingPixel,
           right: horizontalSidesPaddingPixel,
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+          top: kSp12,
+          bottom: MediaQuery.of(context).viewInsets.bottom + kSp12,
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(top: 12),
-                child: infusionRegimeData != null
-                    ? _buildResults(infusionRegimeData!, settings)
-                    : Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.timeline,
-                                size: 48,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .outlineVariant),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Enter patient details to see results',
-                              style: TextStyle(
-                                  color: Theme.of(context).colorScheme.outline),
-                            ),
-                          ],
-                        ),
-                      ),
-              ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1280),
+            child: Row(
+              key: const ValueKey('tci-new-desktop-workstation'),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  key: const ValueKey('tci-new-desktop-results-area'),
+                  child: infusionRegimeData != null
+                      ? _buildDesktopResults(infusionRegimeData!, settings)
+                      : _buildEmptyResultsState(),
+                ),
+                const SizedBox(width: kSp12),
+                SizedBox(
+                  key: const ValueKey('tci-new-desktop-input-rail'),
+                  width: 393,
+                  child: _buildInputPanel(settings),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            SizedBox(
-              width: 393,
-              child: _buildInputPanel(settings),
-            ),
-          ],
+          ),
         ),
       ),
     );
