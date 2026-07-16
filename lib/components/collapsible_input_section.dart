@@ -3,18 +3,21 @@ import '../config/design_tokens.dart';
 
 class CollapsibleInputSection extends StatefulWidget {
   final Widget child;
+  final List<Widget>? collapsedChips;
   final List<List<Widget>>? collapsedChipRows;
   final ValueChanged<bool>? onCollapsedChanged;
 
   const CollapsibleInputSection({
     super.key,
     required this.child,
+    this.collapsedChips,
     this.collapsedChipRows,
     this.onCollapsedChanged,
   });
 
   @override
-  State<CollapsibleInputSection> createState() => _CollapsibleInputSectionState();
+  State<CollapsibleInputSection> createState() =>
+      _CollapsibleInputSectionState();
 }
 
 class _CollapsibleInputSectionState extends State<CollapsibleInputSection> {
@@ -23,6 +26,8 @@ class _CollapsibleInputSectionState extends State<CollapsibleInputSection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final collapsedChipRows = widget.collapsedChipRows ??
+        (widget.collapsedChips == null ? null : [widget.collapsedChips!]);
 
     return GestureDetector(
       onVerticalDragEnd: (details) {
@@ -57,7 +62,8 @@ class _CollapsibleInputSectionState extends State<CollapsibleInputSection> {
                   width: 32,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                    color: theme.colorScheme.onSurfaceVariant
+                        .withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -66,13 +72,14 @@ class _CollapsibleInputSectionState extends State<CollapsibleInputSection> {
             AnimatedOpacity(
               duration: const Duration(milliseconds: 150),
               opacity: _isCollapsed ? 1.0 : 0.0,
-              child: _isCollapsed && widget.collapsedChipRows != null
+              child: _isCollapsed && collapsedChipRows != null
                   ? Padding(
-                      padding: const EdgeInsets.only(left: kSp16, right: kSp16, bottom: kSp8),
+                      padding: const EdgeInsets.only(
+                          left: kSp16, right: kSp16, bottom: kSp8),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: widget.collapsedChipRows!.map((row) {
+                        children: collapsedChipRows.map((row) {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: Wrap(
@@ -90,9 +97,7 @@ class _CollapsibleInputSectionState extends State<CollapsibleInputSection> {
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
               alignment: Alignment.bottomCenter,
-              child: _isCollapsed
-                  ? const SizedBox(height: 0)
-                  : widget.child,
+              child: _isCollapsed ? const SizedBox(height: 0) : widget.child,
             ),
           ],
         ),
