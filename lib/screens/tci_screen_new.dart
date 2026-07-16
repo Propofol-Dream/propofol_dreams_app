@@ -1157,51 +1157,55 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     );
   }
 
+  Widget _buildMobileResults(InfusionRegimeData data, Settings settings) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildDashboardCards(data, compact: true),
+        const SizedBox(height: kSp12),
+        Card(
+          elevation: 1,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(kRadius)),
+          child: Padding(
+            padding: const EdgeInsets.all(kSp8),
+            child: _buildTableSection(data, settings, maxVisibleRows: 99),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildMobileLayout(Settings settings) {
     return Scaffold(
+      key: const ValueKey('tci-new-mobile-flow'),
       resizeToAvoidBottomInset: true,
       body: Column(
         children: [
           Expanded(
+            key: const ValueKey('tci-new-mobile-results-area'),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return SingleChildScrollView(
                   padding: EdgeInsets.only(
                     left: horizontalSidesPaddingPixel,
                     right: horizontalSidesPaddingPixel,
-                    top: 12,
+                    top: kSp12,
+                    bottom: kSp12,
                   ),
                   child: infusionRegimeData != null
-                      ? _buildResults(infusionRegimeData!, settings,
-                          showChips: false, showChart: false)
+                      ? _buildMobileResults(infusionRegimeData!, settings)
                       : SizedBox(
                           height: constraints.maxHeight - 100,
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.timeline,
-                                    size: 48,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .outlineVariant),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Enter patient details to see results',
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .outline),
-                                ),
-                              ],
-                            ),
-                          ),
+                          child: _buildEmptyResultsState(),
                         ),
                 );
               },
             ),
           ),
           SafeArea(
+            key: const ValueKey('tci-new-mobile-input-sheet'),
             top: false,
             child: _buildInputPanel(settings),
           ),
