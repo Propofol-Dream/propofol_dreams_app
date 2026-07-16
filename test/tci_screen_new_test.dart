@@ -38,6 +38,10 @@ Future<void> _pumpTciScreen(
   await tester.pumpAndSettle();
 }
 
+Finder _textFieldWithLabel(String label) => find.byWidgetPredicate(
+      (widget) => widget is TextField && widget.decoration?.labelText == label,
+    );
+
 void main() {
   testWidgets('TCIScreenNew renders desktop workstation independently',
       (tester) async {
@@ -99,6 +103,13 @@ void main() {
         lessThan(tester.getTopLeft(demographics).dy));
     expect(tester.getTopLeft(demographics).dy,
         lessThan(tester.getTopLeft(size).dy));
+
+    final weight = _textFieldWithLabel('Weight');
+    final height = _textFieldWithLabel('Height');
+    expect(weight, findsOneWidget);
+    expect(height, findsOneWidget);
+    expect(
+        tester.getTopLeft(weight).dx, lessThan(tester.getTopLeft(height).dx));
   });
 
   testWidgets('TCIScreenNew shows CeT above table and eBIS below table',
@@ -133,5 +144,20 @@ void main() {
         findsOneWidget);
     expect(find.text('Sync Time'), findsOneWidget);
     expect(find.text('Clear Sync'), findsOneWidget);
+  });
+
+  testWidgets('TCIScreenNew clears sync panel when recalculation is invalid',
+      (tester) async {
+    await _pumpTciScreen(tester, surfaceSize: const Size(1200, 800));
+
+    await tester.tap(find.byKey(const ValueKey('tci-new-table-card')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('tci-new-sync-panel')), findsOneWidget);
+
+    await tester.enterText(_textFieldWithLabel('Age'), '999');
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('tci-new-sync-panel')), findsNothing);
   });
 }

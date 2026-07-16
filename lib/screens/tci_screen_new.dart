@@ -133,6 +133,14 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
 
   Model _getModelForDrug(Drug? drug) => TCIScreenNew.modelForDrug(drug);
 
+  void _clearSyncState() {
+    _isTableSynced = false;
+    _syncedRowIndex = null;
+    _syncedClockTime = null;
+    syncHourController.clear();
+    syncMinuteController.clear();
+  }
+
   void calculate() {
     if (_isCalculating) return;
     _isCalculating = true;
@@ -209,11 +217,7 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
         );
 
         setState(() {
-          _isTableSynced = false;
-          _syncedRowIndex = null;
-          _syncedClockTime = null;
-          syncHourController.clear();
-          syncMinuteController.clear();
+          _clearSyncState();
           infusionRegimeData = nextData;
           _effectSiteConcentrationsByRow = sampledCe;
           _bisEstimatesByRow = sampledBis;
@@ -228,6 +232,7 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
             'Model: ${selectedModel} · Drug: ${resolvedDrug?.displayName ?? '—'} $concStr $unit · Pump: ${settings.max_pump_rate} mL/hr';
       } else {
         setState(() {
+          _clearSyncState();
           infusionRegimeData = null;
           _effectSiteConcentrationsByRow = const [];
           _bisEstimatesByRow = const [];
@@ -490,12 +495,28 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
           ),
         ),
         const SizedBox(height: kSp12),
-        // Height + Weight
+        // Weight + Height
         Padding(
           key: const ValueKey('tci-new-size-row'),
           padding: const EdgeInsets.symmetric(horizontal: kSp16),
           child: Row(
             children: [
+              Expanded(
+                child: PKField(
+                  labelText: AppLocalizations.of(context)!.weight,
+                  prefixIcon: Icons.monitor_weight_outlined,
+                  interval: 1.0,
+                  fractionDigits: 0,
+                  controller: weightController,
+                  range: [model.minWeight, model.maxWeight],
+                  onChanged: () {
+                    timer.cancel();
+                    timer = Timer(_debounceDelay, calculate);
+                  },
+                  hasError: errors.isNotEmpty,
+                ),
+              ),
+              const SizedBox(width: kSp12),
               Expanded(
                 child: PKField(
                   labelText: AppLocalizations.of(context)!.height,
@@ -509,22 +530,6 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
                     timer = Timer(_debounceDelay, calculate);
                   },
                   enabled: heightEnabled,
-                  hasError: errors.isNotEmpty,
-                ),
-              ),
-              const SizedBox(width: kSp12),
-              Expanded(
-                child: PKField(
-                  labelText: AppLocalizations.of(context)!.weight,
-                  prefixIcon: Icons.monitor_weight_outlined,
-                  interval: 1.0,
-                  fractionDigits: 0,
-                  controller: weightController,
-                  range: [model.minWeight, model.maxWeight],
-                  onChanged: () {
-                    timer.cancel();
-                    timer = Timer(_debounceDelay, calculate);
-                  },
                   hasError: errors.isNotEmpty,
                 ),
               ),
