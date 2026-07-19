@@ -740,23 +740,17 @@ class DosageDataTable extends StatelessWidget {
             children: [
               _buildBolusRow(context),
               _buildHeader(context),
-              SizedBox(
-                height: bodyHeight.toDouble(),
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: data.rows.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final row = entry.value;
-                      final isFirstRow = index == 0;
-                      final isSelected = selectedRowIndex == index;
-                      return _buildDataRow(
-                          context, row, isFirstRow, isSelected, index);
-                    }).toList(),
-                  ),
-                ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: data.rows.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final row = entry.value;
+                  final isFirstRow = index == 0;
+                  final isSelected = selectedRowIndex == index;
+                  return _buildDataRow(
+                      context, row, isFirstRow, isSelected, index);
+                }).toList(),
               ),
             ],
           );
