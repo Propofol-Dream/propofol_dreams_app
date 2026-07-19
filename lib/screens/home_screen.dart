@@ -203,10 +203,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     children: [
                       const Spacer(),
-                      Text(
-                        appVersion,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                      FutureBuilder<String>(
+                        future: appVersionFuture,
+                        initialData: '',
+                        builder: (context, snapshot) => Text(
+                          snapshot.data ?? '',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ],
@@ -229,7 +233,8 @@ class _HomeScreenState extends State<HomeScreen> {
       color: theme.colorScheme.surfaceContainerHighest,
       child: Row(
         children: [
-          Icon(Icons.info_outline, size: 14, color: theme.colorScheme.onSurfaceVariant),
+          Icon(Icons.info_outline,
+              size: 14, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(width: 8),
           Text(
             info,
@@ -238,10 +243,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const Spacer(),
-          Text(
-            appVersion,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          FutureBuilder<String>(
+            future: appVersionFuture,
+            initialData: '',
+            builder: (context, snapshot) => Text(
+              snapshot.data ?? '',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],

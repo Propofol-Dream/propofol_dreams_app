@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 const numOfDigits = 0;
 
@@ -23,7 +24,6 @@ const MaterialColor PDLightGreen = MaterialColor(0xFF006C50, colorPDLightGreen);
 
 const MaterialColor PDDarkGreen = MaterialColor(0xFF66DBB2, colorPDLightGreen);
 
-
 const Map<int, Color> colorPDLightNavy = {
   50: Color.fromRGBO(63, 99, 117, .1),
   100: Color.fromRGBO(63, 99, 117, .2),
@@ -36,7 +36,6 @@ const Map<int, Color> colorPDLightNavy = {
   800: Color.fromRGBO(63, 99, 117, .9),
   900: Color.fromRGBO(63, 99, 117, 1),
 };
-
 
 const MaterialColor PDLightNavy = MaterialColor(0xFF3F6375, colorPDLightNavy);
 
@@ -54,7 +53,6 @@ const Map<int, Color> colorPDRed = {
 };
 
 const MaterialColor PDRed = MaterialColor(0xFFBA1B1B, colorPDRed);
-
 
 // var buttonHapticFeedback =  HapticFeedback.mediumImpact();
 
@@ -85,7 +83,9 @@ const int kButtonHeightTabletMax = screenBreakPoint2;
 
 const int kMaxHumanlyPossiblePushRate = 2400;
 
-const String appVersion = '3.0.9+131';
-
-
-
+/// App version, resolved at runtime from pubspec via package_info_plus.
+/// Use [appVersionString] in async contexts, or [appVersionFuture] with FutureBuilder.
+Future<String> get appVersionFuture async {
+  final info = await PackageInfo.fromPlatform();
+  return '${info.version}+${info.buildNumber}';
+}
