@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../constants.dart';
 import '../providers/settings.dart';
@@ -20,7 +21,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int currenIndex = 1;
-  late final Future<String> _appVersionFuture;
+  String _appVersion = '';
 
   List<Widget> _getScreens(Settings settings) {
     return [
@@ -35,9 +36,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _appVersionFuture = appVersionFuture;
     final settings = context.read<Settings>();
     _setControllersFromSettings(settings);
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _appVersion = '${info.version}+${info.buildNumber}';
+        });
+      }
+    } catch (_) {
+      // keep empty
+    }
   }
 
   void _setControllersFromSettings(Settings settings) {
@@ -205,14 +219,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     children: [
                       const Spacer(),
-                      FutureBuilder<String>(
-                        future: _appVersionFuture,
-                        initialData: '',
-                        builder: (context, snapshot) => Text(
-                          snapshot.data ?? '',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                      Text(
+                        _appVersion,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -245,14 +255,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const Spacer(),
-          FutureBuilder<String>(
-            future: _appVersionFuture,
-            initialData: '',
-            builder: (context, snapshot) => Text(
-              snapshot.data ?? '',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+          Text(
+            _appVersion,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],
