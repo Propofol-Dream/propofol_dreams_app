@@ -333,24 +333,38 @@ class DataTable extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildHeader(context),
-              SizedBox(
-                height: bodyHeight.toDouble(),
-                child: ListView.builder(
-                  controller: scrollController,
-                  physics: maxVisibleRows >= visibleRows.length
-                      ? const NeverScrollableScrollPhysics()
-                      : const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.zero,
-                  itemCount: visibleRows.length,
-                  itemBuilder: (context, index) {
-                    final row = visibleRows[index];
-                    final isFirstRow = index == 0;
-                    final isSelected = selectedRowIndex == index;
-                    return _buildDataRow(
-                        context, row, isFirstRow, isSelected, index);
-                  },
+              if (maxVisibleRows >= visibleRows.length)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (int index = 0; index < visibleRows.length; index++)
+                      _buildDataRow(
+                        context,
+                        visibleRows[index],
+                        index == 0,
+                        selectedRowIndex == index,
+                        index,
+                      ),
+                  ],
+                )
+              else
+                SizedBox(
+                  height: bodyHeight.toDouble(),
+                  child: ListView.builder(
+                    controller: scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    itemCount: visibleRows.length,
+                    itemBuilder: (context, index) {
+                      final row = visibleRows[index];
+                      final isFirstRow = index == 0;
+                      final isSelected = selectedRowIndex == index;
+                      return _buildDataRow(
+                          context, row, isFirstRow, isSelected, index);
+                    },
+                  ),
                 ),
-              ),
             ],
           );
         },

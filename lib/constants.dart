@@ -86,6 +86,10 @@ const int kMaxHumanlyPossiblePushRate = 2400;
 /// App version, resolved at runtime from pubspec via package_info_plus.
 /// Use [appVersionString] in async contexts, or [appVersionFuture] with FutureBuilder.
 Future<String> get appVersionFuture async {
-  final info = await PackageInfo.fromPlatform();
-  return '${info.version}+${info.buildNumber}';
+  try {
+    final info = await PackageInfo.fromPlatform();
+    return '${info.version}+${info.buildNumber}';
+  } catch (_) {
+    return '';
+  }
 }
