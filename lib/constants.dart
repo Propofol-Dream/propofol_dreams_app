@@ -85,7 +85,7 @@ const int kButtonHeightTabletMax = screenBreakPoint2;
 
 const int kMaxHumanlyPossiblePushRate = 2400;
 
-const String appVersion = '3.0.8+130';
+const String appVersion = '3.0.9+131';
 
 
 
