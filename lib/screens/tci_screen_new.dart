@@ -368,6 +368,12 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
     final age = int.tryParse(ageController.text);
     final heightEnabled = model.target != Target.Plasma;
     final sexEnabled = model.target != Target.Plasma;
+    final resolvedDrug = _selectedDrug != null
+        ? settings.getCurrentDrugVariant(_selectedDrug!.displayName)
+        : null;
+    final showEbis = resolvedDrug?.isPropofol == true &&
+        infusionRegimeData != null &&
+        _bisEstimatesByRow.isNotEmpty;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -399,8 +405,7 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
                   hasError: errors.isNotEmpty,
                 ),
               ),
-              if (infusionRegimeData != null &&
-                  _bisEstimatesByRow.isNotEmpty) ...[
+              if (showEbis) ...[
                 const SizedBox(width: kSp8),
                 SizedBox(
                   height: 48,
@@ -422,23 +427,32 @@ class _TCIScreenNewState extends State<TCIScreenNew> {
                           const BoxConstraints(minWidth: 0, minHeight: 0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(kRadius),
-                        borderSide:
-                            BorderSide(color: theme.colorScheme.outline),
+                        borderSide: BorderSide(
+                            color: theme.colorScheme.primary
+                                .withValues(alpha: 0.6),
+                            width: 1.5),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(kRadius),
-                        borderSide:
-                            BorderSide(color: theme.colorScheme.outline),
+                        borderSide: BorderSide(
+                            color: theme.colorScheme.primary
+                                .withValues(alpha: 0.6),
+                            width: 1.5),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(kRadius),
-                        borderSide:
-                            BorderSide(color: theme.colorScheme.outline),
+                        borderSide: BorderSide(
+                            color: theme.colorScheme.primary
+                                .withValues(alpha: 0.6),
+                            width: 1.5),
                       ),
                       filled: true,
-                      fillColor: theme.colorScheme.onPrimary,
+                      fillColor:
+                          theme.colorScheme.primary.withValues(alpha: 0.08),
                     ),
-                    style: TextStyle(color: theme.colorScheme.onSurface),
+                    style: TextStyle(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
               ],

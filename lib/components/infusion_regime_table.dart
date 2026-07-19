@@ -59,10 +59,10 @@ class InfusionTableRowData extends TableRowData {
 
   @override
   List<String> get values => [
-    formatBolusValue(row.bolus),
-    formatInfusionRateValue(row.infusionRate),
-    row.accumulatedVolume.toStringAsFixed(1),
-  ];
+        formatBolusValue(row.bolus),
+        formatInfusionRateValue(row.infusionRate),
+        row.accumulatedVolume.toStringAsFixed(1),
+      ];
 
   @override
   bool get isHighlighted => _isHighlighted;
@@ -76,7 +76,7 @@ class ConfidenceIntervalRowData extends TableRowData {
   final List<String> _values;
   final String? _highlightValue;
 
-  ConfidenceIntervalRowData(this._values, {String? highlightValue}) 
+  ConfidenceIntervalRowData(this._values, {String? highlightValue})
       : _highlightValue = highlightValue;
 
   @override
@@ -98,7 +98,8 @@ class DurationTableRowData extends TableRowData {
   @override
   final bool isHighlighted;
 
-  DurationTableRowData(this.volume, this.duration, {this.isHighlighted = false});
+  DurationTableRowData(this.volume, this.duration,
+      {this.isHighlighted = false});
 
   @override
   String get timeString => volume;
@@ -166,11 +167,12 @@ class AnimatedInfusionRegimeTable extends StatefulWidget {
   });
 
   @override
-  State<AnimatedInfusionRegimeTable> createState() => _AnimatedInfusionRegimeTableState();
+  State<AnimatedInfusionRegimeTable> createState() =>
+      _AnimatedInfusionRegimeTableState();
 }
 
-class _AnimatedInfusionRegimeTableState extends State<AnimatedInfusionRegimeTable>
-    with TickerProviderStateMixin {
+class _AnimatedInfusionRegimeTableState
+    extends State<AnimatedInfusionRegimeTable> with TickerProviderStateMixin {
   late AnimationController _mainController;
   late AnimationController _contentController;
   late Animation<double> _headerAnimation;
@@ -180,12 +182,12 @@ class _AnimatedInfusionRegimeTableState extends State<AnimatedInfusionRegimeTabl
   @override
   void initState() {
     super.initState();
-    
+
     _mainController = AnimationController(
       duration: const Duration(milliseconds: 200), // More snappy: 350 → 200
       vsync: this,
     );
-    
+
     _contentController = AnimationController(
       duration: const Duration(milliseconds: 150), // More snappy: 300 → 150
       vsync: this,
@@ -219,7 +221,8 @@ class _AnimatedInfusionRegimeTableState extends State<AnimatedInfusionRegimeTabl
       if (widget.isExpanded) {
         _mainController.forward();
         // Delay content animation slightly for staggered effect
-        Future.delayed(const Duration(milliseconds: 25), () { // Reduced: 50 → 25
+        Future.delayed(const Duration(milliseconds: 25), () {
+          // Reduced: 50 → 25
           if (mounted) _contentController.forward();
         });
       } else {
@@ -252,12 +255,13 @@ class _AnimatedInfusionRegimeTableState extends State<AnimatedInfusionRegimeTabl
         child: SlideTransition(
           position: _slideAnimation,
           child: ScaleTransition(
-            scale: Tween<double>(begin: 0.95, end: 1.0).animate(_contentAnimation),
+            scale:
+                Tween<double>(begin: 0.95, end: 1.0).animate(_contentAnimation),
             child: DataTable(
               data: tableData,
               headers: [
-                '${AppLocalizations.of(context)!.bolus} (mL)', 
-                '${AppLocalizations.of(context)!.rate} (mL/hr)', 
+                '${AppLocalizations.of(context)!.bolus} (mL)',
+                '${AppLocalizations.of(context)!.rate} (mL/hr)',
                 'Total (mL)'
               ],
               maxVisibleRows: widget.maxVisibleRows,
@@ -308,7 +312,8 @@ class DataTable extends StatelessWidget {
     final theme = Theme.of(context);
     final visibleRows = data;
     final rowHeight = 41.0;
-    final tableHeight = math.min(visibleRows.length, maxVisibleRows) * rowHeight;
+    final tableHeight =
+        math.min(visibleRows.length, maxVisibleRows) * rowHeight;
     const headerHeight = 42.0;
 
     return Container(
@@ -319,7 +324,8 @@ class DataTable extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final bodyHeight = constraints.hasBoundedHeight
-              ? math.min(tableHeight, math.max(0, constraints.maxHeight - headerHeight))
+              ? math.min(tableHeight,
+                  math.max(0, constraints.maxHeight - headerHeight))
               : tableHeight;
 
           return Column(
@@ -338,7 +344,8 @@ class DataTable extends StatelessWidget {
                     final row = visibleRows[index];
                     final isFirstRow = index == 0;
                     final isSelected = selectedRowIndex == index;
-                    return _buildDataRow(context, row, isFirstRow, isSelected, index);
+                    return _buildDataRow(
+                        context, row, isFirstRow, isSelected, index);
                   },
                 ),
               ),
@@ -379,12 +386,14 @@ class DataTable extends StatelessWidget {
           ...headers.asMap().entries.map((entry) {
             final index = entry.key;
             final header = entry.value;
-            
+
             return Expanded(
-              flex: headers.length == 3 ? [25, 30, 25][index] : 100 ~/ headers.length,
+              flex: headers.length == 3
+                  ? [25, 30, 25][index]
+                  : 100 ~/ headers.length,
               child: Text(
-                header, 
-                style: headerStyle, 
+                header,
+                style: headerStyle,
                 textAlign: TextAlign.end,
               ),
             );
@@ -394,16 +403,17 @@ class DataTable extends StatelessWidget {
     );
   }
 
-  Widget _buildDataRow(BuildContext context, TableRowData row, bool isFirstRow, bool isSelected, int index) {
+  Widget _buildDataRow(BuildContext context, TableRowData row, bool isFirstRow,
+      bool isSelected, int index) {
     final theme = Theme.of(context);
     final bodyStyle = theme.textTheme.bodyMedium?.copyWith(
       color: theme.colorScheme.onSurface,
     );
-    
+
     // Highlight selected row or special rows based on row data
     final backgroundColor = isSelected
         ? theme.colorScheme.primary.withValues(alpha: 0.1)
-        : row.isHighlighted 
+        : row.isHighlighted
             ? theme.colorScheme.primary.withValues(alpha: 0.04)
             : Colors.transparent;
 
@@ -418,7 +428,7 @@ class DataTable extends StatelessWidget {
           color: backgroundColor,
           border: Border(
             bottom: BorderSide(
-              color: theme.dividerColor.withValues(alpha: 0.3), 
+              color: theme.dividerColor.withValues(alpha: 0.3),
               width: 0.5,
             ),
           ),
@@ -442,11 +452,14 @@ class DataTable extends StatelessWidget {
             ...row.values.asMap().entries.map((entry) {
               final index = entry.key;
               final value = entry.value;
-              final isHighlighted = row.highlightedValue != null && row.highlightedValue == value;
-              
+              final isHighlighted =
+                  row.highlightedValue != null && row.highlightedValue == value;
+
               return Expanded(
-                flex: headers.length == 3 ? [25, 30, 25][index] : 100 ~/ headers.length,
-                child: isHighlighted 
+                flex: headers.length == 3
+                    ? [25, 30, 25][index]
+                    : 100 ~/ headers.length,
+                child: isHighlighted
                     ? Text(
                         value,
                         style: bodyStyle?.copyWith(
@@ -459,11 +472,12 @@ class DataTable extends StatelessWidget {
                         value,
                         style: bodyStyle?.copyWith(
                           fontWeight: FontWeight.normal,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.7),
                           fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                         textAlign: TextAlign.end,
-                       ),
+                      ),
               );
             }),
           ],
@@ -496,8 +510,8 @@ class InfusionRegimeTableCompact extends StatelessWidget {
     return DataTable(
       data: tableData,
       headers: [
-        '${AppLocalizations.of(context)!.bolus} (mL)', 
-        '${AppLocalizations.of(context)!.rate} (mL/hr)', 
+        '${AppLocalizations.of(context)!.bolus} (mL)',
+        '${AppLocalizations.of(context)!.rate} (mL/hr)',
         'Total (mL)'
       ],
       maxVisibleRows: maxRows,
@@ -533,12 +547,12 @@ class _AnimatedDosageTableState extends State<AnimatedDosageTable>
   @override
   void initState() {
     super.initState();
-    
+
     _mainController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    
+
     _contentController = AnimationController(
       duration: const Duration(milliseconds: 150),
       vsync: this,
@@ -602,7 +616,10 @@ class _AnimatedDosageTableState extends State<AnimatedDosageTable>
               color: Theme.of(context).colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -617,9 +634,9 @@ class _AnimatedDosageTableState extends State<AnimatedDosageTable>
                 Text(
                   'Bolus: ${formatBolusValue(widget.data.totalBolus)} mL',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w600,
-                  ),
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
               ],
             ),
@@ -632,10 +649,12 @@ class _AnimatedDosageTableState extends State<AnimatedDosageTable>
             child: SlideTransition(
               position: _slideAnimation,
               child: ScaleTransition(
-                scale: Tween<double>(begin: 0.95, end: 1.0).animate(_contentAnimation),
+                scale: Tween<double>(begin: 0.95, end: 1.0)
+                    .animate(_contentAnimation),
                 child: DosageDataTable(
                   data: widget.data,
-              maxVisibleRows: widget.isExpanded ? widget.maxVisibleRows : 0,                ),
+                  maxVisibleRows: widget.isExpanded ? widget.maxVisibleRows : 0,
+                ),
               ),
             ),
           ),
@@ -695,7 +714,8 @@ class DosageDataTable extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final bodyHeight = constraints.hasBoundedHeight
-              ? math.min(tableHeight, math.max(0, constraints.maxHeight - fixedRowsHeight))
+              ? math.min(tableHeight,
+                  math.max(0, constraints.maxHeight - fixedRowsHeight))
               : tableHeight;
 
           return Column(
@@ -716,7 +736,8 @@ class DosageDataTable extends StatelessWidget {
                       final row = entry.value;
                       final isFirstRow = index == 0;
                       final isSelected = selectedRowIndex == index;
-                      return _buildDataRow(context, row, isFirstRow, isSelected, index);
+                      return _buildDataRow(
+                          context, row, isFirstRow, isSelected, index);
                     }).toList(),
                   ),
                 ),
@@ -734,7 +755,7 @@ class DosageDataTable extends StatelessWidget {
       fontWeight: FontWeight.w600,
       color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
     );
-    
+
     // Style for bolus value - matches time value styling
     final bolusValueStyle = theme.textTheme.bodyMedium?.copyWith(
       fontWeight: FontWeight.w500,
@@ -743,7 +764,7 @@ class DosageDataTable extends StatelessWidget {
     );
 
     // Determine bolus value - show "-- mL" for models that don't support bolus
-    final bolusValue = data.totalBolus > 0.01 
+    final bolusValue = data.totalBolus > 0.01
         ? '${formatBolusValue(data.totalBolus)} mL'
         : '-- mL';
 
@@ -764,7 +785,8 @@ class DosageDataTable extends StatelessWidget {
           // Bolus label (30%)
           Expanded(
             flex: 30,
-            child: Text(AppLocalizations.of(context)!.bolus, style: headerStyle),
+            child:
+                Text(AppLocalizations.of(context)!.bolus, style: headerStyle),
           ),
           // Bolus value (70%) - matches time value styling
           Expanded(
@@ -806,8 +828,8 @@ class DosageDataTable extends StatelessWidget {
           Expanded(
             flex: 70,
             child: Text(
-              '${AppLocalizations.of(context)!.rate} (mL/hr)', 
-              style: headerStyle, 
+              '${AppLocalizations.of(context)!.rate} (mL/hr)',
+              style: headerStyle,
               textAlign: TextAlign.center,
             ),
           ),
@@ -816,7 +838,8 @@ class DosageDataTable extends StatelessWidget {
     );
   }
 
-  Widget _buildDataRow(BuildContext context, InfusionRegimeRow row, bool isFirstRow, bool isSelected, int index) {
+  Widget _buildDataRow(BuildContext context, InfusionRegimeRow row,
+      bool isFirstRow, bool isSelected, int index) {
     final theme = Theme.of(context);
     final bodyStyle = theme.textTheme.bodyMedium?.copyWith(
       color: theme.colorScheme.onSurface,
@@ -825,31 +848,32 @@ class DosageDataTable extends StatelessWidget {
     final bool isSyncAnchor = !isSynced && index == syncedRowIndex;
     final bool isPastRow = isSynced && index < (syncedRowIndex ?? 0);
     final bool isNowRow = isSynced && index == syncedRowIndex;
-    
-    final backgroundColor = isSelected 
+
+    final backgroundColor = isSelected
         ? theme.colorScheme.primary.withValues(alpha: 0.1)
         : isNowRow || isSyncAnchor
             ? theme.colorScheme.secondaryContainer
             : Colors.transparent;
 
-    final rateText = row.infusionRate < 0.1 
-        ? '\u2014'
-        : row.infusionRate.round().toString();
+    final rateText =
+        row.infusionRate < 0.1 ? '\u2014' : row.infusionRate.round().toString();
 
     String timeText;
     if (startTime != null) {
       final elapsedMinutes = row.time.inMinutes;
-      final totalMinutes = startTime!.hour * 60 + startTime!.minute + elapsedMinutes;
+      final totalMinutes =
+          startTime!.hour * 60 + startTime!.minute + elapsedMinutes;
       final clockMinutes = totalMinutes % (24 * 60);
       final h = clockMinutes ~/ 60;
       final m = clockMinutes % 60;
-      timeText = '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}';
+      timeText =
+          '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}';
     } else {
       timeText = row.timeString;
     }
 
     if (isNowRow) {
-      timeText += ' ◀ (now)';
+      timeText += ' ◀';
     }
 
     return Opacity(
@@ -865,7 +889,7 @@ class DosageDataTable extends StatelessWidget {
             color: backgroundColor,
             border: Border(
               bottom: BorderSide(
-                color: theme.dividerColor.withValues(alpha: 0.3), 
+                color: theme.dividerColor.withValues(alpha: 0.3),
                 width: 0.5,
               ),
             ),
@@ -959,22 +983,22 @@ class DurationDataTable extends StatelessWidget {
               Container(
                 height: calculatedHeight,
                 child: SingleChildScrollView(
-              controller: scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: rows.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final row = entry.value;
-                  final isSelected = selectedRowIndex == index;
-                  return _buildDataRow(context, row, isSelected, index);
-                }).toList(),
+                  controller: scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: rows.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final row = entry.value;
+                      final isSelected = selectedRowIndex == index;
+                      return _buildDataRow(context, row, isSelected, index);
+                    }).toList(),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
-      ),
+        ),
       ],
     );
   }
@@ -1028,8 +1052,8 @@ class DurationDataTable extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Duration', 
-                  style: headerStyle, 
+                  'Duration',
+                  style: headerStyle,
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -1040,14 +1064,15 @@ class DurationDataTable extends StatelessWidget {
     );
   }
 
-  Widget _buildDataRow(BuildContext context, DurationRowData row, bool isSelected, int index) {
+  Widget _buildDataRow(
+      BuildContext context, DurationRowData row, bool isSelected, int index) {
     final theme = Theme.of(context);
     final bodyStyle = theme.textTheme.bodyMedium?.copyWith(
       color: theme.colorScheme.onSurface,
     );
-    
+
     // Highlight selected row
-    final backgroundColor = isSelected 
+    final backgroundColor = isSelected
         ? theme.colorScheme.primary.withValues(alpha: 0.1)
         : Colors.transparent;
 
@@ -1060,9 +1085,8 @@ class DurationDataTable extends StatelessWidget {
           color: backgroundColor,
           border: Border(
             bottom: BorderSide(
-              color: theme.colorScheme.primary.withValues(alpha: 0.2), 
-              width: 0.5
-            ),
+                color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                width: 0.5),
           ),
         ),
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -1074,7 +1098,8 @@ class DurationDataTable extends StatelessWidget {
               child: Text(
                 '${row.volume} mL',
                 style: bodyStyle?.copyWith(
-                  fontWeight: row.isHighlighted ? FontWeight.bold : FontWeight.normal,
+                  fontWeight:
+                      row.isHighlighted ? FontWeight.bold : FontWeight.normal,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
@@ -1085,7 +1110,8 @@ class DurationDataTable extends StatelessWidget {
               child: Text(
                 formatDurationAsHoursMinutes(row.duration),
                 style: bodyStyle?.copyWith(
-                  fontWeight: row.isHighlighted ? FontWeight.bold : FontWeight.normal,
+                  fontWeight:
+                      row.isHighlighted ? FontWeight.bold : FontWeight.normal,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
                 textAlign: TextAlign.center,

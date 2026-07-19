@@ -43,7 +43,8 @@ class Simulation {
       weight: patient.weight,
       height: patient.height,
       age: patient.age,
-      drug: pump.drug, // Pass drug context for model-drug specific PK parameters
+      drug:
+          pump.drug, // Pass drug context for model-drug specific PK parameters
     );
 
     return params.toSimulationRecord();
@@ -64,7 +65,8 @@ class Simulation {
     for (Duration i = Duration.zero;
         i < const Duration(seconds: 100);
         i = i + testPump.timeStep) {
-      double maxInfusion = (testPump.concentration * testPump.maxPumpRate).toDouble();
+      double maxInfusion =
+          (testPump.concentration * testPump.maxPumpRate).toDouble();
       testPump.updatePumpInfusionSequence(at: i, pumpInfusion: maxInfusion);
     }
     // print('calibrate');
@@ -403,15 +405,16 @@ class Simulation {
           ? pumpInf * timeStep / 3600
           : cumulativeInfusedDosages.last + pumpInf * timeStep / 3600;
 
-      double cumulativeInfusedVolume = cumulativeInfusedDosage / pump.concentration;
+      double cumulativeInfusedVolume =
+          cumulativeInfusedDosage / pump.concentration;
 
-      double BISEstimate = concentrationEffect > ce50
+      double BISEstimate = target > ce50
           ? baselineBIS *
               (pow(ce50, 1.47)) /
-              (pow(ce50, 1.47) + pow(concentrationEffect, 1.47))
+              (pow(ce50, 1.47) + pow(target, 1.47))
           : baselineBIS *
               (pow(ce50, 1.89)) /
-              (pow(ce50, 1.89) + pow(concentrationEffect, 1.89));
+              (pow(ce50, 1.89) + pow(target, 1.89));
 
       steps.add(step);
       times.add(time);
