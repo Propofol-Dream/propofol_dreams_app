@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../constants.dart';
 import '../providers/settings.dart';
@@ -21,7 +20,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int currenIndex = 1;
-  String _appVersion = '';
 
   List<Widget> _getScreens(Settings settings) {
     return [
@@ -38,20 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     final settings = context.read<Settings>();
     _setControllersFromSettings(settings);
-    _loadVersion();
-  }
-
-  Future<void> _loadVersion() async {
-    try {
-      final info = await PackageInfo.fromPlatform();
-      if (mounted) {
-        setState(() {
-          _appVersion = '${info.version}+${info.buildNumber}';
-        });
-      }
-    } catch (_) {
-      // keep empty
-    }
   }
 
   void _setControllersFromSettings(Settings settings) {
@@ -220,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       const Spacer(),
                       Text(
-                        _appVersion,
+                        appVersion,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -256,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const Spacer(),
           Text(
-            _appVersion,
+            appVersion,
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

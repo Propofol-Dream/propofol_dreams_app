@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 const numOfDigits = 0;
 
@@ -83,13 +82,4 @@ const int kButtonHeightTabletMax = screenBreakPoint2;
 
 const int kMaxHumanlyPossiblePushRate = 2400;
 
-/// App version, resolved at runtime from pubspec via package_info_plus.
-/// Use [appVersionString] in async contexts, or [appVersionFuture] with FutureBuilder.
-Future<String> get appVersionFuture async {
-  try {
-    final info = await PackageInfo.fromPlatform();
-    return '${info.version}+${info.buildNumber}';
-  } catch (_) {
-    return '';
-  }
-}
+const String appVersion = '3.0.9+131';
