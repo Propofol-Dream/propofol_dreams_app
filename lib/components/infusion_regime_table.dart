@@ -895,6 +895,7 @@ class DosageDataTable extends StatelessWidget {
     return Opacity(
       opacity: isPastRow ? 0.3 : 1.0,
       child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
         onTap: () {
           if (onRowTap != null) {
             onRowTap!(index);
