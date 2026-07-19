@@ -337,7 +337,9 @@ class DataTable extends StatelessWidget {
                 height: bodyHeight.toDouble(),
                 child: ListView.builder(
                   controller: scrollController,
-                  physics: const AlwaysScrollableScrollPhysics(),
+                  physics: maxVisibleRows >= visibleRows.length
+                      ? const NeverScrollableScrollPhysics()
+                      : const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.zero,
                   itemCount: visibleRows.length,
                   itemBuilder: (context, index) {
