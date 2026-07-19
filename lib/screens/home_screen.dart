@@ -20,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int currenIndex = 1;
+  late final Future<String> _appVersionFuture;
 
   List<Widget> _getScreens(Settings settings) {
     return [
@@ -34,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _appVersionFuture = appVersionFuture;
     final settings = context.read<Settings>();
     _setControllersFromSettings(settings);
   }
@@ -204,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       const Spacer(),
                       FutureBuilder<String>(
-                        future: appVersionFuture,
+                        future: _appVersionFuture,
                         initialData: '',
                         builder: (context, snapshot) => Text(
                           snapshot.data ?? '',
@@ -244,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const Spacer(),
           FutureBuilder<String>(
-            future: appVersionFuture,
+            future: _appVersionFuture,
             initialData: '',
             builder: (context, snapshot) => Text(
               snapshot.data ?? '',
